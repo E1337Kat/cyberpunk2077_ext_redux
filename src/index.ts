@@ -64,6 +64,11 @@ function main(context: IExtensionContext) {
  * | | | | | |-📁 SomeMod
  * | | | | | | |- 📄 init.lua
  * | | | | | | |- Whatever structure the mod wants
+ * |-📁 engine
+ * | |-📁 config
+ * | | |-📁 platform
+ * | | | |-📁 pc
+ * | | | | |-📄 *.ini -- Typically loose files, no subdirs
  * |-📁 r6
  * | |-📁 config
  * | | |-📄 *.xml (68.2 kB)
@@ -86,6 +91,11 @@ const CET_SCRIPT_PATH = path.join(
   "cyber_engine_tweaks",
   "mods"
 );
+/**
+ *  The path where INI files should lay
+ */
+const INI_MOD_PATH = path.join( "engine", "config", "platform", "pc");
+const INI_MOD_EXT = ".ini"
 /**
  * The path where redscript files should lay
  */
@@ -138,6 +148,18 @@ const moddingTools = [
 // }
 
 /**
+ *
+ * @param file Full file path string to check
+ * @returns true if it looks like an INI mod file
+ *
+ * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
+ */
+function matchIniFile(file: string) {
+    return (path.extname(file).toLowerCase() === INI_MOD_EXT);
+}
+
+
+/**
  * Checks to see if the mod has any expected files in unexpected places
  * @param files list of files
  * @param gameId The internal game id
@@ -164,18 +186,24 @@ function modHasBadStructure(files: string[], gameId: string) {
       (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
     ) !== undefined;
   log("debug", "Probably archives: ", hasArchiveMod);
+
+  const hasIniMod =
+      files.some(matchIniFile);
+  log("debug", "Probably INI mods: ", hasIniMod);
+
   let hasRedScript =
     files.find(
       (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
     ) !== undefined;
   log("debug", "Possibly RedScripts: ", hasRedScript);
+
   let hasCetScript =
     files.find(
       (file: string) => path.extname(file).toLowerCase() === LUA_FILE_EXT
     ) !== undefined;
   log("debug", "Possible CET Scripts: ", hasCetScript);
 
-  if (hasArchiveMod || hasRedScript || hasCetScript) {
+  if (hasArchiveMod || hasIniMod || hasRedScript || hasCetScript) {
     let supported = true;
     log("info", "mod supported by this installer");
     return Promise.resolve({
@@ -222,6 +250,10 @@ function installWithCorrectedStructure(files: string[]) {
   } else {
     filteredArchives = [];
   }
+
+  // Gather any INI files
+  const iniModFiles =
+    files.filter(matchIniFile)
 
   // gather the RedScript files.
   let someRedscriptModFile = files.find(
@@ -275,6 +307,18 @@ function installWithCorrectedStructure(files: string[]) {
   });
   log("debug", "Installing archive files with: ", archiveFileInstructions);
 
+  log("info", "Correcting INI mod files: ", iniModFiles);
+    const iniModInstructions =
+      iniModFiles.map(file => {
+        return {
+          type: "copy",
+          source: file,
+          destination: path.join(INI_MOD_PATH, path.basename(file)),
+        };
+      });
+  log("debug", "Installing INI mod files with: ", iniModInstructions);
+
+
   log("info", "Correcting redscript mod files: ", filteredReds);
   let redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
@@ -295,7 +339,9 @@ function installWithCorrectedStructure(files: string[]) {
   //   );
   //   log("debug", "Installing everything else with: ", cetScriptInstructions);
 
-  let instructions = archiveFileInstructions.concat(
+  let instructions = [].concat(
+    archiveFileInstructions,
+    iniModInstructions,
     redScriptInstructions,
     cetScriptInstructions
     // everythingLeftOverInstructions
