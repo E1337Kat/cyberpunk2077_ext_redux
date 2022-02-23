@@ -117,25 +117,25 @@ const moddingTools = [
   },
 ];
 
-/**
- * Installs files as is
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-function installWithCorrectStructure(files) {
-  // Everything is placed in the correct structure, so just install it as is
-  // log('info', 'installing files for a game')
-  const instructions = files.map((file) => {
-    log("debug", "Installing file found on standard path: ", file);
-    return {
-      type: "copy",
-      source: file,
-      destination: path.join(file),
-    };
-  });
+// /**
+//  * Installs files as is
+//  * @param files a list of files to be installed
+//  * @returns a promise with an array detailing what files to install and how
+//  */
+// function installWithCorrectStructure(files: string[]) {
+//   // Everything is placed in the correct structure, so just install it as is
+//   // log('info', 'installing files for a game')
+//   const instructions = files.map((file: string) => {
+//     log("debug", "Installing file found on standard path: ", file);
+//     return {
+//       type: "copy",
+//       source: file,
+//       destination: path.join(file),
+//     };
+//   });
 
-  return Promise.resolve({ instructions });
-}
+//   return Promise.resolve({ instructions });
+// }
 
 /**
  * Checks to see if the mod has any expected files in unexpected places
@@ -143,8 +143,9 @@ function installWithCorrectStructure(files) {
  * @param gameId The internal game id
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
-function modHasBadStructure(files, gameId) {
+function modHasBadStructure(files: string[], gameId: string) {
   log("debug", "Checking Files: ", files);
+
   // Make sure we're able to support this mod.
   let correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
@@ -159,18 +160,20 @@ function modHasBadStructure(files, gameId) {
 
   // Make sure we're able to support this mod.
   let hasArchiveMod =
-    files.find((file) => path.extname(file).toLowerCase() === MOD_FILE_EXT) !==
-    undefined;
-  // log('debug', 'Probably archives: ', hasArchiveMod)
+    files.find(
+      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
+    ) !== undefined;
+  log("debug", "Probably archives: ", hasArchiveMod);
   let hasRedScript =
     files.find(
-      (file) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
+      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
     ) !== undefined;
-  // log('debug', 'Possibly RedScripts: ', hasRedScript)
+  log("debug", "Possibly RedScripts: ", hasRedScript);
   let hasCetScript =
-    files.find((file) => path.extname(file).toLowerCase() === LUA_FILE_EXT) !==
-    undefined;
-  // log('debug', 'Possible CET Scripts: ', hasCetScript)
+    files.find(
+      (file: string) => path.extname(file).toLowerCase() === LUA_FILE_EXT
+    ) !== undefined;
+  log("debug", "Possible CET Scripts: ", hasCetScript);
 
   if (hasArchiveMod || hasRedScript || hasCetScript) {
     let supported = true;
@@ -194,7 +197,7 @@ function modHasBadStructure(files, gameId) {
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-function installWithCorrectedStructure(files) {
+function installWithCorrectedStructure(files: string[]) {
   // I dunno, it's important
   let genericModName = "".concat(
     GAME_ID,
@@ -224,35 +227,48 @@ function installWithCorrectedStructure(files) {
       !filteredCet.includes(file);
   });
 
+//   let everythingElse = files.filter((file: string) => {
+//     !path.extname(file) &&
+//       !filteredArchives.includes(file) &&
+//       !filteredReds.includes(file) &&
+//       !filteredCet.includes(file);
+//   });
+
   // Set destination to be 'archive/pc/mod/[file].archive'
-  let archiveFileInstructions = filteredArchives.map((file) => {
-    log("info", "Correcting archive file found with a bad path: ", file);
+  log("info", "Correcting archive files: ", filteredArchives);
+  let archiveFileInstructions = filteredArchives.map((file: string) => {
     return {
       type: "copy",
       source: file,
       destination: path.join(ARCHIVE_MOD_PATH, path.basename(file)),
     };
   });
+  log("debug", "Installing archive files with: ", archiveFileInstructions);
 
+  log("info", "Correcting redscript mod files: ", filteredReds);
   let redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
     genericModName
   );
+  log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
+  log("info", "Correcting CET files: ", filteredCet);
   let cetScriptInstructions = cetScriptInstallationHelper(
     filteredCet,
     genericModName
   );
+  log("debug", "Installing CET files with: ", cetScriptInstructions);
 
-  let everythingLeftOverInstructions = genericFileInstallationHelper(
-    everythingElse,
-    genericModName
-  );
+//   let everythingLeftOverInstructions = genericFileInstallationHelper(
+//     everythingElse,
+//     genericModName
+//   );
+//   log("debug", "Installing everything else with: ", cetScriptInstructions);
 
   let instructions = archiveFileInstructions.concat(
     redScriptInstructions,
     cetScriptInstructions,
-    everythingLeftOverInstructions
+    // everythingLeftOverInstructions
   );
 
   return Promise.resolve({ instructions });
@@ -267,17 +283,17 @@ function installWithCorrectedStructure(files) {
  * @returns true if everything seems to be in order, false otherwise
  */
 function cleanPathOfType(
-  files,
-  file_type,
-  path_const,
-  needsOwnDirectory = false
+  files: string[],
+  file_type: string,
+  path_const: string,
+  needsOwnDirectory: boolean = false
 ) {
   let filesOfType = files.filter(
-    (file) => path.extname(file).toLowerCase() === file_type
+    (file: string) => path.extname(file).toLowerCase() === file_type
   );
 
   let cleanFiles = false;
-  filesOfType.forEach((file) => {
+  filesOfType.forEach((file: string) => {
     // let idx = file.indexOf(path.basename(file));
     let rootPath = path.dirname(file);
     log("debug", "File found on directory: ", rootPath);
@@ -304,30 +320,30 @@ function cleanPathOfType(
   return cleanFiles;
 }
 
-/**
- * A check with complex logic that I wanted pulled out of the main function
- * @param cleanArchive Whether the archive files are correct or not
- * @param cleanReds whether the redscript files are correct or not
- * @param cleanCet Whether the cet files are correct or not
- * @returns true when all files that need to be in the right place are in the right place, false otherwise
- */
-function complexCleanCheckLogic(cleanArchive, cleanReds, cleanCet) {
-  // At least one of the files needs to be defined, otherwise it can't be garunteed they are all okay or something.
-  if (
-    ((cleanArchive !== undefined && cleanArchive === true) ||
-      cleanArchive === undefined) &&
-    ((cleanReds !== undefined && cleanReds === true) ||
-      cleanReds === undefined) &&
-    ((cleanCet !== undefined && cleanCet === true) || cleanCet === undefined) &&
-    (cleanArchive !== undefined ||
-      cleanReds !== undefined ||
-      cleanCet !== undefined)
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-}
+// /**
+//  * A check with complex logic that I wanted pulled out of the main function
+//  * @param cleanArchive Whether the archive files are correct or not
+//  * @param cleanReds whether the redscript files are correct or not
+//  * @param cleanCet Whether the cet files are correct or not
+//  * @returns true when all files that need to be in the right place are in the right place, false otherwise
+//  */
+// function complexCleanCheckLogic(cleanArchive, cleanReds, cleanCet) {
+//   // At least one of the files needs to be defined, otherwise it can't be garunteed they are all okay or something.
+//   if (
+//     ((cleanArchive !== undefined && cleanArchive === true) ||
+//       cleanArchive === undefined) &&
+//     ((cleanReds !== undefined && cleanReds === true) ||
+//       cleanReds === undefined) &&
+//     ((cleanCet !== undefined && cleanCet === true) || cleanCet === undefined) &&
+//     (cleanArchive !== undefined ||
+//       cleanReds !== undefined ||
+//       cleanCet !== undefined)
+//   ) {
+//     return true;
+//   } else {
+//     return false;
+//   }
+// }
 
 /**
  * A helper for redscript files
@@ -335,11 +351,11 @@ function complexCleanCheckLogic(cleanArchive, cleanReds, cleanCet) {
  * @param genericModName a mod folder if everyhting is awful
  * @returns an array of instructions for the files
  */
-function redScriptInstallationHelper(redFiles, genericModName) {
+function redScriptInstallationHelper(redFiles: string[], genericModName: string) {
   let files = redFiles.filter((f) => !path.extname(f));
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  let normalizedFiltered = redFiles.map((file) => {
+  let normalizedFiltered = files.map((file: string) => {
     let maybeModInFolder = file.replace(REDSCRIPT_PATH, "");
     let parted = path.dirname(maybeModInFolder).split(path.sep);
     if (parted.length > 1) {
@@ -353,7 +369,7 @@ function redScriptInstallationHelper(redFiles, genericModName) {
   });
 
   // Set destination to be 'r6/scripts/ModFolder/[file].reds'
-  let instructions = normalizedFiltered.map((file) => {
+  let instructions = normalizedFiltered.map((file: string) => {
     log(
       "debug",
       "Correcting redscript file found with a bad path: ".concat(file)
@@ -374,9 +390,10 @@ function redScriptInstallationHelper(redFiles, genericModName) {
  * @param genericModName a mod folder if everyhting is awful
  * @returns an array of instructions for the files
  */
-function cetScriptInstallationHelper(cetFiles, genericModName) {
+function cetScriptInstallationHelper(cetFiles: string[], genericModName: string) {
+  let files = cetFiles.filter((f) => !path.extname(f));
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  let normalizedFiltered = cetFiles.map((file) => {
+  let normalizedFiltered = files.map((file: string) => {
     let maybeModInFolder = file.replace(CET_SCRIPT_PATH, "");
     let parted = path.dirname(maybeModInFolder).split(path.sep);
     if (parted.length > 1) {
@@ -390,8 +407,7 @@ function cetScriptInstallationHelper(cetFiles, genericModName) {
   });
 
   // Set destination to be 'r6/scripts/ModFolder/[file].reds'
-  let instructions = normalizedFiltered.map((file) => {
-    log("debug", "Correcting CET file found with a bad path: ".concat(file));
+  let instructions = normalizedFiltered.map((file: string) => {
     return {
       type: "copy",
       source: file,
@@ -402,70 +418,73 @@ function cetScriptInstallationHelper(cetFiles, genericModName) {
   return instructions;
 }
 
-/**
- * A helper for any other files
- * @param files any files
- * @param genericModName a mod folder if everyhting is awful
- * @returns an array of instructions for the files
- */
-function genericFileInstallationHelper(files, genericModName) {
-  // if the leftover file is under the archive path, we can ignore it as it is not an archive file and the game wouldn't load it
-  let filtered = files.filter((file) => {
-    !file.includes(ARCHIVE_MOD_PATH);
-  });
+// /**
+//  * A helper for any other files
+//  * @param files any files
+//  * @param genericModName a mod folder if everyhting is awful
+//  * @returns an array of instructions for the files
+//  */
+// function genericFileInstallationHelper(files: string[], genericModName: string) {
+//   files = files.filter((f) => !path.extname(f));
+//   // if the leftover file is under the archive path, we can ignore it as it is not an archive file and the game wouldn't load it
+//   let filtered = files.filter((file: string) => {
+//     !file.includes(ARCHIVE_MOD_PATH);
+//   });
 
-  // else if it is a part of the redscript or cet path, we should install it in same relative location as we do for those scripts
-  let cetFiles = files.filter((file) => {
-    file.includes(CET_SCRIPT_PATH);
-  });
-  let normalizedCET = cetFiles.map((file) => {
-    let maybeModInFolder = file.replace(CET_SCRIPT_PATH, "");
-    let parted = path.dirname(maybeModInFolder).split(path.sep);
-    if (parted.length > 1) {
-      return maybeModInFolder;
-    } else {
-      return path.join(CET_SCRIPT_PATH, genericModName, maybeModInFolder);
-    }
-  });
-  let redFiles = files.filter((file) => {
-    file.includes(REDSCRIPT_PATH);
-  });
-  let normalizedReds = redFiles.map((file) => {
-    let maybeModInFolder = file.replace(REDSCRIPT_PATH, "");
-    let parted = path.dirname(maybeModInFolder).split(path.sep);
-    if (parted.length > 1) {
-      return maybeModInFolder;
-    } else {
-      return path.join(REDSCRIPT_PATH, genericModName, maybeModInFolder);
-    }
-  });
+//   // else if it is a part of the redscript or cet path, we should install it in same relative location as we do for those scripts
+//   let cetFiles = files.filter((file: string) => {
+//     file.includes(CET_SCRIPT_PATH);
+//   });
+//   let normalizedCET = cetFiles.map((file: string) => {
+//     let maybeModInFolder = file.replace(CET_SCRIPT_PATH, "");
+//     let parted = path.dirname(maybeModInFolder).split(path.sep);
+//     if (parted.length > 1) {
+//       return maybeModInFolder;
+//     } else {
+//       return path.join(CET_SCRIPT_PATH, genericModName, maybeModInFolder);
+//     }
+//   });
+//   let redFiles = files.filter((file: string) => {
+//     file.includes(REDSCRIPT_PATH);
+//   });
+//   let normalizedReds = redFiles.map((file: string) => {
+//     let maybeModInFolder = file.replace(REDSCRIPT_PATH, "");
+//     let parted = path.dirname(maybeModInFolder).split(path.sep);
+//     if (parted.length > 1) {
+//       return maybeModInFolder;
+//     } else {
+//       return path.join(REDSCRIPT_PATH, genericModName, maybeModInFolder);
+//     }
+//   });
 
-  // otherwise, install it in same location that it is in in the archive, as it is likely already in the correct location
-  let leftOvers = filtered.filter((file) => {
-    !cetFiles.includes(file) && !redFiles.includes(file);
-  });
+//   // otherwise, install it in same location that it is in in the archive, as it is likely already in the correct location
+//   let leftOvers = filtered.filter((file: string) => {
+//     !cetFiles.includes(file) && !redFiles.includes(file);
+//   });
 
-  let rebuiltFiles = normalizedCET.concat(normalizedReds, leftOvers);
+//   let rebuiltFiles = normalizedCET.concat(normalizedReds, leftOvers);
 
-  let instructions = rebuiltFiles.map((file) => {
-    log(
-      "debug",
-      "Correcting Generic file found with a bad path: ".concat(file)
-    );
-    return {
-      type: "copy",
-      source: file,
-      destination: path.join(file),
-    };
-  });
+//   let instructions = rebuiltFiles.map((file: string) => {
+//     log(
+//       "debug",
+//       "Correcting Generic file found with a bad path: ".concat(file)
+//     );
+//     return {
+//       type: "copy",
+//       source: file,
+//       destination: path.join(file),
+//     };
+//   });
 
-  return instructions;
-}
+//   return instructions;
+// }
 
 export function findGame() {
-  return util.GameStoreHelper.findByAppId([STEAMAPP_ID.toString()]).then(
-    (game: IGameStoreEntry) => game.gamePath
-  );
+  return util.GameStoreHelper.findByAppId([
+    STEAMAPP_ID,
+    GOGAPP_ID,
+    EPICAPP_ID,
+  ]).then((game: IGameStoreEntry) => game.gamePath);
 }
 // function findGame() {
 //   try {
