@@ -228,7 +228,7 @@ function installWithCorrectedStructure(files: string[]) {
     (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
   );
   let filteredReds: string[];
-  if (someArchiveModFile !== undefined) {
+  if (someRedscriptModFile !== undefined) {
     let theRedscriptPathAsIs = path.dirname(someRedscriptModFile);
     filteredReds = files.filter((file: string) => {
       return (
@@ -245,7 +245,7 @@ function installWithCorrectedStructure(files: string[]) {
     (file: string) => path.basename(file).toLowerCase() === "init.lua"
   );
   let filteredCet: string[];
-  if (someArchiveModFile !== undefined) {
+  if (cetInitFile !== undefined) {
     let theCETModInitPath = path.dirname(cetInitFile);
     filteredCet = files.filter((file: string) => {
       return (
@@ -385,28 +385,17 @@ function redScriptInstallationHelper(
   redFiles: string[],
   genericModName: string
 ) {
-  let files = redFiles.filter((f) => !path.extname(f));
+  //   let files = redFiles.filter((f) => !path.extname(f));
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  let normalizedFiltered = files.map((file: string) => {
-    let maybeModInFolder = file.replace(REDSCRIPT_PATH, "");
-    let parted = path.dirname(maybeModInFolder).split(path.sep);
-    if (parted.length > 1) {
-      return maybeModInFolder;
-    } else {
-      // Something happened and it isn't even packed right at all??? How did we get here???
-      // Quick, just make something up about it!
-      // uhhhhhh...
-      return path.join(genericModName, maybeModInFolder);
-    }
+  let normalizedFiltered = redFiles.map((file: string) => {
+    return file.includes(REDSCRIPT_PATH)
+      ? file
+      : path.join(REDSCRIPT_PATH, file);
   });
 
   // Set destination to be 'r6/scripts/ModFolder/[file].reds'
   let instructions = normalizedFiltered.map((file: string) => {
-    log(
-      "debug",
-      "Correcting redscript file found with a bad path: ".concat(file)
-    );
     return {
       type: "copy",
       source: file,
@@ -427,27 +416,21 @@ function cetScriptInstallationHelper(
   cetFiles: string[],
   genericModName: string
 ) {
-  let files = cetFiles.filter((f) => !path.extname(f));
-  // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  let normalizedFiltered = files.map((file: string) => {
-    let maybeModInFolder = file.replace(CET_SCRIPT_PATH, "");
-    let parted = path.dirname(maybeModInFolder).split(path.sep);
-    if (parted.length > 1) {
-      return maybeModInFolder;
-    } else {
-      // Something happened and it isn't even packed right at all??? How did we get here???
-      // Quick, just make something up about it!
-      // uhhhhhh...
-      return path.join(genericModName, maybeModInFolder);
-    }
+  //   let files = cetFiles.filter((f) => !path.extname(f));
+  // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
+  // otherwise assume it is atleast in a folder, as required by CET projects
+  let normalizedFiltered = cetFiles.map((file: string) => {
+    return file.includes(CET_SCRIPT_PATH)
+      ? file
+      : path.join(CET_SCRIPT_PATH, file);
   });
 
-  // Set destination to be 'r6/scripts/ModFolder/[file].reds'
+  // Set destination to be 'bin/x64/plugins/cyber_engine_tweaks/mods/ModFolder/*'
   let instructions = normalizedFiltered.map((file: string) => {
     return {
       type: "copy",
       source: file,
-      destination: path.join(CET_SCRIPT_PATH, path.basename(file)),
+      destination: file,
     };
   });
 
