@@ -41,7 +41,7 @@ function main(context: IExtensionContext) {
   // telling them it is a bug with the mod itself... and I don't want to put that hurt onto trusty mod developers.
   // context.registerInstaller('cp2077-correct-structure-mod', 25, modHasCorrectStructure, installWithCorrectStructure);
   context.registerInstaller(
-    "cp2077-bad-structure-both-mod",
+    "cp2077-standard-mod",
     30,
     modHasBadStructure,
     installWithCorrectedStructure
@@ -207,24 +207,42 @@ function installWithCorrectedStructure(files: string[]) {
   );
 
   // gather the archive files.
-  let filteredArchives = files.filter(
-    (file) => path.extname(file).toLowerCase() === MOD_FILE_EXT
+  let theArchivePathAsIs = path.dirname(
+    files.find(
+      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
+    )
   );
+  let filteredArchives = files.filter((file: string) => {
+    return (
+      path.dirname(file) == theArchivePathAsIs ||
+      path.extname(file).toLowerCase() == MOD_FILE_EXT
+    );
+  });
 
   // gather the RedScript files.
-  let filteredReds = files.filter(
-    (file) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
+  let theRedscriptPathAsIs = path.dirname(
+    files.find(
+      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
+    )
   );
+  let filteredReds = files.filter((file: string) => {
+    return (
+      path.dirname(file) == theRedscriptPathAsIs ||
+      path.extname(file).toLowerCase() == REDSCRIPT_FILE_EXT
+    );
+  });
 
   // gather the CET files.
-  let filteredCet = files.filter(
-    (file) => path.extname(file).toLowerCase() === LUA_FILE_EXT
+  let theCETModInitPath = path.dirname(
+    files.find(
+      (file: string) => path.basename(file).toLowerCase() === "init.lua"
+    )
   );
-
-  let everythingElse = files.filter((file) => {
-    !filteredArchives.includes(file) &&
-      !filteredReds.includes(file) &&
-      !filteredCet.includes(file);
+  let filteredCet = files.filter((file: string) => {
+    return (
+      path.dirname(file) == theCETModInitPath ||
+      path.extname(file).toLowerCase() == LUA_FILE_EXT
+    );
   });
 
 //   let everythingElse = files.filter((file: string) => {
