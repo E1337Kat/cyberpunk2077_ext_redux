@@ -22,6 +22,9 @@ function main(context: IExtensionContext) {
     executable: () => "bin/x64/Cyberpunk2077.exe",
     requiredFiles: ["bin/x64/Cyberpunk2077.exe"],
     supportedTools: moddingTools,
+    compatible: {
+      symlinks: false,
+    },
     requiresLauncher: requiresGoGLauncher,
     setup: prepareForModding,
     environment: {
