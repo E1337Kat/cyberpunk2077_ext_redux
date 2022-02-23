@@ -245,12 +245,12 @@ function installWithCorrectedStructure(files: string[]) {
     );
   });
 
-//   let everythingElse = files.filter((file: string) => {
-//     !path.extname(file) &&
-//       !filteredArchives.includes(file) &&
-//       !filteredReds.includes(file) &&
-//       !filteredCet.includes(file);
-//   });
+  //   let everythingElse = files.filter((file: string) => {
+  //     !path.extname(file) &&
+  //       !filteredArchives.includes(file) &&
+  //       !filteredReds.includes(file) &&
+  //       !filteredCet.includes(file);
+  //   });
 
   // Set destination to be 'archive/pc/mod/[file].archive'
   log("info", "Correcting archive files: ", filteredArchives);
@@ -277,15 +277,15 @@ function installWithCorrectedStructure(files: string[]) {
   );
   log("debug", "Installing CET files with: ", cetScriptInstructions);
 
-//   let everythingLeftOverInstructions = genericFileInstallationHelper(
-//     everythingElse,
-//     genericModName
-//   );
-//   log("debug", "Installing everything else with: ", cetScriptInstructions);
+  //   let everythingLeftOverInstructions = genericFileInstallationHelper(
+  //     everythingElse,
+  //     genericModName
+  //   );
+  //   log("debug", "Installing everything else with: ", cetScriptInstructions);
 
   let instructions = archiveFileInstructions.concat(
     redScriptInstructions,
-    cetScriptInstructions,
+    cetScriptInstructions
     // everythingLeftOverInstructions
   );
 
@@ -369,7 +369,10 @@ function cleanPathOfType(
  * @param genericModName a mod folder if everyhting is awful
  * @returns an array of instructions for the files
  */
-function redScriptInstallationHelper(redFiles: string[], genericModName: string) {
+function redScriptInstallationHelper(
+  redFiles: string[],
+  genericModName: string
+) {
   let files = redFiles.filter((f) => !path.extname(f));
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
@@ -408,7 +411,10 @@ function redScriptInstallationHelper(redFiles: string[], genericModName: string)
  * @param genericModName a mod folder if everyhting is awful
  * @returns an array of instructions for the files
  */
-function cetScriptInstallationHelper(cetFiles: string[], genericModName: string) {
+function cetScriptInstallationHelper(
+  cetFiles: string[],
+  genericModName: string
+) {
   let files = cetFiles.filter((f) => !path.extname(f));
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
   let normalizedFiltered = files.map((file: string) => {
