@@ -177,14 +177,14 @@ function modHasBadStructure(files: string[], gameId: string) {
 
   if (hasArchiveMod || hasRedScript || hasCetScript) {
     let supported = true;
-    log("info", "mod has bad structure and can be fixed");
+    log("info", "mod supported by this installer");
     return Promise.resolve({
       supported,
       requiredFiles: [],
     });
   } else {
     let supported = false;
-    log("warn", "mod has bad structure and WILL ALWAYS BE BROKEN.");
+    log("warn", "I dunno. Can't do nothing about this.");
     return Promise.resolve({
       supported,
       requiredFiles: [],
@@ -207,43 +207,55 @@ function installWithCorrectedStructure(files: string[]) {
   );
 
   // gather the archive files.
-  let theArchivePathAsIs = path.dirname(
-    files.find(
-      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
-    )
+  let someArchiveModFile = files.find(
+    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
   );
-  let filteredArchives = files.filter((file: string) => {
-    return (
-      path.dirname(file) == theArchivePathAsIs ||
-      path.extname(file).toLowerCase() == MOD_FILE_EXT
-    );
-  });
+  let filteredArchives: string[];
+  if (someArchiveModFile !== undefined) {
+    let theArchivePathAsIs = path.dirname(someArchiveModFile);
+    filteredArchives = files.filter((file: string) => {
+      return (
+        path.dirname(file) == theArchivePathAsIs ||
+        path.extname(file).toLowerCase() == MOD_FILE_EXT
+      );
+    });
+  } else {
+    filteredArchives = [];
+  }
 
   // gather the RedScript files.
-  let theRedscriptPathAsIs = path.dirname(
-    files.find(
-      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
-    )
+  let someRedscriptModFile = files.find(
+    (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
   );
-  let filteredReds = files.filter((file: string) => {
-    return (
-      path.dirname(file) == theRedscriptPathAsIs ||
-      path.extname(file).toLowerCase() == REDSCRIPT_FILE_EXT
-    );
-  });
+  let filteredReds: string[];
+  if (someArchiveModFile !== undefined) {
+    let theRedscriptPathAsIs = path.dirname(someRedscriptModFile);
+    filteredReds = files.filter((file: string) => {
+      return (
+        path.dirname(file) == theRedscriptPathAsIs ||
+        path.extname(file).toLowerCase() == REDSCRIPT_FILE_EXT
+      );
+    });
+  } else {
+    filteredReds = [];
+  }
 
   // gather the CET files.
-  let theCETModInitPath = path.dirname(
-    files.find(
-      (file: string) => path.basename(file).toLowerCase() === "init.lua"
-    )
+  let cetInitFile = files.find(
+    (file: string) => path.basename(file).toLowerCase() === "init.lua"
   );
-  let filteredCet = files.filter((file: string) => {
-    return (
-      path.dirname(file) == theCETModInitPath ||
-      path.extname(file).toLowerCase() == LUA_FILE_EXT
-    );
-  });
+  let filteredCet: string[];
+  if (someArchiveModFile !== undefined) {
+    let theCETModInitPath = path.dirname(cetInitFile);
+    filteredCet = files.filter((file: string) => {
+      return (
+        path.dirname(file) == theCETModInitPath ||
+        path.extname(file).toLowerCase() == LUA_FILE_EXT
+      );
+    });
+  } else {
+    filteredCet = [];
+  }
 
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
