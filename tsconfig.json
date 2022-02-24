@@ -17,6 +17,7 @@
         "node_modules"
     ],
     "include": [
-        "src/index.ts"
+        "src/index.ts",
+        "src/installers.ts"
     ]
 }
