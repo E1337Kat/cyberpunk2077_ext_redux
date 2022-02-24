@@ -146,7 +146,7 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
   }
   let supported: boolean;
   let filtered = files.filter((file: string) => {
-    path.extname(file).toLowerCase() === MOD_FILE_EXT;
+    return path.extname(file).toLowerCase() === MOD_FILE_EXT;
   });
   if (files.length > filtered.length) {
     // double check that the filtered out doesn't include only the paths
