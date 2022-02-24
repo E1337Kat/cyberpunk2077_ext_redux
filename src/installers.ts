@@ -1,5 +1,6 @@
 import path from "path";
 import { log } from "vortex-api";
+import { InstallFunc } from "vortex-api/lib/types/api";
 // import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api";
 
 /** Correct Directory structure:
@@ -99,8 +100,18 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
-const matchCetInitFile = function (file: string) {
-  return path.basename(file).toLowerCase() === "init.lua";
+const matchCetInitFile = function (file: string): boolean {
+  return (
+    path.basename(file).toLowerCase() === "init.lua" &&
+    path.dirname(file).includes(CET_SCRIPT_PATH)
+  );
+};
+
+const matchRSInitFile = function (file: string): boolean {
+  return (
+    path.basename(file).toLowerCase() === "init.lua" &&
+    path.dirname(file).includes(REDSCRIPT_PATH)
+  );
 };
 
 // If we have a CET mod, we have to assume the init.lua file is
@@ -470,7 +481,8 @@ function redScriptInstallationHelper(
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
   let normalizedFiltered = redFiles.map((file: string) => {
-    return file.includes(REDSCRIPT_PATH)
+    return path.dirname(file).includes(REDSCRIPT_PATH) &&
+      path.extname(file) !== ""
       ? file
       : path.join(REDSCRIPT_PATH, file);
   });
@@ -505,7 +517,8 @@ function cetScriptInstallationHelper(
   // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
   // otherwise assume it is atleast in a folder, as required by CET projects
   let normalizedFiltered = cetFiles.map((file: string) => {
-    return file.includes(CET_SCRIPT_PATH) && path.extname(file) !== ""
+    return path.dirname(file).includes(CET_SCRIPT_PATH) &&
+      path.extname(file) !== ""
       ? file
       : path.join(CET_SCRIPT_PATH, file);
   });
