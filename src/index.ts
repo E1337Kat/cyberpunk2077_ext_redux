@@ -41,10 +41,10 @@ function main(context: IExtensionContext) {
   // telling them it is a bug with the mod itself... and I don't want to put that hurt onto trusty mod developers.
   // context.registerInstaller('cp2077-correct-structure-mod', 25, modHasCorrectStructure, installWithCorrectStructure);
   context.registerInstaller(
-    "cp2077-standard-mod",
-    30,
-    modHasBadStructure,
-    installWithCorrectedStructure
+    "cp2077-standard-mod",          // id
+    30,                             // priority
+    modHasBadStructure,             // testSupported func
+    installWithCorrectedStructure   // install func
   );
 
   return true;
@@ -157,6 +157,41 @@ const moddingTools = [
 function matchIniFile(file: string) {
     return (path.extname(file).toLowerCase() === INI_MOD_EXT);
 }
+
+
+
+const matchCetInitFile = function (file: string) {
+  return (path.basename(file).toLowerCase() === "init.lua");
+};
+
+
+// If we have a CET mod, we have to assume the init.lua file is
+// in a directory that is *just* the CET side of things. That is,
+// we could have an init.lua at the top level if there's no non-CET
+// artifacts. If there are, the mod /has to/ use a different path
+// for that and the CET bits. So here we grab everything in and
+// under the init.lua dir.
+const getAllCetModFiles = function (files: string[]) {
+  // TODO:  it's possible there are multiple init files,
+  //        need to make sure we have the top level.
+  //        Can we rely on the dir traversal order?
+  const initFile =
+    files.find(matchCetInitFile);
+
+  if (!initFile) {
+    log("warn", "Got to getAllCetModFiles but no init.lua in given files: ", files);
+
+    return [];
+  }
+
+  const modPath =
+    path.dirname(initFile);
+
+  const modFiles =
+    files.filter((file) => path.dirname(file) === modPath);
+
+  return modFiles;
+};
 
 
 /**
@@ -272,22 +307,14 @@ function installWithCorrectedStructure(files: string[]) {
     filteredReds = [];
   }
 
-  // gather the CET files.
-  let cetInitFile = files.find(
-    (file: string) => path.basename(file).toLowerCase() === "init.lua"
-  );
-  let filteredCet: string[];
-  if (cetInitFile !== undefined) {
-    let theCETModInitPath = path.dirname(cetInitFile);
-    filteredCet = files.filter((file: string) => {
-      return (
-        path.dirname(file) == theCETModInitPath ||
-        path.extname(file).toLowerCase() == LUA_FILE_EXT
-      );
-    });
-  } else {
-    filteredCet = [];
-  }
+  const haveCetTypeMod =
+    files.some(matchCetInitFile);
+
+  const cetFiles =
+    haveCetTypeMod
+    ? getAllCetModFiles(files)
+    : []
+    ;
 
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
@@ -318,7 +345,6 @@ function installWithCorrectedStructure(files: string[]) {
       });
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
-
   log("info", "Correcting redscript mod files: ", filteredReds);
   let redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
@@ -326,9 +352,9 @@ function installWithCorrectedStructure(files: string[]) {
   );
   log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
-  log("info", "Correcting CET files: ", filteredCet);
+  log("info", "Correcting CET files: ", cetFiles);
   let cetScriptInstructions = cetScriptInstallationHelper(
-    filteredCet,
+    cetFiles,
     genericModName
   );
   log("debug", "Installing CET files with: ", cetScriptInstructions);
@@ -457,6 +483,10 @@ function redScriptInstallationHelper(
  * @param cetFiles CET files
  * @param genericModName a mod folder if everyhting is awful
  * @returns an array of instructions for the files
+ *
+ * @todo  We should verify that either the path is right including
+ *        a named subfolder, or we either reject or
+ *        https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/13
  */
 function cetScriptInstallationHelper(
   cetFiles: string[],
