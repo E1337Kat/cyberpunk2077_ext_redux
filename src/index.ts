@@ -256,14 +256,9 @@ function modHasBadStructure(files: string[], gameId: string) {
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-function installWithCorrectedStructure(files: string[]) {
-  // I dunno, it's important
-  let genericModName = "".concat(
-    GAME_ID,
-    "_",
-    "Mod_Boi",
-    Date.now().toString()
-  );
+function installWithCorrectedStructure(files: string[], destinationPath: string) {
+  // Grab the archive name for putting CET files and Redscript into
+  const archiveName = path.basename(destinationPath, '.installing');
 
   // gather the archive files.
   let someArchiveModFile = files.find(
@@ -336,15 +331,14 @@ function installWithCorrectedStructure(files: string[]) {
   log("info", "Correcting redscript mod files: ", filteredReds);
   let redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
-    genericModName
+    archiveName
   );
   log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
   log("info", "Correcting CET files: ", cetFiles);
   let cetScriptInstructions = cetScriptInstallationHelper(
     cetFiles,
-    genericModName
-  );
+    archiveName);
   log("debug", "Installing CET files with: ", cetScriptInstructions);
 
   //   let everythingLeftOverInstructions = genericFileInstallationHelper(
@@ -484,7 +478,7 @@ function cetScriptInstallationHelper(
   // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
   // otherwise assume it is atleast in a folder, as required by CET projects
   let normalizedFiltered = cetFiles.map((file: string) => {
-    return file.includes(CET_SCRIPT_PATH)
+    return (file.includes(CET_SCRIPT_PATH) && (path.extname(file) !== ''))
       ? file
       : path.join(CET_SCRIPT_PATH, file);
   });
