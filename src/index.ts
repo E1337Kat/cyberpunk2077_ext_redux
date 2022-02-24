@@ -4,6 +4,8 @@ import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api";
 import {
   modHasBadStructure,
   installWithCorrectedStructure,
+  modWithArchiveOnly,
+  archiveOnlyInstaller,
 } from "./installers";
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
@@ -49,6 +51,12 @@ function main(context: IExtensionContext) {
     30, // priority
     modHasBadStructure, // testSupported func
     installWithCorrectedStructure // install func
+  );
+  context.registerInstaller(
+    "cp2077-basic-archive-mod", // id
+    31, // priority
+    modWithArchiveOnly, // testSupported func
+    archiveOnlyInstaller // install func
   );
 
   return true;
