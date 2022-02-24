@@ -7,7 +7,11 @@
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
     "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/"
   },
-  "author": "kellieatthelab",
+  "contributors": [
+    "Ellie (http://🍆💦🍑😩.ws//)",
+    "Asuka (https://github.com/effs)",
+    "ThunderGod (https://github.com/thundergod97)"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^12.12.35",
