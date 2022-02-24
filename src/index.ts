@@ -41,10 +41,10 @@ function main(context: IExtensionContext) {
   // telling them it is a bug with the mod itself... and I don't want to put that hurt onto trusty mod developers.
   // context.registerInstaller('cp2077-correct-structure-mod', 25, modHasCorrectStructure, installWithCorrectStructure);
   context.registerInstaller(
-    "cp2077-standard-mod",          // id
-    30,                             // priority
-    modHasBadStructure,             // testSupported func
-    installWithCorrectedStructure   // install func
+    "cp2077-standard-mod", // id
+    30, // priority
+    modHasBadStructure, // testSupported func
+    installWithCorrectedStructure // install func
   );
 
   return true;
@@ -94,8 +94,8 @@ const CET_SCRIPT_PATH = path.join(
 /**
  *  The path where INI files should lay
  */
-const INI_MOD_PATH = path.join( "engine", "config", "platform", "pc");
-const INI_MOD_EXT = ".ini"
+const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
+const INI_MOD_EXT = ".ini";
 /**
  * The path where redscript files should lay
  */
@@ -155,15 +155,12 @@ const moddingTools = [
  * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
  */
 function matchIniFile(file: string) {
-    return (path.extname(file).toLowerCase() === INI_MOD_EXT);
+  return path.extname(file).toLowerCase() === INI_MOD_EXT;
 }
 
-
-
 const matchCetInitFile = function (file: string) {
-  return (path.basename(file).toLowerCase() === "init.lua");
+  return path.basename(file).toLowerCase() === "init.lua";
 };
-
 
 // If we have a CET mod, we have to assume the init.lua file is
 // in a directory that is *just* the CET side of things. That is,
@@ -175,24 +172,24 @@ const getAllCetModFiles = function (files: string[]) {
   // TODO:  it's possible there are multiple init files,
   //        need to make sure we have the top level.
   //        Can we rely on the dir traversal order?
-  const initFile =
-    files.find(matchCetInitFile);
+  const initFile = files.find(matchCetInitFile);
 
   if (!initFile) {
-    log("warn", "Got to getAllCetModFiles but no init.lua in given files: ", files);
+    log(
+      "warn",
+      "Got to getAllCetModFiles but no init.lua in given files: ",
+      files
+    );
 
     return [];
   }
 
-  const modPath =
-    path.dirname(initFile);
+  const modPath = path.dirname(initFile);
 
-  const modFiles =
-    files.filter((file) => path.dirname(file) === modPath);
+  const modFiles = files.filter((file) => path.dirname(file) === modPath);
 
   return modFiles;
 };
-
 
 /**
  * Checks to see if the mod has any expected files in unexpected places
@@ -222,8 +219,7 @@ function modHasBadStructure(files: string[], gameId: string) {
     ) !== undefined;
   log("debug", "Probably archives: ", hasArchiveMod);
 
-  const hasIniMod =
-      files.some(matchIniFile);
+  const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
   let hasRedScript =
@@ -287,8 +283,7 @@ function installWithCorrectedStructure(files: string[]) {
   }
 
   // Gather any INI files
-  const iniModFiles =
-    files.filter(matchIniFile)
+  const iniModFiles = files.filter(matchIniFile);
 
   // gather the RedScript files.
   let someRedscriptModFile = files.find(
@@ -307,15 +302,9 @@ function installWithCorrectedStructure(files: string[]) {
     filteredReds = [];
   }
 
-  const haveCetTypeMod =
-    files.some(matchCetInitFile);
+  const haveCetTypeMod = files.some(matchCetInitFile);
 
-  const cetFiles =
-    haveCetTypeMod
-    ? getAllCetModFiles(files)
-    : []
-    ;
-
+  const cetFiles = haveCetTypeMod ? getAllCetModFiles(files) : [];
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
   //       !filteredArchives.includes(file) &&
@@ -335,14 +324,13 @@ function installWithCorrectedStructure(files: string[]) {
   log("debug", "Installing archive files with: ", archiveFileInstructions);
 
   log("info", "Correcting INI mod files: ", iniModFiles);
-    const iniModInstructions =
-      iniModFiles.map(file => {
-        return {
-          type: "copy",
-          source: file,
-          destination: path.join(INI_MOD_PATH, path.basename(file)),
-        };
-      });
+  const iniModInstructions = iniModFiles.map((file) => {
+    return {
+      type: "copy",
+      source: file,
+      destination: path.join(INI_MOD_PATH, path.basename(file)),
+    };
+  });
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
   log("info", "Correcting redscript mod files: ", filteredReds);
