@@ -1,12 +1,13 @@
 {
   "name": "cyberpunk2077",
   "version": "0.2.0",
-  "description": "Vortex extension",
+  "description": "A rebuild of the original cyberpunk vortex extension with the aim to support more mod types and fix common issues",
   "main": "./dist/index.js",
   "scripts": {
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
     "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/"
   },
+  "author": "KellieAtTheLab",
   "contributors": [
     "Ellie (http://🍆💦🍑😩.ws//)",
     "Asuka (https://github.com/effs)",
