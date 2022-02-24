@@ -95,8 +95,8 @@ const LUA_FILE_EXT = ".lua";
  *
  * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
  */
-function matchIniFile(file: string) {
-  return path.extname(file).toLowerCase() === INI_MOD_EXT;
+function matchIniFile(file: string): boolean {
+  return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
 const matchCetInitFile = function (file: string) {
@@ -131,6 +131,55 @@ const getAllCetModFiles = function (files: string[]) {
 
   return modFiles;
 };
+
+export function modWithArchiveOnly(files: string[], gameId: string) {
+  // Make sure we're able to support this mod.
+  let correctGame = gameId === GAME_ID;
+  log("info", "Checking bad structure of mod for a game: ", gameId);
+  if (!correctGame) {
+    //no mods?
+    let supported = false;
+    return Promise.resolve({
+      supported,
+      requiredFiles: [],
+    });
+  }
+  let supported: boolean;
+  let filtered = files.filter((file: string) => {
+    path.extname(file).toLowerCase() === MOD_FILE_EXT;
+  });
+  if (files.length > filtered.length) {
+    // double check that the filtered out doesn't include only the paths
+    let unfiltered = files.filter((f: string) => !filtered.includes(f));
+    let allInvalid = unfiltered.every((f: string) => path.extname(f) === ""); // bad test to check all the unfiltered are folders or something
+    if (allInvalid) {
+      supported = true;
+    } else {
+      supported = false;
+    }
+  } else if (files.length == filtered.length) {
+    supported = true;
+  } else {
+    supported = false;
+    log(
+      "error",
+      "I have no idea why filtering created more files than already existed. Nedless to say, this can not be installed."
+    );
+  }
+
+  if (supported !== undefined && supported) {
+    log("info", "Only archive files, so installing them should be easy peasy.");
+    return Promise.resolve({
+      supported,
+      requiredFiles: [],
+    });
+  } else {
+    return Promise.resolve({
+      supported,
+      requiredFiles: [],
+    });
+  }
+}
 
 /**
  * Checks to see if the mod has any expected files in unexpected places
@@ -253,7 +302,7 @@ export function installWithCorrectedStructure(
 
   // Set destination to be 'archive/pc/mod/[file].archive'
   log("info", "Correcting archive files: ", filteredArchives);
-  let archiveFileInstructions = filteredArchives.map((file: string) => {
+  const archiveFileInstructions = filteredArchives.map((file: string) => {
     return {
       type: "copy",
       source: file,
@@ -273,14 +322,14 @@ export function installWithCorrectedStructure(
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
   log("info", "Correcting redscript mod files: ", filteredReds);
-  let redScriptInstructions = redScriptInstallationHelper(
+  const redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
     archiveName
   );
   log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
   log("info", "Correcting CET files: ", cetFiles);
-  let cetScriptInstructions = cetScriptInstallationHelper(
+  const cetScriptInstructions = cetScriptInstallationHelper(
     cetFiles,
     archiveName
   );
@@ -298,6 +347,39 @@ export function installWithCorrectedStructure(
     redScriptInstructions,
     cetScriptInstructions
     // everythingLeftOverInstructions
+  );
+
+  return Promise.resolve({ instructions });
+}
+
+/**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export function archiveOnlyInstaller(
+  files: string[]
+) {
+  // since this installer is only called when there is for sure only archive files, just need to get the files
+  let filteredArchives: string[] = files.filter((file: string) => {
+    return path.extname(file).toLowerCase() == MOD_FILE_EXT && path.extname(file) !== "";
+  });
+
+  // Set destination to be 'archive/pc/mod/[file].archive'
+  log("info", "Installing archive files: ", filteredArchives);
+  const archiveFileInstructions = filteredArchives.map((file: string) => {
+    let fileName = path.basename(file)
+    let dest = path.join(ARCHIVE_MOD_PATH, fileName);
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+  log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  let instructions = [].concat(
+    archiveFileInstructions
   );
 
   return Promise.resolve({ instructions });
@@ -440,6 +522,14 @@ function cetScriptInstallationHelper(
   return instructions;
 }
 
+/**
+ * @todo implement logic
+ * @param file a file to check
+ * @returns true is the file is a reshade ini file, false otherwise
+ */
+function reshadeINI(file: string): boolean {
+  return false;
+}
 // /**
 //  * A helper for any other files
 //  * @param files any files
