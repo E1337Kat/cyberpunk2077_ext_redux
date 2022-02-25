@@ -1,6 +1,6 @@
 import path from "path";
-import { fs, util } from "vortex-api";
-import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api";
+import { fs, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 import {
   modHasBadStructure,
   installWithCorrectedStructure,
