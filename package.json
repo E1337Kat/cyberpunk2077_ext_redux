@@ -7,7 +7,8 @@
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
     "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/",
     "prepare": "husky install",
-    "pre-commit": "lint-staged"
+    "pre-commit": "lint-staged",
+    "test": "jest"
   },
   "author": "KellieAtTheLab",
   "contributors": [
@@ -17,6 +18,7 @@
   ],
   "license": "GPL-3.0",
   "devDependencies": {
+    "@types/jest": "^27.4.1",
     "@types/node": "^12.12.35",
     "@types/react": "^16.9.43",
     "@types/react-bootstrap": "^0.32.20",
@@ -32,10 +34,13 @@
     "lint-staged": "^12.3.4",
     "prettier": "^2.5.1",
     "prettier-eslint": "^13.0.0",
+    "jest": "^27.5.1",
     "react": "^16.12.0",
     "react-bootstrap": "^0.33.0",
     "react-dom": "^16.12.0",
+    "ts-jest": "^27.1.3",
     "ts-loader": "^6.0.4",
+    "ts-node": "^10.5.0",
     "typescript": "^3.5.2",
     "vortex-api": "github:Nexus-Mods/vortex-api",
     "webpack": "^4.35.0",

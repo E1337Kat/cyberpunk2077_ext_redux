@@ -21,6 +21,11 @@
 5. Restart Vortex
 6. Try to install a mod to verify the extension works correctly
 
+## Running The Tests
+
+There's a [jest](https://jestjs.io/) test suite in `test/`, and it's automatically run on
+pre-commit. You can also use `npm run test` and/or configure that in your IDE.
+
 ## Reporting Bugs & Making Suggestions
 
 https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues
