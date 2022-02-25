@@ -5,7 +5,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
-    "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/"
+    "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "author": "KellieAtTheLab",
   "contributors": [
