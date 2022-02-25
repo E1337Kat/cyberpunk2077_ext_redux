@@ -1,0 +1,27 @@
+{
+  "extends": [
+    "airbnb-base",
+    "airbnb-typescript/base",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "plugins": ["@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    "arrow-body-style": ["error", "as-needed"],
+    "func-style": "off",
+    "linebreak-style": "off",
+    "max-len": ["warn", { "code": 140, "comments": 140 }],
+    "operator-linebreak": [
+      "error",
+      "after",
+      { "overrides": { "?": "before", ":": "before" } }
+    ],
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/quotes": "off"
+  }
+}

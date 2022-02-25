@@ -5,12 +5,14 @@
   "main": "./dist/index.js",
   "scripts": {
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --display-error-details --progress --profile --color",
-    "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/"
+    "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged"
   },
   "author": "KellieAtTheLab",
   "contributors": [
     "Ellie (http://🍆💦🍑😩.ws//)",
-    "Asuka (https://github.com/effs)",
+    "Auska (https://github.com/effs)",
     "ThunderGod (https://github.com/thundergod97)"
   ],
   "license": "MIT",
@@ -22,7 +24,14 @@
     "@types/redux-thunk": "^2.1.0",
     "bluebird": "^3.7.2",
     "copyfiles": "^2.4.1",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-typescript": "^16.1.0",
+    "eslint-config-prettier": "^8.4.0",
+    "husky": "^7.0.0",
     "i18next": "^19.0.1",
+    "lint-staged": "^12.3.4",
+    "prettier": "^2.5.1",
+    "prettier-eslint": "^13.0.0",
     "react": "^16.12.0",
     "react-bootstrap": "^0.33.0",
     "react-dom": "^16.12.0",
@@ -31,6 +40,5 @@
     "vortex-api": "github:Nexus-Mods/vortex-api",
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.4"
-  },
-  "dependencies": {}
+  }
 }
