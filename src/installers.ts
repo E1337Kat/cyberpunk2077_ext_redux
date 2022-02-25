@@ -45,7 +45,7 @@ const CET_SCRIPT_PATH = path.join(
   "x64",
   "plugins",
   "cyber_engine_tweaks",
-  "mods"
+  "mods",
 );
 /**
  *  The path where INI files should lay
@@ -89,6 +89,15 @@ const LUA_FILE_EXT = ".lua";
 // }
 
 /**
+ * @todo implement logic
+ * @param _file a file to check
+ * @returns true is the file is a reshade ini file, false otherwise
+ */
+function reshadeINI(file: string): boolean {
+  return false;
+}
+
+/**
  *
  * @param file Full file path string to check
  * @returns true if it looks like an INI mod file
@@ -99,9 +108,8 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
-const matchCetInitFile = function (file: string) {
-  return path.basename(file).toLowerCase() === "init.lua";
-};
+const matchCetInitFile = (file: string) =>
+  path.basename(file).toLowerCase() === "init.lua";
 
 // If we have a CET mod, we have to assume the init.lua file is
 // in a directory that is *just* the CET side of things. That is,
@@ -119,7 +127,7 @@ const getAllCetModFiles = function (files: string[]) {
     log(
       "warn",
       "Got to getAllCetModFiles but no init.lua in given files: ",
-      files
+      files,
     );
 
     return [];
@@ -134,36 +142,37 @@ const getAllCetModFiles = function (files: string[]) {
 
 export function modWithArchiveOnly(files: string[], gameId: string) {
   // Make sure we're able to support this mod.
-  let correctGame = gameId === GAME_ID;
+  const correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
   if (!correctGame) {
-    //no mods?
-    let supported = false;
+    // no mods?
+    const supported = false;
     return Promise.resolve({
       supported,
       requiredFiles: [],
     });
   }
   let supported: boolean;
-  let filtered = files.filter((file: string) => {
-    return path.extname(file).toLowerCase() === MOD_FILE_EXT;
-  });
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
+  );
   if (files.length > filtered.length) {
     // double check that the filtered out doesn't include only the paths
-    let unfiltered = files.filter((f: string) => !filtered.includes(f));
-    let allInvalid = unfiltered.every((f: string) => path.extname(f) === ""); // bad test to check all the unfiltered are folders or something
+    const unfiltered = files.filter((f: string) => !filtered.includes(f));
+    const allInvalid = unfiltered.every((f: string) => path.extname(f) === ""); // bad test to check all the unfiltered are folders or something
+
     if (allInvalid) {
       supported = true;
     } else {
       supported = false;
     }
-  } else if (files.length == filtered.length) {
+  } else if (files.length === filtered.length) {
     supported = true;
   } else {
     supported = false;
     log(
       "error",
-      "I have no idea why filtering created more files than already existed. Nedless to say, this can not be installed."
+      "I have no idea why filtering created more files than already existed. Nedless to say, this can not be installed.",
     );
   }
 
@@ -173,12 +182,12 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
       supported,
       requiredFiles: [],
     });
-  } else {
-    return Promise.resolve({
-      supported,
-      requiredFiles: [],
-    });
   }
+
+  return Promise.resolve({
+    supported,
+    requiredFiles: [],
+  });
 }
 
 /**
@@ -191,11 +200,11 @@ export function modHasBadStructure(files: string[], gameId: string) {
   log("debug", "Checking Files: ", files);
 
   // Make sure we're able to support this mod.
-  let correctGame = gameId === GAME_ID;
+  const correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
   if (!correctGame) {
-    //no mods?
-    let supported = false;
+    // no mods?
+    const supported = false;
     return Promise.resolve({
       supported,
       requiredFiles: [],
@@ -203,42 +212,42 @@ export function modHasBadStructure(files: string[], gameId: string) {
   }
 
   // Make sure we're able to support this mod.
-  let hasArchiveMod =
+  const hasArchiveMod =
     files.find(
-      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
+      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
     ) !== undefined;
   log("debug", "Probably archives: ", hasArchiveMod);
 
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
-  let hasRedScript =
+  const hasRedScript =
     files.find(
-      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
+      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
     ) !== undefined;
   log("debug", "Possibly RedScripts: ", hasRedScript);
 
-  let hasCetScript =
+  const hasCetScript =
     files.find(
-      (file: string) => path.extname(file).toLowerCase() === LUA_FILE_EXT
+      (file: string) => path.extname(file).toLowerCase() === LUA_FILE_EXT,
     ) !== undefined;
   log("debug", "Possible CET Scripts: ", hasCetScript);
 
   if (hasArchiveMod || hasIniMod || hasRedScript || hasCetScript) {
-    let supported = true;
+    const supported = true;
     log("info", "mod supported by this installer");
     return Promise.resolve({
       supported,
       requiredFiles: [],
     });
-  } else {
-    let supported = false;
-    log("warn", "I dunno. Can't do nothing about this.");
-    return Promise.resolve({
-      supported,
-      requiredFiles: [],
-    });
   }
+
+  const supported = false;
+  log("warn", "I dunno. Can't do nothing about this.");
+  return Promise.resolve({
+    supported,
+    requiredFiles: [],
+  });
 }
 
 /**
@@ -246,130 +255,19 @@ export function modHasBadStructure(files: string[], gameId: string) {
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export function installWithCorrectedStructure(
-  files: string[],
-  destinationPath: string
-) {
-  // Grab the archive name for putting CET files and Redscript into
-  const archiveName = path.basename(destinationPath, ".installing");
-
-  // gather the archive files.
-  let someArchiveModFile = files.find(
-    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT
-  );
-  let filteredArchives: string[];
-  if (someArchiveModFile !== undefined) {
-    let theArchivePathAsIs = path.dirname(someArchiveModFile);
-    filteredArchives = files.filter((file: string) => {
-      return (
-        path.dirname(file) == theArchivePathAsIs ||
-        path.extname(file).toLowerCase() == MOD_FILE_EXT
-      );
-    });
-  } else {
-    filteredArchives = [];
-  }
-
-  // Gather any INI files
-  const iniModFiles = files.filter(matchIniFile);
-
-  // gather the RedScript files.
-  let someRedscriptModFile = files.find(
-    (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT
-  );
-  let filteredReds: string[];
-  if (someRedscriptModFile !== undefined) {
-    let theRedscriptPathAsIs = path.dirname(someRedscriptModFile);
-    filteredReds = files.filter((file: string) => {
-      return (
-        path.dirname(file) == theRedscriptPathAsIs ||
-        path.extname(file).toLowerCase() == REDSCRIPT_FILE_EXT
-      );
-    });
-  } else {
-    filteredReds = [];
-  }
-
-  const haveCetTypeMod = files.some(matchCetInitFile);
-
-  const cetFiles = haveCetTypeMod ? getAllCetModFiles(files) : [];
-  //   let everythingElse = files.filter((file: string) => {
-  //     !path.extname(file) &&
-  //       !filteredArchives.includes(file) &&
-  //       !filteredReds.includes(file) &&
-  //       !filteredCet.includes(file);
-  //   });
-
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Correcting archive files: ", filteredArchives);
-  const archiveFileInstructions = filteredArchives.map((file: string) => {
-    return {
-      type: "copy",
-      source: file,
-      destination: path.join(ARCHIVE_MOD_PATH, path.basename(file)),
-    };
-  });
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
-  log("info", "Correcting INI mod files: ", iniModFiles);
-  const iniModInstructions = iniModFiles.map((file) => {
-    return {
-      type: "copy",
-      source: file,
-      destination: path.join(INI_MOD_PATH, path.basename(file)),
-    };
-  });
-  log("debug", "Installing INI mod files with: ", iniModInstructions);
-
-  log("info", "Correcting redscript mod files: ", filteredReds);
-  const redScriptInstructions = redScriptInstallationHelper(
-    filteredReds,
-    archiveName
-  );
-  log("debug", "Installing redscript mod files with: ", redScriptInstructions);
-
-  log("info", "Correcting CET files: ", cetFiles);
-  const cetScriptInstructions = cetScriptInstallationHelper(
-    cetFiles,
-    archiveName
-  );
-  log("debug", "Installing CET files with: ", cetScriptInstructions);
-
-  //   let everythingLeftOverInstructions = genericFileInstallationHelper(
-  //     everythingElse,
-  //     genericModName
-  //   );
-  //   log("debug", "Installing everything else with: ", cetScriptInstructions);
-
-  let instructions = [].concat(
-    archiveFileInstructions,
-    iniModInstructions,
-    redScriptInstructions,
-    cetScriptInstructions
-    // everythingLeftOverInstructions
-  );
-
-  return Promise.resolve({ instructions });
-}
-
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export function archiveOnlyInstaller(
-  files: string[]
-) {
+export function archiveOnlyInstaller(files: string[]) {
   // since this installer is only called when there is for sure only archive files, just need to get the files
-  let filteredArchives: string[] = files.filter((file: string) => {
-    return path.extname(file).toLowerCase() == MOD_FILE_EXT && path.extname(file) !== "";
-  });
+  const filteredArchives: string[] = files.filter(
+    (file: string) =>
+      path.extname(file).toLowerCase() === MOD_FILE_EXT &&
+      path.extname(file) !== "",
+  );
 
   // Set destination to be 'archive/pc/mod/[file].archive'
   log("info", "Installing archive files: ", filteredArchives);
   const archiveFileInstructions = filteredArchives.map((file: string) => {
-    let fileName = path.basename(file)
-    let dest = path.join(ARCHIVE_MOD_PATH, fileName);
+    const fileName = path.basename(file);
+    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
     return {
       type: "copy",
       source: file,
@@ -378,9 +276,7 @@ export function archiveOnlyInstaller(
   });
   log("debug", "Installing archive files with: ", archiveFileInstructions);
 
-  let instructions = [].concat(
-    archiveFileInstructions
-  );
+  const instructions = [].concat(archiveFileInstructions);
 
   return Promise.resolve({ instructions });
 }
@@ -397,16 +293,16 @@ function cleanPathOfType(
   files: string[],
   file_type: string,
   path_const: string,
-  needsOwnDirectory: boolean = false
+  needsOwnDirectory: boolean = false,
 ) {
-  let filesOfType = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === file_type
+  const filesOfType = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === file_type,
   );
 
   let cleanFiles = false;
   filesOfType.forEach((file: string) => {
     // let idx = file.indexOf(path.basename(file));
-    let rootPath = path.dirname(file);
+    const rootPath = path.dirname(file);
     log("debug", "File found on directory: ", rootPath);
     // if (((file.indexOf(rootPath) !== -1) && (!file.endsWith(path.sep))) && rootPath.includes(path_const)) {
     if (rootPath.includes(path_const)) {
@@ -464,25 +360,21 @@ function cleanPathOfType(
  */
 function redScriptInstallationHelper(
   redFiles: string[],
-  genericModName: string
+  genericModName: string,
 ) {
   //   let files = redFiles.filter((f) => !path.extname(f));
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  let normalizedFiltered = redFiles.map((file: string) => {
-    return file.includes(REDSCRIPT_PATH)
-      ? file
-      : path.join(REDSCRIPT_PATH, file);
-  });
+  const normalizedFiltered = redFiles.map((file: string) =>
+    file.includes(REDSCRIPT_PATH) ? file : path.join(REDSCRIPT_PATH, file),
+  );
 
   // Set destination to be 'r6/scripts/ModFolder/[file].reds'
-  let instructions = normalizedFiltered.map((file: string) => {
-    return {
-      type: "copy",
-      source: file,
-      destination: path.join(REDSCRIPT_PATH, path.basename(file)),
-    };
-  });
+  const instructions = normalizedFiltered.map((file: string) => ({
+    type: "copy",
+    source: file,
+    destination: path.join(REDSCRIPT_PATH, path.basename(file)),
+  }));
 
   return instructions;
 }
@@ -499,37 +391,27 @@ function redScriptInstallationHelper(
  */
 function cetScriptInstallationHelper(
   cetFiles: string[],
-  genericModName: string
+  genericModName: string,
 ) {
   //   let files = cetFiles.filter((f) => !path.extname(f));
   // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
   // otherwise assume it is atleast in a folder, as required by CET projects
-  let normalizedFiltered = cetFiles.map((file: string) => {
-    return file.includes(CET_SCRIPT_PATH) && path.extname(file) !== ""
+  const normalizedFiltered = cetFiles.map((file: string) =>
+    file.includes(CET_SCRIPT_PATH) && path.extname(file) !== ""
       ? file
-      : path.join(CET_SCRIPT_PATH, file);
-  });
+      : path.join(CET_SCRIPT_PATH, file),
+  );
 
   // Set destination to be 'bin/x64/plugins/cyber_engine_tweaks/mods/ModFolder/*'
-  let instructions = normalizedFiltered.map((file: string) => {
-    return {
-      type: "copy",
-      source: file,
-      destination: file,
-    };
-  });
+  const instructions = normalizedFiltered.map((file: string) => ({
+    type: "copy",
+    source: file,
+    destination: file,
+  }));
 
   return instructions;
 }
 
-/**
- * @todo implement logic
- * @param file a file to check
- * @returns true is the file is a reshade ini file, false otherwise
- */
-function reshadeINI(file: string): boolean {
-  return false;
-}
 // /**
 //  * A helper for any other files
 //  * @param files any files
@@ -590,3 +472,108 @@ function reshadeINI(file: string): boolean {
 
 //   return instructions;
 // }
+
+/**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export function installWithCorrectedStructure(
+  files: string[],
+  destinationPath: string,
+) {
+  // Grab the archive name for putting CET files and Redscript into
+  const archiveName = path.basename(destinationPath, ".installing");
+
+  // gather the archive files.
+  const someArchiveModFile = files.find(
+    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
+  );
+  let filteredArchives: string[];
+  if (someArchiveModFile !== undefined) {
+    const theArchivePathAsIs = path.dirname(someArchiveModFile);
+    filteredArchives = files.filter(
+      (file: string) =>
+        path.dirname(file) === theArchivePathAsIs ||
+        path.extname(file).toLowerCase() === MOD_FILE_EXT,
+    );
+  } else {
+    filteredArchives = [];
+  }
+
+  // Gather any INI files
+  const iniModFiles = files.filter(matchIniFile);
+
+  // gather the RedScript files.
+  const someRedscriptModFile = files.find(
+    (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
+  );
+  let filteredReds: string[];
+  if (someRedscriptModFile !== undefined) {
+    const theRedscriptPathAsIs = path.dirname(someRedscriptModFile);
+    filteredReds = files.filter(
+      (file: string) =>
+        path.dirname(file) === theRedscriptPathAsIs ||
+        path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
+    );
+  } else {
+    filteredReds = [];
+  }
+
+  const haveCetTypeMod = files.some(matchCetInitFile);
+
+  const cetFiles = haveCetTypeMod ? getAllCetModFiles(files) : [];
+  //   let everythingElse = files.filter((file: string) => {
+  //     !path.extname(file) &&
+  //       !filteredArchives.includes(file) &&
+  //       !filteredReds.includes(file) &&
+  //       !filteredCet.includes(file);
+  //   });
+
+  // Set destination to be 'archive/pc/mod/[file].archive'
+  log("info", "Correcting archive files: ", filteredArchives);
+  const archiveFileInstructions = filteredArchives.map((file: string) => ({
+    type: "copy",
+    source: file,
+    destination: path.join(ARCHIVE_MOD_PATH, path.basename(file)),
+  }));
+  log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  log("info", "Correcting INI mod files: ", iniModFiles);
+  const iniModInstructions = iniModFiles.map((file) => ({
+    type: "copy",
+    source: file,
+    destination: path.join(INI_MOD_PATH, path.basename(file)),
+  }));
+  log("debug", "Installing INI mod files with: ", iniModInstructions);
+
+  log("info", "Correcting redscript mod files: ", filteredReds);
+  const redScriptInstructions = redScriptInstallationHelper(
+    filteredReds,
+    archiveName,
+  );
+  log("debug", "Installing redscript mod files with: ", redScriptInstructions);
+
+  log("info", "Correcting CET files: ", cetFiles);
+  const cetScriptInstructions = cetScriptInstallationHelper(
+    cetFiles,
+    archiveName,
+  );
+  log("debug", "Installing CET files with: ", cetScriptInstructions);
+
+  //   let everythingLeftOverInstructions = genericFileInstallationHelper(
+  //     everythingElse,
+  //     genericModName
+  //   );
+  //   log("debug", "Installing everything else with: ", cetScriptInstructions);
+
+  const instructions = [].concat(
+    archiveFileInstructions,
+    iniModInstructions,
+    redScriptInstructions,
+    cetScriptInstructions,
+    // everythingLeftOverInstructions
+  );
+
+  return Promise.resolve({ instructions });
+}
