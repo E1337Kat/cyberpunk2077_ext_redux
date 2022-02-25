@@ -4,7 +4,8 @@
     "airbnb-typescript/base",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "prettier",
+    "prettier/@typescript-eslint"
   ],
   "plugins": ["@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
