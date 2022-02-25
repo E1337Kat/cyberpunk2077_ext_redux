@@ -156,32 +156,54 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
   );
-  if (files.length > filtered.length) {
-    // double check that the filtered out doesn't include only the paths
-    const unfiltered = files.filter((f: string) => !filtered.includes(f));
-    const allInvalid = unfiltered.every((f: string) => path.extname(f) === ""); // bad test to check all the unfiltered are folders or something
 
-    if (allInvalid) {
-      supported = true;
-    } else {
-      supported = false;
+  if (filtered.length === 0) {
+    log("info", "No archives.");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (files.length > filtered.length) {
+    // Figure out what the leftovers are and if they matter
+    // such as readmes, usage text, etc.
+    const unfiltered = files.filter((f: string) => !filtered.includes(f));
+
+    const importantBaseDirs = ["bin", "r6"];
+    const hasNonArchive =
+      unfiltered.find((f: string) =>
+        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
+      ) !== undefined;
+
+    // there is a base folder for non archive mods, so why bother.
+    if (hasNonArchive) {
+      log(
+        "info",
+        "Other mod folder exist... probably an archive as part of those.",
+      );
+      return Promise.resolve({
+        supported: false,
+        requiredFiles: [],
+      });
     }
+
+    supported = true;
   } else if (files.length === filtered.length) {
+    // all files are archives
     supported = true;
   } else {
     supported = false;
     log(
       "error",
-      "I have no idea why filtering created more files than already existed. Nedless to say, this can not be installed.",
+      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
     );
   }
 
   if (supported !== undefined && supported) {
     log("info", "Only archive files, so installing them should be easy peasy.");
-    return Promise.resolve({
-      supported,
-      requiredFiles: [],
-    });
+  } else {
+    supported = false;
   }
 
   return Promise.resolve({
@@ -257,15 +279,14 @@ export function modHasBadStructure(files: string[], gameId: string) {
  */
 export function archiveOnlyInstaller(files: string[]) {
   // since this installer is only called when there is for sure only archive files, just need to get the files
-  const filteredArchives: string[] = files.filter(
+  const filtered: string[] = files.filter(
     (file: string) =>
-      path.extname(file).toLowerCase() === MOD_FILE_EXT &&
       path.extname(file) !== "",
   );
 
   // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Installing archive files: ", filteredArchives);
-  const archiveFileInstructions = filteredArchives.map((file: string) => {
+  log("info", "Installing archive files: ", filtered);
+  const archiveFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
     const dest = path.join(ARCHIVE_MOD_PATH, fileName);
     return {
