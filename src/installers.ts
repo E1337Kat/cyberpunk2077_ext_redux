@@ -1,6 +1,14 @@
 import path from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { log } from "vortex-api/lib/util/log"; // eslint-disable-line import/no-extraneous-dependencies
+
+// We need to 'DI' the logger for tests because we
+// don't have the Vortex environment like we will
+// at regular runtime.
+const noop = (..._) => {};
+const log =
+  process.env.NODE_ENV === "test" || process.env.WEBPACK_BUILD === "true"
+    ? noop
+    : require("vortex-api").log; // eslint-disable-line @typescript-eslint/no-var-requires
 
 /** Correct Directory structure:
  * root_folder
