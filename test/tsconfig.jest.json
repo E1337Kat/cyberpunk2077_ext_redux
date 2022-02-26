@@ -10,8 +10,9 @@
     "types": ["jest"],
     "rootDir": "..",
     "noEmit": true,
+    "baseUrl": "..",
     "paths": {
-      "*": ["../node_modules/vortex-api/lib/types/**/*"]
+      "*": ["../node_modules/vortex-api/lib/types/*"]
     }
   },
   "include": [".", "../node_modules/vortex-api"]
