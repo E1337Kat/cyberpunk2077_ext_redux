@@ -8,7 +8,8 @@
     "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
-    "test": "jest"
+    "test": "jest",
+    "test-clean": "jest --clearCache && npm run test"
   },
   "author": "KellieAtTheLab",
   "contributors": [
