@@ -196,7 +196,7 @@ export const modWithArchiveOnly: Vortex.TestSupported = (
     // such as readmes, usage text, etc.
     const unfiltered = files.filter((f: string) => !filtered.includes(f));
 
-    const importantBaseDirs = ["bin", "r6"];
+    const importantBaseDirs = ["bin", "r6", "red4ext"];
     const hasNonArchive =
       unfiltered.find((f: string) =>
         importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
@@ -645,17 +645,17 @@ const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
 //
 export const installerPipeline: Installer[] = [
   {
-    type: InstallerType.Other,
-    id: "cp2077-standard-mod",
-    priority: 30,
-    testSupported: modHasBadStructure,
-    install: installWithCorrectedStructure,
-  },
-  {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
-    priority: 31,
+    priority: 30,
     testSupported: modWithArchiveOnly,
     install: archiveOnlyInstaller,
+  },
+  {
+    type: InstallerType.Other,
+    id: "cp2077-standard-mod",
+    priority: 31,
+    testSupported: modHasBadStructure,
+    install: installWithCorrectedStructure,
   },
 ].sort(byPriority);
