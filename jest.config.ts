@@ -10,6 +10,7 @@ const config: Config.InitialOptions = {
       tsconfig: "test/tsconfig.jest.json",
     },
   },
+  moduleDirectories: ["node_modules", "src"],
 };
 
 export default config;
