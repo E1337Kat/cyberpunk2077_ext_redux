@@ -3,5 +3,6 @@
   "compilerOptions": {
     "types": ["jest"]
   },
+  "exclude": ["webpack.config.js"],
   "include": ["src/**/*.ts", "test/**/*.ts", "*.ts"]
 }
