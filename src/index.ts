@@ -95,12 +95,12 @@ function main(context: IExtensionContext) {
   // install with correct structure has a kinda bug where it does exactly what it should, but complains about it to the user
   // telling them it is a bug with the mod itself... and I don't want to put that hurt onto trusty mod developers.
   // context.registerInstaller('cp2077-correct-structure-mod', 25, modHasCorrectStructure, installWithCorrectStructure);
-  context.registerInstaller(
-    "cp2077-standard-mod", // id
-    30, // priority
-    modHasBadStructure, // testSupported func
-    installWithCorrectedStructure, // install func
-  );
+  // context.registerInstaller(
+  //   "cp2077-standard-mod", // id
+  //   30, // priority
+  //   modHasBadStructure, // testSupported func
+  //   installWithCorrectedStructure, // install func
+  // );
   context.registerInstaller(
     "cp2077-basic-archive-mod", // id
     31, // priority
