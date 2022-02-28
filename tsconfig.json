@@ -13,7 +13,8 @@
     "sourceMap": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "exclude": ["test", "node_modules"],
   "include": ["src/**/*.ts"]
