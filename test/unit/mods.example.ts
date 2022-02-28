@@ -17,7 +17,7 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\first.archive"),
+          destination: path.normalize("archive/pc/mod/first.archive"),
         },
       ],
     },
@@ -27,114 +27,104 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\first.archive"),
+          destination: path.normalize("archive/pc/mod/first.archive"),
         },
         {
           type: "copy",
           source: path.normalize("second.archive"),
-          destination: path.normalize("archive\\pc\\mod\\second.archive"),
+          destination: path.normalize("archive/pc/mod/second.archive"),
         },
       ],
     },
     archiveWithArchivesInRandomFolder: {
-      inFiles: ["fold1\\", "fold1\\first.archive", "fold1\\second.archive"].map(
+      inFiles: ["fold1/", "fold1/first.archive", "fold1/second.archive"].map(
         path.normalize,
       ),
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize("fold1\\first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\fold1\\first.archive"),
+          source: path.normalize("fold1/first.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/first.archive"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\second.archive"),
-          destination: path.normalize(
-            "archive\\pc\\mod\\fold1\\second.archive",
-          ),
+          source: path.normalize("fold1/second.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/second.archive"),
         },
       ],
     },
     archiveWithArchivesTopLevelAndFolder: {
-      inFiles: ["first.archive", "fold1\\", "fold1\\second.archive"].map(
+      inFiles: ["first.archive", "fold1/", "fold1/second.archive"].map(
         path.normalize,
       ),
       outInstructions: [
         {
           type: "copy",
           source: path.normalize("first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\first.archive"),
+          destination: path.normalize("archive/pc/mod/first.archive"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\second.archive"),
-          destination: path.normalize(
-            "archive\\pc\\mod\\fold1\\second.archive",
-          ),
+          source: path.normalize("fold1/second.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/second.archive"),
         },
       ],
     },
     archiveWithArchivesInCorrectFolder: {
       inFiles: [
-        "archive\\",
-        "archive\\pc\\",
-        "archive\\pc\\mod\\",
-        "archive\\pc\\mod\\first.archive",
-        "archive\\pc\\mod\\second.archive",
+        "archive/",
+        "archive/pc/",
+        "archive/pc/mod/",
+        "archive/pc/mod/first.archive",
+        "archive/pc/mod/second.archive",
       ].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize("archive\\pc\\mod\\first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\fold1\\first.archive"),
+          source: path.normalize("archive/pc/mod/first.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/first.archive"),
         },
         {
           type: "copy",
-          source: path.normalize("archive\\pc\\mod\\second.archive"),
-          destination: path.normalize(
-            "archive\\pc\\mod\\fold1\\second.archive",
-          ),
+          source: path.normalize("archive/pc/mod/second.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/second.archive"),
         },
       ],
     },
     archiveWithArchivesInRandomFolderPlusRandomFiles: {
       inFiles: [
-        "fold1\\",
-        "fold1\\first.archive",
-        "fold1\\foobar.txt",
-        "fold1\\more",
-        "fold1\\second.archive",
-        "fold1\\thisisenough.md",
+        "fold1/",
+        "fold1/first.archive",
+        "fold1/foobar.txt",
+        "fold1/more",
+        "fold1/second.archive",
+        "fold1/thisisenough.md",
       ].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize("fold1\\first.archive"),
-          destination: path.normalize("archive\\pc\\mod\\fold1\\first.archive"),
+          source: path.normalize("fold1/first.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/first.archive"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\foobar.txt"),
-          destination: path.normalize("archive\\pc\\mod\\fold1\\foobar.txt"),
+          source: path.normalize("fold1/foobar.txt"),
+          destination: path.normalize("archive/pc/mod/fold1/foobar.txt"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\more"),
-          destination: path.normalize("archive\\pc\\mod\\fold1\\more"),
+          source: path.normalize("fold1/more"),
+          destination: path.normalize("archive/pc/mod/fold1/more"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\second.archive"),
-          destination: path.normalize(
-            "archive\\pc\\mod\\fold1\\second.archive",
-          ),
+          source: path.normalize("fold1/second.archive"),
+          destination: path.normalize("archive/pc/mod/fold1/second.archive"),
         },
         {
           type: "copy",
-          source: path.normalize("fold1\\thisisenough.md"),
-          destination: path.normalize(
-            "archive\\pc\\mod\\fold1\\thisisenough.md",
-          ),
+          source: path.normalize("fold1/thisisenough.md"),
+          destination: path.normalize("archive/pc/mod/fold1/thisisenough.md"),
         },
       ],
     },
