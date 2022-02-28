@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "references": [
+    {
+      "name": "cyberpunk2077_ext_redux",
+      "path": "../tsconfig.json"
+    }
+  ],
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "rootDir": "..",
+    "noEmit": true,
+    "baseUrl": "..",
+    "paths": {
+      "*": ["../node_modules/vortex-api/lib/types/*"]
+    }
+  },
+  "include": [".", "../node_modules/vortex-api"]
+}

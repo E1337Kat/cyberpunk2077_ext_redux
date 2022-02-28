@@ -1,6 +1,14 @@
 import path from "path";
-import { log } from "vortex-api";
-// import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api";
+import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+
+// We need to 'DI' the logger for tests because we
+// don't have the Vortex environment like we will
+// at regular runtime.
+const noop = (..._) => {};
+const log =
+  process.env.NODE_ENV === "test" || process.env.WEBPACK_BUILD === "true"
+    ? noop
+    : require("vortex-api").log; // eslint-disable-line @typescript-eslint/no-var-requires
 
 /** Correct Directory structure:
  * root_folder
@@ -68,6 +76,21 @@ const REDSCRIPT_FILE_EXT = ".reds";
  * The extension of a lua/CET file
  */
 const LUA_FILE_EXT = ".lua";
+
+// Types
+
+export enum InstallerType {
+  ArchiveOnly = "ArchiveOnly",
+  Other = "Other",
+}
+export interface Installer {
+  type: InstallerType;
+  id: string;
+  priority: number;
+  testSupported: Vortex.TestSupported;
+  install: Vortex.InstallFunc;
+}
+
 // /**
 //  * Installs files as is
 //  * @param files a list of files to be installed
@@ -140,7 +163,10 @@ const getAllCetModFiles = function (files: string[]) {
   return modFiles;
 };
 
-export function modWithArchiveOnly(files: string[], gameId: string) {
+export const modWithArchiveOnly: Vortex.TestSupported = (
+  files: string[],
+  gameId: string,
+): Promise<Vortex.ISupportedResult> => {
   // Make sure we're able to support this mod.
   const correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
@@ -170,7 +196,7 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
     // such as readmes, usage text, etc.
     const unfiltered = files.filter((f: string) => !filtered.includes(f));
 
-    const importantBaseDirs = ["bin", "r6"];
+    const importantBaseDirs = ["bin", "r6", "red4ext"];
     const hasNonArchive =
       unfiltered.find((f: string) =>
         importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
@@ -210,7 +236,7 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
     supported,
     requiredFiles: [],
   });
-}
+};
 
 /**
  * Checks to see if the mod has any expected files in unexpected places
@@ -218,7 +244,10 @@ export function modWithArchiveOnly(files: string[], gameId: string) {
  * @param gameId The internal game id
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
-export function modHasBadStructure(files: string[], gameId: string) {
+export const modHasBadStructure: Vortex.TestSupported = (
+  files: string[],
+  gameId: string,
+): Promise<Vortex.ISupportedResult> => {
   log("debug", "Checking Files: ", files);
 
   // Make sure we're able to support this mod.
@@ -270,18 +299,19 @@ export function modHasBadStructure(files: string[], gameId: string) {
     supported,
     requiredFiles: [],
   });
-}
+};
 
 /**
  * Installs files while correcting the directory structure as we go.
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export function archiveOnlyInstaller(files: string[]) {
+export const archiveOnlyInstaller: Vortex.InstallFunc = (
+  files: string[],
+): Promise<Vortex.IInstallResult> => {
   // since this installer is only called when there is for sure only archive files, just need to get the files
   const filtered: string[] = files.filter(
-    (file: string) =>
-      path.extname(file) !== "",
+    (file: string) => path.extname(file) !== "",
   );
 
   // Set destination to be 'archive/pc/mod/[file].archive'
@@ -300,7 +330,7 @@ export function archiveOnlyInstaller(files: string[]) {
   const instructions = [].concat(archiveFileInstructions);
 
   return Promise.resolve({ instructions });
-}
+};
 
 /**
  * Checks the file path and ensures all files arte as they should be.
@@ -499,10 +529,10 @@ function cetScriptInstallationHelper(
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export function installWithCorrectedStructure(
+export const installWithCorrectedStructure: Vortex.InstallFunc = (
   files: string[],
   destinationPath: string,
-) {
+): Promise<Vortex.IInstallResult> => {
   // Grab the archive name for putting CET files and Redscript into
   const archiveName = path.basename(destinationPath, ".installing");
 
@@ -597,4 +627,35 @@ export function installWithCorrectedStructure(
   );
 
   return Promise.resolve({ instructions });
-}
+};
+
+const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
+
+// Define the pipeline that we push mods through
+// to find the correct installer. The installers
+// are tried in priority order (keep them in order
+// here), and the first one that returns `supported: true`
+// will be used by Vortex to `install` the mod.
+//
+// General approach: try to detect the more specialized
+// mod types first, and if none of those match, we probably
+// have a simpler mod type like INI or Archive on our hands.
+//
+// Using Vortex parameter names here for convenience.
+//
+export const installerPipeline: Installer[] = [
+  {
+    type: InstallerType.ArchiveOnly,
+    id: "cp2077-basic-archive-mod",
+    priority: 30,
+    testSupported: modWithArchiveOnly,
+    install: archiveOnlyInstaller,
+  },
+  {
+    type: InstallerType.Other,
+    id: "cp2077-standard-mod",
+    priority: 31,
+    testSupported: modHasBadStructure,
+    install: installWithCorrectedStructure,
+  },
+].sort(byPriority);

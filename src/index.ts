@@ -1,12 +1,7 @@
 import path from "path";
 import { fs, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import {
-  modHasBadStructure,
-  installWithCorrectedStructure,
-  modWithArchiveOnly,
-  archiveOnlyInstaller,
-} from "./installers";
+import { installerPipeline } from "./installers";
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -66,8 +61,8 @@ function prepareForModding(discovery) {
 }
 
 // This is the main function Vortex will run when detecting the game extension.
-function main(context: IExtensionContext) {
-  context.registerGame({
+function main(vortex: IExtensionContext) {
+  vortex.registerGame({
     id: GAME_ID,
     name: "Cyberpunk 2077",
     mergeMods: true,
@@ -92,20 +87,13 @@ function main(context: IExtensionContext) {
     },
   });
 
-  // install with correct structure has a kinda bug where it does exactly what it should, but complains about it to the user
-  // telling them it is a bug with the mod itself... and I don't want to put that hurt onto trusty mod developers.
-  // context.registerInstaller('cp2077-correct-structure-mod', 25, modHasCorrectStructure, installWithCorrectStructure);
-  // context.registerInstaller(
-  //   "cp2077-standard-mod", // id
-  //   30, // priority
-  //   modHasBadStructure, // testSupported func
-  //   installWithCorrectedStructure, // install func
-  // );
-  context.registerInstaller(
-    "cp2077-basic-archive-mod", // id
-    31, // priority
-    modWithArchiveOnly, // testSupported func
-    archiveOnlyInstaller, // install func
+  installerPipeline.forEach((installer) =>
+    vortex.registerInstaller(
+      installer.id,
+      installer.priority,
+      installer.testSupported,
+      installer.install,
+    ),
   );
 
   return true;
