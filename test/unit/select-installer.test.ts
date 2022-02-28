@@ -1,5 +1,5 @@
 import { installerPipeline, InstallerType } from "../../src/installers";
-import { ArchiveOnly } from "./example-mod-defs";
+import { ArchiveOnly } from "./mods.example";
 
 const GAME_ID = "cyberpunk2077";
 
@@ -9,12 +9,21 @@ const matchInstaller = async (modFiles: string[]) =>
       (await installer.testSupported(modFiles, GAME_ID)).supported,
   );
 
-describe("Selecting the installer for a mod type", () => {
+describe("Transforming modules to instructions", () => {
   describe("archive-only mods", () => {
-    Object.entries(ArchiveOnly).forEach(async ([kind, mod]) => {
-      test(`selects the archive-only installer when ${kind}`, async () => {
+    ArchiveOnly.forEach(async (mod, kind) => {
+      test(`produce the expected instructions ${kind}`, async () => {
         const installer = await matchInstaller(mod.inFiles);
         expect(installer.type).toBe(InstallerType.ArchiveOnly);
+
+        const installResult = await installer.install(
+          mod.inFiles,
+          null,
+          null,
+          null,
+        );
+
+        expect(installResult.instructions).toEqual(mod.outInstructions);
       });
     });
   });
