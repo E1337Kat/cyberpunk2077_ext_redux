@@ -1,4 +1,3 @@
-// const path = require("node:path"); // eslint-disable-line @typescript-eslint/no-var-requires
 import path from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 
