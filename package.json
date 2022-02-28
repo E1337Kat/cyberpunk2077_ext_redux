@@ -8,7 +8,7 @@
     "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./dist/",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
-    "test": "jest",
+    "test": "jest --no-cache",
     "test-clean": "jest --clearCache && npm run test"
   },
   "author": "KellieAtTheLab",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@jest/types": "^27.5.1",
     "@types/jest": "^27.4.1",
-    "@types/node": "^12.12.35",
+    "@types/node": "^12.20.46",
     "@types/react": "^16.9.43",
     "@types/react-bootstrap": "^0.32.20",
     "@types/redux": "^3.6.0",
