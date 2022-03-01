@@ -162,6 +162,18 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
+const instructionsForSameSourceAndDest = (cetFiles: string[]) => {
+  const instructions: Vortex.IInstruction[] = cetFiles.map(
+    (file: string): Vortex.IInstruction => ({
+      type: "copy",
+      source: file,
+      destination: file,
+    }),
+  );
+
+  return { instructions };
+};
+
 // Installers
 
 // CET
@@ -175,14 +187,33 @@ export const CET_MOD_REQUIRED_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
 
-export const testForCetMod: Vortex.TestSupported = (
-  files: string[],
-): Promise<Vortex.ISupportedResult> => {
-  let fileTree = new KeyTree({ separator: path.sep });
+const allCetFiles = (files: string[]) => {
+  const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
 
-  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX);
+  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  if (!moddir || moddir.children.length === 0) {
+    return [];
+  }
+
+  // Yes, this needs to be wrapped better..
+  const cetFiles = Object.keys(
+    fileTree.getSub(path.join(...moddir.fullPath), true),
+  );
+
+  return cetFiles;
+};
+
+export const testForCetMod: Vortex.TestSupported = (
+  files: string[],
+): Promise<Vortex.ISupportedResult> => {
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
 
   if (!moddir || moddir.children.length === 0) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
@@ -198,10 +229,21 @@ export const testForCetMod: Vortex.TestSupported = (
   });
 };
 
+// Install the CET stuff, as well as any archives we find
 export const installCetMod: Vortex.InstallFunc = (
   files: string[],
 ): Promise<Vortex.IInstallResult> => {
-  throw new Error("CET install not implemented");
+  const cetFiles = allCetFiles(files);
+
+  if (cetFiles.length === 0) {
+    return Promise.reject(
+      new Error("CET install but no CET files, should never get here"),
+    );
+  }
+
+  const cetInstructions = instructionsForSameSourceAndDest(cetFiles);
+
+  return Promise.resolve(cetInstructions);
 };
 
 // ArchiveOnly
