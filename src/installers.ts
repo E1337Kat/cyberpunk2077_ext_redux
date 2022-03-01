@@ -78,6 +78,8 @@ const REDSCRIPT_FILE_EXT = ".reds";
  */
 const LUA_FILE_EXT = ".lua";
 
+const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
+
 // Types
 
 export enum InstallerType {
@@ -96,13 +98,16 @@ export enum InstallerType {
   CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
   Other = "Other",
+  NotSupported = "Trying to install something not supported",
 }
 export interface Installer {
   type: InstallerType;
   id: string;
-  priority: number;
   testSupported: Vortex.TestSupported;
   install: Vortex.InstallFunc;
+}
+export interface InstallerWithPriority extends Installer {
+  priority: number;
 }
 
 // testSupported that always fails
@@ -113,6 +118,16 @@ export const notSupportedModType: Vortex.TestSupported = (
 ): Promise<Vortex.ISupportedResult> =>
   Promise.resolve({ supported: false, requiredFiles: [] });
 
+// install that always fails
+//
+export const notInstallableMod: Vortex.InstallFunc = (
+  _files: string[],
+  _destinationPath: string,
+  _gameId: string,
+  _progressDelegate: Vortex.ProgressDelegate,
+) => {
+  throw new Error("Should never get here");
+};
 // /**
 //  * Installs files as is
 //  * @param files a list of files to be installed
@@ -185,7 +200,7 @@ const getAllCetModFiles = (files: string[]) => {
   return modFiles;
 };
 
-export const modWithArchiveOnly: Vortex.TestSupported = (
+export const testForArchiveOnlyMod: Vortex.TestSupported = (
   files: string[],
   gameId: string,
 ): Promise<Vortex.ISupportedResult> => {
@@ -266,7 +281,7 @@ export const modWithArchiveOnly: Vortex.TestSupported = (
  * @param gameId The internal game id
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
-export const modHasBadStructure: Vortex.TestSupported = (
+export const testAnyOtherModFallback: Vortex.TestSupported = (
   files: string[],
   gameId: string,
 ): Promise<Vortex.ISupportedResult> => {
@@ -328,7 +343,7 @@ export const modHasBadStructure: Vortex.TestSupported = (
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export const archiveOnlyInstaller: Vortex.InstallFunc = (
+export const installArchiveOnlyMod: Vortex.InstallFunc = (
   files: string[],
 ): Promise<Vortex.IInstallResult> => {
   // since this installer is only called when there is for sure only archive files, just need to get the files
@@ -505,7 +520,7 @@ function cetScriptInstallationHelper(
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export const installWithCorrectedStructure: Vortex.InstallFunc = (
+export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   files: string[],
   destinationPath: string,
 ): Promise<Vortex.IInstallResult> => {
@@ -605,7 +620,18 @@ export const installWithCorrectedStructure: Vortex.InstallFunc = (
   return Promise.resolve({ instructions });
 };
 
-const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
+// Rather than keep the order by entering numbers,
+// just keep the array ordered and we tag the
+// installers with priority here
+const addPriorityFrom = (start: number) => {
+  return (
+    prioritized: InstallerWithPriority[],
+    installer: Installer,
+    index: number,
+  ) => {
+    return prioritized.concat({ priority: start + index, ...installer });
+  };
+};
 
 // Define the pipeline that we push mods through
 // to find the correct installer. The installers
@@ -619,26 +645,101 @@ const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
 //
 // Using Vortex parameter names here for convenience.
 //
-export const installerPipeline: Installer[] = [
+export const installerPipeline: InstallerWithPriority[] = [
   {
     type: InstallerType.CET,
     id: "cp2077-cet-mod",
-    priority: 3,
-    testSupported: noop,
-    install: noop,
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Redscript,
+    id: "cp2077-redscript-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Red4Ext,
+    id: "cp2077-red4ext-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.TweakDB,
+    id: "cp2077-tweakdb-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.AXL,
+    id: "cp2077-axl-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.INI,
+    id: "cp2077-ini-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Config,
+    id: "cp2077-config-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Reshade,
+    id: "cp2077-reshade-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.LUT,
+    id: "cp2077-lut-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreCET,
+    id: "cp2077-core-cet-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreRedscript,
+    id: "cp2077-core-redscript-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreRed4ext,
+    id: "cp2077-core-red4ext-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
   },
   {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
-    priority: 39,
-    testSupported: modWithArchiveOnly,
-    install: archiveOnlyInstaller,
+    testSupported: testForArchiveOnlyMod,
+    install: installArchiveOnlyMod,
   },
   {
     type: InstallerType.Other,
     id: "cp2077-standard-mod",
-    priority: 40,
-    testSupported: modHasBadStructure,
-    install: installWithCorrectedStructure,
+    testSupported: testAnyOtherModFallback,
+    install: installAnyModWithBasicFixes,
   },
-].sort(byPriority);
+  {
+    type: InstallerType.NotSupported,
+    id: "cp2077-standard-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+].reduce(addPriorityFrom(PRIORITY_STARTING_NUMBER), []);
