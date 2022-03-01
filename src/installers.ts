@@ -1,5 +1,9 @@
-import path from "path";
+import { win32 } from "path";
+import KeyTree from "key-tree";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+
+// Ensure we're using win32 conventions
+const path = win32;
 
 // We need to 'DI' the logger for tests because we
 // don't have the Vortex environment like we will
@@ -46,16 +50,6 @@ const GAME_ID = "cyberpunk2077";
  * The path where an archive file should lay
  */
 const ARCHIVE_MOD_PATH = path.join("archive", "pc", "mod");
-/**
- * The path where CET files should lay
- */
-const CET_SCRIPT_PATH = path.join(
-  "bin",
-  "x64",
-  "plugins",
-  "cyber_engine_tweaks",
-  "mods",
-);
 /**
  *  The path where INI files should lay
  */
@@ -168,37 +162,49 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
-const matchCetInitFile = (file: string) =>
-  path.basename(file).toLowerCase() === "init.lua";
+// Installers
 
-// If we have a CET mod, we have to assume the init.lua file is
-// in a directory that is *just* the CET side of things. That is,
-// we could have an init.lua at the top level if there's no non-CET
-// artifacts. If there are, the mod /has to/ use a different path
-// for that and the CET bits. So here we grab everything in and
-// under the init.lua dir.
-const getAllCetModFiles = (files: string[]) => {
-  // TODO:  it's possible there are multiple init files,
-  //        need to make sure we have the top level.
-  //        Can we rely on the dir traversal order?
-  const initFile = files.find(matchCetInitFile);
+// CET
 
-  if (!initFile) {
-    log(
-      "warn",
-      "Got to getAllCetModFiles but no init.lua in given files: ",
-      files,
-    );
+// CET mods are detected by:
+//
+// 1. Require bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
+//
+export const CET_MOD_REQUIRED_INIT_FILE = "init.lua";
+export const CET_MOD_REQUIRED_PATH_PREFIX = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/mods",
+);
 
-    return [];
+export const testForCetMod: Vortex.TestSupported = (
+  files: string[],
+): Promise<Vortex.ISupportedResult> => {
+  let fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX);
+
+  if (!moddir || moddir.children.length === 0) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
-  const modPath = path.dirname(initFile);
+  const hasIniFilesInANamedModDir = moddir.children.some(
+    (child) => child.getChild(CET_MOD_REQUIRED_INIT_FILE) !== null,
+  );
 
-  const modFiles = files.filter((file) => path.dirname(file) === modPath);
-
-  return modFiles;
+  return Promise.resolve({
+    supported: hasIniFilesInANamedModDir,
+    requiredFiles: [],
+  });
 };
+
+export const installCetMod: Vortex.InstallFunc = (
+  files: string[],
+): Promise<Vortex.IInstallResult> => {
+  throw new Error("CET install not implemented");
+};
+
+// ArchiveOnly
 
 export const testForArchiveOnlyMod: Vortex.TestSupported = (
   files: string[],
@@ -276,6 +282,39 @@ export const testForArchiveOnlyMod: Vortex.TestSupported = (
 };
 
 /**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export const installArchiveOnlyMod: Vortex.InstallFunc = (
+  files: string[],
+): Promise<Vortex.IInstallResult> => {
+  // since this installer is only called when there is for sure only archive files, just need to get the files
+  const filtered: string[] = files.filter(
+    (file: string) => path.extname(file) !== "",
+  );
+
+  // Set destination to be 'archive/pc/mod/[file].archive'
+  log("info", "Installing archive files: ", filtered);
+  const archiveFileInstructions = filtered.map((file: string) => {
+    const fileName = path.basename(file);
+    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+  log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  const instructions = [].concat(archiveFileInstructions);
+
+  return Promise.resolve({ instructions });
+};
+
+// Fallback
+
+/**
  * Checks to see if the mod has any expected files in unexpected places
  * @param files list of files
  * @param gameId The internal game id
@@ -338,37 +377,6 @@ export const testAnyOtherModFallback: Vortex.TestSupported = (
   });
 };
 
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installArchiveOnlyMod: Vortex.InstallFunc = (
-  files: string[],
-): Promise<Vortex.IInstallResult> => {
-  // since this installer is only called when there is for sure only archive files, just need to get the files
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
-  );
-
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Installing archive files: ", filtered);
-  const archiveFileInstructions = filtered.map((file: string) => {
-    const fileName = path.basename(file);
-    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
-    return {
-      type: "copy",
-      source: file,
-      destination: dest,
-    };
-  });
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
-  const instructions = [].concat(archiveFileInstructions);
-
-  return Promise.resolve({ instructions });
-};
-
 // /**
 //  * A check with complex logic that I wanted pulled out of the main function
 //  * @param cleanArchive Whether the archive files are correct or not
@@ -416,39 +424,6 @@ function redScriptInstallationHelper(
     type: "copy",
     source: file,
     destination: path.join(REDSCRIPT_PATH, path.basename(file)),
-  }));
-
-  return instructions;
-}
-
-/**
- * A helper for CET files
- * @param cetFiles CET files
- * @param genericModName a mod folder if everyhting is awful
- * @returns an array of instructions for the files
- *
- * @todo  We should verify that either the path is right including
- *        a named subfolder, or we either reject or
- *        https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/13
- */
-function cetScriptInstallationHelper(
-  cetFiles: string[],
-  _genericModName: string,
-) {
-  //   let files = cetFiles.filter((f) => !path.extname(f));
-  // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
-  // otherwise assume it is atleast in a folder, as required by CET projects
-  const normalizedFiltered = cetFiles.map((file: string) =>
-    file.includes(CET_SCRIPT_PATH) && path.extname(file) !== ""
-      ? file
-      : path.join(CET_SCRIPT_PATH, file),
-  );
-
-  // Set destination to be 'bin/x64/plugins/cyber_engine_tweaks/mods/ModFolder/*'
-  const instructions = normalizedFiltered.map((file: string) => ({
-    type: "copy",
-    source: file,
-    destination: file,
   }));
 
   return instructions;
@@ -561,10 +536,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   } else {
     filteredReds = [];
   }
-
-  const haveCetTypeMod = files.some(matchCetInitFile);
-
-  const cetFiles = haveCetTypeMod ? getAllCetModFiles(files) : [];
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
   //       !filteredArchives.includes(file) &&
@@ -596,13 +567,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   );
   log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
-  log("info", "Correcting CET files: ", cetFiles);
-  const cetScriptInstructions = cetScriptInstallationHelper(
-    cetFiles,
-    archiveName,
-  );
-  log("debug", "Installing CET files with: ", cetScriptInstructions);
-
   //   let everythingLeftOverInstructions = genericFileInstallationHelper(
   //     everythingElse,
   //     genericModName
@@ -613,7 +577,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
     archiveFileInstructions,
     iniModInstructions,
     redScriptInstructions,
-    cetScriptInstructions,
     // everythingLeftOverInstructions
   );
 
@@ -649,8 +612,8 @@ export const installerPipeline: InstallerWithPriority[] = [
   {
     type: InstallerType.CET,
     id: "cp2077-cet-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForCetMod,
+    install: installCetMod,
   },
   /*
   {
