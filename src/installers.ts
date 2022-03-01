@@ -162,8 +162,16 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
-const instructionsForSameSourceAndDest = (cetFiles: string[]) => {
-  const instructions: Vortex.IInstruction[] = cetFiles.map(
+// Drop any folders and duplicates from the file list,
+// and then create the instructions.
+const instructionsForSameSourceAndDest = (files: string[]) => {
+  const justTheRegularFiles = files.filter(
+    (f: string) => !f.endsWith(path.sep),
+  );
+
+  const uniqueFiles = [...new Set(justTheRegularFiles).values()];
+
+  const instructions: Vortex.IInstruction[] = uniqueFiles.map(
     (file: string): Vortex.IInstruction => ({
       type: "copy",
       source: file,
@@ -176,42 +184,48 @@ const instructionsForSameSourceAndDest = (cetFiles: string[]) => {
 
 // Installers
 
+const allFilesInFolder = (folder: string, files: string[]) => {
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(folder); // eslint-disable-line no-underscore-dangle
+
+  console.log({ folder, files, moddir, fileTree });
+
+  if (!moddir) {
+    return [];
+  }
+
+  const moddirPath = path.join(...moddir.fullPath);
+
+  const allTheFiles: string[] = [].concat(
+    ...Object.values(fileTree.getSub(moddirPath, true)),
+  );
+
+  return allTheFiles;
+};
+
+export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
+export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/mods",
+);
+
+const allCetFiles = (files: string[]) =>
+  allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
+
+export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
+  path.normalize("archive/pc/mod/");
+
+const allArchiveOnlyFiles = (files: string[]) =>
+  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
+
 // CET
 
 // CET mods are detected by:
 //
 // 1. Require bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
 //
-export const CET_MOD_REQUIRED_INIT_FILE = "init.lua";
-export const CET_MOD_REQUIRED_PATH_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods",
-);
-
-const allCetFiles = (files: string[]) => {
-  const fileTree = new KeyTree({ separator: path.sep });
-
-  files.forEach((file) => fileTree.add(file, file));
-
-  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  if (!moddir || moddir.children.length === 0) {
-    return [];
-  }
-
-  const moddirPath = path.join(...moddir.fullPath);
-
-  const cetFiles: string[] = [].concat(
-    ...Object.values(fileTree.getSub(moddirPath, true)),
-  );
-
-  const justTheRegularFiles = cetFiles.filter(
-    (f: string) => !f.endsWith(path.sep),
-  );
-
-  const pathSet = new Set(justTheRegularFiles);
-
-  return [...pathSet.values()];
-};
 
 export const testForCetMod: Vortex.TestSupported = (
   files: string[],
@@ -222,14 +236,14 @@ export const testForCetMod: Vortex.TestSupported = (
 
   files.forEach((file) => fileTree.add(file, file));
 
-  const moddir = fileTree._getNode(CET_MOD_REQUIRED_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
 
   if (!moddir || moddir.children.length === 0) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
   const hasIniFilesInANamedModDir = moddir.children.some(
-    (child) => child.getChild(CET_MOD_REQUIRED_INIT_FILE) !== null,
+    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
   );
 
   if (hasIniFilesInANamedModDir) {
@@ -256,9 +270,14 @@ export const installCetMod: Vortex.InstallFunc = (
     );
   }
 
-  const cetInstructions = instructionsForSameSourceAndDest(cetFiles);
+  // Let's grab anything else we might reasonably have
+  const archiveOnlyFiles = allArchiveOnlyFiles(files);
 
-  return Promise.resolve(cetInstructions);
+  const allTheFiles = cetFiles.concat(archiveOnlyFiles);
+
+  const instructions = instructionsForSameSourceAndDest(allTheFiles);
+
+  return Promise.resolve(instructions);
 };
 
 // ArchiveOnly

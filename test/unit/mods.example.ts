@@ -2,8 +2,8 @@ import path from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 
 import {
-  CET_MOD_REQUIRED_INIT_FILE,
-  CET_MOD_REQUIRED_PATH_PREFIX,
+  CET_MOD_CANONICAL_INIT_FILE,
+  CET_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers";
 
 export type InFiles = string[];
@@ -13,8 +13,8 @@ export interface ExampleMod {
   outInstructions: Vortex.IInstruction[];
 }
 
-const CET_PREFIX = CET_MOD_REQUIRED_PATH_PREFIX;
-const CET_INIT = CET_MOD_REQUIRED_INIT_FILE;
+const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
+const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
