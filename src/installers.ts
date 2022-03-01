@@ -209,6 +209,8 @@ const allCetFiles = (files: string[]) => {
 export const testForCetMod: Vortex.TestSupported = (
   files: string[],
 ): Promise<Vortex.ISupportedResult> => {
+  log("debug", "Starting matcher, input files: ", files);
+
   const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
@@ -223,6 +225,10 @@ export const testForCetMod: Vortex.TestSupported = (
     (child) => child.getChild(CET_MOD_REQUIRED_INIT_FILE) !== null,
   );
 
+  if (hasIniFilesInANamedModDir) {
+    log("info", `Matching CET installer: ${hasIniFilesInANamedModDir}`);
+  }
+
   return Promise.resolve({
     supported: hasIniFilesInANamedModDir,
     requiredFiles: [],
@@ -233,6 +239,8 @@ export const testForCetMod: Vortex.TestSupported = (
 export const installCetMod: Vortex.InstallFunc = (
   files: string[],
 ): Promise<Vortex.IInstallResult> => {
+  log("info", "Using CET installer");
+
   const cetFiles = allCetFiles(files);
 
   if (cetFiles.length === 0) {
@@ -629,13 +637,13 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
 // just keep the array ordered and we tag the
 // installers with priority here
 const addPriorityFrom = (start: number) => {
-  return (
+  const f = (
     prioritized: InstallerWithPriority[],
     installer: Installer,
     index: number,
-  ) => {
-    return prioritized.concat({ priority: start + index, ...installer });
-  };
+  ) => prioritized.concat({ priority: start + index, ...installer });
+
+  return f;
 };
 
 // Define the pipeline that we push mods through
