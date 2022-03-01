@@ -68,7 +68,7 @@ function main(vortex: IExtensionContext) {
     mergeMods: true,
     queryPath: findGame,
     queryModPath: () => "",
-    logo: "gameart.jpg",
+    logo: "gameart.png",
     executable: () => "bin/x64/Cyberpunk2077.exe",
     requiredFiles: ["bin/x64/Cyberpunk2077.exe"],
     supportedTools: moddingTools,
