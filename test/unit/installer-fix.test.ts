@@ -3,7 +3,7 @@ import { ArchiveOnly, CetMod } from "./mods.example";
 import { matchInstaller } from "./utils.helper";
 
 describe("Transforming modules to instructions", () => {
-  describe.only("CET mods", () => {
+  describe("CET mods", () => {
     CetMod.forEach(async (mod, kind) => {
       test(`produce the expected instructions ${kind}`, async () => {
         const installer = await matchInstaller(mod.inFiles);

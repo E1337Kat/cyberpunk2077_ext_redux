@@ -20,20 +20,15 @@ export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
     cetWithOnlyInit: {
       inFiles: [
-        path.join(`${CET_PREFIX}/exmod`),
+        path.join("bin/"),
+        path.join("bin/x64/"),
+        path.join("bin/x64/plugins/"),
+        path.join("bin/x64/plugins/cyber_engine_tweaks/"),
+        path.join("bin/x64/plugins/cyber_engine_tweaks/mods/"),
+        path.join(`${CET_PREFIX}/exmod/`),
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}`),
-          destination: path.join(`${CET_PREFIX}`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod`),
-          destination: path.join(`${CET_PREFIX}/exmod`),
-        },
         {
           type: "copy",
           source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
@@ -43,14 +38,14 @@ export const CetMod = new Map<string, ExampleMod>(
     },
     cetWithTypicalValidLayout: {
       inFiles: [
-        path.join(`${CET_PREFIX}/exmod`),
-        path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder`),
-        path.join(`${CET_PREFIX}/exmod/Modules`),
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
         path.join(`${CET_PREFIX}/exmod/configfile.json`),
         path.join(`${CET_PREFIX}/exmod/db.sqlite3`),
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         path.join(`${CET_PREFIX}/exmod/README.md`),
-        path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore`),
+        path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/`),
         path.join(
           `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
         ),
@@ -61,30 +56,6 @@ export const CetMod = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.join(`${CET_PREFIX}`),
-          destination: path.join(`${CET_PREFIX}`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod`),
-          destination: path.join(`${CET_PREFIX}/exmod`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder`),
-          destination: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder`),
-        },
-        {
-          type: "copy",
-          source: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore`,
-          ),
-          destination: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore`,
-          ),
-        },
-        {
-          type: "copy",
           source: path.join(
             `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
           ),
@@ -100,11 +71,6 @@ export const CetMod = new Map<string, ExampleMod>(
           destination: path.join(
             `${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`,
           ),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/Modules`),
-          destination: path.join(`${CET_PREFIX}/exmod/Modules`),
         },
         {
           type: "copy",
@@ -140,32 +106,17 @@ export const CetMod = new Map<string, ExampleMod>(
     },
     cetWithExtraArchiveFiles: {
       inFiles: [
-        path.join(`${CET_PREFIX}/exmod`),
-        path.join(`${CET_PREFIX}/exmod/Modules`),
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
         path.join(`${CET_PREFIX}/exmod/configfile.json`),
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
-        path.join("archive"),
-        path.join("archive/pc"),
-        path.join("archive/pc/mod"),
+        path.join("archive/"),
+        path.join("archive/pc/"),
+        path.join("archive/pc/mod/"),
         path.join("archive/pc/mod/preemtextures.archive"),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}`),
-          destination: path.join(`${CET_PREFIX}`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod`),
-          destination: path.join(`${CET_PREFIX}/exmod`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/Modules`),
-          destination: path.join(`${CET_PREFIX}/exmod/Modules`),
-        },
         {
           type: "copy",
           source: path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
@@ -180,21 +131,6 @@ export const CetMod = new Map<string, ExampleMod>(
           type: "copy",
           source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
           destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        },
-        {
-          type: "copy",
-          source: path.join(`archive`),
-          destination: path.join(`archive`),
-        },
-        {
-          type: "copy",
-          source: path.join(`archive/pc`),
-          destination: path.join(`archive/pc`),
-        },
-        {
-          type: "copy",
-          source: path.join(`archive/pc/mod`),
-          destination: path.join(`archive/pc/mod`),
         },
         {
           type: "copy",

@@ -198,12 +198,19 @@ const allCetFiles = (files: string[]) => {
     return [];
   }
 
-  // Yes, this needs to be wrapped better..
-  const cetFiles = Object.keys(
-    fileTree.getSub(path.join(...moddir.fullPath), true),
+  const moddirPath = path.join(...moddir.fullPath);
+
+  const cetFiles: string[] = [].concat(
+    ...Object.values(fileTree.getSub(moddirPath, true)),
   );
 
-  return cetFiles;
+  const justTheRegularFiles = cetFiles.filter(
+    (f: string) => !f.endsWith(path.sep),
+  );
+
+  const pathSet = new Set(justTheRegularFiles);
+
+  return [...pathSet.values()];
 };
 
 export const testForCetMod: Vortex.TestSupported = (
