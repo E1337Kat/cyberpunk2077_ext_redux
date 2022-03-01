@@ -652,6 +652,7 @@ export const installerPipeline: InstallerWithPriority[] = [
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
+  /*
   {
     type: InstallerType.Redscript,
     id: "cp2077-redscript-mod",
@@ -724,6 +725,7 @@ export const installerPipeline: InstallerWithPriority[] = [
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
+  */
   {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
