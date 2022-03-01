@@ -164,7 +164,7 @@ function matchIniFile(file: string): boolean {
 
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
-const instructionsForSameSourceAndDest = (files: string[]) => {
+const instructionsForSameSourceAndDestPaths = (files: string[]) => {
   const justTheRegularFiles = files.filter(
     (f: string) => !f.endsWith(path.sep),
   );
@@ -190,8 +190,6 @@ const allFilesInFolder = (folder: string, files: string[]) => {
   files.forEach((file) => fileTree.add(file, file));
 
   const moddir = fileTree._getNode(folder); // eslint-disable-line no-underscore-dangle
-
-  console.log({ folder, files, moddir, fileTree });
 
   if (!moddir) {
     return [];
@@ -275,7 +273,7 @@ export const installCetMod: Vortex.InstallFunc = (
 
   const allTheFiles = cetFiles.concat(archiveOnlyFiles);
 
-  const instructions = instructionsForSameSourceAndDest(allTheFiles);
+  const instructions = instructionsForSameSourceAndDestPaths(allTheFiles);
 
   return Promise.resolve(instructions);
 };
