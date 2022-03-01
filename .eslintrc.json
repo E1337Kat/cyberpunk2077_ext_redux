@@ -1,5 +1,4 @@
 {
-  "cache": false,
   "extends": [
     "airbnb-base",
     "airbnb-typescript/base",
