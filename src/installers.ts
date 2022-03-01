@@ -36,6 +36,7 @@ const log =
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MEOW_FOR_COMMENTS = 0;
 /**
  * The extension game id
@@ -80,6 +81,19 @@ const LUA_FILE_EXT = ".lua";
 // Types
 
 export enum InstallerType {
+  CET = "CET", // #13
+  Redscript = "Redscript", // #27
+  Red4Ext = "Red4ext", // #5
+  TweakDB = "TweakDB", // #6
+  AXL = "AXL", // #28
+  INI = "INI", // #29
+  Config = "Config", // #30
+  Reshade = "Reshade", // #8
+  LUT = "LUT", // #31
+  CoreCET = "Core/CET", // #32
+  CoreRedscript = "Core/Redscript", // #32
+  CoreRed4ext = "Core/Red4ext", // #32
+  CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
   Other = "Other",
 }
@@ -90,6 +104,14 @@ export interface Installer {
   testSupported: Vortex.TestSupported;
   install: Vortex.InstallFunc;
 }
+
+// testSupported that always fails
+//
+export const notSupportedModType: Vortex.TestSupported = (
+  _files: string[],
+  _gameId: string,
+): Promise<Vortex.ISupportedResult> =>
+  Promise.resolve({ supported: false, requiredFiles: [] });
 
 // /**
 //  * Installs files as is
@@ -116,7 +138,7 @@ export interface Installer {
  * @param _file a file to check
  * @returns true is the file is a reshade ini file, false otherwise
  */
-function reshadeINI(file: string): boolean {
+function reshadeINI(_file: string): boolean {
   return false;
 }
 
@@ -140,7 +162,7 @@ const matchCetInitFile = (file: string) =>
 // artifacts. If there are, the mod /has to/ use a different path
 // for that and the CET bits. So here we grab everything in and
 // under the init.lua dir.
-const getAllCetModFiles = function (files: string[]) {
+const getAllCetModFiles = (files: string[]) => {
   // TODO:  it's possible there are multiple init files,
   //        need to make sure we have the top level.
   //        Can we rely on the dir traversal order?
@@ -332,52 +354,6 @@ export const archiveOnlyInstaller: Vortex.InstallFunc = (
   return Promise.resolve({ instructions });
 };
 
-/**
- * Checks the file path and ensures all files arte as they should be.
- * @param files a list of files
- * @param file_type the file type (ext from one of the consts)
- * @param path_const the standard path of the file type
- * @param needsOwnDirectory whether we need to check if it need's it own directory (for redscript and cet mods)
- * @returns true if everything seems to be in order, false otherwise
- */
-function cleanPathOfType(
-  files: string[],
-  file_type: string,
-  path_const: string,
-  needsOwnDirectory: boolean = false,
-) {
-  const filesOfType = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === file_type,
-  );
-
-  let cleanFiles = false;
-  filesOfType.forEach((file: string) => {
-    // let idx = file.indexOf(path.basename(file));
-    const rootPath = path.dirname(file);
-    log("debug", "File found on directory: ", rootPath);
-    // if (((file.indexOf(rootPath) !== -1) && (!file.endsWith(path.sep))) && rootPath.includes(path_const)) {
-    if (rootPath.includes(path_const)) {
-      log("debug", "file root includes expected path...");
-      // If the mod needs it's own directory (such as with RedScripts and CET mods),
-      // make sure it is there by subtracting the general path from the full root path
-      if (needsOwnDirectory && rootPath.replace(path_const, "").length > 0) {
-        log("debug", "file has expected subdirectory as needed...");
-        cleanFiles = true;
-      } else if (!needsOwnDirectory) {
-        log("debug", "file does not need pesky subdirectory...");
-        cleanFiles = true;
-      } else {
-        log("warn", "file needs subdirectory, but does not have it...");
-        cleanFiles = false;
-      }
-    } else {
-      log("warn", "file is not in the correct path");
-      cleanFiles = false;
-    }
-  });
-  return cleanFiles;
-}
-
 // /**
 //  * A check with complex logic that I wanted pulled out of the main function
 //  * @param cleanArchive Whether the archive files are correct or not
@@ -411,7 +387,7 @@ function cleanPathOfType(
  */
 function redScriptInstallationHelper(
   redFiles: string[],
-  genericModName: string,
+  _genericModName: string,
 ) {
   //   let files = redFiles.filter((f) => !path.extname(f));
 
@@ -442,7 +418,7 @@ function redScriptInstallationHelper(
  */
 function cetScriptInstallationHelper(
   cetFiles: string[],
-  genericModName: string,
+  _genericModName: string,
 ) {
   //   let files = cetFiles.filter((f) => !path.extname(f));
   // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
@@ -645,16 +621,23 @@ const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
 //
 export const installerPipeline: Installer[] = [
   {
+    type: InstallerType.CET,
+    id: "cp2077-cet-mod",
+    priority: 3,
+    testSupported: noop,
+    install: noop,
+  },
+  {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
-    priority: 30,
+    priority: 39,
     testSupported: modWithArchiveOnly,
     install: archiveOnlyInstaller,
   },
   {
     type: InstallerType.Other,
     id: "cp2077-standard-mod",
-    priority: 31,
+    priority: 40,
     testSupported: modHasBadStructure,
     install: installWithCorrectedStructure,
   },
