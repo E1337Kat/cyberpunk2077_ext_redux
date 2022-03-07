@@ -1,5 +1,9 @@
-import path from "path";
+import { win32 } from "path";
+import KeyTree from "key-tree";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+
+// Ensure we're using win32 conventions
+const path = win32;
 
 // We need to 'DI' the logger for tests because we
 // don't have the Vortex environment like we will
@@ -36,6 +40,7 @@ const log =
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MEOW_FOR_COMMENTS = 0;
 /**
  * The extension game id
@@ -45,16 +50,6 @@ const GAME_ID = "cyberpunk2077";
  * The path where an archive file should lay
  */
 const ARCHIVE_MOD_PATH = path.join("archive", "pc", "mod");
-/**
- * The path where CET files should lay
- */
-const CET_SCRIPT_PATH = path.join(
-  "bin",
-  "x64",
-  "plugins",
-  "cyber_engine_tweaks",
-  "mods",
-);
 /**
  *  The path where INI files should lay
  */
@@ -77,20 +72,56 @@ const REDSCRIPT_FILE_EXT = ".reds";
  */
 const LUA_FILE_EXT = ".lua";
 
+const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
+
 // Types
 
 export enum InstallerType {
+  CET = "CET", // #13
+  Redscript = "Redscript", // #27
+  Red4Ext = "Red4ext", // #5
+  TweakDB = "TweakDB", // #6
+  AXL = "AXL", // #28
+  INI = "INI", // #29
+  Config = "Config", // #30
+  Reshade = "Reshade", // #8
+  LUT = "LUT", // #31
+  CoreCET = "Core/CET", // #32
+  CoreRedscript = "Core/Redscript", // #32
+  CoreRed4ext = "Core/Red4ext", // #32
+  CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
-  Other = "Other",
+  FallbackForOther = "FallbackForOther",
+  NotSupported = "[Trying to install something not supported]",
 }
 export interface Installer {
   type: InstallerType;
   id: string;
-  priority: number;
   testSupported: Vortex.TestSupported;
   install: Vortex.InstallFunc;
 }
+export interface InstallerWithPriority extends Installer {
+  priority: number;
+}
 
+// testSupported that always fails
+//
+export const notSupportedModType: Vortex.TestSupported = (
+  _files: string[],
+  _gameId: string,
+): Promise<Vortex.ISupportedResult> =>
+  Promise.resolve({ supported: false, requiredFiles: [] });
+
+// install that always fails
+//
+export const notInstallableMod: Vortex.InstallFunc = (
+  _files: string[],
+  _destinationPath: string,
+  _gameId: string,
+  _progressDelegate: Vortex.ProgressDelegate,
+) => {
+  throw new Error("Should never get here");
+};
 // /**
 //  * Installs files as is
 //  * @param files a list of files to be installed
@@ -116,7 +147,7 @@ export interface Installer {
  * @param _file a file to check
  * @returns true is the file is a reshade ini file, false otherwise
  */
-function reshadeINI(file: string): boolean {
+function reshadeINI(_file: string): boolean {
   return false;
 }
 
@@ -131,39 +162,125 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
-const matchCetInitFile = (file: string) =>
-  path.basename(file).toLowerCase() === "init.lua";
+// Drop any folders and duplicates from the file list,
+// and then create the instructions.
+const instructionsForSameSourceAndDestPaths = (files: string[]) => {
+  const justTheRegularFiles = files.filter(
+    (f: string) => !f.endsWith(path.sep),
+  );
 
-// If we have a CET mod, we have to assume the init.lua file is
-// in a directory that is *just* the CET side of things. That is,
-// we could have an init.lua at the top level if there's no non-CET
-// artifacts. If there are, the mod /has to/ use a different path
-// for that and the CET bits. So here we grab everything in and
-// under the init.lua dir.
-const getAllCetModFiles = function (files: string[]) {
-  // TODO:  it's possible there are multiple init files,
-  //        need to make sure we have the top level.
-  //        Can we rely on the dir traversal order?
-  const initFile = files.find(matchCetInitFile);
+  const uniqueFiles = [...new Set(justTheRegularFiles).values()];
 
-  if (!initFile) {
-    log(
-      "warn",
-      "Got to getAllCetModFiles but no init.lua in given files: ",
-      files,
-    );
+  const instructions: Vortex.IInstruction[] = uniqueFiles.map(
+    (file: string): Vortex.IInstruction => ({
+      type: "copy",
+      source: file,
+      destination: file,
+    }),
+  );
 
+  return { instructions };
+};
+
+// Installers
+
+const allFilesInFolder = (folder: string, files: string[]) => {
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(folder); // eslint-disable-line no-underscore-dangle
+
+  if (!moddir) {
     return [];
   }
 
-  const modPath = path.dirname(initFile);
+  const moddirPath = path.join(...moddir.fullPath);
 
-  const modFiles = files.filter((file) => path.dirname(file) === modPath);
+  const allTheFiles: string[] = [].concat(
+    ...Object.values(fileTree.getSub(moddirPath, true)),
+  );
 
-  return modFiles;
+  return allTheFiles;
 };
 
-export const modWithArchiveOnly: Vortex.TestSupported = (
+export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
+export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/mods",
+);
+
+const allCetFiles = (files: string[]) =>
+  allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
+
+export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
+  path.normalize("archive/pc/mod/");
+
+const allArchiveOnlyFiles = (files: string[]) =>
+  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
+
+// CET
+
+// CET mods are detected by:
+//
+// 1. Require bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
+//
+
+export const testForCetMod: Vortex.TestSupported = (
+  files: string[],
+): Promise<Vortex.ISupportedResult> => {
+  log("debug", "Starting matcher, input files: ", files);
+
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  if (!moddir || moddir.children.length === 0) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  const hasIniFilesInANamedModDir = moddir.children.some(
+    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
+  );
+
+  if (hasIniFilesInANamedModDir) {
+    log("info", `Matching CET installer: ${hasIniFilesInANamedModDir}`);
+  }
+
+  return Promise.resolve({
+    supported: hasIniFilesInANamedModDir,
+    requiredFiles: [],
+  });
+};
+
+// Install the CET stuff, as well as any archives we find
+export const installCetMod: Vortex.InstallFunc = (
+  files: string[],
+): Promise<Vortex.IInstallResult> => {
+  log("info", "Using CET installer");
+
+  const cetFiles = allCetFiles(files);
+
+  if (cetFiles.length === 0) {
+    return Promise.reject(
+      new Error("CET install but no CET files, should never get here"),
+    );
+  }
+
+  // Let's grab anything else we might reasonably have
+  const archiveOnlyFiles = allArchiveOnlyFiles(files);
+
+  const allTheFiles = cetFiles.concat(archiveOnlyFiles);
+
+  const instructions = instructionsForSameSourceAndDestPaths(allTheFiles);
+
+  return Promise.resolve(instructions);
+};
+
+// ArchiveOnly
+
+export const testForArchiveOnlyMod: Vortex.TestSupported = (
   files: string[],
   gameId: string,
 ): Promise<Vortex.ISupportedResult> => {
@@ -239,12 +356,45 @@ export const modWithArchiveOnly: Vortex.TestSupported = (
 };
 
 /**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export const installArchiveOnlyMod: Vortex.InstallFunc = (
+  files: string[],
+): Promise<Vortex.IInstallResult> => {
+  // since this installer is only called when there is for sure only archive files, just need to get the files
+  const filtered: string[] = files.filter(
+    (file: string) => path.extname(file) !== "",
+  );
+
+  // Set destination to be 'archive/pc/mod/[file].archive'
+  log("info", "Installing archive files: ", filtered);
+  const archiveFileInstructions = filtered.map((file: string) => {
+    const fileName = path.basename(file);
+    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+  log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  const instructions = [].concat(archiveFileInstructions);
+
+  return Promise.resolve({ instructions });
+};
+
+// Fallback
+
+/**
  * Checks to see if the mod has any expected files in unexpected places
  * @param files list of files
  * @param gameId The internal game id
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
-export const modHasBadStructure: Vortex.TestSupported = (
+export const testAnyOtherModFallback: Vortex.TestSupported = (
   files: string[],
   gameId: string,
 ): Promise<Vortex.ISupportedResult> => {
@@ -301,83 +451,6 @@ export const modHasBadStructure: Vortex.TestSupported = (
   });
 };
 
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const archiveOnlyInstaller: Vortex.InstallFunc = (
-  files: string[],
-): Promise<Vortex.IInstallResult> => {
-  // since this installer is only called when there is for sure only archive files, just need to get the files
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
-  );
-
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Installing archive files: ", filtered);
-  const archiveFileInstructions = filtered.map((file: string) => {
-    const fileName = path.basename(file);
-    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
-    return {
-      type: "copy",
-      source: file,
-      destination: dest,
-    };
-  });
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
-  const instructions = [].concat(archiveFileInstructions);
-
-  return Promise.resolve({ instructions });
-};
-
-/**
- * Checks the file path and ensures all files arte as they should be.
- * @param files a list of files
- * @param file_type the file type (ext from one of the consts)
- * @param path_const the standard path of the file type
- * @param needsOwnDirectory whether we need to check if it need's it own directory (for redscript and cet mods)
- * @returns true if everything seems to be in order, false otherwise
- */
-function cleanPathOfType(
-  files: string[],
-  file_type: string,
-  path_const: string,
-  needsOwnDirectory: boolean = false,
-) {
-  const filesOfType = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === file_type,
-  );
-
-  let cleanFiles = false;
-  filesOfType.forEach((file: string) => {
-    // let idx = file.indexOf(path.basename(file));
-    const rootPath = path.dirname(file);
-    log("debug", "File found on directory: ", rootPath);
-    // if (((file.indexOf(rootPath) !== -1) && (!file.endsWith(path.sep))) && rootPath.includes(path_const)) {
-    if (rootPath.includes(path_const)) {
-      log("debug", "file root includes expected path...");
-      // If the mod needs it's own directory (such as with RedScripts and CET mods),
-      // make sure it is there by subtracting the general path from the full root path
-      if (needsOwnDirectory && rootPath.replace(path_const, "").length > 0) {
-        log("debug", "file has expected subdirectory as needed...");
-        cleanFiles = true;
-      } else if (!needsOwnDirectory) {
-        log("debug", "file does not need pesky subdirectory...");
-        cleanFiles = true;
-      } else {
-        log("warn", "file needs subdirectory, but does not have it...");
-        cleanFiles = false;
-      }
-    } else {
-      log("warn", "file is not in the correct path");
-      cleanFiles = false;
-    }
-  });
-  return cleanFiles;
-}
-
 // /**
 //  * A check with complex logic that I wanted pulled out of the main function
 //  * @param cleanArchive Whether the archive files are correct or not
@@ -411,7 +484,7 @@ function cleanPathOfType(
  */
 function redScriptInstallationHelper(
   redFiles: string[],
-  genericModName: string,
+  _genericModName: string,
 ) {
   //   let files = redFiles.filter((f) => !path.extname(f));
 
@@ -425,39 +498,6 @@ function redScriptInstallationHelper(
     type: "copy",
     source: file,
     destination: path.join(REDSCRIPT_PATH, path.basename(file)),
-  }));
-
-  return instructions;
-}
-
-/**
- * A helper for CET files
- * @param cetFiles CET files
- * @param genericModName a mod folder if everyhting is awful
- * @returns an array of instructions for the files
- *
- * @todo  We should verify that either the path is right including
- *        a named subfolder, or we either reject or
- *        https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/13
- */
-function cetScriptInstallationHelper(
-  cetFiles: string[],
-  genericModName: string,
-) {
-  //   let files = cetFiles.filter((f) => !path.extname(f));
-  // Simplify the check so that it just sees if the file has the general path, and if so, use as is,
-  // otherwise assume it is atleast in a folder, as required by CET projects
-  const normalizedFiltered = cetFiles.map((file: string) =>
-    file.includes(CET_SCRIPT_PATH) && path.extname(file) !== ""
-      ? file
-      : path.join(CET_SCRIPT_PATH, file),
-  );
-
-  // Set destination to be 'bin/x64/plugins/cyber_engine_tweaks/mods/ModFolder/*'
-  const instructions = normalizedFiltered.map((file: string) => ({
-    type: "copy",
-    source: file,
-    destination: file,
   }));
 
   return instructions;
@@ -529,7 +569,7 @@ function cetScriptInstallationHelper(
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export const installWithCorrectedStructure: Vortex.InstallFunc = (
+export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   files: string[],
   destinationPath: string,
 ): Promise<Vortex.IInstallResult> => {
@@ -570,10 +610,6 @@ export const installWithCorrectedStructure: Vortex.InstallFunc = (
   } else {
     filteredReds = [];
   }
-
-  const haveCetTypeMod = files.some(matchCetInitFile);
-
-  const cetFiles = haveCetTypeMod ? getAllCetModFiles(files) : [];
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
   //       !filteredArchives.includes(file) &&
@@ -605,13 +641,6 @@ export const installWithCorrectedStructure: Vortex.InstallFunc = (
   );
   log("debug", "Installing redscript mod files with: ", redScriptInstructions);
 
-  log("info", "Correcting CET files: ", cetFiles);
-  const cetScriptInstructions = cetScriptInstallationHelper(
-    cetFiles,
-    archiveName,
-  );
-  log("debug", "Installing CET files with: ", cetScriptInstructions);
-
   //   let everythingLeftOverInstructions = genericFileInstallationHelper(
   //     everythingElse,
   //     genericModName
@@ -622,14 +651,24 @@ export const installWithCorrectedStructure: Vortex.InstallFunc = (
     archiveFileInstructions,
     iniModInstructions,
     redScriptInstructions,
-    cetScriptInstructions,
     // everythingLeftOverInstructions
   );
 
   return Promise.resolve({ instructions });
 };
 
-const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
+// Rather than keep the order by entering numbers,
+// just keep the array ordered and we tag the
+// installers with priority here
+const addPriorityFrom = (start: number) => {
+  const f = (
+    prioritized: InstallerWithPriority[],
+    installer: Installer,
+    index: number,
+  ) => prioritized.concat({ priority: start + index, ...installer });
+
+  return f;
+};
 
 // Define the pipeline that we push mods through
 // to find the correct installer. The installers
@@ -643,19 +682,104 @@ const byPriority = (a: Installer, b: Installer) => a.priority - b.priority;
 //
 // Using Vortex parameter names here for convenience.
 //
-export const installerPipeline: Installer[] = [
+export const installerPipeline: InstallerWithPriority[] = [
+  {
+    type: InstallerType.CET,
+    id: "cp2077-cet-mod",
+    testSupported: testForCetMod,
+    install: installCetMod,
+  },
+  /*
+  {
+    type: InstallerType.Redscript,
+    id: "cp2077-redscript-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Red4Ext,
+    id: "cp2077-red4ext-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.TweakDB,
+    id: "cp2077-tweakdb-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.AXL,
+    id: "cp2077-axl-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.INI,
+    id: "cp2077-ini-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Config,
+    id: "cp2077-config-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.Reshade,
+    id: "cp2077-reshade-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.LUT,
+    id: "cp2077-lut-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreCET,
+    id: "cp2077-core-cet-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreRedscript,
+    id: "cp2077-core-redscript-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreRed4ext,
+    id: "cp2077-core-red4ext-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  */
   {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
-    priority: 30,
-    testSupported: modWithArchiveOnly,
-    install: archiveOnlyInstaller,
+    testSupported: testForArchiveOnlyMod,
+    install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.Other,
-    id: "cp2077-standard-mod",
-    priority: 31,
-    testSupported: modHasBadStructure,
-    install: installWithCorrectedStructure,
+    type: InstallerType.FallbackForOther,
+    id: "cp2077-fallback-for-others-mod",
+    testSupported: testAnyOtherModFallback,
+    install: installAnyModWithBasicFixes,
   },
-].sort(byPriority);
+  // Quite possible we won’t need this one
+  {
+    type: InstallerType.NotSupported,
+    id: "cp2077-not-supported",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+].reduce(addPriorityFrom(PRIORITY_STARTING_NUMBER), []);

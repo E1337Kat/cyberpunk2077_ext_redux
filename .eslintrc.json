@@ -17,12 +17,17 @@
     "import/prefer-default-export": "off",
     "linebreak-style": "off",
     "max-len": ["warn", { "code": 140, "comments": 140 }],
+    "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "operator-linebreak": [
       "error",
       "after",
       { "overrides": { "?": "before", ":": "before" } }
     ],
     "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ],
     "@typescript-eslint/quotes": "off"
   }
 }
