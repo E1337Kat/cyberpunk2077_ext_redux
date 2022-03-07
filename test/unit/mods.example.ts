@@ -263,3 +263,5 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
     },
   }), // object
 );
+
+export const AllModTypes = [CetMod, ArchiveOnly];
