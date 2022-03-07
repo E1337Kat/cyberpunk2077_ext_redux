@@ -91,8 +91,8 @@ export enum InstallerType {
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
-  Other = "Other",
-  NotSupported = "Trying to install something not supported",
+  FallbackForOther = "FallbackForOther",
+  NotSupported = "[Trying to install something not supported]",
 }
 export interface Installer {
   type: InstallerType;
@@ -770,14 +770,15 @@ export const installerPipeline: InstallerWithPriority[] = [
     install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.Other,
-    id: "cp2077-standard-mod",
+    type: InstallerType.FallbackForOther,
+    id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
     install: installAnyModWithBasicFixes,
   },
+  // Quite possible we won’t need this one
   {
     type: InstallerType.NotSupported,
-    id: "cp2077-standard-mod",
+    id: "cp2077-not-supported",
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
