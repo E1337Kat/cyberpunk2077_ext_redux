@@ -775,11 +775,4 @@ export const installerPipeline: InstallerWithPriority[] = [
     testSupported: testAnyOtherModFallback,
     install: installAnyModWithBasicFixes,
   },
-  // Quite possible we won’t need this one
-  {
-    type: InstallerType.NotSupported,
-    id: "cp2077-not-supported",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
 ].reduce(addPriorityFrom(PRIORITY_STARTING_NUMBER), []);
