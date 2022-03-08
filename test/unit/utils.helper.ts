@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
+import * as path from "path";
 import { mock, mockFn, MockProxy } from "jest-mock-extended";
 import * as Vortex from "vortex-api/lib/types/api";
 import {
@@ -38,4 +39,16 @@ export const matchInstaller = async (modFiles: string[]) => {
   }
 
   return undefined;
+};
+
+export const pathHierarchyFor = (entirePath: string): string[] => {
+  const pathSegments = path.normalize(entirePath).split(path.sep);
+
+  const hierarchy: string[] = pathSegments.reduce(
+    (supers: string[], segment: string) =>
+      supers.concat(path.join(supers[supers.length - 1], segment, path.sep)),
+    [""],
+  );
+
+  return hierarchy.slice(1);
 };

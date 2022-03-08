@@ -1,6 +1,5 @@
 import * as path from "path";
-import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
+import { AllModTypes } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -11,43 +10,25 @@ import {
 const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
 
 describe("Transforming modules to instructions", () => {
-  describe("CET mods", () => {
-    CetMod.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.CET);
+  AllModTypes.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
 
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
+          const installResult = await installer.install(
+            mockVortexAPI,
+            mockVortexLog,
+            mod.inFiles,
+            fakeInstallDir,
+            null,
+            null,
+          );
 
-        expect(installResult.instructions).toEqual(mod.outInstructions);
-      });
-    });
-  });
-  describe("archive-only mods", () => {
-    ArchiveOnly.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.ArchiveOnly);
-
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
-
-        expect(installResult.instructions).toEqual(mod.outInstructions);
+          expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
       });
     });
   });

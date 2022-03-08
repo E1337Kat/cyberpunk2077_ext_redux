@@ -43,11 +43,14 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
 
+export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
+export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
+
 export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
   path.normalize("archive/pc/mod/");
 
 /**
- * The path where an archive file should lay
+ * The extension of most mods
  */
 const MOD_FILE_EXT = ".archive";
 /**
@@ -55,14 +58,6 @@ const MOD_FILE_EXT = ".archive";
  */
 const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
-/**
- * The path where redscript files should lay
- */
-const REDSCRIPT_PATH = path.join("r6", "scripts");
-/**
- * The extension of most mods
- */
-const MOD_FILE_EXT = ".archive";
 /**
  * The extension of a RedScript file
  */
@@ -549,14 +544,16 @@ function redScriptInstallationHelper(
 
   // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
   const normalizedFiltered = redFiles.map((file: string) =>
-    file.includes(REDSCRIPT_PATH) ? file : path.join(REDSCRIPT_PATH, file),
+    file.includes(REDS_MOD_CANONICAL_PATH_PREFIX)
+      ? file
+      : path.join(REDS_MOD_CANONICAL_PATH_PREFIX, file),
   );
 
   // Set destination to be 'r6/scripts/ModFolder/[file].reds'
   const instructions = normalizedFiltered.map((file: string) => ({
     type: "copy",
     source: file,
-    destination: path.join(REDSCRIPT_PATH, path.basename(file)),
+    destination: path.join(REDS_MOD_CANONICAL_PATH_PREFIX, path.basename(file)),
   }));
 
   return instructions;
