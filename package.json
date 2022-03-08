@@ -11,7 +11,8 @@
     "prepare": "husky install",
     "pre-commit": "lint-staged",
     "test": "jest --no-cache",
-    "test-clean": "jest --clearCache && npm run test"
+    "test-clean": "jest --clearCache && npm run test",
+    "repl": "ts-node -r tsconfig-paths/register"
   },
   "author": "KellieAtTheLab",
   "contributors": [
@@ -52,6 +53,7 @@
   },
   "dependencies": {
     "jest-mock-extended": "^2.0.4",
-    "key-tree": "^1.0.3"
+    "key-tree": "^1.0.3",
+    "tsconfig-paths": "^3.13.0"
   }
 }
