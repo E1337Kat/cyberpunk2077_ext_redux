@@ -37,10 +37,19 @@ const MEOW_FOR_COMMENTS = 0;
  * The extension game id
  */
 const GAME_ID = "cyberpunk2077";
+
+export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
+export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/mods",
+);
+
+export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
+  path.normalize("archive/pc/mod/");
+
 /**
  * The path where an archive file should lay
  */
-const ARCHIVE_MOD_PATH = path.join("archive", "pc", "mod");
+const MOD_FILE_EXT = ".archive";
 /**
  *  The path where INI files should lay
  */
@@ -233,16 +242,8 @@ const allFilesInFolder = (folder: string, files: string[]) => {
   return allTheFiles;
 };
 
-export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
-export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods",
-);
-
 const allCetFiles = (files: string[]) =>
   allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
-
-export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
-  path.normalize("archive/pc/mod/");
 
 const allArchiveOnlyFiles = (files: string[]) =>
   allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
@@ -414,7 +415,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   log("info", "Installing archive files: ", filtered);
   const archiveFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
-    const dest = path.join(ARCHIVE_MOD_PATH, fileName);
+    const dest = path.join(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, fileName);
 
     flattenedHierarchy = flattenedHierarchy || file !== dest;
 
