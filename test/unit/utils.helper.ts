@@ -1,8 +1,19 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
-import { installerPipeline, InstallerType } from "../../src/installers";
+import { mock, mockFn, MockProxy } from "jest-mock-extended";
+import * as Vortex from "vortex-api/lib/types/api";
+import {
+  installerPipeline,
+  InstallerType,
+  VortexLogFunc,
+} from "../../src/installers";
 
 export const GAME_ID = "cyberpunk2077";
+
+export const mockVortexAPI: MockProxy<Vortex.IExtensionApi> =
+  mock<Vortex.IExtensionApi>();
+
+export const mockVortexLog: VortexLogFunc = mockFn<VortexLogFunc>();
 
 export const getFallbackInstaller = () => {
   const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
@@ -15,7 +26,7 @@ export const getFallbackInstaller = () => {
 };
 
 export const matchSpecific = async (installer, modFiles: string[]) =>
-  installer.testSupported(modFiles, GAME_ID);
+  installer.testSupported(mockVortexAPI, mockVortexLog, modFiles, GAME_ID);
 
 export const matchInstaller = async (modFiles: string[]) => {
   for (const installer of installerPipeline) {

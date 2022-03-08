@@ -5,15 +5,6 @@ import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line impor
 // Ensure we're using win32 conventions
 const path = win32;
 
-// We need to 'DI' the logger for tests because we
-// don't have the Vortex environment like we will
-// at regular runtime.
-const noop = (..._) => {};
-const log =
-  process.env.NODE_ENV === "test" || process.env.WEBPACK_BUILD === "true"
-    ? noop
-    : require("vortex-api").log; // eslint-disable-line @typescript-eslint/no-var-requires
-
 /** Correct Directory structure:
  * root_folder
  * |-📁 archive
@@ -90,27 +81,69 @@ export enum InstallerType {
   FallbackForOther = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }
+
+export type VortexAPI = Vortex.IExtensionApi;
+
+export type VortexLogLevel = "debug" | "info" | "warn" | "error";
+export type VortexLogFunc = (
+  level: VortexLogLevel,
+  message: string,
+  metadata?: unknown,
+) => void;
+
+export type VortexTestResult = Vortex.ISupportedResult;
+export type VortexTestSupportedFunc = Vortex.TestSupported;
+
+// Vortex.TestSupported
+export type VortexWrappedTestSupportedFunc = (
+  vortexApi: VortexAPI,
+  vortexLog: VortexLogFunc,
+  files: string[],
+  gameID: string,
+) => Promise<VortexTestResult>;
+
+export type VortexInstallFunc = Vortex.InstallFunc;
+export type VortexInstallResult = Vortex.IInstallResult;
+export type VortexInstruction = Vortex.IInstruction;
+
+// Vortex.InstallFunc
+export type VortexWrappedInstallFunc = (
+  vortexApi: VortexAPI,
+  vortexLog: VortexLogFunc,
+  files: string[],
+  destinationPath: string,
+  gameId: string,
+  progressDelegate: Vortex.ProgressDelegate,
+  choices?: unknown,
+  unattended?: boolean,
+) => Promise<VortexInstallResult>;
+
 export interface Installer {
   type: InstallerType;
   id: string;
-  testSupported: Vortex.TestSupported;
-  install: Vortex.InstallFunc;
+  testSupported: VortexWrappedTestSupportedFunc;
+  install: VortexWrappedInstallFunc;
 }
+
 export interface InstallerWithPriority extends Installer {
   priority: number;
 }
 
 // testSupported that always fails
 //
-export const notSupportedModType: Vortex.TestSupported = (
+export const notSupportedModType: VortexWrappedTestSupportedFunc = (
+  _api: VortexAPI,
+  _log: VortexLogFunc,
   _files: string[],
   _gameId: string,
-): Promise<Vortex.ISupportedResult> =>
+): Promise<VortexTestResult> =>
   Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
 //
-export const notInstallableMod: Vortex.InstallFunc = (
+export const notInstallableMod: VortexWrappedInstallFunc = (
+  _api: VortexAPI,
+  _log: VortexLogFunc,
   _files: string[],
   _destinationPath: string,
   _gameId: string,
@@ -167,8 +200,8 @@ const instructionsForSameSourceAndDestPaths = (files: string[]) => {
 
   const uniqueFiles = [...new Set(justTheRegularFiles).values()];
 
-  const instructions: Vortex.IInstruction[] = uniqueFiles.map(
-    (file: string): Vortex.IInstruction => ({
+  const instructions: VortexInstruction[] = uniqueFiles.map(
+    (file: string): VortexInstruction => ({
       type: "copy",
       source: file,
       destination: file,
@@ -221,9 +254,12 @@ const allArchiveOnlyFiles = (files: string[]) =>
 // 1. Require bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
 //
 
-export const testForCetMod: Vortex.TestSupported = (
+export const testForCetMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
-): Promise<Vortex.ISupportedResult> => {
+  _gameId: string,
+): Promise<VortexTestResult> => {
   log("debug", "Starting matcher, input files: ", files);
 
   const fileTree = new KeyTree({ separator: path.sep });
@@ -251,9 +287,12 @@ export const testForCetMod: Vortex.TestSupported = (
 };
 
 // Install the CET stuff, as well as any archives we find
-export const installCetMod: Vortex.InstallFunc = (
+export const installCetMod: VortexWrappedInstallFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
-): Promise<Vortex.IInstallResult> => {
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
   log("info", "Using CET installer");
 
   const cetFiles = allCetFiles(files);
@@ -276,10 +315,12 @@ export const installCetMod: Vortex.InstallFunc = (
 
 // ArchiveOnly
 
-export const testForArchiveOnlyMod: Vortex.TestSupported = (
+export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
   gameId: string,
-): Promise<Vortex.ISupportedResult> => {
+): Promise<VortexTestResult> => {
   // Make sure we're able to support this mod.
   const correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
@@ -356,19 +397,27 @@ export const testForArchiveOnlyMod: Vortex.TestSupported = (
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export const installArchiveOnlyMod: Vortex.InstallFunc = (
+export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
-): Promise<Vortex.IInstallResult> => {
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
   // since this installer is only called when there is for sure only archive files, just need to get the files
   const filtered: string[] = files.filter(
     (file: string) => path.extname(file) !== "",
   );
+
+  let flattenedHierarchy = false;
 
   // Set destination to be 'archive/pc/mod/[file].archive'
   log("info", "Installing archive files: ", filtered);
   const archiveFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
     const dest = path.join(ARCHIVE_MOD_PATH, fileName);
+
+    flattenedHierarchy = flattenedHierarchy || file !== dest;
+
     return {
       type: "copy",
       source: file,
@@ -376,6 +425,34 @@ export const installArchiveOnlyMod: Vortex.InstallFunc = (
     };
   });
   log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  if (flattenedHierarchy) {
+    api.sendNotification({
+      type: "info",
+      title: "Placed All Archive Files In Top-Level Folder!",
+      message: "Please check mod files in File Manager!",
+      actions: [
+        {
+          title: "More info",
+          action: (dismiss) => {
+            api.showDialog(
+              "info",
+              "Archive Files Moved To Top Level",
+              {
+                text:
+                  "There were some archive files outside the canonical mod folder " +
+                  ".\\archive\\pc\\mod or inside a subdirectory. " +
+                  "The installer moved them all to the top level. Please check " +
+                  "the mod in File Manager (Down Arrow next to the Remove action " +
+                  "in the mod list) to verify the files are correct!",
+              },
+              [{ label: "Close", action: () => dismiss() }],
+            );
+          },
+        },
+      ],
+    });
+  }
 
   const instructions = [].concat(archiveFileInstructions);
 
@@ -390,7 +467,9 @@ export const installArchiveOnlyMod: Vortex.InstallFunc = (
  * @param gameId The internal game id
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
-export const testAnyOtherModFallback: Vortex.TestSupported = (
+export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
   gameId: string,
 ): Promise<Vortex.ISupportedResult> => {
@@ -548,7 +627,9 @@ function redScriptInstallationHelper(
  * @param files a list of files to be installed
  * @returns a promise with an array detailing what files to install and how
  */
-export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
+export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
   files: string[],
   destinationPath: string,
 ): Promise<Vortex.IInstallResult> => {
@@ -614,13 +695,13 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
 // just keep the array ordered and we tag the
 // installers with priority here
 const addPriorityFrom = (start: number) => {
-  const f = (
+  const priorityAdder = (
     prioritized: InstallerWithPriority[],
     installer: Installer,
     index: number,
   ) => prioritized.concat({ priority: start + index, ...installer });
 
-  return f;
+  return priorityAdder;
 };
 
 // Define the pipeline that we push mods through
