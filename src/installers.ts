@@ -67,10 +67,6 @@ const MOD_FILE_EXT = ".archive";
  * The extension of a RedScript file
  */
 const REDSCRIPT_FILE_EXT = ".reds";
-/**
- * The extension of a lua/CET file
- */
-const LUA_FILE_EXT = ".lua";
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 
@@ -404,20 +400,11 @@ export const testAnyOtherModFallback: Vortex.TestSupported = (
   const correctGame = gameId === GAME_ID;
   log("info", "Checking bad structure of mod for a game: ", gameId);
   if (!correctGame) {
-    // no mods?
-    const supported = false;
     return Promise.resolve({
-      supported,
+      supported: false,
       requiredFiles: [],
     });
   }
-
-  // Make sure we're able to support this mod.
-  const hasArchiveMod =
-    files.find(
-      (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
-    ) !== undefined;
-  log("debug", "Probably archives: ", hasArchiveMod);
 
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
@@ -428,25 +415,17 @@ export const testAnyOtherModFallback: Vortex.TestSupported = (
     ) !== undefined;
   log("debug", "Possibly RedScripts: ", hasRedScript);
 
-  const hasCetScript =
-    files.find(
-      (file: string) => path.extname(file).toLowerCase() === LUA_FILE_EXT,
-    ) !== undefined;
-  log("debug", "Possible CET Scripts: ", hasCetScript);
-
-  if (hasArchiveMod || hasIniMod || hasRedScript || hasCetScript) {
-    const supported = true;
+  if (hasIniMod || hasRedScript) {
     log("info", "mod supported by this installer");
     return Promise.resolve({
-      supported,
+      supported: true,
       requiredFiles: [],
     });
   }
 
-  const supported = false;
   log("warn", "I dunno. Can't do nothing about this.");
   return Promise.resolve({
-    supported,
+    supported: false,
     requiredFiles: [],
   });
 };
@@ -576,22 +555,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   // Grab the archive name for putting CET files and Redscript into
   const archiveName = path.basename(destinationPath, ".installing");
 
-  // gather the archive files.
-  const someArchiveModFile = files.find(
-    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
-  );
-  let filteredArchives: string[];
-  if (someArchiveModFile !== undefined) {
-    const theArchivePathAsIs = path.dirname(someArchiveModFile);
-    filteredArchives = files.filter(
-      (file: string) =>
-        path.dirname(file) === theArchivePathAsIs ||
-        path.extname(file).toLowerCase() === MOD_FILE_EXT,
-    );
-  } else {
-    filteredArchives = [];
-  }
-
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
@@ -617,15 +580,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   //       !filteredCet.includes(file);
   //   });
 
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Correcting archive files: ", filteredArchives);
-  const archiveFileInstructions = filteredArchives.map((file: string) => ({
-    type: "copy",
-    source: file,
-    destination: path.join(ARCHIVE_MOD_PATH, path.basename(file)),
-  }));
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
   log("info", "Correcting INI mod files: ", iniModFiles);
   const iniModInstructions = iniModFiles.map((file) => ({
     type: "copy",
@@ -648,7 +602,6 @@ export const installAnyModWithBasicFixes: Vortex.InstallFunc = (
   //   log("debug", "Installing everything else with: ", cetScriptInstructions);
 
   const instructions = [].concat(
-    archiveFileInstructions,
     iniModInstructions,
     redScriptInstructions,
     // everythingLeftOverInstructions
@@ -774,12 +727,5 @@ export const installerPipeline: InstallerWithPriority[] = [
     id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
     install: installAnyModWithBasicFixes,
-  },
-  // Quite possible we won’t need this one
-  {
-    type: InstallerType.NotSupported,
-    id: "cp2077-not-supported",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
   },
 ].reduce(addPriorityFrom(PRIORITY_STARTING_NUMBER), []);

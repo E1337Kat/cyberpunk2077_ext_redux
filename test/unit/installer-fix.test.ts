@@ -1,6 +1,9 @@
+import * as path from "path";
 import { InstallerType } from "../../src/installers";
-import { ArchiveOnly, CetMod } from "./mods.example";
-import { matchInstaller } from "./utils.helper";
+import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
+import { getFallbackInstaller, matchInstaller } from "./utils.helper";
+
+const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
 
 describe("Transforming modules to instructions", () => {
   describe("CET mods", () => {
@@ -12,7 +15,7 @@ describe("Transforming modules to instructions", () => {
 
         const installResult = await installer.install(
           mod.inFiles,
-          null,
+          fakeInstallDir,
           null,
           null,
         );
@@ -30,12 +33,31 @@ describe("Transforming modules to instructions", () => {
 
         const installResult = await installer.install(
           mod.inFiles,
-          null,
+          fakeInstallDir,
           null,
           null,
         );
 
         expect(installResult.instructions).toEqual(mod.outInstructions);
+      });
+    });
+  });
+
+  describe("fallback for anything that doesn't match other installers", () => {
+    const fallbackInstaller = getFallbackInstaller();
+
+    AllModTypes.forEach((type) => {
+      type.forEach(async (mod, desc) => {
+        test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
+          const installResult = await fallbackInstaller.install(
+            mod.inFiles,
+            fakeInstallDir,
+            null,
+            null,
+          );
+
+          expect(installResult.instructions).toEqual([]);
+        });
       });
     });
   });
