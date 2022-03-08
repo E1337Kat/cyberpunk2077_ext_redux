@@ -51,6 +51,7 @@
     "webpack-cli": "^3.3.4"
   },
   "dependencies": {
+    "jest-mock-extended": "^2.0.4",
     "key-tree": "^1.0.3"
   }
 }
