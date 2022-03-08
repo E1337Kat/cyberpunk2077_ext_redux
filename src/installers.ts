@@ -398,7 +398,7 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
  * @returns a promise with an array detailing what files to install and how
  */
 export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
-  _api: VortexAPI,
+  api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
   _destinationPath: string,
@@ -408,11 +408,16 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     (file: string) => path.extname(file) !== "",
   );
 
+  let flattenedHierarchy = false;
+
   // Set destination to be 'archive/pc/mod/[file].archive'
   log("info", "Installing archive files: ", filtered);
   const archiveFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
     const dest = path.join(ARCHIVE_MOD_PATH, fileName);
+
+    flattenedHierarchy = flattenedHierarchy || file !== dest;
+
     return {
       type: "copy",
       source: file,
@@ -420,6 +425,34 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     };
   });
   log("debug", "Installing archive files with: ", archiveFileInstructions);
+
+  if (flattenedHierarchy) {
+    api.sendNotification({
+      type: "info",
+      title: "Placed All Archive Files In Top-Level Folder!",
+      message: "Please check mod files in File Manager!",
+      actions: [
+        {
+          title: "More info",
+          action: (dismiss) => {
+            api.showDialog(
+              "info",
+              "Archive Files Moved To Top Level",
+              {
+                text:
+                  "There were some archive files outside the canonical mod folder " +
+                  ".\\archive\\pc\\mod or inside a subdirectory. " +
+                  "The installer moved them all to the top level. Please check " +
+                  "the mod in File Manager (Down Arrow next to the Remove action " +
+                  "in the mod list) to verify the files are correct!",
+              },
+              [{ label: "Close", action: () => dismiss() }],
+            );
+          },
+        },
+      ],
+    });
+  }
 
   const instructions = [].concat(archiveFileInstructions);
 
