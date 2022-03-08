@@ -1,7 +1,12 @@
 import * as path from "path";
 import { InstallerType } from "../../src/installers";
 import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
-import { getFallbackInstaller, matchInstaller } from "./utils.helper";
+import {
+  getFallbackInstaller,
+  matchInstaller,
+  mockVortexAPI,
+  mockVortexLog,
+} from "./utils.helper";
 
 const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
 
@@ -14,6 +19,8 @@ describe("Transforming modules to instructions", () => {
         expect(installer.type).toBe(InstallerType.CET);
 
         const installResult = await installer.install(
+          mockVortexAPI,
+          mockVortexLog,
           mod.inFiles,
           fakeInstallDir,
           null,
@@ -32,6 +39,8 @@ describe("Transforming modules to instructions", () => {
         expect(installer.type).toBe(InstallerType.ArchiveOnly);
 
         const installResult = await installer.install(
+          mockVortexAPI,
+          mockVortexLog,
           mod.inFiles,
           fakeInstallDir,
           null,
@@ -50,6 +59,8 @@ describe("Transforming modules to instructions", () => {
       type.forEach(async (mod, desc) => {
         test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
           const installResult = await fallbackInstaller.install(
+            mockVortexAPI,
+            mockVortexLog,
             mod.inFiles,
             fakeInstallDir,
             null,

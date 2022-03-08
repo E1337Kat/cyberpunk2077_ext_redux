@@ -1,7 +1,11 @@
 import path from "path";
-import { fs, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { fs, log, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { installerPipeline } from "./installers";
+import {
+  installerPipeline,
+  VortexInstallFunc,
+  VortexTestSupportedFunc,
+} from "./installers";
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -26,7 +30,6 @@ const moddingTools = [
 ];
 
 export function findGame() {
-  // Hi
   return util.GameStoreHelper.findByAppId([
     STEAMAPP_ID,
     GOGAPP_ID,
@@ -87,14 +90,20 @@ function main(vortex: IExtensionContext) {
     },
   });
 
-  installerPipeline.forEach((installer) =>
+  installerPipeline.forEach((installer) => {
+    const testSupportedWrapper: VortexTestSupportedFunc = (...args) =>
+      installer.testSupported(vortex.api, log, ...args);
+
+    const installWrapper: VortexInstallFunc = (...args) =>
+      installer.install(vortex.api, log, ...args);
+
     vortex.registerInstaller(
       installer.id,
       installer.priority,
-      installer.testSupported,
-      installer.install,
-    ),
-  );
+      testSupportedWrapper,
+      installWrapper,
+    );
+  });
 
   return true;
 }
