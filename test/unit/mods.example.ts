@@ -19,7 +19,15 @@ export interface ExampleMod {
   outInstructions: Vortex.IInstruction[];
 }
 
+export type FailureMatchers = string | RegExp | Error;
+export interface ExampleFailingMod {
+  expectedInstallerType: InstallerType;
+  inFiles: InFiles;
+  failure?: FailureMatchers;
+}
+
 export type ExampleModCategory = Map<string, ExampleMod>;
+export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 
 export const FAKE_STAGING_NAME = "mymegamod-43335455-wth-1";
 export const FAKE_STAGING_PATH = path.join(
@@ -200,19 +208,6 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    /* This should fail
-    redsScriptInFolderTopLevel: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [path.join(`rexmod/script.reds`)],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-      ],
-    },
-    */
     redsWithMultipleFilesInRedsBaseDir: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [
@@ -224,21 +219,29 @@ export const RedscriptMod = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
+          source: path.join(`${REDS_PREFIX}/script.reds`),
           destination: path.join(
             `${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`,
           ),
         },
         {
           type: "copy",
-          source: path.join(
-            `${REDS_PREFIX}/${FAKE_STAGING_NAME}/notascript.reds`,
-          ),
+          source: path.join(`${REDS_PREFIX}/notascript.reds`),
           destination: path.join(
             `${REDS_PREFIX}/${FAKE_STAGING_NAME}/notascript.reds`,
           ),
         },
       ],
+    },
+  }),
+);
+
+export const RedscriptModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    redsScriptInTopLevelDirShouldFail: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [path.join(`rexmod/script.reds`)],
+      failure: "No Redscript found, should never get here.",
     },
   }),
 );
@@ -533,5 +536,14 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
+  }),
+);
+
+export const AllExpectedInstallFailures = new Map<
+  string,
+  ExampleFailingModCategory
+>(
+  Object.entries({
+    RedscriptModShouldFail,
   }),
 );

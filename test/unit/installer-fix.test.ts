@@ -1,13 +1,14 @@
-import * as path from "path";
-import { AllModTypes } from "./mods.example";
+import {
+  AllExpectedInstallFailures,
+  AllModTypes,
+  FAKE_STAGING_PATH,
+} from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
   mockVortexAPI,
   mockVortexLog,
 } from "./utils.helper";
-
-const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
 
 describe("Transforming modules to instructions", () => {
   AllModTypes.forEach((examples, set) => {
@@ -22,12 +23,35 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
-            fakeInstallDir,
+            FAKE_STAGING_PATH,
             null,
             null,
           );
 
           expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
+      });
+    });
+  });
+
+  AllExpectedInstallFailures.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
+
+          expect(() =>
+            installer.install(
+              mockVortexAPI,
+              mockVortexLog,
+              mod.inFiles,
+              FAKE_STAGING_PATH,
+              null,
+              null,
+            ),
+          ).rejects.toThrowError(mod.failure);
         });
       });
     });
@@ -43,7 +67,7 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
-            fakeInstallDir,
+            FAKE_STAGING_PATH,
             null,
             null,
           );
