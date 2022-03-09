@@ -58,18 +58,20 @@ const MOD_FILE_EXT = ".archive";
  */
 const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
-/**
- * The extension of a RedScript file
- */
-const REDSCRIPT_FILE_EXT = ".reds";
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
+
+// Vortex gives us a 'destination path', which is actually
+// the tempdir in which the archive is expanded into for
+// the duration of the installation.
+const makeModName = (vortexDestinationPath: string) =>
+  path.basename(vortexDestinationPath, ".installing");
 
 // Types
 
 export enum InstallerType {
-  CET = "CET", // #13
-  Redscript = "Redscript", // #27
+  CET = "CET",
+  Redscript = "Redscript",
   Red4Ext = "Red4ext", // #5
   TweakDB = "TweakDB", // #6
   AXL = "AXL", // #28
@@ -195,25 +197,39 @@ function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
 
+// Source to dest path mapping helpers
+const toSamePath = (f: string) => [f, f];
+const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
+  [f, path.join(prefixPath, dir, path.basename(f))];
+
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
-const instructionsForSameSourceAndDestPaths = (files: string[]) => {
-  const justTheRegularFiles = files.filter(
-    (f: string) => !f.endsWith(path.sep),
+const instructionsForSourceToDestPairs = (
+  srcAndDestPairs: string[][],
+): VortexInstruction[] => {
+  const justTheRegularFiles = srcAndDestPairs.filter(
+    ([src, _]) => !src.endsWith(path.sep),
   );
 
-  const uniqueFiles = [...new Set(justTheRegularFiles).values()];
+  // Is this actually necessary at all? I guess we could check there are
+  // no duplicates that would override one another in case callers haven't
+  // const uniqueFiles = [...new Set(justTheRegularFiles).values()];
 
-  const instructions: VortexInstruction[] = uniqueFiles.map(
-    (file: string): VortexInstruction => ({
+  const instructions: VortexInstruction[] = justTheRegularFiles.map(
+    ([src, dst]): VortexInstruction => ({
       type: "copy",
-      source: file,
-      destination: file,
+      source: src,
+      destination: dst,
     }),
   );
 
-  return { instructions };
+  return instructions;
 };
+
+const instructionsForSameSourceAndDestPaths = (
+  files: string[],
+): VortexInstruction[] =>
+  instructionsForSourceToDestPairs(files.map(toSamePath));
 
 // Installers
 
@@ -237,18 +253,23 @@ const allFilesInFolder = (folder: string, files: string[]) => {
   return allTheFiles;
 };
 
-const allCetFiles = (files: string[]) =>
+const allCanonicalCetFiles = (files: string[]) =>
   allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
 
-const allArchiveOnlyFiles = (files: string[]) =>
+const allCanonicalArchiveOnlyFiles = (files: string[]) =>
   allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
 
 // CET
 
 // CET mods are detected by:
 //
-// 1. Require bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
+// Canonical:
+//  - bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
+//  - .\r6\scripts\[modname]\*.reds
 //
+// Fixable: no
+//
+// Archives: both canonical
 
 export const testForCetMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
@@ -256,7 +277,7 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
   files: string[],
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting matcher, input files: ", files);
+  log("debug", "Starting CET matcher, input files: ", files);
 
   const fileTree = new KeyTree({ separator: path.sep });
 
@@ -291,7 +312,7 @@ export const installCetMod: VortexWrappedInstallFunc = (
 ): Promise<VortexInstallResult> => {
   log("info", "Using CET installer");
 
-  const cetFiles = allCetFiles(files);
+  const cetFiles = allCanonicalCetFiles(files);
 
   if (cetFiles.length === 0) {
     return Promise.reject(
@@ -300,13 +321,196 @@ export const installCetMod: VortexWrappedInstallFunc = (
   }
 
   // Let's grab anything else we might reasonably have
-  const archiveOnlyFiles = allArchiveOnlyFiles(files);
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
 
   const allTheFiles = cetFiles.concat(archiveOnlyFiles);
 
   const instructions = instructionsForSameSourceAndDestPaths(allTheFiles);
 
-  return Promise.resolve(instructions);
+  return Promise.resolve({ instructions });
+};
+
+// Redscript mods are detected by
+//
+// Canonical:
+//  - .\r6\scripts\[modname]\*.reds
+//
+// Fixable (everything assumed to be one mod):
+//  - .\*.reds
+//  - .\r6\scripts\*.reds
+//
+// Archives:
+//  - Canonical both only
+
+const matchRedscript = (file: string) =>
+  path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
+
+const allRedscriptFiles = (files: string[]): string[] =>
+  files.filter(matchRedscript);
+
+/**
+ * A helper for redscript files
+ * @param redFiles redscript files
+ * @param genericModName a mod folder if everyhting is awful
+ * @returns an array of instructions for the files
+ */
+/*
+function redScriptInstallationHelper(
+  redFiles: string[],
+  _genericModName: string,
+) {
+  //   let files = redFiles.filter((f) => !path.extname(f));
+
+  // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
+  const normalizedFiltered = redFiles.map((file: string) =>
+    file.includes(REDS_MOD_CANONICAL_PATH_PREFIX)
+      ? file
+      : path.join(REDS_MOD_CANONICAL_PATH_PREFIX, file),
+  );
+
+  // Set destination to be 'r6/scripts/ModFolder/[file].reds'
+  const instructions = normalizedFiltered.map((file: string) => ({
+    type: "copy",
+    source: file,
+    destination: path.join(REDS_MOD_CANONICAL_PATH_PREFIX, path.basename(file)),
+  }));
+
+  return instructions;
+} */
+
+export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Starting Redscript matcher, input files: ", files);
+
+  const redscriptFiles = allRedscriptFiles(files);
+
+  // eslint-disable-next-line no-console
+  console.log({ redscriptFiles });
+  // We could do more detection here but the
+  // installer will already need to duplicate
+  // all that. Maybe just check whether there
+  // are any counterindications?
+  if (redscriptFiles.length === 0) {
+    log("debug", "No Redscripts");
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  log("info", "Matched to Redscript");
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+// Install the Redscript stuff, as well as any archives we find
+export const installRedscriptMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  destinationPath: string,
+): Promise<VortexInstallResult> => {
+  log("info", "Using Redscript installer");
+
+  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
+  files.forEach((file) => fileTree.add(path.dirname(file), file));
+
+  // We could get a lot fancier here, but for now we don't accept
+  // subdirectories anywhere other than in a canonical location.
+
+  // .\*.reds
+  const topLevelReds = fileTree.get(".").filter(matchRedscript);
+  // .\r6\scripts\*.reds
+  const redsDirReds = fileTree
+    .get(REDS_MOD_CANONICAL_PATH_PREFIX)
+    .filter(matchRedscript);
+
+  // We also only accept one subdir, anything else might be trouble
+  // But grab everything under it.
+
+  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  // .\r6\scripts\[mod]\**\*
+  const canonRedsModFiles =
+    base && base.children.length === 1
+      ? fileTree.getSub(
+          path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key),
+        )
+      : [];
+
+  const installable = [canonRedsModFiles, redsDirReds, topLevelReds].filter(
+    (location) => location.length > 0,
+  );
+
+  if (installable.length === 0) {
+    const message = "No Redscript found, should never get here.";
+    log("error", `Redscript Mod installer: ${message}`, files);
+    return Promise.reject(new Error(message));
+  }
+
+  if (installable.length > 1) {
+    const message = "Conflicting Redscript locations, bailing out!";
+    log("error", `Redscript Mod installer: ${message}`, files);
+
+    // It'd be nicer to move at least the long text out, maybe constant
+    // for text + function for handling the boilerplate?
+    api.showDialog(
+      "error",
+      message,
+      {
+        text:
+          "Encountered several possible Redscript mod layouts. I currently only support " +
+          "one layout per mod. Stopping the installation, you will have to fix the " +
+          "mod manually <em>outside</em> Vortex for now.\n" +
+          "\n" +
+          "Supported layouts:\n" +
+          " - .\\r6\\scripts\\[modname]\\[any files and subfolders] (canonical)\n" +
+          " - .\\r6\\scripts\\*.reds (fixable)\n" +
+          " - .\\*.reds (fixable)\n" +
+          "\n" +
+          "Got:\n" +
+          "{allFiles}",
+        parameters: {
+          allFiles: installable,
+        },
+      },
+      [
+        { label: "Stop Installation" },
+        // Could also support
+        // { label: "Install everything"}
+      ],
+    );
+
+    return Promise.reject(new Error(message));
+  }
+
+  const modName = makeModName(destinationPath);
+
+  // Let's grab archives too
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
+
+  // Only one of these should exist but why discriminate?
+  const allSourcesAndDestinations = [
+    canonRedsModFiles.map(toSamePath),
+    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    topLevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    archiveOnlyFiles.map(toSamePath),
+  ];
+
+  const instructions = allSourcesAndDestinations.flatMap(
+    instructionsForSourceToDestPairs,
+  );
+
+  // eslint-disable-next-line no-console
+  console.log({
+    allSourcesAndDestinations,
+    instructions,
+  });
+
+  return Promise.resolve({ instructions });
 };
 
 // ArchiveOnly
@@ -484,13 +688,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
-  const hasRedScript =
-    files.find(
-      (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
-    ) !== undefined;
-  log("debug", "Possibly RedScripts: ", hasRedScript);
-
-  if (hasIniMod || hasRedScript) {
+  if (hasIniMod) {
     log("info", "mod supported by this installer");
     return Promise.resolve({
       supported: true,
@@ -529,35 +727,6 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
 //     return false;
 //   }
 // }
-
-/**
- * A helper for redscript files
- * @param redFiles redscript files
- * @param genericModName a mod folder if everyhting is awful
- * @returns an array of instructions for the files
- */
-function redScriptInstallationHelper(
-  redFiles: string[],
-  _genericModName: string,
-) {
-  //   let files = redFiles.filter((f) => !path.extname(f));
-
-  // Ensure all the RedScript files are in their own mod directory. (Should have been checked beforehand)
-  const normalizedFiltered = redFiles.map((file: string) =>
-    file.includes(REDS_MOD_CANONICAL_PATH_PREFIX)
-      ? file
-      : path.join(REDS_MOD_CANONICAL_PATH_PREFIX, file),
-  );
-
-  // Set destination to be 'r6/scripts/ModFolder/[file].reds'
-  const instructions = normalizedFiltered.map((file: string) => ({
-    type: "copy",
-    source: file,
-    destination: path.join(REDS_MOD_CANONICAL_PATH_PREFIX, path.basename(file)),
-  }));
-
-  return instructions;
-}
 
 // /**
 //  * A helper for any other files
@@ -629,29 +798,11 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
-  destinationPath: string,
+  _destinationPath: string,
 ): Promise<Vortex.IInstallResult> => {
-  // Grab the archive name for putting CET files and Redscript into
-  const archiveName = path.basename(destinationPath, ".installing");
-
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
-  // gather the RedScript files.
-  const someRedscriptModFile = files.find(
-    (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
-  );
-  let filteredReds: string[];
-  if (someRedscriptModFile !== undefined) {
-    const theRedscriptPathAsIs = path.dirname(someRedscriptModFile);
-    filteredReds = files.filter(
-      (file: string) =>
-        path.dirname(file) === theRedscriptPathAsIs ||
-        path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
-    );
-  } else {
-    filteredReds = [];
-  }
   //   let everythingElse = files.filter((file: string) => {
   //     !path.extname(file) &&
   //       !filteredArchives.includes(file) &&
@@ -667,13 +818,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   }));
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
-  log("info", "Correcting redscript mod files: ", filteredReds);
-  const redScriptInstructions = redScriptInstallationHelper(
-    filteredReds,
-    archiveName,
-  );
-  log("debug", "Installing redscript mod files with: ", redScriptInstructions);
-
   //   let everythingLeftOverInstructions = genericFileInstallationHelper(
   //     everythingElse,
   //     genericModName
@@ -682,7 +826,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
 
   const instructions = [].concat(
     iniModInstructions,
-    redScriptInstructions,
     // everythingLeftOverInstructions
   );
 
@@ -721,13 +864,13 @@ export const installerPipeline: InstallerWithPriority[] = [
     testSupported: testForCetMod,
     install: installCetMod,
   },
-  /*
   {
     type: InstallerType.Redscript,
     id: "cp2077-redscript-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForRedscriptMod,
+    install: installRedscriptMod,
   },
+  /*
   {
     type: InstallerType.Red4Ext,
     id: "cp2077-red4ext-mod",
