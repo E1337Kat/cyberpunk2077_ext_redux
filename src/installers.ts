@@ -69,10 +69,10 @@ const REDSCRIPT_FILE_EXT = ".reds";
  * The extension of a JSON file
  */
 const JSON_FILE_EXT = ".json";
-const KNOWN_JSON_FILES = [
-  path.join("engine", "config", "giweights.json"),
-  path.join("r6", "config", "bumperSettings.json"),
-];
+const KNOWN_JSON_FILES = {
+  "giweights.json": path.join("engine", "config", "giweights.json"),
+  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
+};
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 
 // Types
@@ -92,7 +92,7 @@ export enum InstallerType {
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
-  Json = "JSON",
+  json = "JSON",
   FallbackForOther = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }
@@ -502,29 +502,45 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
     });
   }
 
-  // check for options.json in the root
-  const optionsInRoot = filtered.find((file: string) => {
-    path.basename(file) === "options" && path.dirname(file) === "";
-  });
-  if (optionsInRoot) {
-    log("info", "Bare options.json found in archive, we can't install this");
-    return Promise.reject(
-      new Error(
-        "Bare options.json file found.  We don't know where it belongs",
-      ),
-    );
-  }
   // just make sure we don't somehow have a CET mod that got here
   const cetModJson = filtered.filter((file: string) =>
-    path.dirname(file).includes(CET_MOD_CANONICAL_PATH_PREFIX),
+    path.dirname(file).toLowerCase().includes(CET_MOD_CANONICAL_PATH_PREFIX),
   );
-  if (cetModJson.length === 0) {
+  if (cetModJson.length !== 0) {
     log("error", "We somehow got a CET mod in the JSON check");
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
+  let proper = true;
+  // check for options.json in the file list
+  const options = filtered.some((file: string) =>
+    file.endsWith("options.json"),
+  );
+  if (options) {
+    log("debug", "Options.json files found: ", options);
+    proper = filtered.some((f: string) =>
+      path
+        .dirname(f)
+        .toLowerCase()
+        .startsWith(path.normalize("r6/config/settings")),
+    );
+
+    if (!proper) {
+      log(
+        "info",
+        "Improperly located options.json found in archive, we can't install this",
+      );
+      return Promise.reject(
+        new Error(
+          "Improperly located options.json file found.  We don't know where it belongs",
+        ),
+      );
+    }
+  }
+
+  log("debug", "We got through it all and it is a JSON mod");
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
@@ -547,18 +563,19 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   const jsonFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
 
-    const instPath = KNOWN_JSON_FILES.find((known: string) => {
-      if (path.basename(known) === fileName)
-        return path.join(path.dirname(known), fileName);
-      else return file;
-    });
+    let instPath = file;
 
-    movedJson = movedJson || file !== instPath;
+    if (KNOWN_JSON_FILES[fileName] !== undefined) {
+      instPath = KNOWN_JSON_FILES[fileName];
+
+      log("debug", "instPath set as ", instPath);
+      movedJson = movedJson || file !== instPath;
+    }
 
     return {
       type: "copy",
       source: file,
-      dest: instPath,
+      destination: instPath,
     };
   });
 
@@ -919,7 +936,7 @@ export const installerPipeline: InstallerWithPriority[] = [
     install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.Json,
+    type: InstallerType.json,
     id: "cp2077-json-mod",
     testSupported: testForJsonMod,
     install: installJsonMod,

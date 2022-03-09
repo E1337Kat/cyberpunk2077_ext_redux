@@ -1,6 +1,6 @@
 import * as path from "path";
 import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
+import { AllModTypes, ArchiveOnly, CetMod, jsonMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -37,6 +37,26 @@ describe("Transforming modules to instructions", () => {
         const installer = await matchInstaller(mod.inFiles);
         expect(installer).toBeDefined();
         expect(installer.type).toBe(InstallerType.ArchiveOnly);
+
+        const installResult = await installer.install(
+          mockVortexAPI,
+          mockVortexLog,
+          mod.inFiles,
+          fakeInstallDir,
+          null,
+          null,
+        );
+
+        expect(installResult.instructions).toEqual(mod.outInstructions);
+      });
+    });
+  });
+  describe("json mods", () => {
+    jsonMod.forEach(async (mod, kind) => {
+      test(`produce the expected instructions ${kind}`, async () => {
+        const installer = await matchInstaller(mod.inFiles);
+        expect(installer).toBeDefined();
+        expect(installer.type).toBe(InstallerType.json);
 
         const installResult = await installer.install(
           mockVortexAPI,

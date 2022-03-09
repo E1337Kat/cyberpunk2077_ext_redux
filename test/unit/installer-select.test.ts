@@ -1,5 +1,5 @@
 import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
+import { AllModTypes, ArchiveOnly, CetMod, jsonMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -23,6 +23,16 @@ describe("Selecting the installer for a mod type", () => {
         const installer = await matchInstaller(mod.inFiles);
         expect(installer).toBeDefined();
         expect(installer.type).toBe(InstallerType.ArchiveOnly);
+      });
+    });
+  });
+
+  describe("json mods", () => {
+    jsonMod.forEach(async (mod, desc) => {
+      test(`selects the json installer when ${desc}`, async () => {
+        const installer = await matchInstaller(mod.inFiles);
+        expect(installer).toBeDefined();
+        expect(installer.type).toBe(InstallerType.json);
       });
     });
   });
