@@ -27,7 +27,7 @@ import {
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
 } from "./dialogs";
-
+import { fs } from "vortex-api";
 // Ensure we're using win32 conventions
 const path = win32;
 
@@ -93,6 +93,7 @@ const MOD_FILE_EXT = ".archive";
  */
 const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
+const RESHADE_MOD_PATH = path.join("bin", "x64");
 /**
  * The extension of a JSON file
  */
@@ -929,6 +930,52 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
+// INI (includes Reshade?)
+export const testForIniMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  gameId: string,
+): Promise<VortexTestResult> => {
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Checking for INI files: ", gameId);
+  if (!correctGame) {
+    // no mods?
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
+  );
+
+  if (filtered.length === 0) {
+    log("info", "No INI files.");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (
+    filtered.some((file: string) =>
+      file.includes(CET_MOD_CANONICAL_PATH_PREFIX),
+    )
+  ) {
+    log("info", "INI file detected within a CET mod, aborting");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
 export const installJsonMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
@@ -973,6 +1020,77 @@ export const installJsonMod: VortexWrappedInstallFunc = (
 
   return Promise.resolve({ instructions });
 };
+
+export const installIniMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  destinationPath: string,
+): Promise<VortexInstallResult> => {
+  // This installer gets called for both reshade and "normal" ini mods
+  const archiveName = path.basename(destinationPath, ".installing");
+
+  const filtered = files.filter(
+    (file: string) => path.extname(file) === INI_MOD_EXT,
+  );
+  const shaderFiles = files.filter(
+    (file: string) =>
+      file.includes("reshade-shaders") && path.extname(file) !== "",
+  );
+
+  let reshade = false;
+  // We're going to make a reasonable assumption here that reshades will
+  // only have reshade ini's, so we only need to check the first one
+  const data: string = fs
+    .readFileSync(path.join(destinationPath, filtered[0]))
+    .toString("utf-8")
+    .slice(0, 20);
+  const regex = /\[.+/;
+  const testString = data.replace(regex, "");
+
+  if (testString === data) {
+    log("info", "Reshade file located.");
+    reshade = true;
+  }
+
+  // Set destination to be 'archive/pc/mod/[file].archive'
+  log("info", "Installing ini files: ", filtered);
+  const iniFileInstructions = filtered.map((file: string) => {
+    const fileName = path.basename(file);
+    const dest = reshade
+      ? path.join(RESHADE_MOD_PATH, path.basename(file))
+      : path.join(INI_MOD_PATH, fileName);
+
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+
+  let shaderInstructions = [];
+  if (reshade && shaderFiles.length !== 0) {
+    shaderInstructions = files.map((file: string) => {
+      const regex = /.*reshade-shaders/;
+      const fileName = file.replace(regex, "reshade-shaders");
+      log("error", "Shader dir Found. Processing: ", fileName);
+      const dest = path.join(RESHADE_MOD_PATH, fileName);
+
+      return {
+        type: "copy",
+        source: file,
+        destination: dest,
+      };
+    });
+  }
+  const instructions = []
+    .concat(iniFileInstructions)
+    .concat(shaderInstructions);
+  log("debug", "Installing ini files with instructions: ", instructions);
+
+  return Promise.resolve({ instructions });
+};
+
 // Fallback
 
 /**
@@ -1106,14 +1224,14 @@ const installers: Installer[] = [
     id: "cp2077-axl-mod",
     testSupported: notSupportedModType,
     install: notInstallableMod,
-  },
+  },*/
   {
     type: InstallerType.INI,
     id: "cp2077-ini-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForIniMod,
+    install: installIniMod,
   },
-  {
+  /*  {
     type: InstallerType.Config,
     id: "cp2077-config-mod",
     testSupported: notSupportedModType,
