@@ -1,7 +1,7 @@
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { fs } from "vortex-api";
+import { readFileSync } from "fs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -172,26 +172,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 
 //   return Promise.resolve({ instructions });
 // }
-
-/**
- * @todo implement logic
- * @param _file a file to check
- * @returns true is the file is a reshade ini file, false otherwise
- */
-function reshadeINI(_file: string): boolean {
-  return false;
-}
-
-/**
- *
- * @param file Full file path string to check
- * @returns true if it looks like an INI mod file
- *
- * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
- */
-function matchIniFile(file: string): boolean {
-  return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
-}
 
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
@@ -527,11 +507,10 @@ export const installIniMod: VortexWrappedInstallFunc = (
   let reshade = false;
   // We're going to make a reasonable assumption here that reshades will
   // only have reshade ini's, so we only need to check the first one
-  const data: string = fs
-    .readFileSync(path.join(destinationPath, filtered[0]))
+  const data: string = readFileSync(path.join(destinationPath, filtered[0]))
     .toString("utf-8")
     .slice(0, 20);
-  const regex = /\[.+/;
+  const regex = /^[\[#].+/;
   const testString = data.replace(regex, "");
 
   if (testString === data) {
@@ -559,7 +538,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
     shaderInstructions = files.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, "reshade-shaders");
-      log("error", "Shader dir Found. Processing: ", fileName);
+      log("info", "Shader dir Found. Processing: ", fileName);
       const dest = path.join(RESHADE_MOD_PATH, fileName);
 
       return {
@@ -583,7 +562,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
  * Checks to see if the mod has any expected files in unexpected places
  * @param files list of files
  * @param gameId The internal game id
- * @returns Promise which details if the files passed in need to make use of a specific installation method
+ *   * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
 export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
@@ -603,16 +582,13 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
     });
   }
 
-  const hasIniMod = files.some(matchIniFile);
-  log("debug", "Probably INI mods: ", hasIniMod);
-
   const hasRedScript =
     files.find(
       (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
     ) !== undefined;
   log("debug", "Possibly RedScripts: ", hasRedScript);
 
-  if (hasIniMod || hasRedScript) {
+  if (hasRedScript) {
     log("info", "mod supported by this installer");
     return Promise.resolve({
       supported: true,
@@ -754,9 +730,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   // Grab the archive name for putting CET files and Redscript into
   const archiveName = path.basename(destinationPath, ".installing");
 
-  // Gather any INI files
-  const iniModFiles = files.filter(matchIniFile);
-
   // gather the RedScript files.
   const someRedscriptModFile = files.find(
     (file: string) => path.extname(file).toLowerCase() === REDSCRIPT_FILE_EXT,
@@ -779,14 +752,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   //       !filteredCet.includes(file);
   //   });
 
-  log("info", "Correcting INI mod files: ", iniModFiles);
-  const iniModInstructions = iniModFiles.map((file) => ({
-    type: "copy",
-    source: file,
-    destination: path.join(INI_MOD_PATH, path.basename(file)),
-  }));
-  log("debug", "Installing INI mod files with: ", iniModInstructions);
-
   log("info", "Correcting redscript mod files: ", filteredReds);
   const redScriptInstructions = redScriptInstallationHelper(
     filteredReds,
@@ -801,7 +766,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   //   log("debug", "Installing everything else with: ", cetScriptInstructions);
 
   const instructions = [].concat(
-    iniModInstructions,
     redScriptInstructions,
     // everythingLeftOverInstructions
   );
