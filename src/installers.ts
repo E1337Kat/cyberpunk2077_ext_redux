@@ -461,27 +461,23 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
       "error",
       message,
       {
-        text:
-          "Encountered several possible Redscript mod layouts. I currently only support " +
-          "one layout per mod. Stopping the installation, you will have to fix the " +
-          "mod manually <em>outside</em> Vortex for now.\n" +
+        md:
+          "I found several possible Redscript layouts, but can only support " +
+          "one layout per mod. This mod can't be installed! You will have to fix the " +
+          "mod manually _outside_ Vortex for now.\n" +
           "\n" +
           "Supported layouts:\n" +
-          " - .\\r6\\scripts\\[modname]\\[any files and subfolders] (canonical)\n" +
-          " - .\\r6\\scripts\\*.reds (I can fix this to canonical)\n" +
-          " - .\\*.reds (I can fix this to canonical)\n" +
+          " - `.\\r6\\scripts\\[modname]\\[any files and subfolders]` (canonical)\n" +
+          " - `.\\r6\\scripts\\*.reds` (I can fix this to canonical)\n" +
+          " - `.\\*.reds` (I can fix this to canonical)\n" +
           "\n" +
           "Got:\n" +
-          "{allFiles}",
+          "{{allFiles}}",
         parameters: {
-          allFiles: installable,
+          allFiles: installable.join("\n"),
         },
       },
-      [
-        { label: "Stop Installation" },
-        // Could also support
-        // { label: "Install everything"}
-      ],
+      [{ label: "Ok, Mod Was Not Installed" }],
     );
 
     return Promise.reject(new Error(message));
