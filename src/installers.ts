@@ -468,8 +468,8 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
           "\n" +
           "Supported layouts:\n" +
           " - .\\r6\\scripts\\[modname]\\[any files and subfolders] (canonical)\n" +
-          " - .\\r6\\scripts\\*.reds (fixable)\n" +
-          " - .\\*.reds (fixable)\n" +
+          " - .\\r6\\scripts\\*.reds (I can fix this to canonical)\n" +
+          " - .\\*.reds (I can fix this to canonical)\n" +
           "\n" +
           "Got:\n" +
           "{allFiles}",
