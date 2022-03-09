@@ -1,6 +1,6 @@
 import * as path from "path";
 import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod } from "./mods.example";
+import { AllModTypes, ArchiveOnly, CetMod, IniMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -31,6 +31,30 @@ describe("Transforming modules to instructions", () => {
       });
     });
   });
+
+  describe("Transforming modules to instructions", () => {
+    describe("Ini and Reshade mods", () => {
+      IniMod.forEach(async (mod, kind) => {
+        test(`produce the expected instructions ${kind}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(InstallerType.INI);
+
+          const installResult = await installer.install(
+            mockVortexAPI,
+            mockVortexLog,
+            mod.inFiles,
+            fakeInstallDir,
+            null,
+            null,
+          );
+
+          expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
+      });
+    });
+  });
+
   describe("archive-only mods", () => {
     ArchiveOnly.forEach(async (mod, kind) => {
       test(`produce the expected instructions ${kind}`, async () => {

@@ -263,5 +263,121 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
     },
   }), // object
 );
-
-export const AllModTypes = [CetMod, ArchiveOnly];
+export const IniMod = new Map<string, ExampleMod>(
+  Object.entries({
+    archiveWithSingleIniAtRoot: {
+      inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(
+            "engine/config/platform/pc/myawesomeconfig.ini",
+          ),
+        },
+      ],
+    },
+    archiveWithMultipleIniAtRoot: {
+      inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(
+            "engine/config/platform/pc/myawesomeconfig.ini",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("serious.ini"),
+          destination: path.normalize("engine/config/platform/pc/serious.ini"),
+        },
+      ],
+    },
+    archiveWithReshadeIniAtRoot: {
+      inFiles: ["superreshade.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize("bin/x64/superreshade.ini"),
+        },
+      ],
+    },
+    archiveWithSingleIniInRandomFolder: {
+      inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/myawesomeconfig.ini"),
+          destination: path.normalize(
+            "engine/config/platform/pc/myawesomeconfig.ini",
+          ),
+        },
+      ],
+    },
+    archiveWithReshadeIniAndShadersFolder: {
+      inFiles: [
+        "superreshade.ini",
+        "reshade-shaders/",
+        "reshade-shaders/Shaders/",
+        "reshade-shaders/Shaders/fancy.fx",
+        "reshade-shaders/Textures/",
+        "reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize("bin/x64/superreshade.ini"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(
+            "bin/x64/reshade-shaders/Shaders/fancy.fx",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Textures/lut.png"),
+          destination: path.normalize(
+            "bin/x64/reshade-shaders/Textures/lut.png",
+          ),
+        },
+      ],
+    },
+    archiveWithReshadeIniAndShadersInAFolder: {
+      inFiles: [
+        "fold1/superreshade.ini",
+        "fold1/reshade-shaders/",
+        "fold1/reshade-shaders/Shaders/",
+        "fold1/reshade-shaders/Shaders/fancy.fx",
+        "fold1/reshade-shaders/Textures/",
+        "fold1/reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "fold1/superreshade.ini",
+          destination: path.normalize("bin/x64/superreshade.ini"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(
+            "bin/x64/reshade-shaders/Shaders/fancy.fx",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/reshade-shaders/Textures/lut.png"),
+          destination: path.normalize(
+            "bin/x64/reshade-shaders/Textures/lut.png",
+          ),
+        },
+      ],
+    },
+  }), // object
+);
+export const AllModTypes = [CetMod, ArchiveOnly, IniMod];
