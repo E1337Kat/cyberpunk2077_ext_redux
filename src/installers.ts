@@ -28,6 +28,8 @@ import {
   showArchiveStructureErrorDialog,
 } from "./dialogs";
 import { fs } from "vortex-api";
+import { readFileSync } from "fs";
+
 // Ensure we're using win32 conventions
 const path = win32;
 
@@ -1041,11 +1043,10 @@ export const installIniMod: VortexWrappedInstallFunc = (
   let reshade = false;
   // We're going to make a reasonable assumption here that reshades will
   // only have reshade ini's, so we only need to check the first one
-  const data: string = fs
-    .readFileSync(path.join(destinationPath, filtered[0]))
+  const data: string = readFileSync(path.join(destinationPath, filtered[0]))
     .toString("utf-8")
     .slice(0, 20);
-  const regex = /\[.+/;
+  const regex = /^[\[#].+/;
   const testString = data.replace(regex, "");
 
   if (testString === data) {
@@ -1073,7 +1074,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
     shaderInstructions = files.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, "reshade-shaders");
-      log("error", "Shader dir Found. Processing: ", fileName);
+      log("info", "Shader dir Found. Processing: ", fileName);
       const dest = path.join(RESHADE_MOD_PATH, fileName);
 
       return {
@@ -1097,7 +1098,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
  * Checks to see if the mod has any expected files in unexpected places
  * @param files list of files
  * @param gameId The internal game id
- * @returns Promise which details if the files passed in need to make use of a specific installation method
+ *   * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
 export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
