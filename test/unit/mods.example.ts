@@ -194,10 +194,13 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(
+            `${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`,
+          ),
         },
       ],
     },
+    /* This should fail
     redsScriptInFolderTopLevel: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`rexmod/script.reds`)],
@@ -209,7 +212,8 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    redsWithMultipleFilesWithoutModFolder: {
+    */
+    redsWithMultipleFilesInRedsBaseDir: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [
         ...REDS_PREFIXES,
