@@ -264,7 +264,7 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const jsonMod = new Map<string, ExampleMod>(
+export const JsonMod = new Map<string, ExampleMod>(
   Object.entries({
     jsonWithValidFileInRoot: {
       inFiles: ["giweights.json"].map(path.normalize),
@@ -352,4 +352,4 @@ export const jsonMod = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const AllModTypes = [CetMod, ArchiveOnly, jsonMod];
+export const AllModTypes = [CetMod, ArchiveOnly, JsonMod];

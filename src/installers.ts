@@ -92,7 +92,7 @@ export enum InstallerType {
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
-  json = "JSON",
+  Json = "JSON",
   FallbackForOther = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }
@@ -936,7 +936,7 @@ export const installerPipeline: InstallerWithPriority[] = [
     install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.json,
+    type: InstallerType.Json,
     id: "cp2077-json-mod",
     testSupported: testForJsonMod,
     install: installJsonMod,
