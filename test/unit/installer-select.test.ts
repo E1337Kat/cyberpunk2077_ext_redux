@@ -1,4 +1,5 @@
-import { AllModTypes } from "./mods.example";
+import { InstallerType } from "../../src/installers";
+import { AllModTypes, ArchiveOnly, CetMod, IniMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -16,7 +17,23 @@ describe("Selecting the installer for a mod type", () => {
           const installer = await matchInstaller(mod.inFiles);
           expect(installer).toBeDefined();
           expect(installer.type).toBe(mod.expectedInstallerType);
-        });
+        });});
+  describe("Ini and Reshade mods", () => {
+    IniMod.forEach(async (mod, desc) => {
+      test(`selects the archive-only installer when ${desc}`, async () => {
+        const installer = await matchInstaller(mod.inFiles);
+        expect(installer).toBeDefined();
+        expect(installer.type).toBe(InstallerType.INI);
+      });
+    });
+  });
+
+  describe("archive-only mods", () => {
+    ArchiveOnly.forEach(async (mod, desc) => {
+      test(`selects the archive-only installer when ${desc}`, async () => {
+        const installer = await matchInstaller(mod.inFiles);
+        expect(installer).toBeDefined();
+        expect(installer.type).toBe(InstallerType.ArchiveOnly);
       });
     });
   });

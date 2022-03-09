@@ -3,6 +3,9 @@ import {
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
+import * as path from "path";
+import { InstallerType } from "../../src/installers";
+import {  ArchiveOnly, CetMod, IniMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -30,6 +33,50 @@ describe("Transforming modules to instructions", () => {
 
           expect(installResult.instructions).toEqual(mod.outInstructions);
         });
+      });
+    });
+  });
+
+  describe("Transforming modules to instructions", () => {
+    describe("Ini and Reshade mods", () => {
+      IniMod.forEach(async (mod, kind) => {
+        test(`produce the expected instructions ${kind}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(InstallerType.INI);
+
+          const installResult = await installer.install(
+            mockVortexAPI,
+            mockVortexLog,
+            mod.inFiles,
+            FAKE_STAGING_PATH,
+            null,
+            null,
+          );
+
+          expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
+      });
+    });
+  });
+
+  describe("archive-only mods", () => {
+    ArchiveOnly.forEach(async (mod, kind) => {
+      test(`produce the expected instructions ${kind}`, async () => {
+        const installer = await matchInstaller(mod.inFiles);
+        expect(installer).toBeDefined();
+        expect(installer.type).toBe(InstallerType.ArchiveOnly);
+
+        const installResult = await installer.install(
+          mockVortexAPI,
+          mockVortexLog,
+          mod.inFiles,
+          FAKE_STAGING_PATH,
+          null,
+          null,
+        );
+
+        expect(installResult.instructions).toEqual(mod.outInstructions);
       });
     });
   });
