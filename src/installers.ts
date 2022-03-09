@@ -497,12 +497,6 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
     instructionsForSourceToDestPairs,
   );
 
-  // eslint-disable-next-line no-console
-  console.log({
-    allSourcesAndDestinations,
-    instructions,
-  });
-
   return Promise.resolve({ instructions });
 };
 
