@@ -472,10 +472,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
           " - `.\\*.reds` (I can fix this to canonical)\n" +
           "\n" +
           "Got:\n" +
-          "{{allFiles}}",
-        parameters: {
-          allFiles: installable.join("\n"),
-        },
+          `${installable.join("\n")}`,
       },
       [{ label: "Ok, Mod Was Not Installed" }],
     );
