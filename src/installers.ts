@@ -1,6 +1,10 @@
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+import {
+  redCetMixedStructureErrorDialog,
+  redWithInvalidFilesErrorDialog,
+} from "./dialogs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -60,6 +64,7 @@ const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
+// I figured some wiggle room on either side is nice :) - Ellie
 
 // Vortex gives us a 'destination path', which is actually
 // the tempdir in which the archive is expanded into for
@@ -70,6 +75,7 @@ const makeModName = (vortexDestinationPath: string) =>
 // Types
 
 export enum InstallerType {
+  RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
   Red4Ext = "Red4ext", // #5
@@ -255,6 +261,141 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 //
 // Archives: both canonical
 
+export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Starting CET matcher, input files: ", files);
+
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  if (!moddir || moddir.children.length === 0) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  const hasCetFilesInANamedModDir = moddir.children.some(
+    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
+  );
+
+  const redscriptFiles = allRedscriptFiles(files);
+  if (hasCetFilesInANamedModDir && redscriptFiles.length === 0) {
+    log("debug", "Have CET, but no redscript");
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  return Promise.resolve({
+    supported: hasCetFilesInANamedModDir,
+    requiredFiles: [],
+  });
+};
+
+// Install the Redscript stuff, as well as any archives we find
+export const installRedCetMixedMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  destinationPath: string,
+): Promise<VortexInstallResult> => {
+  log("info", "Using Reds + CET complex installer");
+
+  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
+  files.forEach((file) => fileTree.add(path.dirname(file), file));
+
+  // We could get a lot fancier here, but for now we don't accept
+  // subdirectories anywhere other than in a canonical location.
+
+  // .\*.reds -- not actually wanted in this case. we only will allow installation if all files are packaged nicely
+  const topLevelReds = fileTree.get(".").filter(matchRedscript);
+  if (topLevelReds.length > 0) {
+    const message =
+      "The reds are not correctly structured, installing through vortex isn't possible.";
+    redCetMixedStructureErrorDialog(api, log, message, files);
+    return Promise.reject(new Error(message));
+  }
+  // .\r6\scripts\*.reds
+  const redsDirReds = fileTree
+    .get(REDS_MOD_CANONICAL_PATH_PREFIX)
+    .filter(matchRedscript);
+
+  // We also only accept one subdir, anything else might be trouble
+  // But grab everything under it.
+
+  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  // .\r6\scripts\[mod]\**\*
+  const canonRedsModFiles =
+    base && base.children.length === 1
+      ? fileTree.getSub(
+          path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key),
+        )
+      : [];
+
+  const cetFiles = allCanonicalCetFiles(files);
+
+  if (cetFiles.length === 0) {
+    return Promise.reject(
+      new Error("Red + CET install but no CET files, should never get here"),
+    );
+  }
+
+  const installableReds = [canonRedsModFiles, redsDirReds].filter(
+    (location) => location.length > 0,
+  );
+
+  if (installableReds.length === 0) {
+    const message = "No Redscript found, should never get here.";
+    log("error", `Redscript Mod installer: ${message}`, files);
+    return Promise.reject(new Error(message));
+  }
+
+  // Only allow installation if all of the reds are either in their subfolder or not.
+  if (installableReds.length > 1) {
+    const message = "Conflicting Redscript locations, bailing out!";
+    redWithInvalidFilesErrorDialog(api, log, message, files, installableReds);
+
+    return Promise.reject(new Error(message));
+  }
+
+  // since cet has to be in a mod dir, lets use it's mod dir name for the reds if there is none.
+  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+  const modName = moddir.children[0].key;
+
+  // Let's grab archives too
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
+
+  // Only one of these should exist but why discriminate?
+  const allSourcesAndDestinations = [
+    canonRedsModFiles.map(toSamePath),
+    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    cetFiles.map(toSamePath),
+    archiveOnlyFiles.map(toSamePath),
+  ];
+
+  const instructions = allSourcesAndDestinations.flatMap(
+    instructionsForSourceToDestPairs,
+  );
+
+  return Promise.resolve({ instructions });
+};
+
+// CET
+
+// CET mods are detected by:
+//
+// Canonical:
+//  - .\bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
+//  - .\r6\scripts\[modname]\*.reds
+//
+// Fixable: no
+//
+// Archives: both canonical
+
 export const testForCetMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
@@ -313,6 +454,8 @@ export const installCetMod: VortexWrappedInstallFunc = (
 
   return Promise.resolve({ instructions });
 };
+
+// Reds
 
 // Redscript mods are detected by
 //
@@ -658,13 +801,6 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
-  //   let everythingElse = files.filter((file: string) => {
-  //     !path.extname(file) &&
-  //       !filteredArchives.includes(file) &&
-  //       !filteredReds.includes(file) &&
-  //       !filteredCet.includes(file);
-  //   });
-
   log("info", "Correcting INI mod files: ", iniModFiles);
   const iniModInstructions = iniModFiles.map((file) => ({
     type: "copy",
@@ -673,16 +809,7 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   }));
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
-  //   let everythingLeftOverInstructions = genericFileInstallationHelper(
-  //     everythingElse,
-  //     genericModName
-  //   );
-  //   log("debug", "Installing everything else with: ", cetScriptInstructions);
-
-  const instructions = [].concat(
-    iniModInstructions,
-    // everythingLeftOverInstructions
-  );
+  const instructions = [].concat(iniModInstructions);
 
   return Promise.resolve({ instructions });
 };
@@ -713,6 +840,12 @@ const addPriorityFrom = (start: number) => {
 // Using Vortex parameter names here for convenience.
 //
 const installers: Installer[] = [
+  {
+    type: InstallerType.RedCetMix,
+    id: "cp2077-red-cet-mixture-mod",
+    testSupported: testForRedCetMixedMod,
+    install: installRedCetMixedMod,
+  },
   {
     type: InstallerType.CET,
     id: "cp2077-cet-mod",
