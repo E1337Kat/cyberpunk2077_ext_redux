@@ -529,12 +529,100 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
   }),
 );
 
+export const JsonMod = new Map<string, ExampleMod>(
+  Object.entries({
+    jsonWithValidFileInRoot: {
+      expectedInstallerType: InstallerType.Json,
+      inFiles: ["giweights.json"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("giweights.json"),
+          destination: path.normalize("engine/config/giweights.json"),
+        },
+      ],
+    },
+    jsonInRandomFolder: {
+      expectedInstallerType: InstallerType.Json,
+      inFiles: [
+        "fold1/",
+        "fold1/giweights.json",
+        "fold1/bumpersSettings.json",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/giweights.json"),
+          destination: path.normalize("engine/config/giweights.json"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/bumpersSettings.json"),
+          destination: path.normalize("r6/config/bumpersSettings.json"),
+        },
+      ],
+    },
+    jsonWithFilesInCorrectFolder: {
+      expectedInstallerType: InstallerType.Json,
+      inFiles: [
+        "engine/",
+        "engine/config/",
+        "engine/config/giweights.json",
+        "r6/",
+        "r6/config",
+        "r6/config/bumpersSettings.json",
+        "r6/config/settings/",
+        "r6/config/settings/options.json",
+        "r6/config/settings/platform/",
+        "r6/config/settings/platform/pc/",
+        "r6/config/settings/platform/pc/options.json",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("engine/config/giweights.json"),
+          destination: path.normalize("engine/config/giweights.json"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("r6/config/bumpersSettings.json"),
+          destination: path.normalize("r6/config/bumpersSettings.json"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("r6/config/settings/options.json"),
+          destination: path.normalize("r6/config/settings/options.json"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("r6/config/settings/platform/pc/options.json"),
+          destination: path.normalize(
+            "r6/config/settings/platform/pc/options.json",
+          ),
+        },
+      ],
+    },
+  }), // object
+);
+
+export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    jsonWithInvalidFileInRoot: {
+      expectedInstallerType: InstallerType.Json,
+      inFiles: ["giweights.json", "options.json"].map(path.normalize),
+      failure:
+        "Improperly located options.json file found.  We don't know where it belongs",
+    },
+  }),
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CetMod,
     RedscriptMod,
     ArchiveOnly,
     ValidExtraArchivesWithType,
+    JsonMod,
     ValidTypeCombinations,
   }),
 );
@@ -545,5 +633,6 @@ export const AllExpectedInstallFailures = new Map<
 >(
   Object.entries({
     RedscriptModShouldFail,
+    JsonModShouldFail,
   }),
 );

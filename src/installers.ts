@@ -21,11 +21,18 @@ const path = win32;
  * | | | | | | |- Whatever structure the mod wants
  * |-📁 engine
  * | |-📁 config
+ * | | |-📄 giweights.json
  * | | |-📁 platform
  * | | | |-📁 pc
  * | | | | |-📄 *.ini -- Typically loose files, no subdirs
  * |-📁 r6
  * | |-📁 config
+ * | | |-📁 settings
+ * | | | |-📄 options.json
+ * | | | |-📁 platform
+ * | | | | |-📁 pc
+ * | | | | | |-📄 options.json
+ * | | |-📄 bumperSettings.json
  * | | |-📄 *.xml (68.2 kB)
  * | |-📁 scripts
  * | | |-📁 SomeMod
@@ -58,6 +65,14 @@ const MOD_FILE_EXT = ".archive";
  */
 const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
+/**
+ * The extension of a JSON file
+ */
+const JSON_FILE_EXT = ".json";
+const KNOWN_JSON_FILES = {
+  "giweights.json": path.join("engine", "config", "giweights.json"),
+  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
+};
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 
@@ -84,6 +99,7 @@ export enum InstallerType {
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
+  Json = "JSON",
   FallbackForOther = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }
@@ -600,6 +616,124 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
+export const testForJsonMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  gameId: string,
+): Promise<VortexTestResult> => {
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Checking JSON files for game: ", gameId);
+  if (!correctGame) {
+    // Not in game mode?
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
+  );
+  if (filtered.length === 0) {
+    log("info", "No JSON files");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  // just make sure we don't somehow have a CET mod that got here
+  const cetModJson = files.filter(
+    (file: string) =>
+      path.basename(file).toLowerCase() === CET_MOD_CANONICAL_INIT_FILE,
+  );
+  if (cetModJson.length !== 0) {
+    log("error", "We somehow got a CET mod in the JSON check");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  let proper = true;
+  // check for options.json in the file list
+  const options = filtered.some((file: string) =>
+    file.endsWith("options.json"),
+  );
+  if (options) {
+    log("debug", "Options.json files found: ", options);
+    proper = filtered.some((f: string) =>
+      path
+        .dirname(f)
+        .toLowerCase()
+        .startsWith(path.normalize("r6/config/settings")),
+    );
+
+    if (!proper) {
+      log(
+        "info",
+        "Improperly located options.json found in archive, we can't install this",
+      );
+      return Promise.reject(
+        new Error(
+          "Improperly located options.json file found.  We don't know where it belongs",
+        ),
+      );
+    }
+  }
+
+  log("debug", "We got through it all and it is a JSON mod");
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installJsonMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const filtered: string[] = files.filter(
+    (file: string) => path.extname(file) !== "",
+  );
+  log("info", "Installing JSON files: ", filtered);
+
+  let movedJson = false;
+
+  const jsonFileInstructions = filtered.map((file: string) => {
+    const fileName = path.basename(file);
+
+    let instPath = file;
+
+    if (KNOWN_JSON_FILES[fileName] !== undefined) {
+      instPath = KNOWN_JSON_FILES[fileName];
+
+      log("debug", "instPath set as ", instPath);
+      movedJson = movedJson || file !== instPath;
+    }
+
+    return {
+      type: "copy",
+      source: file,
+      destination: instPath,
+    };
+  });
+
+  if (movedJson)
+    log(
+      "info",
+      "JSON files were found outside their canonical locations: Fixed",
+    );
+
+  log("debug", "Installing JSON files with: ", jsonFileInstructions);
+
+  const instructions = [].concat(jsonFileInstructions);
+
+  return Promise.resolve({ instructions });
+};
 // Fallback
 
 /**
@@ -798,6 +932,12 @@ const installers: Installer[] = [
     id: "cp2077-basic-archive-mod",
     testSupported: testForArchiveOnlyMod,
     install: installArchiveOnlyMod,
+  },
+  {
+    type: InstallerType.Json,
+    id: "cp2077-json-mod",
+    testSupported: testForJsonMod,
+    install: installJsonMod,
   },
   {
     type: InstallerType.FallbackForOther,
