@@ -310,8 +310,8 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
-          destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
+          source: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
     },
