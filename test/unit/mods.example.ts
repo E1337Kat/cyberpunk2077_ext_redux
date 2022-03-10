@@ -243,6 +243,20 @@ export const RedscriptModShouldFail = new Map<string, ExampleFailingMod>(
       inFiles: [path.join(`rexmod/script.reds`)],
       failure: "No Redscript found, should never get here.",
     },
+    cetWithRedsInTopLevelShouldFail: {
+      expectedInstallerType: InstallerType.RedCetMix,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`/script.reds`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      failure: "No Redscript found, should never get here.",
+    },
   }),
 );
 
@@ -484,7 +498,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleMod>(
 export const ValidTypeCombinations = new Map<string, ExampleMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
-      expectedInstallerType: InstallerType.CET,
+      expectedInstallerType: InstallerType.RedCetMix,
       inFiles: [
         ...CET_PREFIXES,
         path.join(`${CET_PREFIX}/exmod/`),
@@ -501,6 +515,16 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
+        },
+        {
+          type: "copy",
           source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
           destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
         },
@@ -511,13 +535,40 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        },
+      ],
+    },
+    cetWithRedsAtRedsRootFixableUsesCetModName: {
+      expectedInstallerType: InstallerType.RedCetMix,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/`),
+        path.join(`${REDS_PREFIX}/script.reds`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/exmod/script.reds`),
         },
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
           type: "copy",
