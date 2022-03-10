@@ -10,8 +10,9 @@
     "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
-    "test": "jest --no-cache",
-    "test-clean": "jest --clearCache && npm run test"
+    "test": "jest --no-cache --verbose=true --silent=false",
+    "test-clean": "jest --clearCache && npm run test",
+    "repl": "ts-node -r tsconfig-paths/register"
   },
   "author": "KellieAtTheLab",
   "contributors": [
@@ -48,10 +49,11 @@
     "typescript": "^3.5.2",
     "vortex-api": "github:Nexus-Mods/vortex-api",
     "webpack": "^4.35.0",
-    "webpack-cli": "^3.3.4"
+    "webpack-cli": "^3.3.4",
+    "jest-mock-extended": "^2.0.4",
+    "tsconfig-paths": "^3.13.0"
   },
   "dependencies": {
-    "jest-mock-extended": "^2.0.4",
     "key-tree": "^1.0.3"
   }
 }
