@@ -632,7 +632,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       requiredFiles: [],
     });
   }
-  let supported: boolean;
+
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
   );
@@ -645,8 +645,8 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   }
 
   // just make sure we don't somehow have a CET mod that got here
-  const cetModJson = filtered.filter((file: string) =>
-    path.dirname(file).toLowerCase().includes(CET_MOD_CANONICAL_PATH_PREFIX),
+  const cetModJson = files.filter(
+    (file: string) => path.basename(file).toLowerCase() === "init.lua",
   );
   if (cetModJson.length !== 0) {
     log("error", "We somehow got a CET mod in the JSON check");
