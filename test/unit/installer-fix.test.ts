@@ -1,6 +1,8 @@
-import * as path from "path";
-import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod, IniMod } from "./mods.example";
+import {
+  AllExpectedInstallFailures,
+  AllModTypes,
+  FAKE_STAGING_PATH,
+} from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -8,43 +10,20 @@ import {
   mockVortexLog,
 } from "./utils.helper";
 
-const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
-
 describe("Transforming modules to instructions", () => {
-  describe("CET mods", () => {
-    CetMod.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.CET);
-
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
-
-        expect(installResult.instructions).toEqual(mod.outInstructions);
-      });
-    });
-  });
-
-  describe("Transforming modules to instructions", () => {
-    describe("Ini and Reshade mods", () => {
-      IniMod.forEach(async (mod, kind) => {
-        test(`produce the expected instructions ${kind}`, async () => {
+  AllModTypes.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
           const installer = await matchInstaller(mod.inFiles);
           expect(installer).toBeDefined();
-          expect(installer.type).toBe(InstallerType.INI);
+          expect(installer.type).toBe(mod.expectedInstallerType);
 
           const installResult = await installer.install(
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
-            fakeInstallDir,
+            FAKE_STAGING_PATH,
             null,
             null,
           );
@@ -55,23 +34,25 @@ describe("Transforming modules to instructions", () => {
     });
   });
 
-  describe("archive-only mods", () => {
-    ArchiveOnly.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.ArchiveOnly);
+  AllExpectedInstallFailures.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
 
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
-
-        expect(installResult.instructions).toEqual(mod.outInstructions);
+          expect(() =>
+            installer.install(
+              mockVortexAPI,
+              mockVortexLog,
+              mod.inFiles,
+              FAKE_STAGING_PATH,
+              null,
+              null,
+            ),
+          ).rejects.toThrowError(mod.failure);
+        });
       });
     });
   });
@@ -86,7 +67,7 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
-            fakeInstallDir,
+            FAKE_STAGING_PATH,
             null,
             null,
           );

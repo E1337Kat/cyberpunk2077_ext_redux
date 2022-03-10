@@ -1,17 +1,13 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
+import * as path from "path";
 import { mock, mockFn, MockProxy } from "jest-mock-extended";
-import * as Vortex from "vortex-api/lib/types/api";
-import {
-  installerPipeline,
-  InstallerType,
-  VortexLogFunc,
-} from "../../src/installers";
+import { VortexAPI, VortexLogFunc } from "../../src/vortex-wrapper";
+import { installerPipeline, InstallerType } from "../../src/installers";
 
 export const GAME_ID = "cyberpunk2077";
 
-export const mockVortexAPI: MockProxy<Vortex.IExtensionApi> =
-  mock<Vortex.IExtensionApi>();
+export const mockVortexAPI: MockProxy<VortexAPI> = mock<VortexAPI>();
 
 export const mockVortexLog: VortexLogFunc = mockFn<VortexLogFunc>();
 
@@ -38,4 +34,16 @@ export const matchInstaller = async (modFiles: string[]) => {
   }
 
   return undefined;
+};
+
+export const pathHierarchyFor = (entirePath: string): string[] => {
+  const pathSegments = path.normalize(entirePath).split(path.sep);
+
+  const hierarchy: string[] = pathSegments.reduce(
+    (supers: string[], segment: string) =>
+      supers.concat(path.join(supers[supers.length - 1], segment, path.sep)),
+    [""],
+  );
+
+  return hierarchy.slice(1);
 };
