@@ -1,6 +1,8 @@
-import * as path from "path";
-import { InstallerType } from "../../src/installers";
-import { AllModTypes, ArchiveOnly, CetMod, JsonMod } from "./mods.example";
+import {
+  AllExpectedInstallFailures,
+  AllModTypes,
+  FAKE_STAGING_PATH,
+} from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -8,66 +10,49 @@ import {
   mockVortexLog,
 } from "./utils.helper";
 
-const fakeInstallDir = path.join("C:\\magicstuff\\maybemodziporsomething");
-
 describe("Transforming modules to instructions", () => {
-  describe("CET mods", () => {
-    CetMod.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.CET);
+  AllModTypes.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
 
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
+          const installResult = await installer.install(
+            mockVortexAPI,
+            mockVortexLog,
+            mod.inFiles,
+            FAKE_STAGING_PATH,
+            null,
+            null,
+          );
 
-        expect(installResult.instructions).toEqual(mod.outInstructions);
+          expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
       });
     });
   });
-  describe("archive-only mods", () => {
-    ArchiveOnly.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.ArchiveOnly);
 
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
+  AllExpectedInstallFailures.forEach((examples, set) => {
+    describe(`${set} mods`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`produce the expected instructions when ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
 
-        expect(installResult.instructions).toEqual(mod.outInstructions);
-      });
-    });
-  });
-  describe("Json mods", () => {
-    JsonMod.forEach(async (mod, kind) => {
-      test(`produce the expected instructions ${kind}`, async () => {
-        const installer = await matchInstaller(mod.inFiles);
-        expect(installer).toBeDefined();
-        expect(installer.type).toBe(InstallerType.Json);
-
-        const installResult = await installer.install(
-          mockVortexAPI,
-          mockVortexLog,
-          mod.inFiles,
-          fakeInstallDir,
-          null,
-          null,
-        );
-
-        expect(installResult.instructions).toEqual(mod.outInstructions);
+          expect(() =>
+            installer.install(
+              mockVortexAPI,
+              mockVortexLog,
+              mod.inFiles,
+              FAKE_STAGING_PATH,
+              null,
+              null,
+            ),
+          ).rejects.toThrowError(mod.failure);
+        });
       });
     });
   });
@@ -82,7 +67,7 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
-            fakeInstallDir,
+            FAKE_STAGING_PATH,
             null,
             null,
           );
