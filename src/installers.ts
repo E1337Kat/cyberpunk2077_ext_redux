@@ -41,6 +41,7 @@ const path = win32;
  * | | | |- 📄 *.archive
  * |-📁 bin
  * | |-📁 x64
+ * | | |-📄 *.ini -- Reshade mod
  * | | |-📁 plugins
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
@@ -962,8 +963,8 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   }
 
   if (
-    filtered.some((file: string) =>
-      file.includes(CET_MOD_CANONICAL_PATH_PREFIX),
+    files.some((file: string) =>
+      path.basename(file).includes(CET_MOD_CANONICAL_INIT_FILE),
     )
   ) {
     log("info", "INI file detected within a CET mod, aborting");
