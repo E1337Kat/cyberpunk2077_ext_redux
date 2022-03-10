@@ -1,11 +1,12 @@
 import path from "path";
 import { fs, log, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
-import { IExtensionContext, IGameStoreEntry } from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 import {
-  installerPipeline,
   VortexInstallFunc,
   VortexTestSupportedFunc,
-} from "./installers";
+  VortexExtensionContext,
+  VortexGameStoreEntry,
+} from "./vortex-wrapper";
+import { installerPipeline } from "./installers";
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -34,7 +35,7 @@ export function findGame() {
     STEAMAPP_ID,
     GOGAPP_ID,
     EPICAPP_ID,
-  ]).then((game: IGameStoreEntry) => game.gamePath);
+  ]).then((game: VortexGameStoreEntry) => game.gamePath);
 }
 // function findGame() {
 //   try {
@@ -64,7 +65,7 @@ function prepareForModding(discovery) {
 }
 
 // This is the main function Vortex will run when detecting the game extension.
-function main(vortex: IExtensionContext) {
+function main(vortex: VortexExtensionContext) {
   vortex.registerGame({
     id: GAME_ID,
     name: "Cyberpunk 2077",

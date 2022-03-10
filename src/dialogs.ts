@@ -1,5 +1,4 @@
-import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { VortexAPI, VortexLogFunc } from "./installers";
+import { VortexAPI, VortexLogFunc } from "./vortex-wrapper";
 
 export const redCetMixedStructureErrorDialog = (
   api: VortexAPI,
@@ -36,7 +35,7 @@ export const redWithInvalidFilesErrorDialog = (
   log: VortexLogFunc,
   message: string,
   files: string[],
-  installable: any[],
+  installable: string[],
 ) => {
   log("error", `Redscript Mod installer: ${message}`, files);
 

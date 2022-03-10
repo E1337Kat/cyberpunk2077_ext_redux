@@ -5,6 +5,9 @@ import {
   matchSpecific,
 } from "./utils.helper";
 
+// These are actually already tested in installer-fix… (including
+// the expected failures!) but I guess it doesn’t hurt to have this.
+
 describe("Selecting the installer for a mod type", () => {
   AllModTypes.forEach((examples, set) => {
     describe(`${set} mods`, () => {

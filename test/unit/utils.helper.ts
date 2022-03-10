@@ -2,17 +2,12 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { mock, mockFn, MockProxy } from "jest-mock-extended";
-import * as Vortex from "vortex-api/lib/types/api";
-import {
-  installerPipeline,
-  InstallerType,
-  VortexLogFunc,
-} from "../../src/installers";
+import { VortexAPI, VortexLogFunc } from "../../src/vortex-wrapper";
+import { installerPipeline, InstallerType } from "../../src/installers";
 
 export const GAME_ID = "cyberpunk2077";
 
-export const mockVortexAPI: MockProxy<Vortex.IExtensionApi> =
-  mock<Vortex.IExtensionApi>();
+export const mockVortexAPI: MockProxy<VortexAPI> = mock<VortexAPI>();
 
 export const mockVortexLog: VortexLogFunc = mockFn<VortexLogFunc>();
 
