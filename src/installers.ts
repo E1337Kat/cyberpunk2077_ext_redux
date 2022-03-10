@@ -1,6 +1,15 @@
 import { win32 } from "path";
 import KeyTree from "key-tree";
-import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+import {
+  VortexAPI,
+  VortexLogFunc,
+  VortexTestResult,
+  VortexInstruction,
+  VortexInstallResult,
+  VortexProgressDelegate,
+  VortexWrappedInstallFunc,
+  VortexWrappedTestSupportedFunc,
+} from "./vortex-wrapper";
 import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
@@ -94,42 +103,6 @@ export enum InstallerType {
   NotSupported = "[Trying to install something not supported]",
 }
 
-export type VortexAPI = Vortex.IExtensionApi;
-
-export type VortexLogLevel = "debug" | "info" | "warn" | "error";
-export type VortexLogFunc = (
-  level: VortexLogLevel,
-  message: string,
-  metadata?: unknown,
-) => void;
-
-export type VortexTestResult = Vortex.ISupportedResult;
-export type VortexTestSupportedFunc = Vortex.TestSupported;
-
-// Vortex.TestSupported
-export type VortexWrappedTestSupportedFunc = (
-  vortexApi: VortexAPI,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  gameID: string,
-) => Promise<VortexTestResult>;
-
-export type VortexInstallFunc = Vortex.InstallFunc;
-export type VortexInstallResult = Vortex.IInstallResult;
-export type VortexInstruction = Vortex.IInstruction;
-
-// Vortex.InstallFunc
-export type VortexWrappedInstallFunc = (
-  vortexApi: VortexAPI,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  destinationPath: string,
-  gameId: string,
-  progressDelegate: Vortex.ProgressDelegate,
-  choices?: unknown,
-  unattended?: boolean,
-) => Promise<VortexInstallResult>;
-
 export interface Installer {
   type: InstallerType;
   id: string;
@@ -159,7 +132,7 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
   _files: string[],
   _destinationPath: string,
   _gameId: string,
-  _progressDelegate: Vortex.ProgressDelegate,
+  _progressDelegate: VortexProgressDelegate,
 ) => {
   throw new Error("Should never get here");
 };
@@ -186,6 +159,12 @@ function reshadeINI(_file: string): boolean {
 function matchIniFile(file: string): boolean {
   return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 }
+
+const matchRedscript = (file: string) =>
+  path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
+
+const allRedscriptFiles = (files: string[]): string[] =>
+  files.filter(matchRedscript);
 
 // Source to dest path mapping helpers
 const toSamePath = (f: string) => [f, f];
@@ -300,7 +279,7 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
-  destinationPath: string,
+  _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   log("info", "Using Reds + CET complex installer");
 
@@ -468,13 +447,6 @@ export const installCetMod: VortexWrappedInstallFunc = (
 //
 // Archives:
 //  - Canonical both only
-
-const matchRedscript = (file: string) =>
-  path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
-
-const allRedscriptFiles = (files: string[]): string[] =>
-  files.filter(matchRedscript);
-
 export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
@@ -756,7 +728,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   gameId: string,
-): Promise<Vortex.ISupportedResult> => {
+): Promise<VortexTestResult> => {
   log("debug", "Checking Files: ", files);
 
   // Make sure we're able to support this mod.
@@ -797,7 +769,7 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   log: VortexLogFunc,
   files: string[],
   _destinationPath: string,
-): Promise<Vortex.IInstallResult> => {
+): Promise<VortexInstallResult> => {
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
