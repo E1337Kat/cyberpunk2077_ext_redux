@@ -1035,7 +1035,8 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   // Gather any INI files
 
   log("info", "Fallback installer. Copying 1:1: ", files);
-  const instr = files.map((file) => ({
+  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
+  const instr = filtered.map((file) => ({
     type: "copy",
     source: file,
     destination: file,
@@ -1046,7 +1047,13 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
 
   const message =
     "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-  fallbackInstallerReachedErrorDialog(_api, log, message, files, instructions);
+  fallbackInstallerReachedErrorDialog(
+    _api,
+    log,
+    message,
+    filtered,
+    instructions,
+  );
 
   return Promise.resolve({ instructions });
 };
