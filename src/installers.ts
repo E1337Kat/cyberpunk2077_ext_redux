@@ -86,6 +86,7 @@ const INI_MOD_EXT = ".ini";
 export const RESHADE_MOD_PATH = path.join("bin", "x64");
 const SHADERS_DIR = "reshade-shaders";
 export const SHADERS_PATH = path.join(RESHADE_MOD_PATH, SHADERS_DIR);
+const CET_GLOBAL_INI = path.normalize("bin/x64/global.ini");
 /**
  * The extension of a JSON file
  */
@@ -886,6 +887,13 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
     )
   ) {
     log("info", "INI file detected within a CET or Redscript mod, aborting");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  if (files.includes(CET_GLOBAL_INI)) {
+    log("info", "CET Installer detected, not processing as INI");
     return Promise.resolve({
       supported: false,
       requiredFiles: [],

@@ -56,7 +56,7 @@ export const redWithInvalidFilesErrorDialog = (
         " - `.\\*.reds` (I can fix this to canonical)\n" +
         "\n" +
         "Got:\n" +
-        `${installable.join("\n")}`,
+        `${files.join("\n")}`,
     },
     [{ label: "Ok, Mod Was Not Installed" }],
   );
