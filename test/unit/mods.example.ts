@@ -7,8 +7,9 @@ import {
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
-  ARCHIVE_ONLY_CANONICAL_PATH_PREFIX,
+  ARCHIVE_ONLY_CANONICAL_PREFIX,
   InstallerType,
+  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
 } from "../../src/installers";
 
 export type InFiles = string[];
@@ -43,7 +44,7 @@ const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 const REDS_PREFIX = REDS_MOD_CANONICAL_PATH_PREFIX;
 const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
-const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PATH_PREFIX;
+const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
 export const CetMod = new Map<string, ExampleMod>(
@@ -312,6 +313,30 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
           type: "copy",
           source: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
+        },
+      ],
+    },
+    archiveWithMultipleFilesInHeritageFolderFixable: {
+      expectedInstallerType: InstallerType.ArchiveOnly,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
+        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(
+            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
+          ),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+          ),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
     },
