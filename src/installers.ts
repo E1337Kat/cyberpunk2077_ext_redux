@@ -878,11 +878,13 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   }
 
   if (
-    files.some((file: string) =>
-      path.basename(file).includes(CET_MOD_CANONICAL_INIT_FILE),
+    files.some(
+      (file: string) =>
+        path.basename(file).includes(CET_MOD_CANONICAL_INIT_FILE) ||
+        path.extname(file) === REDS_MOD_CANONICAL_EXTENSION,
     )
   ) {
-    log("info", "INI file detected within a CET mod, aborting");
+    log("info", "INI file detected within a CET or Redscript mod, aborting");
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -906,8 +908,8 @@ export const installIniMod: VortexWrappedInstallFunc = (
   const filtered = files.filter(
     (file: string) => path.extname(file) === INI_MOD_EXT,
   );
-  const shaderFiles = files.filter((file: string) =>
-    file.includes(SHADERS_DIR),
+  const shaderFiles = files.filter(
+    (file: string) => file.includes(SHADERS_DIR) && !file.endsWith(path.sep),
   );
 
   let reshade = false;
@@ -923,13 +925,14 @@ export const installIniMod: VortexWrappedInstallFunc = (
     .slice(0, 20);
   const regex = /^[\[#].+/;
   const testString = data.replace(regex, "");
-
+  let shaderInstructions = [];
   if (testString === data) {
     log("info", "Reshade file located.");
     reshade = true;
   }
 
   // Set destination depending on file type
+
   log("info", "Installing ini files: ", filtered);
   const iniFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
@@ -944,14 +947,13 @@ export const installIniMod: VortexWrappedInstallFunc = (
     };
   });
 
-  let shaderInstructions = [];
   if (reshade && shaderFiles.length !== 0) {
-    shaderInstructions = files.map((file: string) => {
+    shaderInstructions = shaderFiles.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, SHADERS_DIR);
       log("info", "Shader dir Found. Processing: ", fileName);
       const dest = path.join(RESHADE_MOD_PATH, fileName);
-
+      log("debug", "Shader file: ", dest);
       return {
         type: "copy",
         source: file,
