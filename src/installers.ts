@@ -30,6 +30,7 @@ const path = win32;
  * |-📁 bin
  * | |-📁 x64
  * | | |-📄 *.ini -- Reshade mod
+ * | | |-📁 reshade-shaders
  * | | |-📁 plugins
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
@@ -948,12 +949,13 @@ export const installIniMod: VortexWrappedInstallFunc = (
   });
 
   if (reshade && shaderFiles.length !== 0) {
+    log("info", "Installing shader files: ", shaderFiles);
     shaderInstructions = shaderFiles.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, SHADERS_DIR);
-      log("info", "Shader dir Found. Processing: ", fileName);
+      // log("info", "Shader dir Found. Processing: ", fileName);
       const dest = path.join(RESHADE_MOD_PATH, fileName);
-      log("debug", "Shader file: ", dest);
+      // log("debug", "Shader file: ", dest);
       return {
         type: "copy",
         source: file,
@@ -985,7 +987,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
 
   // Make sure we're able to support this mod.
   const correctGame = gameId === GAME_ID;
-  log("info", "Checking bad structure of mod for a game: ", gameId);
+  log("info", "Entering fallback installer: ", gameId);
   if (!correctGame) {
     return Promise.resolve({
       supported: false,
@@ -998,17 +1000,17 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
 
   // if (hasIniMod) {
   //   log("info", "mod supported by this installer");
-  //   return Promise.resolve({
-  //     supported: true,
-  //     requiredFiles: [],
-  //   });
-  // }
-
-  log("warn", "I dunno. Can't do nothing about this.");
   return Promise.resolve({
-    supported: false,
+    supported: true,
     requiredFiles: [],
   });
+  // }
+
+  // log("warn", "I dunno. Can't do nothing about this.");
+  // return Promise.resolve({
+  //   supported: false,
+  //   requiredFiles: [],
+  // });
 };
 
 /**

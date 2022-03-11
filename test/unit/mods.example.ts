@@ -13,6 +13,7 @@ import {
   InstallerType,
   RESHADE_MOD_PATH,
 } from "../../src/installers";
+import { PassThrough } from "stream";
 
 export type InFiles = string[];
 
@@ -762,7 +763,7 @@ export const IniMod = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
-          source: "fold1/superreshade.ini",
+          source: path.normalize("fold1/superreshade.ini"),
           destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
         },
         {
