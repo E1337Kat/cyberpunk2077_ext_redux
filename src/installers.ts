@@ -22,6 +22,7 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import {
+  fallbackInstallerReachedErrorDialog,
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
   showArchiveInstallWarning,
