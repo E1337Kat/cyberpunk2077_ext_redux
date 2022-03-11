@@ -774,7 +774,11 @@ const archiveOtherDirsToCanonInstructions = (
   };
 };
 
+<<<<<<< HEAD
 const useFirstMatchingLayoutForInstructions = (
+=======
+const pickTheFirstMatchingInstructions = (
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
   possibleLayouts: InstructionsFromFileTree<ArchiveLayouts>[],
   fileTree: FileTree,
 ): Instructions<ArchiveLayouts> =>
@@ -784,6 +788,7 @@ const useFirstMatchingLayoutForInstructions = (
     { kind: ArchiveLayouts.Invalid, instructions: [] },
   );
 
+<<<<<<< HEAD
 const warnUserIfModMightNeedManualReview = (
   api: VortexAPI,
   chosenInstructions: Instructions<ArchiveLayouts>,
@@ -816,6 +821,8 @@ const warnUserIfModMightNeedManualReview = (
   }
 };
 
+=======
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 /**
  * Installs files while correcting the directory structure as we go.
  * @param files a list of files to be installed
@@ -834,19 +841,32 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   // Once again we could get fancy, but let's not
 
+<<<<<<< HEAD
   const possibleLayoutsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
+=======
+  const possibleInstructionsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
     [
       archiveCanonInstructions,
       archiveOldToNewCanonInstructions,
       archiveOtherDirsToCanonInstructions,
     ];
 
+<<<<<<< HEAD
   const chosenInstructions = useFirstMatchingLayoutForInstructions(
     possibleLayoutsToTryInOrder,
     fileTree,
   );
 
   if (chosenInstructions.instructions.length < 1) {
+=======
+  const { kind, instructions } = pickTheFirstMatchingInstructions(
+    possibleInstructionsToTryInOrder,
+    fileTree,
+  );
+
+  if (instructions.length < 1) {
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
     const message =
       "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -854,7 +874,11 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   }
 
   const haveFilesOutsideSelectedInstructions =
+<<<<<<< HEAD
     chosenInstructions.instructions.length !== fileCount;
+=======
+    instructions.length !== fileCount;
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 
   if (haveFilesOutsideSelectedInstructions) {
     const message = "Conflicting layouts for Archive mod!";
@@ -865,12 +889,42 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
+<<<<<<< HEAD
   warnUserIfModMightNeedManualReview(api, chosenInstructions);
 
   log("info", "ArchiveOnly installer installing files.");
   log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
 
   return Promise.resolve({ instructions: chosenInstructions.instructions });
+=======
+  // Trying out the tree-based approach..
+  const destinationPaths = instructions.map((i) => i.destination);
+  const newTree = fileTreeFromPaths(destinationPaths);
+
+  const warnAboutSubdirs =
+    subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
+
+  const hasMultipleTopLevelFiles =
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 1;
+
+  const multipleTopLevelsMightBeIntended = kind !== ArchiveLayouts.Other;
+
+  const warnAboutToplevel =
+    !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
+
+  if (warnAboutSubdirs || warnAboutToplevel) {
+    showArchiveInstallWarning(
+      api,
+      warnAboutSubdirs,
+      warnAboutToplevel,
+      destinationPaths,
+    );
+  }
+
+  log("info", "ArchiveOnly installer installing files.");
+  log("debug", "ArchiveOnly instructions produced: ", instructions);
+  return Promise.resolve({ instructions });
+>>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 };
 
 // JSON Mods
