@@ -86,7 +86,7 @@ export const fallbackInstallerReachedErrorDialog = (
         "your mod staging folder which can be reached in the above toolbar or by right " +
         "clicking the mod and selecting 'Open in File Manager'.\n\n" +
         "Got:\n" +
-        `${installable.join("\n")}`,
+        `${files.join("\n")}`,
     },
     [{ label: "Ok, Mod Was Installed" }],
   );
