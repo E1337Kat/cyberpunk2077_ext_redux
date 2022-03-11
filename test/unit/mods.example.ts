@@ -136,6 +136,41 @@ export const CetMod = new Map<string, ExampleMod>(
         },
       ],
     },
+    cetWithIniFilesCanonical: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`${CET_PREFIX}/exmod/some.ini`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/some.ini`),
+          destination: path.join(`${CET_PREFIX}/exmod/some.ini`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CetModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    CetModWithIniShouldFail: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        path.join(`exmod/`),
+        path.join(`exmod/${CET_INIT}`),
+        path.join(`exmod/some.ini`),
+      ],
+      failure: "Improperly packaged CET mod with ini file",
+    },
   }),
 );
 
@@ -780,6 +815,19 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
+export const IniModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    IniFileCETInstallerShouldFail: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        ...pathHierarchyFor("bin/x64"),
+        path.normalize("bin/x64/global.ini"),
+      ],
+      failure: "INI detects CETCore",
+    },
+  }),
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CetMod,
@@ -799,5 +847,7 @@ export const AllExpectedInstallFailures = new Map<
   Object.entries({
     RedscriptModShouldFail,
     JsonModShouldFail,
+    CetModShouldFail,
+    IniModShouldFail,
   }),
 );
