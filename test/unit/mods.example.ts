@@ -672,7 +672,7 @@ export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
 
 export const IniMod = new Map<string, ExampleMod>(
   Object.entries({
-    archiveWithSingleIniAtRoot: {
+    iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["myawesomeconfig.ini"].map(path.normalize),
       outInstructions: [
@@ -683,7 +683,7 @@ export const IniMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    archiveWithMultipleIniAtRoot: {
+    iniWithMultipleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
       outInstructions: [
@@ -699,7 +699,7 @@ export const IniMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    archiveWithReshadeIniAtRoot: {
+    iniWithReshadeIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["superreshade.ini"].map(path.normalize),
       outInstructions: [
@@ -710,7 +710,7 @@ export const IniMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    archiveWithSingleIniInRandomFolder: {
+    iniWithSingleIniInRandomFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
       outInstructions: [
@@ -721,7 +721,7 @@ export const IniMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    archiveWithReshadeIniAndShadersFolder: {
+    iniWithReshadeIniAndShadersFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: [
         "superreshade.ini",
@@ -749,7 +749,7 @@ export const IniMod = new Map<string, ExampleMod>(
         },
       ],
     },
-    archiveWithReshadeIniAndShadersInAFolder: {
+    iniWithReshadeIniAndShadersInAFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: [
         "fold1/superreshade.ini",
