@@ -8,7 +8,10 @@ import {
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
   ARCHIVE_ONLY_CANONICAL_PATH_PREFIX,
+  INI_MOD_PATH,
+  SHADERS_PATH,
   InstallerType,
+  RESHADE_MOD_PATH,
 } from "../../src/installers";
 
 export type InFiles = string[];
@@ -667,6 +670,116 @@ export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
   }),
 );
 
+export const IniMod = new Map<string, ExampleMod>(
+  Object.entries({
+    archiveWithSingleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    archiveWithMultipleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("serious.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/serious.ini`),
+        },
+      ],
+    },
+    archiveWithReshadeIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["superreshade.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+      ],
+    },
+    archiveWithSingleIniInRandomFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    archiveWithReshadeIniAndShadersFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "superreshade.ini",
+        "reshade-shaders/",
+        "reshade-shaders/Shaders/",
+        "reshade-shaders/Shaders/fancy.fx",
+        "reshade-shaders/Textures/",
+        "reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Textures/lut.png"),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+        },
+      ],
+    },
+    archiveWithReshadeIniAndShadersInAFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "fold1/superreshade.ini",
+        "fold1/reshade-shaders/",
+        "fold1/reshade-shaders/Shaders/",
+        "fold1/reshade-shaders/Shaders/fancy.fx",
+        "fold1/reshade-shaders/Textures/",
+        "fold1/reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "fold1/superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+        },
+      ],
+    },
+  }), // object
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CetMod,
@@ -674,6 +787,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     JsonMod,
+    IniMod,
     ValidTypeCombinations,
   }),
 );
