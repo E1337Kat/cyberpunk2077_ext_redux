@@ -21,9 +21,6 @@ export type PathFilter = (path: string) => boolean;
 // -.-
 export type MaybeFileTree = FileTree | undefined;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface PathArray extends Array<PathArray | string> {}
-
 export const FILETREE_ROOT = "";
 
 export const FILETREE_TOPLEVEL = nodejsPath.dirname(
@@ -50,8 +47,8 @@ const actualChildren = (node) => {
   }
 };
 
-const findFilesRecursive = (predicate: PathFilter, node): PathArray => {
-  const subMatches: PathArray = node.children.flatMap((c) =>
+const findFilesRecursive = (predicate: PathFilter, node): string[] => {
+  const subMatches: string[] = node.children.flatMap((c) =>
     findFilesRecursive(predicate, c),
   );
 
@@ -64,33 +61,48 @@ const findDirsRecursive = (
   breakEarly: boolean,
   predicate: PathFilter,
   node,
-): PathArray => {
+): string[] => {
   const selfMaybe = node.values.some(predicate) ? [dirName(node)] : [];
 
   if (selfMaybe.length > 0 && breakEarly) {
     return selfMaybe;
   }
 
-  const subMatches: PathArray = node.children.flatMap((c) =>
+  const subMatches: string[] = node.children.flatMap((c) =>
     findDirsRecursive(breakEarly, predicate, c),
   );
 
   return subMatches.concat(selfMaybe);
 };
 
+// It's 2022, Javascript, why am I adding this manually -.-
+const regexpEscape = (str: string) =>
+  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
+
+const stripTrailingSeparator = (path: string): string =>
+  path.replace(looksLikeADirectory, "");
+
 // Interface
 
 export const fileTreeFromPaths = (paths: string[]): FileTree => {
   const tree = new KeyTree({ separator: nodejsPath.sep });
-  paths.forEach((path) => tree.add(nodejsPath.dirname(path), path));
+  paths.forEach((path) => {
+    const normalized = path; // nodejsPath.normalize(path);
+
+    if (!normalized.match(looksLikeADirectory)) {
+      tree.add(nodejsPath.dirname(normalized), normalized);
+    }
+  });
 
   return tree;
 };
 
 export const subdirPaths = (dir: string, tree: FileTree): string[] => {
-  const node = tree._getNode(dir); // eslint-disable-line no-underscore-dangle
+  const node = tree._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle
 
-  if (node === undefined || node.children.length < 1) {
+  if (!node || node.children.length < 1) {
     return [];
   }
 
@@ -101,30 +113,35 @@ export const filesIn = (
   dir: string,
   tree: FileTree,
   predicate?: PathFilter,
-): PathArray => (predicate ? tree.get(dir).filter(predicate) : tree.get(dir));
+): string[] =>
+  predicate
+    ? tree.get(stripTrailingSeparator(dir)).filter(predicate)
+    : tree.get(stripTrailingSeparator(dir));
 
-export const allFilesInDirAndSubdirs = (
-  dir: string,
-  tree: FileTree,
-): PathArray => tree.getSub(dir);
+export const filesUnder = (dir: string, tree: FileTree): string[] =>
+  tree.getSub(stripTrailingSeparator(dir));
 
-export const dirWithSome = (
+export const dirWithSomeIn = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): boolean => tree.get(dir).some(predicate);
+): boolean => tree.get(stripTrailingSeparator(dir)).some(predicate);
 
-export const findAllFiles = (
+export const dirWithSomeUnder = (
+  dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): PathArray => findFilesRecursive(predicate, tree.$);
+): boolean => tree.getSub(stripTrailingSeparator(dir)).some(predicate);
+
+export const findAllFiles = (predicate: PathFilter, tree: FileTree): string[] =>
+  findFilesRecursive(predicate, tree.$);
 
 export const findAllSubdirsWithSome = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): PathArray =>
-  actualChildren(tree._getNode(dir)).flatMap((sub) =>
+): string[] =>
+  actualChildren(tree._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
     findDirsRecursive(false, predicate, sub),
   );
 
@@ -132,7 +149,7 @@ export const findTopmostSubdirsWithSome = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): PathArray =>
-  actualChildren(tree._getNode(dir)).flatMap((sub) =>
+): string[] =>
+  actualChildren(tree._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
     findDirsRecursive(true, predicate, sub),
   );
