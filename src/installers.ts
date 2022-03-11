@@ -94,9 +94,11 @@ const MOD_FILE_EXT = ".archive";
 /**
  *  The path where INI files should lay
  */
-const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
+export const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
-const RESHADE_MOD_PATH = path.join("bin", "x64");
+export const RESHADE_MOD_PATH = path.join("bin", "x64");
+const SHADERS_DIR = "reshade-shaders";
+export const SHADERS_PATH = path.join(RESHADE_MOD_PATH, SHADERS_DIR);
 /**
  * The extension of a JSON file
  */
@@ -1036,9 +1038,8 @@ export const installIniMod: VortexWrappedInstallFunc = (
   const filtered = files.filter(
     (file: string) => path.extname(file) === INI_MOD_EXT,
   );
-  const shaderFiles = files.filter(
-    (file: string) =>
-      file.includes("reshade-shaders") && path.extname(file) !== "",
+  const shaderFiles = files.filter((file: string) =>
+    file.includes(SHADERS_DIR),
   );
 
   let reshade = false;
@@ -1055,7 +1056,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
     reshade = true;
   }
 
-  // Set destination to be 'archive/pc/mod/[file].archive'
+  // Set destination depending on file type
   log("info", "Installing ini files: ", filtered);
   const iniFileInstructions = filtered.map((file: string) => {
     const fileName = path.basename(file);
@@ -1074,7 +1075,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
   if (reshade && shaderFiles.length !== 0) {
     shaderInstructions = files.map((file: string) => {
       const regex = /.*reshade-shaders/;
-      const fileName = file.replace(regex, "reshade-shaders");
+      const fileName = file.replace(regex, SHADERS_DIR);
       log("info", "Shader dir Found. Processing: ", fileName);
       const dest = path.join(RESHADE_MOD_PATH, fileName);
 
@@ -1085,9 +1086,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
       };
     });
   }
-  const instructions = []
-    .concat(iniFileInstructions)
-    .concat(shaderInstructions);
+  const instructions = [].concat(iniFileInstructions, shaderInstructions);
   log("debug", "Installing ini files with instructions: ", instructions);
 
   return Promise.resolve({ instructions });
