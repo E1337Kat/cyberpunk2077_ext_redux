@@ -8,7 +8,10 @@ import {
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
   ARCHIVE_ONLY_CANONICAL_PATH_PREFIX,
+  INI_MOD_PATH,
+  SHADERS_PATH,
   InstallerType,
+  RESHADE_MOD_PATH,
 } from "../../src/installers";
 
 export type InFiles = string[];
@@ -676,9 +679,7 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("myawesomeconfig.ini"),
-          destination: path.normalize(
-            "engine/config/platform/pc/myawesomeconfig.ini",
-          ),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
         },
       ],
     },
@@ -689,14 +690,12 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("myawesomeconfig.ini"),
-          destination: path.normalize(
-            "engine/config/platform/pc/myawesomeconfig.ini",
-          ),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
         },
         {
           type: "copy",
           source: path.normalize("serious.ini"),
-          destination: path.normalize("engine/config/platform/pc/serious.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/serious.ini`),
         },
       ],
     },
@@ -707,7 +706,7 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: "superreshade.ini",
-          destination: path.normalize("bin/x64/superreshade.ini"),
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
         },
       ],
     },
@@ -718,9 +717,7 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("fold1/myawesomeconfig.ini"),
-          destination: path.normalize(
-            "engine/config/platform/pc/myawesomeconfig.ini",
-          ),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
         },
       ],
     },
@@ -738,21 +735,17 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: "superreshade.ini",
-          destination: path.normalize("bin/x64/superreshade.ini"),
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
         },
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(
-            "bin/x64/reshade-shaders/Shaders/fancy.fx",
-          ),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
         },
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Textures/lut.png"),
-          destination: path.normalize(
-            "bin/x64/reshade-shaders/Textures/lut.png",
-          ),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
         },
       ],
     },
@@ -770,21 +763,17 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: "fold1/superreshade.ini",
-          destination: path.normalize("bin/x64/superreshade.ini"),
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
         },
         {
           type: "copy",
           source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(
-            "bin/x64/reshade-shaders/Shaders/fancy.fx",
-          ),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
         },
         {
           type: "copy",
-          source: path.normalize("fold1/reshade-shaders/Textures/lut.png"),
-          destination: path.normalize(
-            "bin/x64/reshade-shaders/Textures/lut.png",
-          ),
+          source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
         },
       ],
     },
