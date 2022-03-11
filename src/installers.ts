@@ -1,6 +1,17 @@
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import {
+  findAllSubdirsWithSome,
+  dirWithSomeUnder,
+  FileTree,
+  PathFilter,
+  fileTreeFromPaths,
+  FILETREE_ROOT,
+  subdirPaths,
+  filesIn,
+  filesUnder,
+} from "./filetree";
+import {
   VortexAPI,
   VortexLogFunc,
   VortexTestResult,
@@ -13,6 +24,8 @@ import {
 import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
+  showArchiveInstallWarning,
+  showArchiveStructureErrorDialog,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -74,8 +87,10 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
 
-export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
-  path.normalize("archive/pc/mod/");
+export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
+export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
+  path.normalize("archive/pc/patch/");
 
 /**
  * The extension of most mods
@@ -190,6 +205,9 @@ const matchRedscript = (file: string) =>
 const allRedscriptFiles = (files: string[]): string[] =>
   files.filter(matchRedscript);
 
+const matchArchive: PathFilter = (file: string): boolean =>
+  path.extname(file) === ARCHIVE_ONLY_CANONICAL_EXT;
+
 // Source to dest path mapping helpers
 const toSamePath = (f: string) => [f, f];
 const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
@@ -249,7 +267,7 @@ const allCanonicalCetFiles = (files: string[]) =>
   allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
 
 const allCanonicalArchiveOnlyFiles = (files: string[]) =>
-  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
+  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
 
 // CET
 
@@ -671,6 +689,101 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
+enum ArchiveLayouts {
+  Canon,
+  Heritage,
+  Other,
+  Invalid,
+}
+
+type Instructions<T> = {
+  kind: T;
+  instructions: VortexInstruction[];
+};
+
+type InstructionsFromFileTree<T> = (f: FileTree) => Instructions<T>;
+
+const archiveCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const hasCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_CANONICAL_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasCanonFiles) {
+    return { kind: ArchiveLayouts.Canon, instructions: [] };
+  }
+
+  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
+
+  return {
+    kind: ArchiveLayouts.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
+  };
+};
+
+const archiveOldToNewCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const hasOldCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasOldCanonFiles) {
+    return { kind: ArchiveLayouts.Heritage, instructions: [] };
+  }
+
+  const oldCanonFiles = filesUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    fileTree,
+  );
+
+  const oldToNewMap = oldCanonFiles.map((f: string) => [
+    f,
+    f.replace(
+      path.normalize(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX),
+      path.normalize(ARCHIVE_ONLY_CANONICAL_PREFIX),
+    ),
+  ]);
+
+  return {
+    kind: ArchiveLayouts.Heritage,
+    instructions: instructionsForSourceToDestPairs(oldToNewMap),
+  };
+};
+
+const archiveOtherDirsToCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
+
+  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
+
+  const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
+    f,
+    path.join(ARCHIVE_ONLY_CANONICAL_PREFIX, f),
+  ]);
+
+  return {
+    kind: ArchiveLayouts.Other,
+    instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
+  };
+};
+
+const pickTheFirstMatchingInstructions = (
+  possibleLayouts: InstructionsFromFileTree<ArchiveLayouts>[],
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> =>
+  possibleLayouts.reduce(
+    (found, layout) =>
+      found.instructions.length > 0 ? found : layout(fileTree),
+    { kind: ArchiveLayouts.Invalid, instructions: [] },
+  );
+
 /**
  * Installs files while correcting the directory structure as we go.
  * @param files a list of files to be installed
@@ -682,59 +795,70 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // since this installer is only called when there is for sure only archive files, just need to get the files
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
+  log("info", "Using ArchiveOnly installer");
+
+  const fileTree = fileTreeFromPaths(files);
+  const fileCount = filesUnder(FILETREE_ROOT, fileTree).length;
+
+  // Once again we could get fancy, but let's not
+
+  const possibleInstructionsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
+    [
+      archiveCanonInstructions,
+      archiveOldToNewCanonInstructions,
+      archiveOtherDirsToCanonInstructions,
+    ];
+
+  const { kind, instructions } = pickTheFirstMatchingInstructions(
+    possibleInstructionsToTryInOrder,
+    fileTree,
   );
 
-  let flattenedHierarchy = false;
-
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Installing archive files: ", filtered);
-  const archiveFileInstructions = filtered.map((file: string) => {
-    const fileName = path.basename(file);
-    const dest = path.join(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, fileName);
-
-    flattenedHierarchy = flattenedHierarchy || file !== dest;
-
-    return {
-      type: "copy",
-      source: file,
-      destination: dest,
-    };
-  });
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
-  if (flattenedHierarchy) {
-    api.sendNotification({
-      type: "info",
-      title: "Placed All Archive Files In Top-Level Folder!",
-      message: "Please check mod files in File Manager!",
-      actions: [
-        {
-          title: "More info",
-          action: (dismiss) => {
-            api.showDialog(
-              "info",
-              "Archive Files Moved To Top Level",
-              {
-                text:
-                  "There were some archive files outside the canonical mod folder " +
-                  ".\\archive\\pc\\mod or inside a subdirectory. " +
-                  "The installer moved them all to the top level. Please check " +
-                  "the mod in File Manager (Down Arrow next to the Remove action " +
-                  "in the mod list) to verify the files are correct!",
-              },
-              [{ label: "Close", action: () => dismiss() }],
-            );
-          },
-        },
-      ],
-    });
+  if (instructions.length < 1) {
+    const message =
+      "ArchiveOnly installer failed to generate any instructions!";
+    log("error", message, files);
+    return Promise.reject(new Error(message));
   }
 
-  const instructions = [].concat(archiveFileInstructions);
+  const haveFilesOutsideSelectedInstructions =
+    instructions.length !== fileCount;
 
+  if (haveFilesOutsideSelectedInstructions) {
+    const message = "Conflicting layouts for Archive mod!";
+
+    showArchiveStructureErrorDialog(api, message, files);
+
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  // Trying out the tree-based approach..
+  const destinationPaths = instructions.map((i) => i.destination);
+  const newTree = fileTreeFromPaths(destinationPaths);
+
+  const warnAboutSubdirs =
+    subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
+
+  const hasMultipleTopLevelFiles =
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 1;
+
+  const multipleTopLevelsMightBeIntended = kind !== ArchiveLayouts.Other;
+
+  const warnAboutToplevel =
+    !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
+
+  if (warnAboutSubdirs || warnAboutToplevel) {
+    showArchiveInstallWarning(
+      api,
+      warnAboutSubdirs,
+      warnAboutToplevel,
+      destinationPaths,
+    );
+  }
+
+  log("info", "ArchiveOnly installer installing files.");
+  log("debug", "ArchiveOnly instructions produced: ", instructions);
   return Promise.resolve({ instructions });
 };
 
