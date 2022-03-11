@@ -13,7 +13,6 @@ import {
   InstallerType,
   RESHADE_MOD_PATH,
 } from "../../src/installers";
-import { PassThrough } from "stream";
 
 export type InFiles = string[];
 
