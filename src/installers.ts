@@ -937,6 +937,36 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
+const testForReshadeFile = (
+  log: VortexLogFunc,
+  files: string[],
+  folder: string,
+): boolean => {
+  // We're going to make a reasonable assumption here that reshades will
+  // only have reshade ini's, so we only need to check the first one
+
+  const fileToExamine = path.join(
+    folder,
+    files.find((file: string) => path.extname(file) === INI_MOD_EXT),
+  );
+
+  const data = readFileSync(fileToExamine, { encoding: "utf8" }); //, (err, contents) => {if (err) {log("error", "Error: ", err)} else data = contents});
+
+  if (data === undefined) {
+    log("error", "unable to read contents of ", fileToExamine);
+    return false;
+  }
+  data.slice(0, 80);
+  const regex = /^[\[#].+/;
+  const testString = data.replace(regex, "");
+  if (testString === data) {
+    log("info", "Reshade file located.");
+    return true;
+  }
+
+  return false;
+};
+
 // INI (includes Reshade?)
 export const testForIniMod: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
@@ -1044,33 +1074,17 @@ export const installIniMod: VortexWrappedInstallFunc = (
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // This installer gets called for both reshade and "normal" ini mods
-  const archiveName = path.basename(destinationPath, ".installing");
 
-  const filtered = files.filter(
+  const allIniModFiles = files.filter(
     (file: string) => path.extname(file) === INI_MOD_EXT,
   );
-  const shaderFiles = files.filter(
-    (file: string) => file.includes(SHADERS_DIR) && !file.endsWith(path.sep),
-  );
 
-  let reshade = false;
-  // We're going to make a reasonable assumption here that reshades will
-  // only have reshade ini's, so we only need to check the first one
-  const data: string = readFileSync(path.join(destinationPath, filtered[0]))
-    .toString("utf-8")
-    .slice(0, 20);
-  const regex = /^[\[#].+/;
-  const testString = data.replace(regex, "");
-  let shaderInstructions = [];
-  if (testString === data) {
-    log("info", "Reshade file located.");
-    reshade = true;
-  }
+  const reshade = testForReshadeFile(log, allIniModFiles, destinationPath);
 
   // Set destination depending on file type
 
-  log("info", "Installing ini files: ", filtered);
-  const iniFileInstructions = filtered.map((file: string) => {
+  log("info", "Installing ini files: ", allIniModFiles);
+  const iniFileInstructions = allIniModFiles.map((file: string) => {
     const fileName = path.basename(file);
     const dest = reshade
       ? path.join(RESHADE_MOD_PATH, path.basename(file))
@@ -1082,6 +1096,12 @@ export const installIniMod: VortexWrappedInstallFunc = (
       destination: dest,
     };
   });
+
+  const shaderFiles = files.filter(
+    (file: string) => file.includes(SHADERS_DIR) && !file.endsWith(path.sep),
+  );
+
+  let shaderInstructions = [];
 
   if (reshade && shaderFiles.length !== 0) {
     log("info", "Installing shader files: ", shaderFiles);
