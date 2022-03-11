@@ -1161,6 +1161,8 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
 ): Promise<VortexInstallResult> => {
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
+  log("info", "Fallback installer. Copying 1:1: ", files);
+  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
 
   log("info", "Correcting INI mod files: ", iniModFiles);
   const iniModInstructions = iniModFiles.map((file) => ({
@@ -1171,6 +1173,15 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   log("debug", "Installing INI mod files with: ", iniModInstructions);
 
   const instructions = [].concat(iniModInstructions);
+  const message =
+    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
+  fallbackInstallerReachedErrorDialog(
+    _api,
+    log,
+    message,
+    filtered,
+    instructions,
+  );
 
   return Promise.resolve({ instructions });
 };
