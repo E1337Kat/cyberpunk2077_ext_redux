@@ -42,6 +42,33 @@ export const FAKE_STAGING_PATH = path.join(
   "\\",
 );
 
+// export const faked_staging = mock({
+//   "D:\\unno\\why\\this\\": {
+    
+//     "mymegamod-43335455-wth-1": {'some-file.txt': 'file content here',}
+//   }
+// });
+
+// const mock = require('mock-fs');
+const fsMock = require('mock-fs')
+
+let logsTemp = []
+let logMock
+
+export const mockFs = (config) => {
+  logMock = jest.spyOn(console, 'log').mockImplementation((...args) => {
+    logsTemp.push(args)
+  })
+  fsMock(config)
+}
+
+export const fsRestore = () => {
+  logMock.mockRestore()
+  fsMock.restore()
+  logsTemp.map(el => console.log(...el))
+  logsTemp = []
+}
+
 const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
 const CET_PREFIXES = pathHierarchyFor(CET_PREFIX);
 const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;

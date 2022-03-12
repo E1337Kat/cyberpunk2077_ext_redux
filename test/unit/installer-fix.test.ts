@@ -1,11 +1,10 @@
 import {
   AllExpectedInstallFailures,
   AllModTypes,
-  FAKE_STAGING_PATH,
+  FAKE_STAGING_PATH, ArchiveOnly, CetMod, IniMod, fsRestore, mockFs,
 } from "./mods.example";
 import * as path from "path";
 import { InstallerType } from "../../src/installers";
-import {  ArchiveOnly, CetMod, IniMod } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -13,7 +12,20 @@ import {
   mockVortexLog,
 } from "./utils.helper";
 
+
 describe("Transforming modules to instructions", () => {
+  beforeEach(() => {
+    mockFs({
+      "D:\\unno\\why\\this\\": {
+        
+        "mymegamod-43335455-wth-1": {'some-file.txt': 'file content here',}
+      }
+    })
+  });
+
+  afterEach(() => {
+    fsRestore()
+  });
   AllModTypes.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
