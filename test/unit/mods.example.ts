@@ -131,6 +131,42 @@ export const coreCetInstallTest = new Map<string, ExampleMod>(
   }),
 );
 
+export const coreRedscriptInstallTest = new Map<string, ExampleMod>(
+  Object.entries({
+    coreRedscriptInstall: {
+      expectedInstallerType: InstallerType.CoreRedscript,
+      inFiles: [
+        path.join("engine/"),
+        path.join("engine/config/"),
+        path.join("engine/config/base/"),
+        path.join("engine/config/base/scripts.ini"),
+        path.join("engine/tools/"),
+        path.join("engine/tools/scc.exe"),
+        path.join("r6/"),
+        path.join("r6/scripts/"),
+        path.join("r6/scripts/redscript.toml"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join("engine/config/base/scripts.ini"),
+          destination: path.join("engine/config/base/scripts.ini"),
+        },
+        {
+          type: "copy",
+          source: path.join("engine/tools/scc.exe"),
+          destination: path.join("engine/tools/scc.exe"),
+        },
+        {
+          type: "copy",
+          source: path.join("r6/scripts/redscript.toml"),
+          destination: path.join("r6/scripts/redscript.toml"),
+        },
+      ],
+    },
+  }),
+);
+
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
@@ -755,6 +791,7 @@ export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     coreCetInstallTest,
+    coreRedscriptInstallTest,
     CetMod,
     RedscriptMod,
     ArchiveOnly,

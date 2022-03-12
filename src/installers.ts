@@ -14,7 +14,12 @@ import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
 } from "./dialogs";
-import { testForCetCore, installCetCore } from "./core-cet";
+import {
+  testForCetCore,
+  installCetCore,
+  testForRedscriptCore,
+  installRedscriptCore,
+} from "./core-installers";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -952,25 +957,26 @@ const installers: Installer[] = [
     testSupported: testForCetCore,
     install: installCetCore,
   },
-  /*  {
+  {
     type: InstallerType.CoreRedscript,
     id: "cp2077-core-redscript-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForRedscriptCore,
+    install: installRedscriptCore,
   },
-  {
-    type: InstallerType.CoreRed4ext,
-    id: "cp2077-core-red4ext-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  {
-    type: InstallerType.CoreCSVMerge,
-    id: "cp2077-core-csvmerge-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  */
+  /*
+    {
+      type: InstallerType.CoreRed4ext,
+      id: "cp2077-core-red4ext-mod",
+      testSupported: notSupportedModType,
+      install: notInstallableMod,
+    },
+    {
+      type: InstallerType.CoreCSVMerge,
+      id: "cp2077-core-csvmerge-mod",
+      testSupported: notSupportedModType,
+      install: notInstallableMod,
+    },
+    */
   {
     type: InstallerType.RedCetMix,
     id: "cp2077-red-cet-mixture-mod",
