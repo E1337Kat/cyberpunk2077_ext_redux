@@ -71,6 +71,10 @@ const path = win32;
  * | |-📁 scripts
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
+ * |-📁 red4ext
+ * | |-📁 plugins
+ * | | |-📁 SomeMod
+ * | | | |-📄 *.dll
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MEOW_FOR_COMMENTS = 0;
@@ -86,6 +90,10 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
+
+export const RED4EXT_MOD_CANONICAL_EXTENSION = ".dll";
+export const RED4EXT_MOD_CANONICAL_PATH_PREFIX =
+  path.normalize("red4ext/plugins/");
 
 export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
 export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");

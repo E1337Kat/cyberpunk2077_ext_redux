@@ -4,11 +4,12 @@ import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line impor
 import { pathHierarchyFor } from "./utils.helper";
 
 import {
+  InstallerType,
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
+  RED4EXT_MOD_CANONICAL_PATH_PREFIX,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
-  InstallerType,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
 } from "../../src/installers";
 
@@ -49,6 +50,9 @@ const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 
 const REDS_PREFIX = REDS_MOD_CANONICAL_PATH_PREFIX;
 const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
+
+const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_PATH_PREFIX;
+const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
@@ -417,6 +421,115 @@ export const RedscriptModShouldFailInInstall = new Map<
         path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
       failure: "No Redscript found, should never get here.",
+    },
+  }),
+);
+
+export const Red4ExtMod = new Map<string, ExampleMod>(
+  Object.entries({
+    red4extWithSingleFileCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+      ],
+    },
+    red4extWithMultipleFilesCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+        },
+      ],
+    },
+    red4extIncludingNonRedsFilesCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+        },
+      ],
+    },
+    red4extWithFilesInRed4ExtBasedirFixableSyntheticname: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/`),
+        path.join(`${RED4EXT_PREFIX}/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+          destination: path.join(
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/notascript.dll`),
+          destination: path.join(
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notascript.dll`,
+          ),
+        },
+      ],
+    },
+  }),
+);
+
+export const Red4ExtModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    red4extDllInTopLevelShouldFail: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [path.join(`script.dll`)],
+      failure: "Should fail somehow",
+    },
+
+    red4extScriptInTopLevelSubdirShouldFail: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [path.join(`r4emod/script.dll`)],
+      failure: "Should fail somehow.",
     },
   }),
 );
@@ -859,9 +972,10 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreRed4ExtInstall,
     CetMod,
     RedscriptMod,
+    Red4ExtMod,
+    JsonMod,
     ArchiveOnly,
     ValidExtraArchivesWithType,
-    JsonMod,
     ValidTypeCombinations,
   }),
 );
@@ -880,6 +994,12 @@ export const AllExpectedInstallFailures = new Map<
   ExampleFailingModCategory
 >(
   Object.entries({
+<<<<<<< HEAD
     RedscriptModShouldFailInInstall,
+=======
+    RedscriptModShouldFail,
+    Red4ExtModShouldFail,
+    JsonModShouldFail,
+>>>>>>> 7a551b3 (Red4Ext tests (failing for now))
   }),
 );
