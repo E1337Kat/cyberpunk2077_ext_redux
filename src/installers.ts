@@ -1237,16 +1237,16 @@ const installers: Installer[] = [
   },*/
 
   {
-    type: InstallerType.ArchiveOnly,
-    id: "cp2077-basic-archive-mod",
-    testSupported: testForArchiveOnlyMod,
-    install: installArchiveOnlyMod,
-  },
-  {
     type: InstallerType.Json,
     id: "cp2077-json-mod",
     testSupported: testForJsonMod,
     install: installJsonMod,
+  },
+  {
+    type: InstallerType.ArchiveOnly,
+    id: "cp2077-basic-archive-mod",
+    testSupported: testForArchiveOnlyMod,
+    install: installArchiveOnlyMod,
   },
   {
     type: InstallerType.FallbackForOther,
