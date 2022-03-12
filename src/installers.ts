@@ -14,7 +14,7 @@ import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
 } from "./dialogs";
-import { testForCetCore, installCetCore } from "./coreCet";
+import { testForCetCore, installCetCore } from "./core-cet";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -100,6 +100,10 @@ const makeModName = (vortexDestinationPath: string) =>
 // Types
 
 export enum InstallerType {
+  CoreCET = "Core/CET", // #32
+  CoreRedscript = "Core/Redscript", // #32
+  CoreRed4ext = "Core/Red4ext", // #32
+  CoreCSVMerge = "Core/CSVMerge", // #32
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
@@ -110,10 +114,6 @@ export enum InstallerType {
   Config = "Config", // #30
   Reshade = "Reshade", // #8
   LUT = "LUT", // #31
-  CoreCET = "Core/CET", // #32
-  CoreRedscript = "Core/Redscript", // #32
-  CoreRed4ext = "Core/Red4ext", // #32
-  CoreCSVMerge = "Core/CSVMerge", // #32
   ArchiveOnly = "ArchiveOnly",
   Json = "JSON",
   FallbackForOther = "FallbackForOther",
@@ -212,14 +212,13 @@ const instructionsForSourceToDestPairs = (
   return instructions;
 };
 
-const instructionsForSameSourceAndDestPaths = (
+export const instructionsForSameSourceAndDestPaths = (
   files: string[],
 ): VortexInstruction[] =>
   instructionsForSourceToDestPairs(files.map(toSamePath));
 
 // Installers
-
-export const allFilesInFolder = (folder: string, files: string[]) => {
+const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
@@ -948,6 +947,31 @@ const addPriorityFrom = (start: number) => {
 //
 const installers: Installer[] = [
   {
+    type: InstallerType.CoreCET,
+    id: "cp2077-core-cet-mod",
+    testSupported: testForCetCore,
+    install: installCetCore,
+  },
+  /*  {
+    type: InstallerType.CoreRedscript,
+    id: "cp2077-core-redscript-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreRed4ext,
+    id: "cp2077-core-red4ext-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: notSupportedModType,
+    install: notInstallableMod,
+  },
+  */
+  {
     type: InstallerType.RedCetMix,
     id: "cp2077-red-cet-mixture-mod",
     testSupported: testForRedCetMixedMod,
@@ -1008,31 +1032,7 @@ const installers: Installer[] = [
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },*/
-  {
-    type: InstallerType.CoreCET,
-    id: "cp2077-core-cet-mod",
-    testSupported: testForCetCore,
-    install: installCetCore,
-  },
-  /*  {
-    type: InstallerType.CoreRedscript,
-    id: "cp2077-core-redscript-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  {
-    type: InstallerType.CoreRed4ext,
-    id: "cp2077-core-red4ext-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  {
-    type: InstallerType.CoreCSVMerge,
-    id: "cp2077-core-csvmerge-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  */
+
   {
     type: InstallerType.ArchiveOnly,
     id: "cp2077-basic-archive-mod",
