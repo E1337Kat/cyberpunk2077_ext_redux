@@ -14,6 +14,7 @@ import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
 } from "./dialogs";
+import { testForCetCore, installCetCore } from "./coreCet";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -218,7 +219,7 @@ const instructionsForSameSourceAndDestPaths = (
 
 // Installers
 
-const allFilesInFolder = (folder: string, files: string[]) => {
+export const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
@@ -1006,14 +1007,14 @@ const installers: Installer[] = [
     id: "cp2077-lut-mod",
     testSupported: notSupportedModType,
     install: notInstallableMod,
-  },
+  },*/
   {
     type: InstallerType.CoreCET,
     id: "cp2077-core-cet-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForCetCore,
+    install: installCetCore,
   },
-  {
+  /*  {
     type: InstallerType.CoreRedscript,
     id: "cp2077-core-redscript-mod",
     testSupported: notSupportedModType,
