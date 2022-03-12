@@ -52,7 +52,7 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PATH_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
-export const coreCetInstallTest = new Map<string, ExampleMod>(
+export const CoreCetInstall = new Map<string, ExampleMod>(
   Object.entries({
     coreCetInstall: {
       expectedInstallerType: InstallerType.CoreCET,
@@ -131,7 +131,7 @@ export const coreCetInstallTest = new Map<string, ExampleMod>(
   }),
 );
 
-export const coreRedscriptInstallTest = new Map<string, ExampleMod>(
+export const CoreRedscriptInstall = new Map<string, ExampleMod>(
   Object.entries({
     coreRedscriptInstall: {
       expectedInstallerType: InstallerType.CoreRedscript,
@@ -161,6 +161,42 @@ export const coreRedscriptInstallTest = new Map<string, ExampleMod>(
           type: "copy",
           source: path.join("r6/scripts/redscript.toml"),
           destination: path.join("r6/scripts/redscript.toml"),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    Red4ExtCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreRed4ext,
+      inFiles: [
+        ...pathHierarchyFor(path.normalize("bin/x64")),
+        path.normalize("bin/x64/powrprof.dll"),
+        ...pathHierarchyFor(path.normalize("red4ext/plugins")),
+        path.normalize("red4ext/LICENSE.txt"),
+        path.normalize("red4ext/RED4ext.dll"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("bin/x64/powrprof.dll"),
+          destination: path.normalize("bin/x64/powrprof.dll"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/LICENSE.txt"),
+          destination: path.normalize("red4ext/LICENSE.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/RED4ext.dll"),
+          destination: path.normalize("red4ext/RED4ext.dll"),
+        },
+        {
+          type: "mkdir",
+          destination: path.normalize("red4ext/plugins"),
         },
       ],
     },
@@ -793,8 +829,9 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
 
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
-    coreCetInstallTest,
-    coreRedscriptInstallTest,
+    CoreCetInstall,
+    CoreRedscriptInstall,
+    CoreRed4ExtInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,

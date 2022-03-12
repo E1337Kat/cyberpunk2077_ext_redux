@@ -19,6 +19,8 @@ import {
   installCetCore,
   testForRedscriptCore,
   installRedscriptCore,
+  testRed4ExtCore,
+  installRed4ExtCore,
 } from "./core-installers";
 
 // Ensure we're using win32 conventions
@@ -963,13 +965,13 @@ const installers: Installer[] = [
     testSupported: testForRedscriptCore,
     install: installRedscriptCore,
   },
+  {
+    type: InstallerType.CoreRed4ext,
+    id: "cp2077-core-red4ext-mod",
+    testSupported: testRed4ExtCore,
+    install: installRed4ExtCore,
+  },
   /*
-    {
-      type: InstallerType.CoreRed4ext,
-      id: "cp2077-core-red4ext-mod",
-      testSupported: notSupportedModType,
-      install: notInstallableMod,
-    },
     {
       type: InstallerType.CoreCSVMerge,
       id: "cp2077-core-csvmerge-mod",
