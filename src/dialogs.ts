@@ -93,7 +93,9 @@ export const showArchiveStructureErrorDialog = (
 
          Got:
 
-         ${files.join("\n")}`,
+         \`\`\`
+         ${files.join("\n")}
+         \`\`\``,
       ),
     },
     [{ label: "Understood!" }],
@@ -122,7 +124,7 @@ export const showArchiveInstallWarning = (
         ${warnAboutSubdirs ? subdirWarning : "\n"}
         ${warnAboutToplevel ? toplevelWarning : "\n"}
 
-        It's possible that this is intentional, but you might also be expected to only pick some
+        This could be unintentional, but you might also be expected to only pick some
         of the files to use, or it could be an oversight or an unstructured mod.
 
         Make sure to read any instructions the mod might have, and then if necessary adjust the installation manually.
@@ -133,7 +135,9 @@ export const showArchiveInstallWarning = (
 
         These are the files I installed:
 
-        ${files.join("\n")}`,
+        \`\`\`
+        ${files.join("\n")}
+        \`\`\``,
       ),
     },
     [{ label: "Understood!" }],
