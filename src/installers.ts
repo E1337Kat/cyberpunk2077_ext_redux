@@ -76,12 +76,6 @@ const path = win32;
  * | | |-📁 SomeMod
  * | | | |-📄 *.dll
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const MEOW_FOR_COMMENTS = 0;
-/**
- * The extension game id
- */
-const GAME_ID = "cyberpunk2077";
 
 export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
 export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
@@ -167,6 +161,7 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
   _log: VortexLogFunc,
   _files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: false, requiredFiles: [] });
@@ -177,6 +172,7 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
   _api: VortexAPI,
   _log: VortexLogFunc,
   _files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
   _gameId: string,
   _progressDelegate: VortexProgressDelegate,
@@ -293,10 +289,9 @@ export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting CET matcher, input files: ", files);
-
   const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
@@ -328,10 +323,9 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using Reds + CET complex installer");
-
   const fileTree: KeyTree = new KeyTree({ separator: path.sep });
   files.forEach((file) => fileTree.add(path.dirname(file), file));
 
@@ -428,10 +422,9 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting CET matcher, input files: ", files);
-
   const fileTree = new KeyTree({ separator: path.sep });
 
   files.forEach((file) => fileTree.add(file, file));
@@ -461,10 +454,9 @@ export const installCetMod: VortexWrappedInstallFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using CET installer");
-
   const cetFiles = allCanonicalCetFiles(files);
 
   if (cetFiles.length === 0) {
@@ -500,14 +492,13 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting Redscript matcher, input files: ", files);
-
   const redscriptFiles = allRedscriptFiles(files);
 
-  // eslint-disable-next-line no-console
   log("debug", "redscriptFiles: ", { redscriptFiles });
+
   // We could do more detection here but the
   // installer will already need to duplicate
   // all that. Maybe just check whether there
@@ -529,10 +520,9 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using Redscript installer");
-
   const fileTree: KeyTree = new KeyTree({ separator: path.sep });
   files.forEach((file) => fileTree.add(path.dirname(file), file));
 
@@ -624,19 +614,9 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
-  gameId: string,
+  _fileTree: FileTree,
+  _gameId: string,
 ): Promise<VortexTestResult> => {
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Checking bad structure of mod for a game: ", gameId);
-  if (!correctGame) {
-    // no mods?
-    const supported = false;
-    return Promise.resolve({
-      supported,
-      requiredFiles: [],
-    });
-  }
   let supported: boolean;
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
@@ -840,10 +820,9 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using ArchiveOnly installer");
-
   const fileTree = fileTreeFromPaths(files);
   const fileCount = filesUnder(FILETREE_ROOT, fileTree).length;
 
@@ -941,19 +920,9 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
-  gameId: string,
+  _fileTree: FileTree,
+  _gameId: string,
 ): Promise<VortexTestResult> => {
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Checking JSON files for game: ", gameId);
-  if (!correctGame) {
-    // Not in game mode?
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
   );
@@ -1011,12 +980,13 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   const filtered: string[] = files.filter(
     (file: string) => path.extname(file) !== "",
   );
-  log("info", "Installing JSON files: ", filtered);
+  log("info", "Located JSON files: ", filtered);
 
   let movedJson = false;
 
@@ -1063,20 +1033,9 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
-  gameId: string,
+  _fileTree: FileTree,
+  _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Checking Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Checking bad structure of mod for a game: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
@@ -1104,12 +1063,13 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   _api: VortexAPI,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
-  log("info", "Correcting INI mod files: ", iniModFiles);
+  log("info", "Located INI files; ", iniModFiles);
   const iniModInstructions = iniModFiles.map((file) => ({
     type: "copy",
     source: file,
@@ -1196,9 +1156,11 @@ const installers: Installer[] = [
   {
     type: InstallerType.Red4Ext,
     id: "cp2077-red4ext-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForRed4ExtMod,
+    install: installRed4ExtMod,
   },
+  */
+  /*
   {
     type: InstallerType.TweakDB,
     id: "cp2077-tweakdb-mod",

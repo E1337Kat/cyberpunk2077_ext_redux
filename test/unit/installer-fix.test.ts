@@ -1,3 +1,4 @@
+import { fileTreeFromPaths } from "../../src/filetree";
 import {
   AllExpectedInstallFailures,
   AllModTypes,
@@ -23,6 +24,7 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
+            fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
             null,
             null,
@@ -47,6 +49,7 @@ describe("Transforming modules to instructions", () => {
               mockVortexAPI,
               mockVortexLog,
               mod.inFiles,
+              fileTreeFromPaths(mod.inFiles),
               FAKE_STAGING_PATH,
               null,
               null,
@@ -67,6 +70,7 @@ describe("Transforming modules to instructions", () => {
             mockVortexAPI,
             mockVortexLog,
             mod.inFiles,
+            fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
             null,
             null,

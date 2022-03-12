@@ -4,6 +4,7 @@ import * as path from "path";
 import { mock, MockProxy } from "jest-mock-extended";
 import { VortexAPI } from "../../src/vortex-wrapper";
 import { installerPipeline, InstallerType } from "../../src/installers";
+import { fileTreeFromPaths } from "../../src/filetree";
 
 export const GAME_ID = "cyberpunk2077";
 
@@ -27,7 +28,13 @@ export const getFallbackInstaller = () => {
 };
 
 export const matchSpecific = async (installer, modFiles: string[]) =>
-  installer.testSupported(mockVortexAPI, mockVortexLog, modFiles, GAME_ID);
+  installer.testSupported(
+    mockVortexAPI,
+    mockVortexLog,
+    modFiles,
+    fileTreeFromPaths(modFiles),
+    GAME_ID,
+  );
 
 export const matchInstaller = async (modFiles: string[]) => {
   for (const installer of installerPipeline) {
