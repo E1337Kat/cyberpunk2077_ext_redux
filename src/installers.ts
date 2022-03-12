@@ -798,7 +798,7 @@ const warnUserIfModMightNeedManualReview = (
     subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
 
   const hasMultipleTopLevelFiles =
-    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 1;
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree, matchArchive).length > 1;
 
   const multipleTopLevelsMightBeIntended =
     chosenInstructions.kind !== ArchiveLayouts.Other;
