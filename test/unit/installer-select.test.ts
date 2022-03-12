@@ -1,4 +1,4 @@
-import { AllModTypes } from "./mods.example";
+import { AllModTypes, AllExpectedTestSupportFailures } from "./mods.example";
 import {
   getFallbackInstaller,
   matchInstaller,
@@ -16,6 +16,18 @@ describe("Selecting the installer for a mod type", () => {
           const installer = await matchInstaller(mod.inFiles);
           expect(installer).toBeDefined();
           expect(installer.type).toBe(mod.expectedInstallerType);
+        });
+      });
+    });
+  });
+
+  AllExpectedTestSupportFailures.forEach((examples, set) => {
+    describe(`testSupport attempts that should fail, ${set}`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`rejects with an error when ${desc}`, async () => {
+          expect(() => matchInstaller(mod.inFiles)).rejects.toThrowError(
+            mod.failure,
+          );
         });
       });
     });
