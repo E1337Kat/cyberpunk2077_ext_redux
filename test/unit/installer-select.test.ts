@@ -17,7 +17,10 @@ describe("Selecting the installer for a mod type", () => {
           const installer = await matchInstaller(mod.inFiles);
           expect(installer).toBeDefined();
           expect(installer.type).toBe(mod.expectedInstallerType);
-        });});
+        });
+      });
+    });
+  });
   describe("Ini and Reshade mods", () => {
     IniMod.forEach(async (mod, desc) => {
       test(`selects the archive-only installer when ${desc}`, async () => {
