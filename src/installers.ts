@@ -917,15 +917,11 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
     );
 
     if (!proper) {
-      log(
-        "info",
-        "Improperly located options.json found in archive, we can't install this",
-      );
-      return Promise.reject(
-        new Error(
-          "Improperly located options.json file found.  We don't know where it belongs",
-        ),
-      );
+      const message =
+        "Improperly located options.json found in archive, don't know which dir to install it.";
+
+      log("info", message);
+      return Promise.reject(new Error(message));
     }
   }
 
