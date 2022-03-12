@@ -34,9 +34,11 @@ export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 
 export const FAKE_STAGING_NAME = "mymegamod-43335455-wth-1";
 export const FAKE_STAGING_PATH = path.join(
-  "D:\\unno\\why\\this\\",
+  "unno",
+  "why",
+  "this",
   FAKE_STAGING_NAME,
-  "\\",
+  path.sep,
 );
 
 const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
