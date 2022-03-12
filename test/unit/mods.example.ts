@@ -357,7 +357,10 @@ export const RedscriptMod = new Map<string, ExampleMod>(
   }),
 );
 
-export const RedscriptModShouldFail = new Map<string, ExampleFailingMod>(
+export const RedscriptModShouldFailInInstall = new Map<
+  string,
+  ExampleFailingMod
+>(
   Object.entries({
     redsScriptInTopLevelDirShouldFail: {
       expectedInstallerType: InstallerType.Redscript,
@@ -777,10 +780,10 @@ export const JsonMod = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
+export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
-    jsonWithInvalidFileInRoot: {
-      expectedInstallerType: InstallerType.Json,
+    jsonWithInvalidFileInRootFailsInTest: {
+      expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
         "Improperly located options.json file found.  We don't know where it belongs",
@@ -801,12 +804,20 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
   }),
 );
 
+export const AllExpectedTestSupportFailures = new Map<
+  string,
+  ExampleFailingModCategory
+>(
+  Object.entries({
+    JsonModShouldFailInTest,
+  }),
+);
+
 export const AllExpectedInstallFailures = new Map<
   string,
   ExampleFailingModCategory
 >(
   Object.entries({
-    RedscriptModShouldFail,
-    JsonModShouldFail,
+    RedscriptModShouldFailInInstall,
   }),
 );
