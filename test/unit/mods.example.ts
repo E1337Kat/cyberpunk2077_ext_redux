@@ -36,6 +36,12 @@ export const FAKE_STAGING_PATH = path.join(
   "\\",
 );
 
+const CORE_CET_FULL_PATH_DEPTH = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
+);
+const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
+const GAME_DIR = path.normalize("bin/x64");
+
 const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
 const CET_PREFIXES = pathHierarchyFor(CET_PREFIX);
 const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
@@ -45,6 +51,85 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PATH_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
+
+export const coreCetInstallTest = new Map<string, ExampleMod>(
+  Object.entries({
+    coreCetInstall: {
+      expectedInstallerType: InstallerType.CoreCET,
+      inFiles: [
+        ...CORE_CET_PREFIXES,
+        path.join(`${GAME_DIR}/global.ini`),
+        path.join(`${GAME_DIR}/LICENSE`),
+        path.join(`${GAME_DIR}/version.dll`),
+        path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+        ),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+        ),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/global.ini`),
+          destination: path.join(`${GAME_DIR}/global.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/LICENSE`),
+          destination: path.join(`${GAME_DIR}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/version.dll`),
+          destination: path.join(`${GAME_DIR}/version.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+          destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+        },
+      ],
+    },
+  }),
+);
 
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
@@ -669,6 +754,7 @@ export const JsonModShouldFail = new Map<string, ExampleFailingMod>(
 
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
+    coreCetInstallTest,
     CetMod,
     RedscriptMod,
     ArchiveOnly,

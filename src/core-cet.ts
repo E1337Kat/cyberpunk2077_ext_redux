@@ -9,15 +9,12 @@ import {
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { allFilesInFolder } from "./installers";
+import { instructionsForSameSourceAndDestPaths } from "./installers";
 
 const path = win32;
 
-const INSTALL_DIR = path.normalize("bin/x64");
-const CET_CORE_IDENTIFIER = path.join(
-  INSTALL_DIR,
-  "plugins",
-  "cyber_engine_tweaks.asi",
+const CET_CORE_IDENTIFIER = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks.asi",
 );
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
@@ -48,15 +45,7 @@ export const installCetCore: VortexWrappedInstallFunc = (
 ): Promise<VortexInstallResult> => {
   log("info", "Using CETCore installer");
 
-  const uniqueFiles = allFilesInFolder(INSTALL_DIR, files);
+  const instructions = instructionsForSameSourceAndDestPaths(files);
 
-  const cetCoreInstructions = uniqueFiles.map((file: string) => {
-    return {
-      type: "copy",
-      source: file,
-      destination: file,
-    };
-  });
-  const instructions = [].concat(cetCoreInstructions);
   return Promise.resolve({ instructions });
 };
