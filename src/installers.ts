@@ -944,8 +944,9 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       log("info", message);
       return Promise.reject(new Error(message));
     }
-  } else if (
-    !options &&
+  }
+
+  if (
     filtered.some(
       (file: string) => KNOWN_JSON_FILES[path.basename(file)] === undefined,
     )
