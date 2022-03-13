@@ -186,6 +186,16 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
       supported: false,
       requiredFiles: [],
     });
+  if (
+    files.some((file: string) =>
+      file.toLowerCase().includes("wolvenkit desktop"),
+    )
+  ) {
+    const message =
+      "WolvenKit Desktop is not able to be installed with Vortex.\n" +
+      "Please use the Wolvenkit CLI download available where you got WolvenKit.";
+    return Promise.reject(new Error(mesage));
+  }
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
