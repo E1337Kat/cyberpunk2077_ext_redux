@@ -10,6 +10,7 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers";
+import { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } from "constants";
 
 const path = win32;
 
@@ -30,6 +31,8 @@ const RED4EXT_CORE_IDENTIFIERS = [
 ];
 
 const CSVMERGE_UNIQUE_FILE = path.normalize("csvmerge/CSVMerge.cmd");
+
+const WOLVENKIT_UNIQUE_FILE = path.normalize("WolvenKit CLI/WolvenKit.CLI.exe");
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
@@ -166,6 +169,53 @@ export const installCoreCsvMerge: VortexWrappedInstallFunc = (
   log("info", "Using CSV installer");
 
   const instructions = instructionsForSameSourceAndDestPaths(files);
+
+  return Promise.resolve({ instructions });
+};
+
+export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Starting WolvenKit CLI matcher, input files: ", files);
+
+  if (!files.includes(WOLVENKIT_UNIQUE_FILE))
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installCoreWolvenkit: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  log("info", "Using Wolvenkit CLI installer");
+
+  const allWolvenKitFiles = files.filter(
+    (file: string) => !file.endsWith(path.sep),
+  );
+
+  const wolvenKitInstructions = allWolvenKitFiles.map((file: string) => {
+    const regex = /^WolvenKit CLI/;
+    const dest = file.replace(regex, path.normalize("csvmerge/wolvenkitcli"));
+
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+
+  const instructions = [].concat(wolvenKitInstructions);
 
   return Promise.resolve({ instructions });
 };

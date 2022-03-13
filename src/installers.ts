@@ -23,6 +23,8 @@ import {
   installRed4ExtCore,
   testCoreCsvMerge,
   installCoreCsvMerge,
+  testCoreWolvenKitCli,
+  installCoreWolvenkit,
 } from "./core-installers";
 
 // Ensure we're using win32 conventions
@@ -113,6 +115,7 @@ export enum InstallerType {
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
+  CoreWolvenKit = "Core/WolvekitCLI", // #32
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
@@ -978,6 +981,12 @@ const installers: Installer[] = [
     id: "cp2077-core-csvmerge-mod",
     testSupported: testCoreCsvMerge,
     install: installCoreCsvMerge,
+  },
+  {
+    type: InstallerType.CoreWolvenKit,
+    id: "cp2077-core-wolvenkit-mod",
+    testSupported: testCoreWolvenKitCli,
+    install: installCoreWolvenkit,
   },
   {
     type: InstallerType.RedCetMix,

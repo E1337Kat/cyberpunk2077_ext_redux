@@ -320,6 +320,42 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
   }),
 );
 
+export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    CoreWolvenKitCliCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreWolvenKit,
+      inFiles: [
+        "WolvenKit CLI/AsyncEnumerable.dll",
+        "WolvenKit CLI/Microsoft.Data.Sqlite.dll",
+        "WolvenKit CLI/WolvenKit.CLI.exe",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI/AsyncEnumerable.dll"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/AsyncEnumerable.dll",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI/Microsoft.Data.Sqlite.dll"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/Microsoft.Data.Sqlite.dll",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI//WolvenKit.CLI.exe"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli//WolvenKit.CLI.exe",
+          ),
+        },
+      ],
+    },
+  }),
+);
+
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
@@ -950,6 +986,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreRedscriptInstall,
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
+    CoreWolvenkitCliInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,
