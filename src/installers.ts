@@ -35,6 +35,10 @@ import {
   installRedscriptCore,
   testRed4ExtCore,
   installRed4ExtCore,
+  testCoreCsvMerge,
+  installCoreCsvMerge,
+  testCoreWolvenKitCli,
+  installCoreWolvenkit,
 } from "./core-installers";
 import { readFileSync } from "fs";
 
@@ -134,6 +138,7 @@ export enum InstallerType {
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
+  CoreWolvenKit = "Core/WolvenKitCLI", // #32
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
@@ -1281,14 +1286,18 @@ const installers: Installer[] = [
     testSupported: testRed4ExtCore,
     install: installRed4ExtCore,
   },
-  /*
-    {
-      type: InstallerType.CoreCSVMerge,
-      id: "cp2077-core-csvmerge-mod",
-      testSupported: notSupportedModType,
-      install: notInstallableMod,
-    },
-    */
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: testCoreCsvMerge,
+    install: installCoreCsvMerge,
+  },
+  {
+    type: InstallerType.CoreWolvenKit,
+    id: "cp2077-core-wolvenkit-mod",
+    testSupported: testCoreWolvenKitCli,
+    install: installCoreWolvenkit,
+  },
   {
     type: InstallerType.RedCetMix,
     id: "cp2077-red-cet-mixture-mod",

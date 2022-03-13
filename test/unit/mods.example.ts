@@ -1,4 +1,4 @@
-import path from "path";
+import path, { join } from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 
 import { pathHierarchyFor } from "./utils.helper";
@@ -209,6 +209,170 @@ export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
   }),
 );
 
+export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    CoreCsvMergeCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreCSVMerge,
+      inFiles: [
+        ...pathHierarchyFor(`${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/`),
+        `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+        ...pathHierarchyFor("csvmerge/mods/Example_Mod_Folder"),
+        ...pathHierarchyFor(
+          path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods",
+          ),
+        ),
+        "csvmerge/CSVMerge.cmd",
+        "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
+        "csvmerge/mods/prefix.txt",
+        "csvmerge/mods/prefix_lua.txt",
+        "csvmerge/mods/suffix.txt",
+        "csvmerge/mods/suffix_lua.txt",
+        "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+        "csvmerge/mods/Example_Mod_Folder/your .item files go here",
+        "csvmerge/wolvenkitcli/install wkit console here",
+        "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+        "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(
+            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+          ),
+          destination: path.normalize(
+            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/CSVMerge.cmd"),
+          destination: path.normalize("csvmerge/CSVMerge.cmd"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/CSVMerge_Tutorial_&_Readme.txt"),
+          destination: path.normalize(
+            "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/prefix.txt"),
+          destination: path.normalize("csvmerge/mods/prefix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/prefix_lua.txt"),
+          destination: path.normalize("csvmerge/mods/prefix_lua.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/suffix.txt"),
+          destination: path.normalize("csvmerge/mods/suffix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/suffix_lua.txt"),
+          destination: path.normalize("csvmerge/mods/suffix_lua.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+          ),
+          destination: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
+          ),
+          destination: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/install wkit console here",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/install wkit console here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+          ),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    CoreWolvenKitCliCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreWolvenKit,
+      inFiles: [
+        "WolvenKit CLI/AsyncEnumerable.dll",
+        "WolvenKit CLI/Microsoft.Data.Sqlite.dll",
+        "WolvenKit CLI/WolvenKit.CLI.exe",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI/AsyncEnumerable.dll"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/AsyncEnumerable.dll",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI/Microsoft.Data.Sqlite.dll"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/Microsoft.Data.Sqlite.dll",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("WolvenKit CLI//WolvenKit.CLI.exe"),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli//WolvenKit.CLI.exe",
+          ),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    CoreWolvenKitDetectedDesktop: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: ["WolvenKit Desktop/", "WolvenKit Desktop/WolvenKit.exe"].map(
+        path.normalize,
+      ),
+      failure: "WolvenKit Desktop is not able to be installed with Vortex.",
+    },
+  }),
+);
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
@@ -1027,6 +1191,8 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreCetInstall,
     CoreRedscriptInstall,
     CoreRed4ExtInstall,
+    CoreCsvMergeInstall,
+    CoreWolvenkitCliInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,
@@ -1042,6 +1208,7 @@ export const AllExpectedTestSupportFailures = new Map<
 >(
   Object.entries({
     JsonModShouldFailInTest,
+    CoreWolvenKitShouldFailInTest,
   }),
 );
 
