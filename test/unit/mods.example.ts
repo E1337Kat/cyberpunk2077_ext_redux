@@ -7,8 +7,12 @@ import {
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
-  ARCHIVE_ONLY_CANONICAL_PATH_PREFIX,
+  ARCHIVE_ONLY_CANONICAL_PREFIX,
   InstallerType,
+  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  INI_MOD_PATH,
+  RESHADE_MOD_PATH,
+  SHADERS_PATH,
 } from "../../src/installers";
 
 export type InFiles = string[];
@@ -31,10 +35,18 @@ export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 
 export const FAKE_STAGING_NAME = "mymegamod-43335455-wth-1";
 export const FAKE_STAGING_PATH = path.join(
-  "D:\\unno\\why\\this\\",
+  "unno",
+  "why",
+  "this",
   FAKE_STAGING_NAME,
-  "\\",
+  path.sep,
 );
+
+const CORE_CET_FULL_PATH_DEPTH = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
+);
+const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
+const GAME_DIR = path.normalize("bin/x64");
 
 const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
 const CET_PREFIXES = pathHierarchyFor(CET_PREFIX);
@@ -43,8 +55,159 @@ const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 const REDS_PREFIX = REDS_MOD_CANONICAL_PATH_PREFIX;
 const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
-const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PATH_PREFIX;
+const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
+
+export const CoreCetInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    coreCetInstall: {
+      expectedInstallerType: InstallerType.CoreCET,
+      inFiles: [
+        ...CORE_CET_PREFIXES,
+        path.join(`${GAME_DIR}/global.ini`),
+        path.join(`${GAME_DIR}/LICENSE`),
+        path.join(`${GAME_DIR}/version.dll`),
+        path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+        ),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+        ),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/global.ini`),
+          destination: path.join(`${GAME_DIR}/global.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/LICENSE`),
+          destination: path.join(`${GAME_DIR}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/version.dll`),
+          destination: path.join(`${GAME_DIR}/version.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+          destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreRedscriptInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    coreRedscriptInstall: {
+      expectedInstallerType: InstallerType.CoreRedscript,
+      inFiles: [
+        path.join("engine/"),
+        path.join("engine/config/"),
+        path.join("engine/config/base/"),
+        path.join("engine/config/base/scripts.ini"),
+        path.join("engine/tools/"),
+        path.join("engine/tools/scc.exe"),
+        path.join("r6/"),
+        path.join("r6/scripts/"),
+        path.join("r6/scripts/redscript.toml"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join("engine/config/base/scripts.ini"),
+          destination: path.join("engine/config/base/scripts.ini"),
+        },
+        {
+          type: "copy",
+          source: path.join("engine/tools/scc.exe"),
+          destination: path.join("engine/tools/scc.exe"),
+        },
+        {
+          type: "copy",
+          source: path.join("r6/scripts/redscript.toml"),
+          destination: path.join("r6/scripts/redscript.toml"),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    Red4ExtCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreRed4ext,
+      inFiles: [
+        ...pathHierarchyFor(path.normalize("bin/x64")),
+        path.normalize("bin/x64/powrprof.dll"),
+        ...pathHierarchyFor(path.normalize("red4ext/plugins")),
+        path.normalize("red4ext/LICENSE.txt"),
+        path.normalize("red4ext/RED4ext.dll"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("bin/x64/powrprof.dll"),
+          destination: path.normalize("bin/x64/powrprof.dll"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/LICENSE.txt"),
+          destination: path.normalize("red4ext/LICENSE.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/RED4ext.dll"),
+          destination: path.normalize("red4ext/RED4ext.dll"),
+        },
+        {
+          type: "mkdir",
+          destination: path.normalize("red4ext/plugins"),
+        },
+      ],
+    },
+  }),
+);
 
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
@@ -132,6 +295,41 @@ export const CetMod = new Map<string, ExampleMod>(
           destination: path.join(`${CET_PREFIX}/exmod/README.md`),
         },
       ],
+    },
+    cetWithIniFilesCanonical: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`${CET_PREFIX}/exmod/some.ini`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/some.ini`),
+          destination: path.join(`${CET_PREFIX}/exmod/some.ini`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CetModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    CetModWithIniShouldFail: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        path.join(`exmod/`),
+        path.join(`exmod/${CET_INIT}`),
+        path.join(`exmod/some.ini`),
+      ],
+      failure: "Improperly packaged CET mod with ini file",
     },
   }),
 );
@@ -313,7 +511,31 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
+          source: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
+        },
+      ],
+    },
+    archiveWithMultipleFilesInHeritageFolderFixable: {
+      expectedInstallerType: InstallerType.ArchiveOnly,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
+        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(
+            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
+          ),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+          ),
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
@@ -665,13 +887,139 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
-        "Improperly located options.json file found.  We don't know where it belongs",
+        "Improperly located options.json file found.  We don't know where it belongs.",
+    },
+  }),
+);
+
+export const IniMod = new Map<string, ExampleMod>(
+  Object.entries({
+    iniWithSingleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    iniWithMultipleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("serious.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/serious.ini`),
+        },
+      ],
+    },
+    iniWithReshadeIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["superreshade.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+      ],
+    },
+    iniWithSingleIniInRandomFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    iniWithReshadeIniAndShadersFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "superreshade.ini",
+        "reshade-shaders/",
+        "reshade-shaders/Shaders/",
+        "reshade-shaders/Shaders/fancy.fx",
+        "reshade-shaders/Textures/",
+        "reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Textures/lut.png"),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+        },
+      ],
+    },
+    iniWithReshadeIniAndShadersInAFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "fold1/superreshade.ini",
+        "fold1/reshade-shaders/",
+        "fold1/reshade-shaders/Shaders/",
+        "fold1/reshade-shaders/Shaders/fancy.fx",
+        "fold1/reshade-shaders/Textures/",
+        "fold1/reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/superreshade.ini"),
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
+          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+        },
+      ],
+    },
+  }), // object
+);
+
+export const IniModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    IniFileCETInstallerShouldFail: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        ...pathHierarchyFor("bin/x64"),
+        path.normalize("bin/x64/global.ini"),
+      ],
+      failure: "INI detects CETCore",
     },
   }),
 );
 
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
+    CoreCetInstall,
+    CoreRedscriptInstall,
+    CoreRed4ExtInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,
