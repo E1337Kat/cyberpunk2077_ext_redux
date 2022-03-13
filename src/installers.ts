@@ -21,6 +21,8 @@ import {
   installRedscriptCore,
   testRed4ExtCore,
   installRed4ExtCore,
+  testCoreCsvMerge,
+  installCoreCsvMerge,
 } from "./core-installers";
 
 // Ensure we're using win32 conventions
@@ -971,14 +973,12 @@ const installers: Installer[] = [
     testSupported: testRed4ExtCore,
     install: installRed4ExtCore,
   },
-  /*
-    {
-      type: InstallerType.CoreCSVMerge,
-      id: "cp2077-core-csvmerge-mod",
-      testSupported: notSupportedModType,
-      install: notInstallableMod,
-    },
-    */
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: testCoreCsvMerge,
+    install: installCoreCsvMerge,
+  },
   {
     type: InstallerType.RedCetMix,
     id: "cp2077-red-cet-mixture-mod",

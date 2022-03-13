@@ -29,6 +29,8 @@ const RED4EXT_CORE_IDENTIFIERS = [
   path.normalize("red4ext/RED4ext.dll"),
 ];
 
+const CSVMERGE_UNIQUE_FILE = path.normalize("csvmerge/CSVMerge.cmd");
+
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
   api: VortexAPI,
   log: VortexLogFunc,
@@ -132,6 +134,38 @@ export const installRed4ExtCore: VortexWrappedInstallFunc = (
     destination: path.normalize("red4ext/plugins"),
   });
   const instructions = [].concat(red4extInstructions, pluginsDir);
+
+  return Promise.resolve({ instructions });
+};
+
+export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Starting CSV Core matcher, input files: ", files);
+
+  if (!files.includes(CSVMERGE_UNIQUE_FILE))
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installCoreCsvMerge: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  log("info", "Using CSV installer");
+
+  const instructions = instructionsForSameSourceAndDestPaths(files);
 
   return Promise.resolve({ instructions });
 };

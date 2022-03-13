@@ -1,4 +1,4 @@
-import path from "path";
+import path, { join } from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 
 import { pathHierarchyFor } from "./utils.helper";
@@ -197,6 +197,116 @@ export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
         {
           type: "mkdir",
           destination: path.normalize("red4ext/plugins"),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    CoreCsvMergeCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreCSVMerge,
+      inFiles: [
+        ...CET_PREFIXES,
+        `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code`,
+        `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+        ...pathHierarchyFor(
+          path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods",
+          ),
+        ),
+        "csvmerge/CSVMerge.cmd",
+        "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
+        "csvmerge/mods",
+        "csvmerge/mods/prefix.txt",
+        "csvmerge/mods/prefix_lua.txt",
+        "csvmerge/mods/suffix.txt",
+        "csvmerge/mods/suffix_lua.txt",
+        "csvmerge/mods/Example_Mod_Folder",
+        "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+        "csvmerge/mods/Example_Mod_Folder/your .item files go here",
+        "csvmerge/wolvenkitcli/install wkit console here",
+        "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+        "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/CSVMerge.cmd"),
+          destination: path.normalize("csvmerge/CSVMerge.cmd"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/CSVMerge_Tutorial_&_Readme.txt"),
+          destination: path.normalize(
+            "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/prefix.txt"),
+          destination: path.normalize("csvmerge/mods/prefix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/prefix_lua.txt"),
+          destination: path.normalize("csvmerge/mods/prefix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/suffix.txt"),
+          destination: path.normalize("csvmerge/mods/prefix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("csvmerge/mods/suffix_lua.txt"),
+          destination: path.normalize("csvmerge/mods/prefix.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+          ),
+          destination: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .item file goes here",
+          ),
+          destination: path.normalize(
+            "csvmerge/mods/Example_Mod_Folder/your .item file goes here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/install wkit console here",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/install wkit console here",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+          ),
+          destination: path.normalize(
+            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
+          ),
         },
       ],
     },
@@ -832,6 +942,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreCetInstall,
     CoreRedscriptInstall,
     CoreRed4ExtInstall,
+    CoreCsvMergeInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,
