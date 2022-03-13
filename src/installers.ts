@@ -551,6 +551,11 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   const allDllDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, fileTree, matchDll);
 
+  if (allDllDirs.length < 1 && toplevelDlls.length < 1) {
+    log("info", "Doesn't look like a Red4Ext mod");
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
   const dangerPaths = [
     ...allDllDirs.filter(reservedDllDir),
     ...toplevelDlls.filter(reservedDllName),
@@ -563,8 +568,6 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
     return Promise.reject(new Error(message));
   }
 
-  // We should probably protect the Red4Ext DLL itself once the core
-  // installer is in place but for now just leave it to fallback
   if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
@@ -1216,14 +1219,13 @@ const installers: Installer[] = [
     testSupported: testForRedscriptMod,
     install: installRedscriptMod,
   },
-  /*
   {
     type: InstallerType.Red4Ext,
     id: "cp2077-red4ext-mod",
     testSupported: testForRed4ExtMod,
-    install: installRed4ExtMod,
+    // install: installRed4ExtMod,
+    install: notInstallableMod,
   },
-  */
   /*
   {
     type: InstallerType.TweakDB,
