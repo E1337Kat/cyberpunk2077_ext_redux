@@ -36,7 +36,7 @@ import {
   testRed4ExtCore,
   installRed4ExtCore,
 } from "./core-installers";
-import { readFileSync } from "vortex-api/lib/util/fs";
+import { readFileSync } from "fs";
 
 // Ensure we're using win32 conventions
 const path = win32;
