@@ -69,9 +69,9 @@ describe("Transforming modules to instructions", () => {
   });
 
   AllExpectedInstallFailures.forEach((examples, set) => {
-    describe(`${set} mods`, () => {
+    describe(`install attempts that should fail, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
-        test(`produce the expected instructions when ${desc}`, async () => {
+        test(`rejects with an error when ${desc}`, async () => {
           const installer = await matchInstaller(mod.inFiles);
           expect(installer).toBeDefined();
           expect(installer.type).toBe(mod.expectedInstallerType);
