@@ -939,7 +939,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
 
     if (!proper) {
       const message =
-        "Improperly located options.json found in archive, don't know which dir to install it.";
+        "Improperly located options.json file found.  We don't know where it belongs.";
 
       log("info", message);
       return Promise.reject(new Error(message));

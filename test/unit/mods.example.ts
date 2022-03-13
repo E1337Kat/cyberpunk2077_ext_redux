@@ -887,7 +887,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
-        "Improperly located options.json file found.  We don't know where it belongs",
+        "Improperly located options.json file found.  We don't know where it belongs.",
     },
   }),
 );
