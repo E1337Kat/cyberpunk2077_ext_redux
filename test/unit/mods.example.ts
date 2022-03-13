@@ -36,6 +36,12 @@ export const FAKE_STAGING_PATH = path.join(
   "\\",
 );
 
+const CORE_CET_FULL_PATH_DEPTH = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
+);
+const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
+const GAME_DIR = path.normalize("bin/x64");
+
 const CET_PREFIX = CET_MOD_CANONICAL_PATH_PREFIX;
 const CET_PREFIXES = pathHierarchyFor(CET_PREFIX);
 const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
@@ -45,6 +51,157 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PATH_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
+
+export const CoreCetInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    coreCetInstall: {
+      expectedInstallerType: InstallerType.CoreCET,
+      inFiles: [
+        ...CORE_CET_PREFIXES,
+        path.join(`${GAME_DIR}/global.ini`),
+        path.join(`${GAME_DIR}/LICENSE`),
+        path.join(`${GAME_DIR}/version.dll`),
+        path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+        ),
+        path.join(
+          `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+        ),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/global.ini`),
+          destination: path.join(`${GAME_DIR}/global.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/LICENSE`),
+          destination: path.join(`${GAME_DIR}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/version.dll`),
+          destination: path.join(`${GAME_DIR}/version.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+          destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+          destination: path.join(
+            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+          destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreRedscriptInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    coreRedscriptInstall: {
+      expectedInstallerType: InstallerType.CoreRedscript,
+      inFiles: [
+        path.join("engine/"),
+        path.join("engine/config/"),
+        path.join("engine/config/base/"),
+        path.join("engine/config/base/scripts.ini"),
+        path.join("engine/tools/"),
+        path.join("engine/tools/scc.exe"),
+        path.join("r6/"),
+        path.join("r6/scripts/"),
+        path.join("r6/scripts/redscript.toml"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join("engine/config/base/scripts.ini"),
+          destination: path.join("engine/config/base/scripts.ini"),
+        },
+        {
+          type: "copy",
+          source: path.join("engine/tools/scc.exe"),
+          destination: path.join("engine/tools/scc.exe"),
+        },
+        {
+          type: "copy",
+          source: path.join("r6/scripts/redscript.toml"),
+          destination: path.join("r6/scripts/redscript.toml"),
+        },
+      ],
+    },
+  }),
+);
+
+export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
+  Object.entries({
+    Red4ExtCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreRed4ext,
+      inFiles: [
+        ...pathHierarchyFor(path.normalize("bin/x64")),
+        path.normalize("bin/x64/powrprof.dll"),
+        ...pathHierarchyFor(path.normalize("red4ext/plugins")),
+        path.normalize("red4ext/LICENSE.txt"),
+        path.normalize("red4ext/RED4ext.dll"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("bin/x64/powrprof.dll"),
+          destination: path.normalize("bin/x64/powrprof.dll"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/LICENSE.txt"),
+          destination: path.normalize("red4ext/LICENSE.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/RED4ext.dll"),
+          destination: path.normalize("red4ext/RED4ext.dll"),
+        },
+        {
+          type: "mkdir",
+          destination: path.normalize("red4ext/plugins"),
+        },
+      ],
+    },
+  }),
+);
 
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
@@ -672,6 +829,9 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
 
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
+    CoreCetInstall,
+    CoreRedscriptInstall,
+    CoreRed4ExtInstall,
     CetMod,
     RedscriptMod,
     ArchiveOnly,
