@@ -50,7 +50,7 @@ import {
   redWithInvalidFilesErrorDialog,
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
-  // showRed4ExtReservedDllErrorDialog,
+  showRed4ExtReservedDllErrorDialog,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -552,7 +552,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   if (dangerPaths.length !== 0) {
     const message = "Red4Ext Mod Installation Canceled, Dangerous DLL paths!";
     log("error", message, dangerPaths);
-    // showRed4ExtReservedDllErrorDialog(api, message, dangerPaths);
+    showRed4ExtReservedDllErrorDialog(api, message, dangerPaths);
     return Promise.reject(new Error(message));
   }
 

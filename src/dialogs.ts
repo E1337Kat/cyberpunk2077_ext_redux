@@ -66,6 +66,46 @@ export const redWithInvalidFilesErrorDialog = (
   );
 };
 
+export const showRed4ExtReservedDllErrorDialog = (
+  api: VortexAPI,
+  message: string,
+  dangerPaths: string[],
+): void => {
+  api.showDialog(
+    "error",
+    message,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        Because this mod has DLLs, it seems like it might be a Red4Ext mod, but I can't install
+        DLLs that look like they could conflict with known DLL files!
+
+        Supported layouts for Red4Ext mods:
+
+        - \`.\\red4ext\\plugins\\[modname]\\[*.dll + any files/subdirs]   (canonical)\`
+          - (if any) \`.\\archive\\pc\\mod\\*.archive\`
+        - \`.\\red4ext\\plugins\\[*.dll + any files/subdirs]              (I can fix this to canonical)\`   
+          - (if any) \`.\\archive\\pc\\mod\\*.archive\`
+        - \`.\\[modname]\\[*.dll + any files/subdirs]                     (I can fix this to canonical)\`   
+          - (if any) \`.\\*.archive\`
+        - \`.\\*.dll                                                      (I can fix this to canonical)\`   
+          - (if any) \`.\\*.archive\`
+
+        If any of the following contain DLLs that this mod _should_ install or this isn't a Red4Ext
+        mod at all, please report a bug and we'll see how we can handle it better! In the meanwhile,        
+        you can manually install the files (but please be careful!)
+
+        I cancelled the installation because of these files:
+
+        \`\`\`
+        ${dangerPaths.join("\n")}
+        \`\`\``),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
 // Should maybe grab the result here when abstracting,
 // so that we can wait on it if needed
 export const showArchiveStructureErrorDialog = (
