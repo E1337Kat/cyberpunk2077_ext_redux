@@ -7,7 +7,7 @@
     }
   ],
   "compilerOptions": {
-    "types": ["jest", "node"],
+    "types": ["jest", "jest-expect-message", "node"],
     "rootDir": "..",
     "noEmit": true,
     "baseUrl": "..",

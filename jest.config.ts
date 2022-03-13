@@ -11,6 +11,7 @@ const config: Config.InitialOptions = {
     },
   },
   moduleDirectories: ["node_modules", "src"],
+  setupFilesAfterEnv: ["jest-expect-message"],
 };
 
 export default config;

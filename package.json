@@ -14,7 +14,8 @@
     "pre-commit": "lint-staged",
     "test": "jest --no-cache --verbose=true --silent=false",
     "test-clean": "jest --clearCache && npm run test",
-    "repl": "ts-node -r tsconfig-paths/register"
+    "repl": "ts-node -r tsconfig-paths/register",
+    "postinstall": "patch-package"
   },
   "author": "KellieAtTheLab",
   "contributors": [
@@ -57,7 +58,10 @@
     "webpack-cli": "^4.9.2"
   },
   "dependencies": {
+    "@types/jest-expect-message": "^1.0.3",
     "@types/mock-fs": "^4.13.1",
-    "key-tree": "^1.0.3"
+    "jest-expect-message": "^1.0.2",
+    "key-tree": "^1.0.3",
+    "patch-package": "^6.4.7"
   }
 }
