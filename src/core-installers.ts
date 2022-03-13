@@ -10,7 +10,7 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers";
-import { SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS } from "constants";
+import { wolvenKitDesktopFoundErrorDialog } from "./dialogs";
 
 const path = win32;
 
@@ -181,21 +181,23 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> => {
   log("debug", "Starting WolvenKit CLI matcher, input files: ", files);
 
+  if (
+    files.some((file: string) =>
+      file.toLowerCase().startsWith("wolvenkit desktop"),
+    )
+  ) {
+    const message =
+      "WolvenKit Desktop is not able to be installed with Vortex.";
+    wolvenKitDesktopFoundErrorDialog(api, log, message, files, []);
+    return Promise.reject(new Error(message));
+  }
+
   if (!files.includes(WOLVENKIT_UNIQUE_FILE))
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
-  if (
-    files.some((file: string) =>
-      file.toLowerCase().includes("wolvenkit desktop"),
-    )
-  ) {
-    const message =
-      "WolvenKit Desktop is not able to be installed with Vortex.\n" +
-      "Please use the Wolvenkit CLI download available where you got WolvenKit.";
-    return Promise.reject(new Error(mesage));
-  }
+
   return Promise.resolve({
     supported: true,
     requiredFiles: [],

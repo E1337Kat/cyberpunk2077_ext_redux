@@ -362,6 +362,17 @@ export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
   }),
 );
 
+export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    CoreWolvenKitDetectedDesktop: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: ["WolvenKit Desktop/", "WolvenKit Desktop/WolvenKit.exe"].map(
+        path.normalize,
+      ),
+      failure: "WolvenKit Desktop is not able to be installed with Vortex.",
+    },
+  }),
+);
 export const CetMod = new Map<string, ExampleMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
@@ -1190,6 +1201,7 @@ export const AllExpectedTestSupportFailures = new Map<
 >(
   Object.entries({
     JsonModShouldFailInTest,
+    CoreWolvenKitShouldFailInTest,
   }),
 );
 

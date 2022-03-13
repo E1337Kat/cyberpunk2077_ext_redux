@@ -202,3 +202,29 @@ export const fallbackInstallerReachedErrorDialog = (
     [{ label: "Ok, Mod Was Installed" }],
   );
 };
+
+export const wolvenKitDesktopFoundErrorDialog = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  message: string,
+  files: string[],
+  installable: string[],
+) => {
+  log("error", `CoreWolvenKit installer: ${message}`, files);
+
+  // It'd be nicer to move at least the long text out, maybe constant
+  // for text + function for handling the boilerplate?
+  api.showDialog(
+    "info",
+    message,
+    {
+      md:
+        "I think you accidentally grabbed the wrong file. This installer can " +
+        "help you install WolvenKit Console which is an Optional file on the " +
+        "[Nexus download page](https://www.nexusmods.com/cyberpunk2077/mods/2201?tab=files) " +
+        "The file you tried to install is WolvenKit Desktop which cannot be " +
+        "installed through Vortex",
+    },
+    [{ label: "Ok, I'll get WolvenKit.Console" }],
+  );
+};
