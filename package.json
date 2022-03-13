@@ -53,7 +53,8 @@
     "webpack": "^4.35.0",
     "webpack-cli": "^3.3.4",
     "jest-mock-extended": "^2.0.4",
-    "tsconfig-paths": "^3.13.0"
+    "tsconfig-paths": "^3.13.0",
+    "mock-fs": "5.1.2"
   },
   "dependencies": {
     "key-tree": "^1.0.3"
