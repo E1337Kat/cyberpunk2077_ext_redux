@@ -1,6 +1,17 @@
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import {
+  findAllSubdirsWithSome,
+  dirWithSomeUnder,
+  FileTree,
+  PathFilter,
+  fileTreeFromPaths,
+  FILETREE_ROOT,
+  subdirPaths,
+  filesIn,
+  filesUnder,
+} from "./filetree";
+import {
   VortexAPI,
   VortexLogFunc,
   VortexTestResult,
@@ -11,8 +22,11 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import {
+  fallbackInstallerReachedErrorDialog,
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
+  showArchiveInstallWarning,
+  showArchiveStructureErrorDialog,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -26,6 +40,7 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
+import { readFileSync } from "fs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -38,6 +53,8 @@ const path = win32;
  * | | | |- 📄 *.archive
  * |-📁 bin
  * | |-📁 x64
+ * | | |-📄 *.ini -- Reshade mod
+ * | | |-📁 reshade-shaders
  * | | |-📁 plugins
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
@@ -78,8 +95,10 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
 
-export const ARCHIVE_ONLY_CANONICAL_PATH_PREFIX =
-  path.normalize("archive/pc/mod/");
+export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
+export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
+  path.normalize("archive/pc/patch/");
 
 /**
  * The extension of most mods
@@ -88,8 +107,12 @@ const MOD_FILE_EXT = ".archive";
 /**
  *  The path where INI files should lay
  */
-const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
+export const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 const INI_MOD_EXT = ".ini";
+export const RESHADE_MOD_PATH = path.join("bin", "x64");
+const SHADERS_DIR = "reshade-shaders";
+export const SHADERS_PATH = path.join(RESHADE_MOD_PATH, SHADERS_DIR);
+const CET_GLOBAL_INI = path.normalize("bin/x64/global.ini");
 /**
  * The extension of a JSON file
  */
@@ -195,6 +218,9 @@ const matchRedscript = (file: string) =>
 const allRedscriptFiles = (files: string[]): string[] =>
   files.filter(matchRedscript);
 
+const matchArchive: PathFilter = (file: string): boolean =>
+  path.extname(file) === ARCHIVE_ONLY_CANONICAL_EXT;
+
 // Source to dest path mapping helpers
 const toSamePath = (f: string) => [f, f];
 const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
@@ -254,7 +280,7 @@ const allCanonicalCetFiles = (files: string[]) =>
   allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
 
 const allCanonicalArchiveOnlyFiles = (files: string[]) =>
-  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, files);
+  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
 
 // CET
 
@@ -676,6 +702,133 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
+enum ArchiveLayouts {
+  Canon,
+  Heritage,
+  Other,
+  Invalid,
+}
+
+type Instructions<T> = {
+  kind: T;
+  instructions: VortexInstruction[];
+};
+
+type InstructionsFromFileTree<T> = (f: FileTree) => Instructions<T>;
+
+const archiveCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const hasCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_CANONICAL_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasCanonFiles) {
+    return { kind: ArchiveLayouts.Canon, instructions: [] };
+  }
+
+  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
+
+  return {
+    kind: ArchiveLayouts.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
+  };
+};
+
+const archiveOldToNewCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const hasOldCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasOldCanonFiles) {
+    return { kind: ArchiveLayouts.Heritage, instructions: [] };
+  }
+
+  const oldCanonFiles = filesUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    fileTree,
+  );
+
+  const oldToNewMap = oldCanonFiles.map((f: string) => [
+    f,
+    f.replace(
+      path.normalize(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX),
+      path.normalize(ARCHIVE_ONLY_CANONICAL_PREFIX),
+    ),
+  ]);
+
+  return {
+    kind: ArchiveLayouts.Heritage,
+    instructions: instructionsForSourceToDestPairs(oldToNewMap),
+  };
+};
+
+const archiveOtherDirsToCanonInstructions = (
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> => {
+  const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
+
+  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
+
+  const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
+    f,
+    path.join(ARCHIVE_ONLY_CANONICAL_PREFIX, f),
+  ]);
+
+  return {
+    kind: ArchiveLayouts.Other,
+    instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
+  };
+};
+
+const useFirstMatchingLayoutForInstructions = (
+  possibleLayouts: InstructionsFromFileTree<ArchiveLayouts>[],
+  fileTree: FileTree,
+): Instructions<ArchiveLayouts> =>
+  possibleLayouts.reduce(
+    (found, layout) =>
+      found.instructions.length > 0 ? found : layout(fileTree),
+    { kind: ArchiveLayouts.Invalid, instructions: [] },
+  );
+
+const warnUserIfModMightNeedManualReview = (
+  api: VortexAPI,
+  chosenInstructions: Instructions<ArchiveLayouts>,
+) => {
+  // Trying out the tree-based approach..
+  const destinationPaths = chosenInstructions.instructions.map(
+    (i) => i.destination,
+  );
+  const newTree = fileTreeFromPaths(destinationPaths);
+
+  const warnAboutSubdirs =
+    subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
+
+  const hasMultipleTopLevelFiles =
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree, matchArchive).length > 1;
+
+  const multipleTopLevelsMightBeIntended =
+    chosenInstructions.kind !== ArchiveLayouts.Other;
+
+  const warnAboutToplevel =
+    !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
+
+  if (warnAboutSubdirs || warnAboutToplevel) {
+    showArchiveInstallWarning(
+      api,
+      warnAboutSubdirs,
+      warnAboutToplevel,
+      destinationPaths,
+    );
+  }
+};
+
 /**
  * Installs files while correcting the directory structure as we go.
  * @param files a list of files to be installed
@@ -687,61 +840,53 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // since this installer is only called when there is for sure only archive files, just need to get the files
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
+  log("info", "Using ArchiveOnly installer");
+
+  const fileTree = fileTreeFromPaths(files);
+  const fileCount = filesUnder(FILETREE_ROOT, fileTree).length;
+
+  // Once again we could get fancy, but let's not
+
+  const possibleLayoutsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
+    [
+      archiveCanonInstructions,
+      archiveOldToNewCanonInstructions,
+      archiveOtherDirsToCanonInstructions,
+    ];
+
+  const chosenInstructions = useFirstMatchingLayoutForInstructions(
+    possibleLayoutsToTryInOrder,
+    fileTree,
   );
 
-  let flattenedHierarchy = false;
-
-  // Set destination to be 'archive/pc/mod/[file].archive'
-  log("info", "Installing archive files: ", filtered);
-  const archiveFileInstructions = filtered.map((file: string) => {
-    const fileName = path.basename(file);
-    const dest = path.join(ARCHIVE_ONLY_CANONICAL_PATH_PREFIX, fileName);
-
-    flattenedHierarchy = flattenedHierarchy || file !== dest;
-
-    return {
-      type: "copy",
-      source: file,
-      destination: dest,
-    };
-  });
-  log("debug", "Installing archive files with: ", archiveFileInstructions);
-
-  if (flattenedHierarchy) {
-    api.sendNotification({
-      type: "info",
-      title: "Placed All Archive Files In Top-Level Folder!",
-      message: "Please check mod files in File Manager!",
-      actions: [
-        {
-          title: "More info",
-          action: (dismiss) => {
-            api.showDialog(
-              "info",
-              "Archive Files Moved To Top Level",
-              {
-                text:
-                  "There were some archive files outside the canonical mod folder " +
-                  ".\\archive\\pc\\mod or inside a subdirectory. " +
-                  "The installer moved them all to the top level. Please check " +
-                  "the mod in File Manager (Down Arrow next to the Remove action " +
-                  "in the mod list) to verify the files are correct!",
-              },
-              [{ label: "Close", action: () => dismiss() }],
-            );
-          },
-        },
-      ],
-    });
+  if (chosenInstructions.instructions.length < 1) {
+    const message =
+      "ArchiveOnly installer failed to generate any instructions!";
+    log("error", message, files);
+    return Promise.reject(new Error(message));
   }
 
-  const instructions = [].concat(archiveFileInstructions);
+  const haveFilesOutsideSelectedInstructions =
+    chosenInstructions.instructions.length !== fileCount;
 
-  return Promise.resolve({ instructions });
+  if (haveFilesOutsideSelectedInstructions) {
+    const message = "Conflicting layouts for Archive mod!";
+
+    showArchiveStructureErrorDialog(api, message, files);
+
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  warnUserIfModMightNeedManualReview(api, chosenInstructions);
+
+  log("info", "ArchiveOnly installer installing files.");
+  log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
+
+  return Promise.resolve({ instructions: chosenInstructions.instructions });
 };
+
+// JSON Mods
 
 export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   _api: VortexAPI,
@@ -798,15 +943,11 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
     );
 
     if (!proper) {
-      log(
-        "info",
-        "Improperly located options.json found in archive, we can't install this",
-      );
-      return Promise.reject(
-        new Error(
-          "Improperly located options.json file found.  We don't know where it belongs",
-        ),
-      );
+      const message =
+        "Improperly located options.json file found.  We don't know where it belongs.";
+
+      log("info", message);
+      return Promise.reject(new Error(message));
     }
   }
 
@@ -861,6 +1002,149 @@ export const installJsonMod: VortexWrappedInstallFunc = (
 
   return Promise.resolve({ instructions });
 };
+
+const testForReshadeFile = (
+  log: VortexLogFunc,
+  files: string[],
+  folder: string,
+): boolean => {
+  // We're going to make a reasonable assumption here that reshades will
+  // only have reshade ini's, so we only need to check the first one
+
+  const fileToExamine = path.join(
+    folder,
+    files.find((file: string) => path.extname(file) === INI_MOD_EXT),
+  );
+
+  const data = readFileSync(fileToExamine, { encoding: "utf8" }); //, (err, contents) => {if (err) {log("error", "Error: ", err)} else data = contents});
+
+  if (data === undefined) {
+    log("error", "unable to read contents of ", fileToExamine);
+    return false;
+  }
+  data.slice(0, 80);
+  const regex = /^[\[#].+/;
+  const testString = data.replace(regex, "");
+  if (testString === data) {
+    log("info", "Reshade file located.");
+    return true;
+  }
+
+  return false;
+};
+
+// INI (includes Reshade?)
+export const testForIniMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  // Make sure we're able to support this mod.
+  const correctGame = _gameId === GAME_ID;
+  log("info", "Checking for INI files: ", _gameId);
+  if (!correctGame) {
+    // no mods?
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
+  );
+
+  if (filtered.length === 0) {
+    log("info", "No INI files.");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (
+    files.some(
+      (file: string) =>
+        path.basename(file).includes(CET_MOD_CANONICAL_INIT_FILE) ||
+        path.extname(file) === REDS_MOD_CANONICAL_EXTENSION,
+    )
+  ) {
+    log("info", "INI file detected within a CET or Redscript mod, aborting");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  if (files.includes(CET_GLOBAL_INI)) {
+    log("info", "CET Installer detected, not processing as INI");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installIniMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  // This installer gets called for both reshade and "normal" ini mods
+
+  const allIniModFiles = files.filter(
+    (file: string) => path.extname(file) === INI_MOD_EXT,
+  );
+
+  const reshade = testForReshadeFile(log, allIniModFiles, _destinationPath);
+
+  // Set destination depending on file type
+
+  log("info", "Installing ini files: ", allIniModFiles);
+  const iniFileInstructions = allIniModFiles.map((file: string) => {
+    const fileName = path.basename(file);
+    const dest = reshade
+      ? path.join(RESHADE_MOD_PATH, path.basename(file))
+      : path.join(INI_MOD_PATH, fileName);
+
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+
+  const shaderFiles = files.filter(
+    (file: string) => file.includes(SHADERS_DIR) && !file.endsWith(path.sep),
+  );
+
+  let shaderInstructions = [];
+
+  if (reshade && shaderFiles.length !== 0) {
+    log("info", "Installing shader files: ", shaderFiles);
+    shaderInstructions = shaderFiles.map((file: string) => {
+      const regex = /.*reshade-shaders/;
+      const fileName = file.replace(regex, SHADERS_DIR);
+      // log("info", "Shader dir Found. Processing: ", fileName);
+      const dest = path.join(RESHADE_MOD_PATH, fileName);
+      // log("debug", "Shader file: ", dest);
+      return {
+        type: "copy",
+        source: file,
+        destination: dest,
+      };
+    });
+  }
+  const instructions = [].concat(iniFileInstructions, shaderInstructions);
+  log("debug", "Installing ini files with instructions: ", instructions);
+
+  return Promise.resolve({ instructions });
+};
+
 // Fallback
 
 /**
@@ -879,7 +1163,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
 
   // Make sure we're able to support this mod.
   const correctGame = gameId === GAME_ID;
-  log("info", "Checking bad structure of mod for a game: ", gameId);
+  log("info", "Entering fallback installer: ", gameId);
   if (!correctGame) {
     return Promise.resolve({
       supported: false,
@@ -890,19 +1174,19 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
-  if (hasIniMod) {
-    log("info", "mod supported by this installer");
-    return Promise.resolve({
-      supported: true,
-      requiredFiles: [],
-    });
-  }
-
-  log("warn", "I dunno. Can't do nothing about this.");
+  // if (hasIniMod) {
+  //   log("info", "mod supported by this installer");
   return Promise.resolve({
-    supported: false,
+    supported: true,
     requiredFiles: [],
   });
+  // }
+
+  // log("warn", "I dunno. Can't do nothing about this.");
+  // return Promise.resolve({
+  //   supported: false,
+  //   requiredFiles: [],
+  // });
 };
 
 /**
@@ -919,15 +1203,25 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   // Gather any INI files
   const iniModFiles = files.filter(matchIniFile);
 
-  log("info", "Correcting INI mod files: ", iniModFiles);
-  const iniModInstructions = iniModFiles.map((file) => ({
+  log("info", "Fallback installer. Copying 1:1: ", files);
+  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
+  const instr = filtered.map((file) => ({
     type: "copy",
     source: file,
     destination: path.join(INI_MOD_PATH, path.basename(file)),
   }));
-  log("debug", "Installing INI mod files with: ", iniModInstructions);
 
-  const instructions = [].concat(iniModInstructions);
+  const instructions = [].concat(instr);
+
+  const message =
+    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
+  fallbackInstallerReachedErrorDialog(
+    _api,
+    log,
+    message,
+    filtered,
+    instructions,
+  );
 
   return Promise.resolve({ instructions });
 };

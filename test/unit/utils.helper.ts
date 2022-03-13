@@ -1,15 +1,20 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
-import { mock, mockFn, MockProxy } from "jest-mock-extended";
-import { VortexAPI, VortexLogFunc } from "../../src/vortex-wrapper";
+import { mock, MockProxy } from "jest-mock-extended";
+import { VortexAPI } from "../../src/vortex-wrapper";
 import { installerPipeline, InstallerType } from "../../src/installers";
 
 export const GAME_ID = "cyberpunk2077";
 
 export const mockVortexAPI: MockProxy<VortexAPI> = mock<VortexAPI>();
 
-export const mockVortexLog: VortexLogFunc = mockFn<VortexLogFunc>();
+export const mockVortexLog = jest.fn();
+
+if (process.env.DEBUG) {
+  // eslint-disable-next-line no-console
+  mockVortexLog.mockImplementation((...args) => console.log("Log:", args));
+}
 
 export const getFallbackInstaller = () => {
   const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
