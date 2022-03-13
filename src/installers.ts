@@ -7,9 +7,10 @@ import {
   PathFilter,
   fileTreeFromPaths,
   FILETREE_ROOT,
-  subdirPaths,
+  subdirsIn,
   filesIn,
   filesUnder,
+  pathInTree,
 } from "./filetree";
 import {
   VortexAPI,
@@ -22,10 +23,34 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import {
+  ARCHIVE_ONLY_CANONICAL_EXT,
+  ARCHIVE_ONLY_CANONICAL_PREFIX,
+  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  RED4EXT_CORE_RED4EXT_DLL,
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
+  REDS_MOD_CANONICAL_EXTENSION,
+  REDS_MOD_CANONICAL_PATH_PREFIX,
+  INI_MOD_EXT,
+  INI_MOD_PATH,
+  CET_MOD_CANONICAL_INIT_FILE,
+  CET_MOD_CANONICAL_PATH_PREFIX,
+  MOD_FILE_EXT,
+  JSON_FILE_EXT,
+  KNOWN_JSON_FILES,
+} from "./installers.layouts";
+import {
+  toSamePath,
+  toDirInPath,
+  instructionsForSourceToDestPairs,
+  instructionsForSameSourceAndDestPaths,
+} from "./installers.shared";
+import {
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
+  // showRed4ExtReservedDllErrorDialog,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -38,79 +63,6 @@ import {
 
 // Ensure we're using win32 conventions
 const path = win32;
-
-/** Correct Directory structure:
- * root_folder
- * |-📁 archive
- * | |-📁 pc
- * | | |-📁 mod
- * | | | |- 📄 *.archive
- * |-📁 bin
- * | |-📁 x64
- * | | |-📁 plugins
- * | | | |-📁 cyber_engine_tweaks
- * | | | | |-📁 mods
- * | | | | | |-📁 SomeMod
- * | | | | | | |- 📄 init.lua
- * | | | | | | |- Whatever structure the mod wants
- * |-📁 engine
- * | |-📁 config
- * | | |-📄 giweights.json
- * | | |-📁 platform
- * | | | |-📁 pc
- * | | | | |-📄 *.ini -- Typically loose files, no subdirs
- * |-📁 r6
- * | |-📁 config
- * | | |-📁 settings
- * | | | |-📄 options.json
- * | | | |-📁 platform
- * | | | | |-📁 pc
- * | | | | | |-📄 options.json
- * | | |-📄 bumperSettings.json
- * | | |-📄 *.xml (68.2 kB)
- * | |-📁 scripts
- * | | |-📁 SomeMod
- * | | | |-📄 *.reds
- * |-📁 red4ext
- * | |-📁 plugins
- * | | |-📁 SomeMod
- * | | | |-📄 *.dll
- */
-
-export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
-export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods",
-);
-
-export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
-export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
-
-export const RED4EXT_MOD_CANONICAL_EXTENSION = ".dll";
-export const RED4EXT_MOD_CANONICAL_PATH_PREFIX =
-  path.normalize("red4ext/plugins/");
-
-export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
-export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
-  path.normalize("archive/pc/patch/");
-
-/**
- * The extension of most mods
- */
-const MOD_FILE_EXT = ".archive";
-/**
- *  The path where INI files should lay
- */
-const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
-const INI_MOD_EXT = ".ini";
-/**
- * The extension of a JSON file
- */
-const JSON_FILE_EXT = ".json";
-const KNOWN_JSON_FILES = {
-  "giweights.json": path.join("engine", "config", "giweights.json"),
-  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
-};
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 // I figured some wiggle room on either side is nice :) - Ellie
@@ -211,40 +163,6 @@ const allRedscriptFiles = (files: string[]): string[] =>
 
 const matchArchive: PathFilter = (file: string): boolean =>
   path.extname(file) === ARCHIVE_ONLY_CANONICAL_EXT;
-
-// Source to dest path mapping helpers
-const toSamePath = (f: string) => [f, f];
-const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
-  [f, path.join(prefixPath, dir, path.basename(f))];
-
-// Drop any folders and duplicates from the file list,
-// and then create the instructions.
-const instructionsForSourceToDestPairs = (
-  srcAndDestPairs: string[][],
-): VortexInstruction[] => {
-  const justTheRegularFiles = srcAndDestPairs.filter(
-    ([src, _]) => !src.endsWith(path.sep),
-  );
-
-  // Is this actually necessary at all? I guess we could check there are
-  // no duplicates that would override one another in case callers haven't
-  // const uniqueFiles = [...new Set(justTheRegularFiles).values()];
-
-  const instructions: VortexInstruction[] = justTheRegularFiles.map(
-    ([src, dst]): VortexInstruction => ({
-      type: "copy",
-      source: src,
-      destination: dst,
-    }),
-  );
-
-  return instructions;
-};
-
-export const instructionsForSameSourceAndDestPaths = (
-  files: string[],
-): VortexInstruction[] =>
-  instructionsForSourceToDestPairs(files.map(toSamePath));
 
 // Installers
 const allFilesInFolder = (folder: string, files: string[]) => {
@@ -608,6 +526,45 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
+// Red4Ext
+
+const matchDll = (file: string) => path.extname(file) === ".dll";
+const reservedDllDir = (dir: string) =>
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.includes(path.join(dir));
+const reservedDllName = (file: string) =>
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
+
+export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  const allDllDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
+  const toplevelDlls = filesIn(FILETREE_ROOT, fileTree, matchDll);
+
+  const dangerPaths = [
+    ...allDllDirs.filter(reservedDllDir),
+    ...toplevelDlls.filter(reservedDllName),
+  ];
+
+  if (dangerPaths.length !== 0) {
+    const message = "Red4Ext Mod Installation Canceled, Dangerous DLL paths!";
+    log("error", message, dangerPaths);
+    // showRed4ExtReservedDllErrorDialog(api, message, dangerPaths);
+    return Promise.reject(new Error(message));
+  }
+
+  // We should probably protect the Red4Ext DLL itself once the core
+  // installer is in place but for now just leave it to fallback
+  if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  return Promise.resolve({ supported: true, requiredFiles: [] });
+};
+
 // ArchiveOnly
 
 export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
@@ -762,21 +719,19 @@ const archiveOtherDirsToCanonInstructions = (
   };
 };
 
-<<<<<<< HEAD
 const useFirstMatchingLayoutForInstructions = (
-=======
-const pickTheFirstMatchingInstructions = (
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
   possibleLayouts: InstructionsFromFileTree<ArchiveLayouts>[],
   fileTree: FileTree,
 ): Instructions<ArchiveLayouts> =>
   possibleLayouts.reduce(
     (found, layout) =>
       found.instructions.length > 0 ? found : layout(fileTree),
-    { kind: ArchiveLayouts.Invalid, instructions: [] },
+    {
+      kind: ArchiveLayouts.Invalid,
+      instructions: [],
+    },
   );
 
-<<<<<<< HEAD
 const warnUserIfModMightNeedManualReview = (
   api: VortexAPI,
   chosenInstructions: Instructions<ArchiveLayouts>,
@@ -788,7 +743,7 @@ const warnUserIfModMightNeedManualReview = (
   const newTree = fileTreeFromPaths(destinationPaths);
 
   const warnAboutSubdirs =
-    subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
+    subdirsIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
 
   const hasMultipleTopLevelFiles =
     filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree, matchArchive).length > 1;
@@ -809,8 +764,6 @@ const warnUserIfModMightNeedManualReview = (
   }
 };
 
-=======
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 /**
  * Installs files while correcting the directory structure as we go.
  * @param files a list of files to be installed
@@ -828,32 +781,19 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   // Once again we could get fancy, but let's not
 
-<<<<<<< HEAD
   const possibleLayoutsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
-=======
-  const possibleInstructionsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
     [
       archiveCanonInstructions,
       archiveOldToNewCanonInstructions,
       archiveOtherDirsToCanonInstructions,
     ];
 
-<<<<<<< HEAD
   const chosenInstructions = useFirstMatchingLayoutForInstructions(
     possibleLayoutsToTryInOrder,
     fileTree,
   );
 
   if (chosenInstructions.instructions.length < 1) {
-=======
-  const { kind, instructions } = pickTheFirstMatchingInstructions(
-    possibleInstructionsToTryInOrder,
-    fileTree,
-  );
-
-  if (instructions.length < 1) {
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
     const message =
       "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -861,11 +801,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   }
 
   const haveFilesOutsideSelectedInstructions =
-<<<<<<< HEAD
     chosenInstructions.instructions.length !== fileCount;
-=======
-    instructions.length !== fileCount;
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 
   if (haveFilesOutsideSelectedInstructions) {
     const message = "Conflicting layouts for Archive mod!";
@@ -876,42 +812,12 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
-<<<<<<< HEAD
   warnUserIfModMightNeedManualReview(api, chosenInstructions);
 
   log("info", "ArchiveOnly installer installing files.");
   log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
 
   return Promise.resolve({ instructions: chosenInstructions.instructions });
-=======
-  // Trying out the tree-based approach..
-  const destinationPaths = instructions.map((i) => i.destination);
-  const newTree = fileTreeFromPaths(destinationPaths);
-
-  const warnAboutSubdirs =
-    subdirPaths(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
-
-  const hasMultipleTopLevelFiles =
-    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 1;
-
-  const multipleTopLevelsMightBeIntended = kind !== ArchiveLayouts.Other;
-
-  const warnAboutToplevel =
-    !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
-
-  if (warnAboutSubdirs || warnAboutToplevel) {
-    showArchiveInstallWarning(
-      api,
-      warnAboutSubdirs,
-      warnAboutToplevel,
-      destinationPaths,
-    );
-  }
-
-  log("info", "ArchiveOnly installer installing files.");
-  log("debug", "ArchiveOnly instructions produced: ", instructions);
-  return Promise.resolve({ instructions });
->>>>>>> 3da9439 (ArchiveOnly retains subfolders + uses filetree)
 };
 
 // JSON Mods
@@ -1196,7 +1102,7 @@ const installers: Installer[] = [
     id: "cp2077-lut-mod",
     testSupported: notSupportedModType,
     install: notInstallableMod,
-  },*/
+  }, */
 
   {
     type: InstallerType.Json,

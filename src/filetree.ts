@@ -99,7 +99,7 @@ export const fileTreeFromPaths = (paths: string[]): FileTree => {
   return tree;
 };
 
-export const subdirPaths = (dir: string, tree: FileTree): string[] => {
+export const subdirsIn = (dir: string, tree: FileTree): string[] => {
   const node = tree._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle
 
   if (!node || node.children.length < 1) {
@@ -108,6 +108,14 @@ export const subdirPaths = (dir: string, tree: FileTree): string[] => {
 
   return node.children.map((subdir) => nodejsPath.join(dir, subdir.key));
 };
+
+export const pathInTree = (path: string, tree: FileTree): boolean =>
+  // We _could_ just keep track of the paths but since it's possible to mutate..
+  path.endsWith(nodejsPath.sep)
+    ? tree.$.getChild(stripTrailingSeparator(path)) !== null
+    : tree
+        .get(nodejsPath.dirname(path))
+        ?.children.includes(nodejsPath.basename(path)) ?? false;
 
 export const filesIn = (
   dir: string,

@@ -3,19 +3,17 @@ import {
   VortexAPI,
   VortexLogFunc,
   VortexTestResult,
-  VortexInstruction,
   VortexInstallResult,
-  VortexProgressDelegate,
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { instructionsForSameSourceAndDestPaths } from "./installers";
+import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 
 const path = win32;
 
-const CET_CORE_IDENTIFIER = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks.asi",
-);
+const CET_CORE_IDENTIFIERS = [
+  path.normalize("bin/x64/plugins/cyber_engine_tweaks.asi"),
+];
 
 const REDSCRIPT_CORE_IDENTIFIERS = [
   path.normalize("engine/config/base/scripts.ini"),
@@ -36,15 +34,12 @@ export const testForCetCore: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CET Core matcher, input files: ", files);
-
-  if (!files.includes(CET_CORE_IDENTIFIER))
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
+  const containsAllNecessaryCetFiles = CET_CORE_IDENTIFIERS.every((cetPath) =>
+    files.includes(cetPath),
+  );
 
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryCetFiles,
     requiredFiles: [],
   });
 };
@@ -68,17 +63,12 @@ export const testForRedscriptCore: VortexWrappedTestSupportedFunc = (
   files: string[],
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting Redscript Core matcher, input files: ", files);
+  const containsAllNecessaryRedsFiles = REDSCRIPT_CORE_IDENTIFIERS.every(
+    (redsPath) => files.includes(redsPath),
+  );
 
-  for (var index = 0; index < REDSCRIPT_CORE_IDENTIFIERS.length; index++) {
-    if (!files.includes(REDSCRIPT_CORE_IDENTIFIERS[index]))
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-  }
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryRedsFiles,
     requiredFiles: [],
   });
 };
@@ -89,8 +79,6 @@ export const installRedscriptCore: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using RedscriptCore installer");
-
   const instructions = instructionsForSameSourceAndDestPaths(files);
 
   return Promise.resolve({ instructions });
@@ -102,17 +90,12 @@ export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
   files: string[],
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting RED4ext Core matcher, input files: ", files);
+  const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every(
+    (red4extPath) => files.includes(red4extPath),
+  );
 
-  for (var index = 0; index < RED4EXT_CORE_IDENTIFIERS.length; index++) {
-    if (!files.includes(RED4EXT_CORE_IDENTIFIERS[index]))
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-  }
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryRed4ExtPaths,
     requiredFiles: [],
   });
 };
@@ -123,8 +106,6 @@ export const installRed4ExtCore: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using Red4ExtCore installer");
-
   const red4extInstructions = instructionsForSameSourceAndDestPaths(files);
 
   const pluginsDir = [].concat({

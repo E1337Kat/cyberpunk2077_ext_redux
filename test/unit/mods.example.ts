@@ -3,15 +3,18 @@ import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line impor
 
 import { pathHierarchyFor } from "./utils.helper";
 
+import { InstallerType } from "../../src/installers";
+
 import {
-  InstallerType,
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
   RED4EXT_MOD_CANONICAL_PATH_PREFIX,
+  //  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
+  //  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-} from "../../src/installers";
+} from "../../src/installers.layouts";
 
 export type InFiles = string[];
 
@@ -518,21 +521,26 @@ export const Red4ExtMod = new Map<string, ExampleMod>(
   }),
 );
 
-export const Red4ExtModShouldFail = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    red4extDllInTopLevelShouldFail: {
+/*
+export const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
+  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.map((dir) => [
+    `red4ext DLL in dangerous dir ${dir}`,
+    {
       expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [path.join(`script.dll`)],
+      inFiles: [path.join(dir, "some.dll")],
       failure: "Should fail somehow",
     },
-
-    red4extScriptInTopLevelSubdirShouldFail: {
+  ]),
+  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.map((dll) => [
+    `red4ext DLL with reserved name ${dll}`,
+    {
       expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [path.join(`r4emod/script.dll`)],
+      inFiles: [path.join(`bin/x64/scripties.dll`)],
       failure: "Should fail somehow.",
     },
-  }),
-);
+  ]),
+]);
+*/
 
 export const ArchiveOnly = new Map<string, ExampleMod>(
   Object.entries({
@@ -986,6 +994,7 @@ export const AllExpectedTestSupportFailures = new Map<
 >(
   Object.entries({
     JsonModShouldFailInTest,
+    //    Red4ExtModShouldFailInTest,
   }),
 );
 
@@ -994,12 +1003,6 @@ export const AllExpectedInstallFailures = new Map<
   ExampleFailingModCategory
 >(
   Object.entries({
-<<<<<<< HEAD
     RedscriptModShouldFailInInstall,
-=======
-    RedscriptModShouldFail,
-    Red4ExtModShouldFail,
-    JsonModShouldFail,
->>>>>>> 7a551b3 (Red4Ext tests (failing for now))
   }),
 );
