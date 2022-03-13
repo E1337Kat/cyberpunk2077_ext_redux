@@ -925,8 +925,8 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   }
   let proper = true;
   // check for options.json in the file list
-  const options = filtered.some((file: string) =>
-    file.endsWith("options.json"),
+  const options = filtered.some(
+    (file: string) => path.basename(file) === "options.json",
   );
   if (options) {
     log("debug", "Options.json files found: ", options);
@@ -944,6 +944,16 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       log("info", message);
       return Promise.reject(new Error(message));
     }
+  } else if (
+    !options &&
+    filtered.some(
+      (file: string) => KNOWN_JSON_FILES[path.basename(file)] === undefined,
+    )
+  ) {
+    log("error", "Found JSON files that aren't part of the game.");
+    return Promise.reject(
+      new Error("Found JSON files that aren't part of the game."),
+    );
   }
 
   log("debug", "We got through it all and it is a JSON mod");
@@ -959,9 +969,16 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
+  const jsonFiles: string[] = files.filter(
+    (file: string) => path.extname(file) === ".json",
   );
+  const otherAllowedFiles = files.filter(
+    (file: string) =>
+      path.extname(file) === ".txt" || path.extname(file) === ".md",
+  );
+
+  const filtered = jsonFiles.concat(otherAllowedFiles);
+
   log("info", "Installing JSON files: ", filtered);
 
   let movedJson = false;
