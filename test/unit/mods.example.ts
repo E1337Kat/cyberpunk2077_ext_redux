@@ -889,6 +889,13 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       failure:
         "Improperly located options.json file found.  We don't know where it belongs.",
     },
+    jsonWithUnknownFileFailsInTest: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(
+        path.normalize,
+      ),
+      failure: "Found JSON files that aren't part of the game.",
+    },
   }),
 );
 
