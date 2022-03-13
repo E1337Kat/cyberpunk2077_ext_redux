@@ -138,7 +138,7 @@ export enum InstallerType {
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
-  CoreWolvenKit = "Core/WolvekitCLI", // #32
+  CoreWolvenKit = "Core/WolvenKitCLI", // #32
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
