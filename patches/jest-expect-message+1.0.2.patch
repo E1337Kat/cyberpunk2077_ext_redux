@@ -1,0 +1,55 @@
+diff --git a/node_modules/jest-expect-message/dist/withMessage.js b/node_modules/jest-expect-message/dist/withMessage.js
+index 48de706..17b4ad8 100644
+--- a/node_modules/jest-expect-message/dist/withMessage.js
++++ b/node_modules/jest-expect-message/dist/withMessage.js
+@@ -8,7 +8,8 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
+ 
+ class JestAssertionError extends Error {
+   constructor(result, callsite) {
+-    super(result.message());
++    super(typeof result.message === 'function' ? result.message() : result.message);
++
+     this.matcherResult = result;
+ 
+     if (Error.captureStackTrace) {
+@@ -31,7 +32,10 @@ const wrapMatcher = (matcher, customMessage) => {
+         throw new JestAssertionError(matcherResult, newMatcher);
+       }
+ 
+-      const message = () => 'Custom message:\n  ' + customMessage + '\n\n' + matcherResult.message();
++      const matcherMessage =
++        typeof error.matcherResult.message === 'function' ? error.matcherResult.message() : error.matcherResult.message;
++
++      const message = () => 'Custom message:\n  ' + customMessage + '\n\n' + matcherMessage;
+ 
+       throw new JestAssertionError(_extends({}, matcherResult, { message }), newMatcher);
+     }
+diff --git a/node_modules/jest-expect-message/src/withMessage.js b/node_modules/jest-expect-message/src/withMessage.js
+index 8570497..e7644a1 100644
+--- a/node_modules/jest-expect-message/src/withMessage.js
++++ b/node_modules/jest-expect-message/src/withMessage.js
+@@ -1,6 +1,9 @@
+ class JestAssertionError extends Error {
+   constructor(result, callsite) {
+-    super(result.message());
++    // Fix from alexneo2003
++    // https://github.com/mattphillips/jest-expect-message/pull/40
++    super(typeof result.message === 'function' ? result.message() : result.message);
++
+     this.matcherResult = result;
+ 
+     if (Error.captureStackTrace) {
+@@ -23,7 +26,12 @@ const wrapMatcher = (matcher, customMessage) => {
+         throw new JestAssertionError(matcherResult, newMatcher);
+       }
+ 
+-      const message = () => 'Custom message:\n  ' + customMessage + '\n\n' + matcherResult.message();
++      // Fix from alexneo2003
++      // https://github.com/mattphillips/jest-expect-message/pull/40
++      const matcherMessage =
++        typeof error.matcherResult.message === 'function' ? error.matcherResult.message() : error.matcherResult.message;
++
++      const message = () => 'Custom message:\n  ' + customMessage + '\n\n' + matcherMessage;
+ 
+       throw new JestAssertionError({ ...matcherResult, message }, newMatcher);
+     }
