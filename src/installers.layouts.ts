@@ -8,6 +8,8 @@ import path from "path";
  * | | | |- 📄 *.archive
  * |-📁 bin
  * | |-📁 x64
+ * | | |-📄 *.ini -- Reshade mod
+ * | | |-📁 reshade-shaders
  * | | |-📁 plugins
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
@@ -38,6 +40,7 @@ import path from "path";
  * | | | |-📄 *.dll
  */
 
+export const CET_GLOBAL_INI = path.normalize("bin/x64/global.ini");
 export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
 export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
@@ -68,25 +71,25 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [
   path.join(`bin\\x64\\`), // Not okay!
 ];
 
-export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
-export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
-  path.normalize("archive/pc/patch/");
+export const RESHADE_MOD_PATH = path.join("bin", "x64");
+export const RESHADE_SHADERS_DIR = "reshade-shaders";
+export const RESHADE_SHADERS_PATH = path.join(
+  RESHADE_MOD_PATH,
+  RESHADE_SHADERS_DIR,
+);
 
-/**
- * The extension of most mods
- */
-export const MOD_FILE_EXT = ".archive";
-/**
- *  The path where INI files should lay
- */
 export const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
 export const INI_MOD_EXT = ".ini";
-/**
- * The extension of a JSON file
- */
+
 export const JSON_FILE_EXT = ".json";
 export const KNOWN_JSON_FILES = {
   "giweights.json": path.join("engine", "config", "giweights.json"),
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
+
+export const MOD_FILE_EXT = ".archive";
+
+export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
+export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
+  path.normalize("archive/pc/patch/");

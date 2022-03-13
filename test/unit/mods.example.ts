@@ -14,6 +14,9 @@ import {
   //  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  INI_MOD_PATH,
+  RESHADE_MOD_PATH,
+  RESHADE_SHADERS_PATH,
 } from "../../src/installers.layouts";
 
 export type InFiles = string[];
@@ -36,9 +39,11 @@ export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 
 export const FAKE_STAGING_NAME = "mymegamod-43335455-wth-1";
 export const FAKE_STAGING_PATH = path.join(
-  "D:\\unno\\why\\this\\",
+  "unno",
+  "why",
+  "this",
   FAKE_STAGING_NAME,
-  "\\",
+  path.sep,
 );
 
 const CORE_CET_FULL_PATH_DEPTH = path.normalize(
@@ -297,6 +302,41 @@ export const CetMod = new Map<string, ExampleMod>(
           destination: path.join(`${CET_PREFIX}/exmod/README.md`),
         },
       ],
+    },
+    cetWithIniFilesCanonical: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`${CET_PREFIX}/exmod/some.ini`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/some.ini`),
+          destination: path.join(`${CET_PREFIX}/exmod/some.ini`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CetModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    CetModWithIniShouldFail: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        path.join(`exmod/`),
+        path.join(`exmod/${CET_INIT}`),
+        path.join(`exmod/some.ini`),
+      ],
+      failure: "Improperly packaged CET mod with ini file",
     },
   }),
 );
@@ -968,7 +1008,138 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
-        "Improperly located options.json file found.  We don't know where it belongs",
+        "Improperly located options.json file found.  We don't know where it belongs.",
+    },
+  }),
+);
+
+export const IniMod = new Map<string, ExampleMod>(
+  Object.entries({
+    iniWithSingleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    iniWithMultipleIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("serious.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/serious.ini`),
+        },
+      ],
+    },
+    iniWithReshadeIniAtRoot: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["superreshade.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+      ],
+    },
+    iniWithSingleIniInRandomFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/myawesomeconfig.ini"),
+          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+        },
+      ],
+    },
+    iniWithReshadeIniAndShadersFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "superreshade.ini",
+        "reshade-shaders/",
+        "reshade-shaders/Shaders/",
+        "reshade-shaders/Shaders/fancy.fx",
+        "reshade-shaders/Textures/",
+        "reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: "superreshade.ini",
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(
+            `${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize("reshade-shaders/Textures/lut.png"),
+          destination: path.normalize(
+            `${RESHADE_SHADERS_PATH}/Textures/lut.png`,
+          ),
+        },
+      ],
+    },
+    iniWithReshadeIniAndShadersInAFolder: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        "fold1/superreshade.ini",
+        "fold1/reshade-shaders/",
+        "fold1/reshade-shaders/Shaders/",
+        "fold1/reshade-shaders/Shaders/fancy.fx",
+        "fold1/reshade-shaders/Textures/",
+        "fold1/reshade-shaders/Textures/lut.png",
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("fold1/superreshade.ini"),
+          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+        },
+        {
+          type: "copy",
+          source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
+          destination: path.normalize(
+            `${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`,
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
+          destination: path.normalize(
+            `${RESHADE_SHADERS_PATH}/Textures/lut.png`,
+          ),
+        },
+      ],
+    },
+  }), // object
+);
+
+export const IniModShouldFail = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    IniFileCETInstallerShouldFail: {
+      expectedInstallerType: InstallerType.INI,
+      inFiles: [
+        ...pathHierarchyFor("bin/x64"),
+        path.normalize("bin/x64/global.ini"),
+      ],
+      failure: "INI detects CETCore",
     },
   }),
 );

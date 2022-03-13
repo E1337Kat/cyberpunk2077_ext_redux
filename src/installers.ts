@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import {
@@ -23,21 +24,24 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import {
-  ARCHIVE_ONLY_CANONICAL_EXT,
-  ARCHIVE_ONLY_CANONICAL_PREFIX,
-  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  CET_GLOBAL_INI,
+  CET_MOD_CANONICAL_INIT_FILE,
+  CET_MOD_CANONICAL_PATH_PREFIX,
   RED4EXT_CORE_RED4EXT_DLL,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   REDS_MOD_CANONICAL_EXTENSION,
   REDS_MOD_CANONICAL_PATH_PREFIX,
+  RESHADE_MOD_PATH,
+  RESHADE_SHADERS_DIR,
   INI_MOD_EXT,
   INI_MOD_PATH,
-  CET_MOD_CANONICAL_INIT_FILE,
-  CET_MOD_CANONICAL_PATH_PREFIX,
   MOD_FILE_EXT,
   JSON_FILE_EXT,
   KNOWN_JSON_FILES,
+  ARCHIVE_ONLY_CANONICAL_EXT,
+  ARCHIVE_ONLY_CANONICAL_PREFIX,
+  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -46,6 +50,7 @@ import {
   instructionsForSameSourceAndDestPaths,
 } from "./installers.shared";
 import {
+  fallbackInstallerReachedErrorDialog,
   redCetMixedStructureErrorDialog,
   redWithInvalidFilesErrorDialog,
   showArchiveInstallWarning,
@@ -63,6 +68,8 @@ import {
 
 // Ensure we're using win32 conventions
 const path = win32;
+
+const GAME_ID = "cyberpunk2077";
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 // I figured some wiggle room on either side is nice :) - Ellie
@@ -868,7 +875,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
 
     if (!proper) {
       const message =
-        "Improperly located options.json found in archive, don't know which dir to install it.";
+        "Improperly located options.json file found.  We don't know where it belongs.";
 
       log("info", message);
       return Promise.reject(new Error(message));
@@ -927,6 +934,151 @@ export const installJsonMod: VortexWrappedInstallFunc = (
 
   return Promise.resolve({ instructions });
 };
+
+const testForReshadeFile = (
+  log: VortexLogFunc,
+  files: string[],
+  folder: string,
+): boolean => {
+  // We're going to make a reasonable assumption here that reshades will
+  // only have reshade ini's, so we only need to check the first one
+
+  const fileToExamine = path.join(
+    folder,
+    files.find((file: string) => path.extname(file) === INI_MOD_EXT),
+  );
+
+  const data = readFileSync(fileToExamine, { encoding: "utf8" });
+
+  if (data === undefined) {
+    log("error", "unable to read contents of ", fileToExamine);
+    return false;
+  }
+  data.slice(0, 80);
+  // eslint-disable-next-line no-useless-escape
+  const regex = /^[\[#].+/;
+  const testString = data.replace(regex, "");
+  if (testString === data) {
+    log("info", "Reshade file located.");
+    return true;
+  }
+
+  return false;
+};
+
+// INI (includes Reshade?)
+export const testForIniMod: VortexWrappedTestSupportedFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  // Make sure we're able to support this mod.
+  const correctGame = _gameId === GAME_ID;
+  log("info", "Checking for INI files: ", _gameId);
+  if (!correctGame) {
+    // no mods?
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
+  );
+
+  if (filtered.length === 0) {
+    log("info", "No INI files.");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (
+    files.some(
+      (file: string) =>
+        path.basename(file).includes(CET_MOD_CANONICAL_INIT_FILE) ||
+        path.extname(file) === REDS_MOD_CANONICAL_EXTENSION,
+    )
+  ) {
+    log("info", "INI file detected within a CET or Redscript mod, aborting");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  if (files.includes(CET_GLOBAL_INI)) {
+    log("info", "CET Installer detected, not processing as INI");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installIniMod: VortexWrappedInstallFunc = (
+  api: VortexAPI,
+  log: VortexLogFunc,
+  files: string[],
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  // This installer gets called for both reshade and "normal" ini mods
+
+  const allIniModFiles = files.filter(
+    (file: string) => path.extname(file) === INI_MOD_EXT,
+  );
+
+  const reshade = testForReshadeFile(log, allIniModFiles, _destinationPath);
+
+  // Set destination depending on file type
+
+  log("info", "Installing ini files: ", allIniModFiles);
+  const iniFileInstructions = allIniModFiles.map((file: string) => {
+    const fileName = path.basename(file);
+    const dest = reshade
+      ? path.join(RESHADE_MOD_PATH, path.basename(file))
+      : path.join(INI_MOD_PATH, fileName);
+
+    return {
+      type: "copy",
+      source: file,
+      destination: dest,
+    };
+  });
+
+  const shaderFiles = files.filter(
+    (file: string) =>
+      file.includes(RESHADE_SHADERS_DIR) && !file.endsWith(path.sep),
+  );
+
+  let shaderInstructions = [];
+
+  if (reshade && shaderFiles.length !== 0) {
+    log("info", "Installing shader files: ", shaderFiles);
+    shaderInstructions = shaderFiles.map((file: string) => {
+      const regex = /.*reshade-shaders/;
+      const fileName = file.replace(regex, RESHADE_SHADERS_DIR);
+      // log("info", "Shader dir Found. Processing: ", fileName);
+      const dest = path.join(RESHADE_MOD_PATH, fileName);
+      // log("debug", "Shader file: ", dest);
+      return {
+        type: "copy",
+        source: file,
+        destination: dest,
+      };
+    });
+  }
+  const instructions = [].concat(iniFileInstructions, shaderInstructions);
+  log("debug", "Installing ini files with instructions: ", instructions);
+
+  return Promise.resolve({ instructions });
+};
+
 // Fallback
 
 /**
@@ -945,19 +1097,19 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   const hasIniMod = files.some(matchIniFile);
   log("debug", "Probably INI mods: ", hasIniMod);
 
-  if (hasIniMod) {
-    log("info", "mod supported by this installer");
-    return Promise.resolve({
-      supported: true,
-      requiredFiles: [],
-    });
-  }
-
-  log("warn", "I dunno. Can't do nothing about this.");
+  // if (hasIniMod) {
+  //   log("info", "mod supported by this installer");
   return Promise.resolve({
-    supported: false,
+    supported: true,
     requiredFiles: [],
   });
+  // }
+
+  // log("warn", "I dunno. Can't do nothing about this.");
+  // return Promise.resolve({
+  //   supported: false,
+  //   requiredFiles: [],
+  // });
 };
 
 /**
@@ -972,18 +1124,24 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // Gather any INI files
-  const iniModFiles = files.filter(matchIniFile);
-
-  log("info", "Located INI files; ", iniModFiles);
-  const iniModInstructions = iniModFiles.map((file) => ({
+  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
+  const instr = filtered.map((file) => ({
     type: "copy",
     source: file,
     destination: path.join(INI_MOD_PATH, path.basename(file)),
   }));
-  log("debug", "Installing INI mod files with: ", iniModInstructions);
 
-  const instructions = [].concat(iniModInstructions);
+  const instructions = [].concat(instr);
+
+  const message =
+    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
+  fallbackInstallerReachedErrorDialog(
+    _api,
+    log,
+    message,
+    filtered,
+    instructions,
+  );
 
   return Promise.resolve({ instructions });
 };

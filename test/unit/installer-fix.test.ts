@@ -1,3 +1,4 @@
+import mockFs from "mock-fs";
 import { fileTreeFromPaths } from "../../src/filetree";
 import {
   AllExpectedInstallFailures,
@@ -12,6 +13,38 @@ import {
 } from "./utils.helper";
 
 describe("Transforming modules to instructions", () => {
+  beforeEach(() =>
+    mockFs({
+      unno: {
+        why: {
+          this: {
+            "mymegamod-43335455-wth-1": {
+              "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+              "serious.ini": "[super serious]\nWings=false",
+              "superreshade.ini":
+                "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+              fold1: {
+                "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+                "serious.ini": "[super serious]\nWings=false",
+                "superreshade.ini":
+                  "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+                "reshade-shaders": {
+                  Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+                  Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+                },
+              },
+              "reshade-shaders": {
+                Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+                Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+              },
+            },
+          },
+        },
+      },
+    }),
+  );
+  afterEach(() => mockFs.restore());
+
   AllModTypes.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
@@ -60,7 +93,7 @@ describe("Transforming modules to instructions", () => {
     });
   });
 
-  describe("fallback for anything that doesn't match other installers", () => {
+  describe("Verifying that the fallback is last in the pipeline", () => {
     const fallbackInstaller = getFallbackInstaller();
 
     AllModTypes.forEach((type) => {
@@ -81,4 +114,24 @@ describe("Transforming modules to instructions", () => {
       });
     });
   });
+  // describe("fallback for anything that doesn't match other installers", () => {
+  //   const fallbackInstaller = getFallbackInstaller();
+
+  //   AllModTypes.forEach((type) => {
+  //     type.forEach(async (mod, desc) => {
+  //       test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
+  //         const installResult = await fallbackInstaller.install(
+  //           mockVortexAPI,
+  //           mockVortexLog,
+  //           mod.inFiles,
+  //           FAKE_STAGING_PATH,
+  //           null,
+  //           null,
+  //         );
+
+  //         expect(installResult.instructions).toEqual([]);
+  //       });
+  //     });
+  //   });
+  // });
 });
