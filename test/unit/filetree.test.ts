@@ -9,6 +9,7 @@ import {
   FILETREE_TOPLEVEL,
   filesIn,
   dirWithSomeIn,
+  pathInTree,
 } from "../../src/filetree";
 
 const paths = [
@@ -22,11 +23,17 @@ const paths = [
   path.normalize("sub2/"),
   path.normalize("sub2/sub22/f22.seek"),
   path.normalize("sub2/sub23/f23.notseek"),
-  path.normalize("sub2/sub24/"),
+  path.normalize("sub2/emptydir/"),
   path.normalize("sub2/f24.seek"),
   path.normalize("sub2/f2r.notseek"),
   path.normalize("sub2/x2h"),
 ];
+
+const filePaths = paths.filter((p) => !p.endsWith(path.sep));
+const dirPaths = paths.filter((p) => p.endsWith(path.sep));
+
+const emptyDirPaths = [path.normalize("sub2/emptydir/")];
+const nonEmptyDirPaths = dirPaths.filter((d) => !emptyDirPaths.includes(d));
 
 const matchSeek = (f) => path.extname(f) === ".seek";
 
@@ -34,7 +41,7 @@ describe("FileTree", () => {
   test("doesn't store directories as values", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    expect(fileTree.getSub("")).toEqual([
+    expect(fileTree.getSub(FILETREE_ROOT)).toEqual([
       path.normalize("topf1.seek"),
       path.normalize("topf2.seek"),
       path.normalize("topf3.notseek"),
@@ -60,7 +67,34 @@ describe("FileTree", () => {
     expect(topNode.parent.parent).toBeUndefined();
   });
 
-  test("path lookup handling", () => {
+  test("pathInTree looks for files", () => {
+    const fileTree = fileTreeFromPaths(paths);
+    filePaths.forEach((p) => {
+      expect(pathInTree(p, fileTree)).toBeTruthy();
+    });
+
+    expect(pathInTree(path.normalize("foo"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("topf1"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
+  });
+
+  test("pathInTree looks for directories IF they have files somewhere under them", () => {
+    const fileTree = fileTreeFromPaths(paths);
+
+    nonEmptyDirPaths.forEach((d) => {
+      expect(pathInTree(d, fileTree)).toBeTruthy();
+    });
+
+    emptyDirPaths.forEach((d) => {
+      expect(pathInTree(d, fileTree)).toBeFalsy();
+    });
+
+    expect(pathInTree(path.normalize("foo"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("topf1"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
+  });
+
+  test("path lookup", () => {
     const fileTree = fileTreeFromPaths(paths);
 
     expect(filesIn(path.normalize("."), fileTree)).toEqual([
@@ -68,11 +102,13 @@ describe("FileTree", () => {
       "topf2.seek",
       "topf3.notseek",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("."), matchSeek, fileTree),
     ).toBeTruthy();
 
     expect(filesIn(path.normalize("sub1/"), fileTree)).toEqual([]);
+
     expect(
       dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree),
     ).toBeFalsy();
@@ -81,6 +117,7 @@ describe("FileTree", () => {
       "sub1\\sub12\\f12.seek",
       "sub1\\sub12\\f12.notseek",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("sub1/sub12/"), matchSeek, fileTree),
     ).toBeTruthy();
@@ -90,6 +127,7 @@ describe("FileTree", () => {
       "sub2\\f2r.notseek",
       "sub2\\x2h",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree),
     ).toBeTruthy();
@@ -97,6 +135,7 @@ describe("FileTree", () => {
     expect(filesIn(path.normalize("sub2/sub22"), fileTree)).toEqual([
       "sub2\\sub22\\f22.seek",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("sub2/sub22/"), matchSeek, fileTree),
     ).toBeTruthy();

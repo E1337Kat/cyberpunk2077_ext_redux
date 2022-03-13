@@ -112,10 +112,8 @@ export const subdirsIn = (dir: string, tree: FileTree): string[] => {
 export const pathInTree = (path: string, tree: FileTree): boolean =>
   // We _could_ just keep track of the paths but since it's possible to mutate..
   path.endsWith(nodejsPath.sep)
-    ? tree.$.getChild(stripTrailingSeparator(path)) !== null
-    : tree
-        .get(nodejsPath.dirname(path))
-        ?.children.includes(nodejsPath.basename(path)) ?? false;
+    ? tree._getNode(stripTrailingSeparator(path)) !== null
+    : tree.get(stripTrailingSeparator(nodejsPath.dirname(path))).includes(path);
 
 export const filesIn = (
   dir: string,
