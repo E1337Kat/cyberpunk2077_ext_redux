@@ -208,9 +208,9 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
     CoreCsvMergeCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreCSVMerge,
       inFiles: [
-        ...CET_PREFIXES,
-        `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code`,
+        ...pathHierarchyFor(`${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/`),
         `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+        ...pathHierarchyFor("csvmerge/mods/Example_Mod_Folder"),
         ...pathHierarchyFor(
           path.normalize(
             "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods",
@@ -218,12 +218,10 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         ),
         "csvmerge/CSVMerge.cmd",
         "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
-        "csvmerge/mods",
         "csvmerge/mods/prefix.txt",
         "csvmerge/mods/prefix_lua.txt",
         "csvmerge/mods/suffix.txt",
         "csvmerge/mods/suffix_lua.txt",
-        "csvmerge/mods/Example_Mod_Folder",
         "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
         "csvmerge/mods/Example_Mod_Folder/your .item files go here",
         "csvmerge/wolvenkitcli/install wkit console here",
@@ -231,6 +229,15 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods/mods.csv",
       ].map(path.normalize),
       outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(
+            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+          ),
+          destination: path.normalize(
+            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
+          ),
+        },
         {
           type: "copy",
           source: path.normalize("csvmerge/CSVMerge.cmd"),
@@ -251,17 +258,17 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("csvmerge/mods/prefix_lua.txt"),
-          destination: path.normalize("csvmerge/mods/prefix.txt"),
+          destination: path.normalize("csvmerge/mods/prefix_lua.txt"),
         },
         {
           type: "copy",
           source: path.normalize("csvmerge/mods/suffix.txt"),
-          destination: path.normalize("csvmerge/mods/prefix.txt"),
+          destination: path.normalize("csvmerge/mods/suffix.txt"),
         },
         {
           type: "copy",
           source: path.normalize("csvmerge/mods/suffix_lua.txt"),
-          destination: path.normalize("csvmerge/mods/prefix.txt"),
+          destination: path.normalize("csvmerge/mods/suffix_lua.txt"),
         },
         {
           type: "copy",
@@ -275,10 +282,10 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .item file goes here",
+            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
           ),
           destination: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .item file goes here",
+            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
           ),
         },
         {
