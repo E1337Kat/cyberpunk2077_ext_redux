@@ -1,9 +1,5 @@
 import { AllModTypes, AllExpectedTestSupportFailures } from "./mods.example";
-import {
-  getFallbackInstaller,
-  matchInstaller,
-  matchSpecific,
-} from "./utils.helper";
+import { matchInstaller } from "./utils.helper";
 
 // These are actually already tested in installer-fix… (including
 // the expected failures!) but I guess it doesn’t hurt to have this.
@@ -33,9 +29,6 @@ describe("Selecting the installer for a mod type", () => {
     });
   });
 
-  describe("Verifying that the fallback is last in the pipeline", () => {
-    const fallbackInstaller = getFallbackInstaller();
-  });
   // describe("fallback for anything that doesn't match other installers", () => {
   //   const fallbackInstaller = getFallbackInstaller();
 
