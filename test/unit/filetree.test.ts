@@ -1,6 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import path from "path";
 import {
+  Glob,
+  dirWithSomeIn,
   fileTreeFromPaths,
   findAllSubdirsWithSome,
   findTopmostSubdirsWithSome,
@@ -8,7 +10,6 @@ import {
   FILETREE_ROOT,
   FILETREE_TOPLEVEL,
   filesIn,
-  dirWithSomeIn,
   pathInTree,
 } from "../../src/filetree";
 
@@ -97,7 +98,7 @@ describe("FileTree", () => {
   test("path lookup", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    expect(filesIn(path.normalize("."), fileTree)).toEqual([
+    expect(filesIn(path.normalize("."), Glob.Any, fileTree)).toEqual([
       "topf1.seek",
       "topf2.seek",
       "topf3.notseek",
@@ -107,13 +108,13 @@ describe("FileTree", () => {
       dirWithSomeIn(path.normalize("."), matchSeek, fileTree),
     ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub1/"), fileTree)).toEqual([]);
+    expect(filesIn(path.normalize("sub1/"), Glob.Any, fileTree)).toEqual([]);
 
     expect(
       dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree),
     ).toBeFalsy();
 
-    expect(filesIn(path.normalize("sub1/sub12/"), fileTree)).toEqual([
+    expect(filesIn(path.normalize("sub1/sub12/"), Glob.Any, fileTree)).toEqual([
       "sub1\\sub12\\f12.seek",
       "sub1\\sub12\\f12.notseek",
     ]);
@@ -122,7 +123,7 @@ describe("FileTree", () => {
       dirWithSomeIn(path.normalize("sub1/sub12/"), matchSeek, fileTree),
     ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub2/"), fileTree)).toEqual([
+    expect(filesIn(path.normalize("sub2/"), Glob.Any, fileTree)).toEqual([
       "sub2\\f24.seek",
       "sub2\\f2r.notseek",
       "sub2\\x2h",
@@ -132,7 +133,7 @@ describe("FileTree", () => {
       dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree),
     ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub2/sub22"), fileTree)).toEqual([
+    expect(filesIn(path.normalize("sub2/sub22"), Glob.Any, fileTree)).toEqual([
       "sub2\\sub22\\f22.seek",
     ]);
 

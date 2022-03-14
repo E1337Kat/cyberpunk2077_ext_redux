@@ -551,7 +551,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const allDllDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
-  const toplevelDlls = filesIn(FILETREE_ROOT, fileTree, matchDll);
+  const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
 
   if (allDllDirs.length < 1 && toplevelDlls.length < 1) {
     log("info", "Doesn't look like a Red4Ext mod");
@@ -737,7 +737,7 @@ const warnUserIfModMightNeedManualReview = (
     subdirsIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
 
   const hasMultipleTopLevelFiles =
-    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree, matchArchive).length > 1;
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, newTree).length > 1;
 
   const multipleTopLevelsMightBeIntended =
     chosenInstructions.kind !== ArchiveLayout.Other;

@@ -21,6 +21,10 @@ export interface FileTree {
 }
 
 export type PathFilter = (path: string) => boolean;
+export enum Glob {
+  Any = "*",
+  AnySubdir = "**",
+}
 
 // -.-
 export type MaybeFileTree = FileTree | undefined;
@@ -129,10 +133,10 @@ export const pathInTree = (path: string, tree: FileTree): boolean =>
 
 export const filesIn = (
   dir: string,
+  predicate: PathFilter | Glob,
   tree: FileTree,
-  predicate?: PathFilter,
 ): string[] =>
-  predicate
+  predicate !== Glob.Any
     ? tree._kt.get(stripTrailingSeparator(dir)).filter(predicate)
     : tree._kt.get(stripTrailingSeparator(dir));
 
