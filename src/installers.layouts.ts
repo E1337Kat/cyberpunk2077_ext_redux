@@ -1,4 +1,6 @@
 import path from "path";
+import { FileTree } from "./filetree";
+import { VortexAPI, VortexInstruction } from "./vortex-wrapper";
 
 /** Correct Directory structure:
  * root_folder
@@ -87,9 +89,38 @@ export const KNOWN_JSON_FILES = {
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
 
+// Archives
+
+export const enum ArchiveLayout {
+  Canon,
+  Heritage,
+  Other,
+}
+
 export const MOD_FILE_EXT = ".archive";
 
 export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
 export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
 export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX =
   path.normalize("archive/pc/patch/");
+
+// Layouts to instructions
+
+export type Layout = Red4ExtLayout | ArchiveLayout;
+
+export const enum NoInstructions {
+  NoMatch = "attempted layout didn't match",
+}
+
+export type Instructions = {
+  kind: Layout;
+  instructions: VortexInstruction[];
+};
+
+export type MaybeInstructions = Instructions | NoInstructions;
+
+export type InstructionsFromFileTree = (
+  api: VortexAPI,
+  modName: string,
+  f: FileTree,
+) => MaybeInstructions;

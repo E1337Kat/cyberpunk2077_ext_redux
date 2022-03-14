@@ -14,10 +14,9 @@ import {
   pathInTree,
 } from "./filetree";
 import {
-  VortexAPI,
+  VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexInstruction,
   VortexInstallResult,
   VortexProgressDelegate,
   VortexWrappedInstallFunc,
@@ -42,12 +41,18 @@ import {
   ARCHIVE_ONLY_CANONICAL_EXT,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  ArchiveLayout,
+  Instructions,
+  InstructionsFromFileTree,
+  NoInstructions,
+  MaybeInstructions,
 } from "./installers.layouts";
 import {
   toSamePath,
   toDirInPath,
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
+  useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import {
   fallbackInstallerReachedErrorDialog,
@@ -117,7 +122,7 @@ export interface InstallerWithPriority extends Installer {
 // testSupported that always fails
 //
 export const notSupportedModType: VortexWrappedTestSupportedFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
@@ -128,7 +133,7 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
 // install that always fails
 //
 export const notInstallableMod: VortexWrappedInstallFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
@@ -211,7 +216,7 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 // Archives: both canonical
 
 export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -245,7 +250,7 @@ export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
 
 // Install the Redscript stuff, as well as any archives we find
 export const installRedCetMixedMod: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -344,7 +349,7 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
 // Archives: both canonical
 
 export const testForCetMod: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -376,7 +381,7 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
 
 // Install the CET stuff, as well as any archives we find
 export const installCetMod: VortexWrappedInstallFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -414,7 +419,7 @@ export const installCetMod: VortexWrappedInstallFunc = (
 // Archives:
 //  - Canonical both only
 export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -442,7 +447,7 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
 
 // Install the Redscript stuff, as well as any archives we find
 export const installRedscriptMod: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -542,7 +547,7 @@ const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
 
 export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
@@ -578,7 +583,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
 // ArchiveOnly
 
 export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -644,23 +649,11 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
-enum ArchiveLayouts {
-  Canon,
-  Heritage,
-  Other,
-  Invalid,
-}
-
-type Instructions<T> = {
-  kind: T;
-  instructions: VortexInstruction[];
-};
-
-type InstructionsFromFileTree<T> = (f: FileTree) => Instructions<T>;
-
 const archiveCanonInstructions = (
+  _api: VortexApi,
+  _modName: string,
   fileTree: FileTree,
-): Instructions<ArchiveLayouts> => {
+): MaybeInstructions => {
   const hasCanonFiles = dirWithSomeUnder(
     ARCHIVE_ONLY_CANONICAL_PREFIX,
     matchArchive,
@@ -668,20 +661,22 @@ const archiveCanonInstructions = (
   );
 
   if (!hasCanonFiles) {
-    return { kind: ArchiveLayouts.Canon, instructions: [] };
+    return NoInstructions.NoMatch;
   }
 
   const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
 
   return {
-    kind: ArchiveLayouts.Canon,
+    kind: ArchiveLayout.Canon,
     instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
   };
 };
 
 const archiveOldToNewCanonInstructions = (
+  _api: VortexApi,
+  _modName: string,
   fileTree: FileTree,
-): Instructions<ArchiveLayouts> => {
+): MaybeInstructions => {
   const hasOldCanonFiles = dirWithSomeUnder(
     ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
     matchArchive,
@@ -689,7 +684,7 @@ const archiveOldToNewCanonInstructions = (
   );
 
   if (!hasOldCanonFiles) {
-    return { kind: ArchiveLayouts.Heritage, instructions: [] };
+    return NoInstructions.NoMatch;
   }
 
   const oldCanonFiles = filesUnder(
@@ -706,14 +701,16 @@ const archiveOldToNewCanonInstructions = (
   ]);
 
   return {
-    kind: ArchiveLayouts.Heritage,
+    kind: ArchiveLayout.Heritage,
     instructions: instructionsForSourceToDestPairs(oldToNewMap),
   };
 };
 
 const archiveOtherDirsToCanonInstructions = (
+  _api: VortexApi,
+  _modName: string,
   fileTree: FileTree,
-): Instructions<ArchiveLayouts> => {
+): MaybeInstructions => {
   const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
 
   const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
@@ -724,27 +721,14 @@ const archiveOtherDirsToCanonInstructions = (
   ]);
 
   return {
-    kind: ArchiveLayouts.Other,
+    kind: ArchiveLayout.Other,
     instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
   };
 };
 
-const useFirstMatchingLayoutForInstructions = (
-  possibleLayouts: InstructionsFromFileTree<ArchiveLayouts>[],
-  fileTree: FileTree,
-): Instructions<ArchiveLayouts> =>
-  possibleLayouts.reduce(
-    (found, layout) =>
-      found.instructions.length > 0 ? found : layout(fileTree),
-    {
-      kind: ArchiveLayouts.Invalid,
-      instructions: [],
-    },
-  );
-
 const warnUserIfModMightNeedManualReview = (
-  api: VortexAPI,
-  chosenInstructions: Instructions<ArchiveLayouts>,
+  api: VortexApi,
+  chosenInstructions: Instructions,
 ) => {
   // Trying out the tree-based approach..
   const destinationPaths = chosenInstructions.instructions.map(
@@ -759,7 +743,7 @@ const warnUserIfModMightNeedManualReview = (
     filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree, matchArchive).length > 1;
 
   const multipleTopLevelsMightBeIntended =
-    chosenInstructions.kind !== ArchiveLayouts.Other;
+    chosenInstructions.kind !== ArchiveLayout.Other;
 
   const warnAboutToplevel =
     !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
@@ -780,7 +764,7 @@ const warnUserIfModMightNeedManualReview = (
  * @returns a promise with an array detailing what files to install and how
  */
 export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -791,19 +775,20 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   // Once again we could get fancy, but let's not
 
-  const possibleLayoutsToTryInOrder: InstructionsFromFileTree<ArchiveLayouts>[] =
-    [
-      archiveCanonInstructions,
-      archiveOldToNewCanonInstructions,
-      archiveOtherDirsToCanonInstructions,
-    ];
+  const possibleLayoutsToTryInOrder: InstructionsFromFileTree[] = [
+    archiveCanonInstructions,
+    archiveOldToNewCanonInstructions,
+    archiveOtherDirsToCanonInstructions,
+  ];
 
   const chosenInstructions = useFirstMatchingLayoutForInstructions(
-    possibleLayoutsToTryInOrder,
+    api,
+    undefined,
     fileTree,
+    possibleLayoutsToTryInOrder,
   );
 
-  if (chosenInstructions.instructions.length < 1) {
+  if (chosenInstructions === NoInstructions.NoMatch) {
     const message =
       "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -833,7 +818,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 // JSON Mods
 
 export const testForJsonMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -893,7 +878,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
 };
 
 export const installJsonMod: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -971,7 +956,7 @@ const testForReshadeFile = (
 
 // INI (includes Reshade?)
 export const testForIniMod: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _gameId: string,
@@ -1025,7 +1010,7 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
 };
 
 export const installIniMod: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _destinationPath: string,
@@ -1091,7 +1076,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
  * @returns Promise which details if the files passed in need to make use of a specific installation method
  */
 export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
@@ -1121,7 +1106,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
  * @returns a promise with an array detailing what files to install and how
  */
 export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
-  _api: VortexAPI,
+  _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,

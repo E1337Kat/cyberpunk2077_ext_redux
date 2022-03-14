@@ -1,5 +1,12 @@
 import path from "path";
-import { VortexInstruction } from "./vortex-wrapper";
+import { FileTree } from "./filetree";
+import {
+  InstructionsFromFileTree,
+  NoInstructions,
+  MaybeInstructions,
+} from "./installers.layouts";
+
+import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 // Source to dest path mapping helpers
 export const toSamePath = (f: string) => [f, f];
@@ -34,3 +41,17 @@ export const instructionsForSameSourceAndDestPaths = (
   files: string[],
 ): VortexInstruction[] =>
   instructionsForSourceToDestPairs(files.map(toSamePath));
+
+export const useFirstMatchingLayoutForInstructions = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+  possibleLayouts: InstructionsFromFileTree[],
+): MaybeInstructions =>
+  possibleLayouts.reduce(
+    (found, tryLayout) =>
+      found === NoInstructions.NoMatch
+        ? tryLayout(api, modName, fileTree)
+        : found,
+    NoInstructions.NoMatch,
+  );
