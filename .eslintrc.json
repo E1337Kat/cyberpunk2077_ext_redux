@@ -13,7 +13,7 @@
   },
   "rules": {
     "arrow-body-style": ["error", "as-needed"],
-    "func-style": "off",
+    "func-style": "error",
     "import/prefer-default-export": "off",
     "linebreak-style": "off",
     "max-len": ["warn", { "code": 140, "comments": 140 }],

@@ -1,6 +1,6 @@
 import { win32 } from "path";
 import {
-  VortexAPI,
+  VortexApi,
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
@@ -8,6 +8,7 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
+import { FileTree } from "./filetree";
 
 const path = win32;
 
@@ -28,9 +29,10 @@ const RED4EXT_CORE_IDENTIFIERS = [
 ];
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CET Core matcher, input files: ", files);
@@ -45,9 +47,10 @@ export const testForCetCore: VortexWrappedTestSupportedFunc = (
 };
 
 export const installCetCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   log("info", "Using CETCore installer");
@@ -58,9 +61,10 @@ export const installCetCore: VortexWrappedInstallFunc = (
 };
 
 export const testForRedscriptCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const containsAllNecessaryRedsFiles = REDSCRIPT_CORE_IDENTIFIERS.every(
@@ -74,9 +78,10 @@ export const testForRedscriptCore: VortexWrappedTestSupportedFunc = (
 };
 
 export const installRedscriptCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   const instructions = instructionsForSameSourceAndDestPaths(files);
@@ -85,9 +90,10 @@ export const installRedscriptCore: VortexWrappedInstallFunc = (
 };
 
 export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every(
@@ -101,9 +107,10 @@ export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
 };
 
 export const installRed4ExtCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   const red4extInstructions = instructionsForSameSourceAndDestPaths(files);

@@ -33,23 +33,18 @@ const moddingTools = [
   },
 ];
 
-export function findGame() {
-  return util.GameStoreHelper.findByAppId([
-    STEAMAPP_ID,
-    GOGAPP_ID,
-    EPICAPP_ID,
-  ]).then((game: VortexGameStoreEntry) => game.gamePath);
-}
+export const findGame = () =>
+  util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+    (game: VortexGameStoreEntry) => game.gamePath,
+  );
 
-function requiresGoGLauncher() {
-  return util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
+const requiresGoGLauncher = () =>
+  util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
-}
 
-function prepareForModding(discovery) {
-  return fs.readdirAsync(path.join(discovery.path));
-}
+const prepareForModding = (discovery) =>
+  fs.readdirAsync(path.join(discovery.path));
 
 const wrapTestSupported =
   (
@@ -92,7 +87,7 @@ const wrapInstall =
   };
 
 // This is the main function Vortex will run when detecting the game extension.
-function main(vortex: VortexExtensionContext) {
+const main = (vortex: VortexExtensionContext) => {
   vortex.registerGame({
     id: GAME_ID,
     name: "Cyberpunk 2077",
@@ -128,6 +123,6 @@ function main(vortex: VortexExtensionContext) {
   });
 
   return true;
-}
+};
 
 export default main;

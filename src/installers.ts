@@ -152,9 +152,7 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
  * @param _file a file to check
  * @returns true is the file is a reshade ini file, false otherwise
  */
-function reshadeINI(_file: string): boolean {
-  return false;
-}
+const reshadeINI = (_file: string): boolean => false;
 
 /**
  *
@@ -163,9 +161,8 @@ function reshadeINI(_file: string): boolean {
  *
  * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
  */
-function matchIniFile(file: string): boolean {
-  return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
-}
+const matchIniFile = (file: string): boolean =>
+  path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
