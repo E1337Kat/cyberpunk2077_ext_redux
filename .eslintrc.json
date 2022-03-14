@@ -21,7 +21,13 @@
     "operator-linebreak": [
       "error",
       "after",
-      { "overrides": { "?": "before", ":": "before" } }
+      {
+        "overrides": {
+          "?": "before",
+          ":": "before",
+          "|": "before"
+        }
+      }
     ],
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-unused-vars": [
