@@ -12,6 +12,7 @@
     "pack-dev-linux": "npm run build && bash ./script/package.sh -dev",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
+    "clear-caches": "jest --clearCache",
     "test": "jest --no-cache --verbose=true --silent=false",
     "test-clean": "jest --clearCache && npm run test",
     "repl": "ts-node -r tsconfig-paths/register",
