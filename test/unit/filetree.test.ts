@@ -41,7 +41,7 @@ describe("FileTree", () => {
   test("doesn't store directories as values", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    expect(fileTree.getSub(FILETREE_ROOT)).toEqual([
+    expect(fileTree._kt.getSub(FILETREE_ROOT)).toEqual([
       path.normalize("topf1.seek"),
       path.normalize("topf2.seek"),
       path.normalize("topf3.notseek"),
@@ -58,8 +58,8 @@ describe("FileTree", () => {
   test("has expected root and top-level", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const rootNode = fileTree._getNode("");
-    const topNode = fileTree._getNode(".");
+    const rootNode = fileTree._kt._getNode("");
+    const topNode = fileTree._kt._getNode(".");
 
     expect(rootNode.key).toBe("");
     expect(topNode.key).toBe(".");

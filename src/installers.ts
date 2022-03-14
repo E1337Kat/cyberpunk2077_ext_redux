@@ -959,6 +959,7 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   // Make sure we're able to support this mod.
@@ -1013,6 +1014,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // This installer gets called for both reshade and "normal" ini mods

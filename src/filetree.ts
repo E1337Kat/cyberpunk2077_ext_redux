@@ -15,7 +15,11 @@ export type FileTree = {
 }
 */
 
-export type FileTree = KeyTree;
+export interface FileTree {
+  _kt: KeyTree;
+  _originalPaths: string[];
+}
+
 export type PathFilter = (path: string) => boolean;
 
 // -.-
@@ -87,12 +91,16 @@ const stripTrailingSeparator = (path: string): string =>
 // Interface
 
 export const fileTreeFromPaths = (paths: string[]): FileTree => {
-  const tree = new KeyTree({ separator: nodejsPath.sep });
+  const tree: FileTree = {
+    _kt: new KeyTree({ separator: nodejsPath.sep }),
+    _originalPaths: paths,
+  };
+
   paths.forEach((path) => {
     const normalized = path; // nodejsPath.normalize(path);
 
     if (!normalized.match(looksLikeADirectory)) {
-      tree.add(nodejsPath.dirname(normalized), normalized);
+      tree._kt.add(nodejsPath.dirname(normalized), normalized);
     }
   });
 
@@ -100,7 +108,7 @@ export const fileTreeFromPaths = (paths: string[]): FileTree => {
 };
 
 export const subdirsIn = (dir: string, tree: FileTree): string[] => {
-  const node = tree._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle
+  const node = tree._kt._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle
 
   if (!node || node.children.length < 1) {
     return [];
@@ -112,8 +120,10 @@ export const subdirsIn = (dir: string, tree: FileTree): string[] => {
 export const pathInTree = (path: string, tree: FileTree): boolean =>
   // We _could_ just keep track of the paths but since it's possible to mutate..
   path.endsWith(nodejsPath.sep)
-    ? tree._getNode(stripTrailingSeparator(path)) !== null
-    : tree.get(stripTrailingSeparator(nodejsPath.dirname(path))).includes(path);
+    ? tree._kt._getNode(stripTrailingSeparator(path)) !== null
+    : tree._kt
+        .get(stripTrailingSeparator(nodejsPath.dirname(path)))
+        .includes(path);
 
 // Should really implement globbing here, make it much cleaner
 
@@ -123,34 +133,34 @@ export const filesIn = (
   predicate?: PathFilter,
 ): string[] =>
   predicate
-    ? tree.get(stripTrailingSeparator(dir)).filter(predicate)
-    : tree.get(stripTrailingSeparator(dir));
+    ? tree._kt.get(stripTrailingSeparator(dir)).filter(predicate)
+    : tree._kt.get(stripTrailingSeparator(dir));
 
 export const filesUnder = (dir: string, tree: FileTree): string[] =>
-  tree.getSub(stripTrailingSeparator(dir));
+  tree._kt.getSub(stripTrailingSeparator(dir));
 
 export const dirWithSomeIn = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): boolean => tree.get(stripTrailingSeparator(dir)).some(predicate);
+): boolean => tree._kt.get(stripTrailingSeparator(dir)).some(predicate);
 
 export const dirWithSomeUnder = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): boolean => tree.getSub(stripTrailingSeparator(dir)).some(predicate);
+): boolean => tree._kt.getSub(stripTrailingSeparator(dir)).some(predicate);
 
 export const findAllFiles = (predicate: PathFilter, tree: FileTree): string[] =>
-  findFilesRecursive(predicate, tree.$);
+  findFilesRecursive(predicate, tree._kt.$);
 
 export const findAllSubdirsWithSome = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
 ): string[] =>
-  actualChildren(tree._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(false, predicate, sub),
+  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap(
+    (sub) => findDirsRecursive(false, predicate, sub),
   );
 
 export const findTopmostSubdirsWithSome = (
@@ -158,8 +168,8 @@ export const findTopmostSubdirsWithSome = (
   predicate: PathFilter,
   tree: FileTree,
 ): string[] =>
-  actualChildren(tree._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(true, predicate, sub),
+  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap(
+    (sub) => findDirsRecursive(true, predicate, sub),
   );
 
 export const findDirectSubdirsWithSome = (

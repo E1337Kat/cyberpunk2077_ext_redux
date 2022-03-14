@@ -5,7 +5,7 @@ import {
   VortexTestSupportedFunc,
   VortexExtensionContext,
   VortexGameStoreEntry,
-  VortexAPI,
+  VortexApi,
   VortexLogFunc,
 } from "./vortex-wrapper";
 import { Installer, installerPipeline } from "./installers";
@@ -53,7 +53,7 @@ function prepareForModding(discovery) {
 
 const wrapTestSupported =
   (
-    vortexApi: VortexAPI,
+    vortexApi: VortexApi,
     vortexLog: VortexLogFunc,
     installer: Installer,
   ): VortexTestSupportedFunc =>
@@ -75,7 +75,7 @@ const wrapTestSupported =
 
 const wrapInstall =
   (
-    vortexApi: VortexAPI,
+    vortexApi: VortexApi,
     vortexLog: VortexLogFunc,
     installer: Installer,
   ): VortexInstallFunc =>
