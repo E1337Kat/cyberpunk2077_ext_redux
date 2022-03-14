@@ -115,6 +115,8 @@ export const pathInTree = (path: string, tree: FileTree): boolean =>
     ? tree._getNode(stripTrailingSeparator(path)) !== null
     : tree.get(stripTrailingSeparator(nodejsPath.dirname(path))).includes(path);
 
+// Should really implement globbing here, make it much cleaner
+
 export const filesIn = (
   dir: string,
   tree: FileTree,
@@ -158,4 +160,13 @@ export const findTopmostSubdirsWithSome = (
 ): string[] =>
   actualChildren(tree._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
     findDirsRecursive(true, predicate, sub),
+  );
+
+export const findDirectSubdirsWithSome = (
+  dir: string,
+  predicate: PathFilter,
+  tree: FileTree,
+): string[] =>
+  subdirsIn(dir, tree).filter((subdir) =>
+    dirWithSomeIn(subdir, predicate, tree),
   );
