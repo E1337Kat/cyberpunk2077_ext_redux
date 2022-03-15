@@ -40,7 +40,7 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
-import { readFileSync } from "fs";
+import * as fs from "fs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -1032,7 +1032,7 @@ const testForReshadeFile = (
     files.find((file: string) => path.extname(file) === INI_MOD_EXT),
   );
 
-  const data = readFileSync(fileToExamine, { encoding: "utf8" }); //, (err, contents) => {if (err) {log("error", "Error: ", err)} else data = contents});
+  const data = fs.readFileSync(fileToExamine, { encoding: "utf8" }); //, (err, contents) => {if (err) {log("error", "Error: ", err)} else data = contents});
 
   if (data === undefined) {
     log("error", "unable to read contents of ", fileToExamine);
@@ -1335,12 +1335,14 @@ const installers: Installer[] = [
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
+*/
   {
     type: InstallerType.INI,
     id: "cp2077-ini-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForIniMod,
+    install: installIniMod,
   },
+  /*
   {
     type: InstallerType.Config,
     id: "cp2077-config-mod",

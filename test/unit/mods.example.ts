@@ -1173,19 +1173,6 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const IniModShouldFail = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    IniFileCETInstallerShouldFail: {
-      expectedInstallerType: InstallerType.INI,
-      inFiles: [
-        ...pathHierarchyFor("bin/x64"),
-        path.normalize("bin/x64/global.ini"),
-      ],
-      failure: "INI detects CETCore",
-    },
-  }),
-);
-
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreCetInstall,
@@ -1195,6 +1182,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreWolvenkitCliInstall,
     CetMod,
     RedscriptMod,
+    IniMod,
     ArchiveOnly,
     ValidExtraArchivesWithType,
     JsonMod,
