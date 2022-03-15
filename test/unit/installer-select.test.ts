@@ -21,9 +21,11 @@ describe("Selecting the installer for a mod type", () => {
     describe(`testSupport attempts that should fail, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`rejects with an error when ${desc}`, async () => {
-          expect(() => matchInstaller(mod.inFiles)).rejects.toThrowError(
-            mod.failure,
-          );
+          try {
+            await matchInstaller(mod.inFiles);
+          } catch (error) {
+            expect(false, `should've rejected for ${desc}`).toBeTruthy();
+          }
         });
       });
     });
