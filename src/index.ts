@@ -43,8 +43,7 @@ const requiresGoGLauncher = () =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
 
-const prepareForModding = (discovery) =>
-  fs.readdirAsync(path.join(discovery.path));
+const prepareForModding = (discovery) => fs.readdirAsync(path.join(discovery.path));
 
 const wrapTestSupported =
   (
@@ -113,12 +112,17 @@ const main = (vortex: VortexExtensionContext) => {
     },
   });
 
+  const enhancedVortexApi = {
+    ...vortex.api,
+    log,
+  };
+
   installerPipeline.forEach((installer) => {
     vortex.registerInstaller(
       installer.id,
       installer.priority,
-      wrapTestSupported(vortex.api, log, installer),
-      wrapInstall(vortex.api, log, installer),
+      wrapTestSupported(enhancedVortexApi, log, installer),
+      wrapInstall(enhancedVortexApi, log, installer),
     );
   });
 
