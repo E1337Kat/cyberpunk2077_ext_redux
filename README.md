@@ -66,6 +66,11 @@ You can use the [ISSUE_TEMPLATE](./ISSUE_TEMPLATE.md) to help us (you can copy i
 There's a [jest](https://jestjs.io/) test suite in `test/`, and it's automatically run on
 pre-commit. You can also use `npm run test` and/or configure that in your IDE.
 
-## Reporting Bugs & Making Suggestions
+### Debugging
 
-https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues
+Debugging Typescript is great, probably\*, but just using tests and `console.log` works fine. Additionally, you can set the `DEBUG` env var to have all Vortex `log` calls logged to console during a test run.
+
+In WSL/posix: `$ DEBUG=1 npm run test`
+In PSH: `> $env:DEBUG=1; npm run test; Remove-Item Env:\DEBUG` (Yes, really. Put it in a function. Reasonable envs might get added in next psh, or might not!)
+
+\* It's not.
