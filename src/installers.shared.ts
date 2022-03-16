@@ -1,5 +1,5 @@
 import path from "path";
-import { FileTree } from "./filetree";
+import { FileTree, FILETREE_ROOT } from "./filetree";
 import {
   InstructionsFromFileTree,
   NoInstructions,
@@ -12,6 +12,19 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 export const toSamePath = (f: string) => [f, f];
 export const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
   [f, path.join(prefixPath, dir, path.basename(f))];
+
+export const moveFromTo =
+  (fromPrefix: string, toPrefix: string) => (filePath: string) => {
+    if (fromPrefix === FILETREE_ROOT) {
+      return [filePath, path.join(toPrefix, filePath)];
+    }
+    return [
+      filePath,
+      path
+        .normalize(filePath)
+        .replace(path.normalize(fromPrefix), path.normalize(toPrefix)),
+    ];
+  };
 
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
@@ -39,8 +52,7 @@ export const instructionsForSourceToDestPairs = (
 
 export const instructionsForSameSourceAndDestPaths = (
   files: string[],
-): VortexInstruction[] =>
-  instructionsForSourceToDestPairs(files.map(toSamePath));
+): VortexInstruction[] => instructionsForSourceToDestPairs(files.map(toSamePath));
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
@@ -50,8 +62,6 @@ export const useFirstMatchingLayoutForInstructions = (
 ): MaybeInstructions =>
   possibleLayouts.reduce(
     (found, tryLayout) =>
-      found === NoInstructions.NoMatch
-        ? tryLayout(api, modName, fileTree)
-        : found,
+      found === NoInstructions.NoMatch ? tryLayout(api, modName, fileTree) : found,
     NoInstructions.NoMatch,
   );

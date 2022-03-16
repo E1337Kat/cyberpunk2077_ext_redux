@@ -31,6 +31,10 @@ export type MaybeFileTree = FileTree | undefined;
 
 export const FILETREE_ROOT = "";
 
+// Get rid of TOPLEVEL, it bleeds everywhere in here
+//
+// improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/78
+//
 export const FILETREE_TOPLEVEL = nodejsPath.dirname(
   "This has no directory so it normalizes to . or current dir basically",
 );
@@ -84,8 +88,7 @@ const findDirsRecursive = (
 };
 
 // It's 2022, Javascript, why am I adding this manually -.-
-const regexpEscape = (str: string) =>
-  str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const regexpEscape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 
@@ -125,9 +128,7 @@ export const pathInTree = (path: string, tree: FileTree): boolean =>
   // We _could_ just keep track of the paths but since it's possible to mutate..
   path.endsWith(nodejsPath.sep)
     ? tree._kt._getNode(stripTrailingSeparator(path)) !== null
-    : tree._kt
-        .get(stripTrailingSeparator(nodejsPath.dirname(path)))
-        .includes(path);
+    : tree._kt.get(stripTrailingSeparator(nodejsPath.dirname(path))).includes(path);
 
 // Should really implement globbing here, make it much cleaner
 
@@ -135,10 +136,14 @@ export const filesIn = (
   dir: string,
   predicate: PathFilter | Glob,
   tree: FileTree,
-): string[] =>
-  predicate !== Glob.Any
-    ? tree._kt.get(stripTrailingSeparator(dir)).filter(predicate)
-    : tree._kt.get(stripTrailingSeparator(dir));
+): string[] => {
+  const normalizedDir =
+    dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir);
+
+  return predicate !== Glob.Any
+    ? tree._kt.get(normalizedDir).filter(predicate)
+    : tree._kt.get(normalizedDir);
+};
 
 export const filesUnder = (dir: string, tree: FileTree): string[] =>
   tree._kt.getSub(stripTrailingSeparator(dir));
@@ -163,8 +168,8 @@ export const findAllSubdirsWithSome = (
   predicate: PathFilter,
   tree: FileTree,
 ): string[] =>
-  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap(
-    (sub) => findDirsRecursive(false, predicate, sub),
+  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
+    findDirsRecursive(false, predicate, sub),
   );
 
 export const findTopmostSubdirsWithSome = (
@@ -172,8 +177,8 @@ export const findTopmostSubdirsWithSome = (
   predicate: PathFilter,
   tree: FileTree,
 ): string[] =>
-  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap(
-    (sub) => findDirsRecursive(true, predicate, sub),
+  actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
+    findDirsRecursive(true, predicate, sub),
   );
 
 export const findDirectSubdirsWithSome = (
@@ -181,6 +186,4 @@ export const findDirectSubdirsWithSome = (
   predicate: PathFilter,
   tree: FileTree,
 ): string[] =>
-  subdirsIn(dir, tree).filter((subdir) =>
-    dirWithSomeIn(subdir, predicate, tree),
-  );
+  subdirsIn(dir, tree).filter((subdir) => dirWithSomeIn(subdir, predicate, tree));

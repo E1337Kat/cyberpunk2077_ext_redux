@@ -12,6 +12,7 @@ import {
   filesIn,
   filesUnder,
   pathInTree,
+  findDirectSubdirsWithSome,
 } from "./filetree";
 import {
   VortexApi,
@@ -27,8 +28,10 @@ import {
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   RED4EXT_CORE_RED4EXT_DLL,
+  RED4EXT_MOD_CANONICAL_BASEDIR,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
+  Red4ExtLayout,
   REDS_MOD_CANONICAL_EXTENSION,
   REDS_MOD_CANONICAL_PATH_PREFIX,
   RESHADE_MOD_PATH,
@@ -46,6 +49,7 @@ import {
   InstructionsFromFileTree,
   NoInstructions,
   MaybeInstructions,
+  NoLayout,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -53,6 +57,7 @@ import {
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
   useFirstMatchingLayoutForInstructions,
+  moveFromTo,
 } from "./installers.shared";
 import {
   fallbackInstallerReachedErrorDialog,
@@ -61,6 +66,7 @@ import {
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
   showRed4ExtReservedDllErrorDialog,
+  showRed4ExtStructureErrorDialog,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -127,8 +133,7 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
   _files: string[],
   _fileTree: FileTree,
   _gameId: string,
-): Promise<VortexTestResult> =>
-  Promise.resolve({ supported: false, requiredFiles: [] });
+): Promise<VortexTestResult> => Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
 //
@@ -167,8 +172,7 @@ const matchIniFile = (file: string): boolean =>
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
 
-const allRedscriptFiles = (files: string[]): string[] =>
-  files.filter(matchRedscript);
+const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
 const matchArchive: PathFilter = (file: string): boolean =>
   path.extname(file) === ARCHIVE_ONLY_CANONICAL_EXT;
@@ -200,17 +204,266 @@ const allCanonicalCetFiles = (files: string[]) =>
 const allCanonicalArchiveOnlyFiles = (files: string[]) =>
   allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
 
-// CET
+// ArchiveOnly
+//
+// Last of the main ones to try, but first defined so that we
+// can use the layouts below.
 
-// CET mods are detected by:
-//
-// Canonical:
-//  - .\bin\x64\plugins\cyber_engine_tweaks\mods\MODNAME\init.lua
-//  - .\r6\scripts\[modname]\*.reds
-//
-// Fixable: no
-//
-// Archives: both canonical
+const archiveCanonInstructions = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_CANONICAL_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasCanonFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
+
+  return {
+    kind: ArchiveLayout.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
+  };
+};
+
+const archiveHeritageInstructions = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasOldCanonFiles = dirWithSomeUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    matchArchive,
+    fileTree,
+  );
+
+  if (!hasOldCanonFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  const oldCanonFiles = filesUnder(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX, fileTree);
+
+  const oldToNewMap = oldCanonFiles.map((f: string) => [
+    f,
+    f.replace(
+      path.normalize(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX),
+      path.normalize(ARCHIVE_ONLY_CANONICAL_PREFIX),
+    ),
+  ]);
+
+  return {
+    kind: ArchiveLayout.Heritage,
+    instructions: instructionsForSourceToDestPairs(oldToNewMap),
+  };
+};
+
+const archiveOtherDirsToCanonInstructions = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
+
+  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
+
+  const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
+    f,
+    path.join(ARCHIVE_ONLY_CANONICAL_PREFIX, f),
+  ]);
+
+  return {
+    kind: ArchiveLayout.Other,
+    instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
+  };
+};
+
+const warnUserIfModMightNeedManualReview = (
+  api: VortexApi,
+  chosenInstructions: Instructions,
+) => {
+  // Trying out the tree-based approach..
+  const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
+  const newTree = fileTreeFromPaths(destinationPaths);
+
+  const warnAboutSubdirs = subdirsIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
+
+  const hasMultipleTopLevelFiles =
+    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, newTree).length > 1;
+
+  const multipleTopLevelsMightBeIntended =
+    chosenInstructions.kind !== ArchiveLayout.Other;
+
+  const warnAboutToplevel = !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
+
+  if (warnAboutSubdirs || warnAboutToplevel) {
+    showArchiveInstallWarning(api, warnAboutSubdirs, warnAboutToplevel, destinationPaths);
+  }
+};
+export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  let supported: boolean;
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
+  );
+
+  if (filtered.length === 0) {
+    log("info", "No archives.");
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (files.length > filtered.length) {
+    // Figure out what the leftovers are and if they matter
+    // such as readmes, usage text, etc.
+    const unfiltered = files.filter((f: string) => !filtered.includes(f));
+
+    const importantBaseDirs = ["bin", "r6", "red4ext"];
+    const hasNonArchive =
+      unfiltered.find((f: string) =>
+        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
+      ) !== undefined;
+
+    // there is a base folder for non archive mods, so why bother.
+    if (hasNonArchive) {
+      log("info", "Other mod folder exist... probably an archive as part of those.");
+      return Promise.resolve({
+        supported: false,
+        requiredFiles: [],
+      });
+    }
+
+    supported = true;
+  } else if (files.length === filtered.length) {
+    // all files are archives
+    supported = true;
+  } else {
+    supported = false;
+    log(
+      "error",
+      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
+    );
+  }
+
+  if (supported !== undefined && supported) {
+    log("info", "Only archive files, so installing them should be easy peasy.");
+  } else {
+    supported = false;
+  }
+
+  return Promise.resolve({
+    supported,
+    requiredFiles: [],
+  });
+};
+
+/**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const fileTree = fileTreeFromPaths(files);
+  const fileCount = filesUnder(FILETREE_ROOT, fileTree).length;
+
+  // Once again we could get fancy, but let's not
+
+  const possibleLayoutsToTryInOrder: InstructionsFromFileTree[] = [
+    archiveCanonInstructions,
+    archiveHeritageInstructions,
+    archiveOtherDirsToCanonInstructions,
+  ];
+
+  const chosenInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    possibleLayoutsToTryInOrder,
+  );
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === NoInstructions.OnlyOneAllowed
+  ) {
+    const message = "ArchiveOnly installer failed to generate any instructions!";
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  const haveFilesOutsideSelectedInstructions =
+    chosenInstructions.instructions.length !== fileCount;
+
+  if (haveFilesOutsideSelectedInstructions) {
+    const message = "Conflicting layouts for Archive mod!";
+
+    showArchiveStructureErrorDialog(api, message, files);
+
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  warnUserIfModMightNeedManualReview(api, chosenInstructions);
+
+  log("info", "ArchiveOnly installer installing files.");
+  log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
+
+  return Promise.resolve({ instructions: chosenInstructions.instructions });
+};
+
+const extraArchiveLayoutsAllowedInOtherModTypes = [
+  archiveCanonInstructions,
+  archiveHeritageInstructions,
+];
+
+const extraCanonArchiveInstructions = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const archiveLayoutToUse = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    extraArchiveLayoutsAllowedInOtherModTypes,
+  );
+
+  if (
+    archiveLayoutToUse === NoInstructions.NoMatch ||
+    archiveLayoutToUse === NoInstructions.OnlyOneAllowed
+  ) {
+    api.log("debug", "No valid extra archives");
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  // We should handle the potentially-conflicting archives case here,
+  // but it requires some extra logic (which we should do, just not now)
+  // and most likely most real mods do the right thing here and this won't
+  // be much of a problem in practice. But we should still fix it because
+  // it'll be a better design in addition to the robustness.
+  //
+  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
+
+  return archiveLayoutToUse;
+};
+
+// CET
 
 export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
@@ -268,9 +521,7 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
   // .\r6\scripts\*.reds
-  const redsDirReds = fileTree
-    .get(REDS_MOD_CANONICAL_PATH_PREFIX)
-    .filter(matchRedscript);
+  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
 
   // We also only accept one subdir, anything else might be trouble
   // But grab everything under it.
@@ -280,9 +531,7 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
   // .\r6\scripts\[mod]\**\*
   const canonRedsModFiles =
     base && base.children.length === 1
-      ? fileTree.getSub(
-          path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key),
-        )
+      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
       : [];
 
   const cetFiles = allCanonicalCetFiles(files);
@@ -459,9 +708,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
   // .\*.reds
   const topLevelReds = fileTree.get(".").filter(matchRedscript);
   // .\r6\scripts\*.reds
-  const redsDirReds = fileTree
-    .get(REDS_MOD_CANONICAL_PATH_PREFIX)
-    .filter(matchRedscript);
+  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
 
   // We also only accept one subdir, anything else might be trouble
   // But grab everything under it.
@@ -471,9 +718,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
   // .\r6\scripts\[mod]\**\*
   const canonRedsModFiles =
     base && base.children.length === 1
-      ? fileTree.getSub(
-          path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key),
-        )
+      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
       : [];
 
   const installable = [canonRedsModFiles, redsDirReds, topLevelReds].filter(
@@ -539,27 +784,143 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
 
 const matchDll = (file: string) => path.extname(file) === ".dll";
 const reservedDllDir = (dir: string) =>
-  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.includes(path.join(dir));
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.includes(path.join(dir, path.sep));
 const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
+
+const red4extBasedirLayout: InstructionsFromFileTree = (
+  _api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasBasedirFiles =
+    filesIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length > 0;
+
+  if (!hasBasedirFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allPathsUnderBase = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+
+  const canonicalModnamedPath = path.join(
+    RED4EXT_MOD_CANONICAL_BASEDIR,
+    modName,
+    path.sep,
+  );
+
+  const allFromBaseToModname: string[][] = allPathsUnderBase.map(
+    moveFromTo(RED4EXT_MOD_CANONICAL_BASEDIR, canonicalModnamedPath),
+  );
+
+  return {
+    kind: Red4ExtLayout.Basedir,
+    instructions: instructionsForSourceToDestPairs(allFromBaseToModname),
+  };
+};
+
+const red4extCanonLayout: InstructionsFromFileTree = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasCanonFiles =
+    findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length >
+    0;
+
+  if (!hasCanonFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allCanonFiles = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+
+  return {
+    kind: Red4ExtLayout.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
+  };
+};
+
+const red4extToplevelLayout: InstructionsFromFileTree = (
+  _api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const toplevelFiles = filesIn(FILETREE_ROOT, matchDll, fileTree);
+
+  if (toplevelFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  // No messing about: a DLL at top level means this entire
+  // thing has to be part of it. Nothing else allowed.
+
+  const allTheFilesEverywhere = filesUnder(FILETREE_ROOT, fileTree);
+
+  const canonicalModnamedPath = path.join(RED4EXT_MOD_CANONICAL_BASEDIR, modName);
+
+  const allFilesToCanon = allTheFilesEverywhere.map(
+    moveFromTo(FILETREE_ROOT, canonicalModnamedPath),
+  );
+
+  return {
+    kind: Red4ExtLayout.Toplevel,
+    instructions: instructionsForSourceToDestPairs(allFilesToCanon),
+  };
+};
+
+const red4extModnamedToplevelLayout: InstructionsFromFileTree = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const toplevelSubdirsWithFiles = findDirectSubdirsWithSome(
+    FILETREE_ROOT,
+    matchDll,
+    fileTree,
+  );
+
+  if (toplevelSubdirsWithFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  if (toplevelSubdirsWithFiles.length > 1) {
+    return NoInstructions.OnlyOneAllowed;
+  }
+
+  const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
+    (dir) =>
+      filesUnder(dir, fileTree).map(
+        moveFromTo(FILETREE_ROOT, RED4EXT_MOD_CANONICAL_BASEDIR),
+      ),
+  );
+
+  return {
+    kind: Red4ExtLayout.Modnamed,
+    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+  };
+};
 
 export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
-  _files: string[],
+  files: string[],
   fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  const allDllDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
+  const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
+  const toplevelDllDirs = findDirectSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
 
-  if (allDllDirs.length < 1 && toplevelDlls.length < 1) {
+  const noDllDirs = allDllSubdirs.length < 1;
+  const noToplevelDlls = toplevelDlls.length < 1;
+  const tooManyToplevelDllSubdirs = toplevelDllDirs.length > 1;
+
+  if (noDllDirs && noToplevelDlls) {
     log("info", "Doesn't look like a Red4Ext mod");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
   const dangerPaths = [
-    ...allDllDirs.filter(reservedDllDir),
+    ...allDllSubdirs.filter(reservedDllDir),
     ...toplevelDlls.filter(reservedDllName),
   ];
 
@@ -570,6 +931,14 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
     return Promise.reject(new Error(message));
   }
 
+  if (noToplevelDlls && tooManyToplevelDllSubdirs) {
+    const message = "Ambiguous Structure For Red4Ext Mod!";
+    showRed4ExtStructureErrorDialog(api, message, files, NoInstructions.OnlyOneAllowed);
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  // Red4Ext itself handled elsewhere
   if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
@@ -577,239 +946,72 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   return Promise.resolve({ supported: true, requiredFiles: [] });
 };
 
-// ArchiveOnly
-
-export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _gameId: string,
-): Promise<VortexTestResult> => {
-  let supported: boolean;
-  const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
-  );
-
-  if (filtered.length === 0) {
-    log("info", "No archives.");
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  if (files.length > filtered.length) {
-    // Figure out what the leftovers are and if they matter
-    // such as readmes, usage text, etc.
-    const unfiltered = files.filter((f: string) => !filtered.includes(f));
-
-    const importantBaseDirs = ["bin", "r6", "red4ext"];
-    const hasNonArchive =
-      unfiltered.find((f: string) =>
-        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
-      ) !== undefined;
-
-    // there is a base folder for non archive mods, so why bother.
-    if (hasNonArchive) {
-      log(
-        "info",
-        "Other mod folder exist... probably an archive as part of those.",
-      );
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-    }
-
-    supported = true;
-  } else if (files.length === filtered.length) {
-    // all files are archives
-    supported = true;
-  } else {
-    supported = false;
-    log(
-      "error",
-      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
-    );
-  }
-
-  if (supported !== undefined && supported) {
-    log("info", "Only archive files, so installing them should be easy peasy.");
-  } else {
-    supported = false;
-  }
-
-  return Promise.resolve({
-    supported,
-    requiredFiles: [],
-  });
-};
-
-const archiveCanonInstructions = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const hasCanonFiles = dirWithSomeUnder(
-    ARCHIVE_ONLY_CANONICAL_PREFIX,
-    matchArchive,
-    fileTree,
-  );
-
-  if (!hasCanonFiles) {
-    return NoInstructions.NoMatch;
-  }
-
-  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
-
-  return {
-    kind: ArchiveLayout.Canon,
-    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
-  };
-};
-
-const archiveOldToNewCanonInstructions = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const hasOldCanonFiles = dirWithSomeUnder(
-    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-    matchArchive,
-    fileTree,
-  );
-
-  if (!hasOldCanonFiles) {
-    return NoInstructions.NoMatch;
-  }
-
-  const oldCanonFiles = filesUnder(
-    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-    fileTree,
-  );
-
-  const oldToNewMap = oldCanonFiles.map((f: string) => [
-    f,
-    f.replace(
-      path.normalize(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX),
-      path.normalize(ARCHIVE_ONLY_CANONICAL_PREFIX),
-    ),
-  ]);
-
-  return {
-    kind: ArchiveLayout.Heritage,
-    instructions: instructionsForSourceToDestPairs(oldToNewMap),
-  };
-};
-
-const archiveOtherDirsToCanonInstructions = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
-
-  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
-
-  const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
-    f,
-    path.join(ARCHIVE_ONLY_CANONICAL_PREFIX, f),
-  ]);
-
-  return {
-    kind: ArchiveLayout.Other,
-    instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
-  };
-};
-
-const warnUserIfModMightNeedManualReview = (
-  api: VortexApi,
-  chosenInstructions: Instructions,
-) => {
-  // Trying out the tree-based approach..
-  const destinationPaths = chosenInstructions.instructions.map(
-    (i) => i.destination,
-  );
-  const newTree = fileTreeFromPaths(destinationPaths);
-
-  const warnAboutSubdirs =
-    subdirsIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
-
-  const hasMultipleTopLevelFiles =
-    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, newTree).length > 1;
-
-  const multipleTopLevelsMightBeIntended =
-    chosenInstructions.kind !== ArchiveLayout.Other;
-
-  const warnAboutToplevel =
-    !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
-
-  if (warnAboutSubdirs || warnAboutToplevel) {
-    showArchiveInstallWarning(
-      api,
-      warnAboutSubdirs,
-      warnAboutToplevel,
-      destinationPaths,
-    );
-  }
-};
-
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
+export const installRed4ExtMod: VortexWrappedInstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
+  fileTree: FileTree,
+  destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const fileTree = fileTreeFromPaths(files);
+  const modName = makeModName(destinationPath);
   const fileCount = filesUnder(FILETREE_ROOT, fileTree).length;
 
-  // Once again we could get fancy, but let's not
+  // At this point we know from the test that none of
+  // these are in dangerous locations
 
+  // Red4Ext only allows one subdir deep for initially loaded DLLs
+  // Move to test?
+
+  // ...And is it a good idea to allow more than one canon subdir?
   const possibleLayoutsToTryInOrder: InstructionsFromFileTree[] = [
-    archiveCanonInstructions,
-    archiveOldToNewCanonInstructions,
-    archiveOtherDirsToCanonInstructions,
+    red4extBasedirLayout,
+    red4extCanonLayout,
+    red4extToplevelLayout,
+    red4extModnamedToplevelLayout,
   ];
 
   const chosenInstructions = useFirstMatchingLayoutForInstructions(
     api,
-    undefined,
+    modName,
     fileTree,
     possibleLayoutsToTryInOrder,
   );
 
   if (chosenInstructions === NoInstructions.NoMatch) {
-    const message =
-      "ArchiveOnly installer failed to generate any instructions!";
+    const message = "Red4Ext installer failed to generate any instructions!";
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
 
-  const haveFilesOutsideSelectedInstructions =
-    chosenInstructions.instructions.length !== fileCount;
+  if (chosenInstructions === NoInstructions.OnlyOneAllowed) {
+    const message = "Ambiguous Structure For Red4Ext Mod!";
+    showRed4ExtStructureErrorDialog(api, message, files, NoInstructions.OnlyOneAllowed);
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  const extraArchiveLayoutsAllowed = chosenInstructions.kind !== Red4ExtLayout.Toplevel;
+
+  const allInstructions = extraArchiveLayoutsAllowed
+    ? [
+        ...chosenInstructions.instructions,
+        ...extraCanonArchiveInstructions(api, fileTree).instructions,
+      ]
+    : chosenInstructions.instructions;
+
+  const haveFilesOutsideSelectedInstructions = allInstructions.length !== fileCount;
 
   if (haveFilesOutsideSelectedInstructions) {
-    const message = "Conflicting layouts for Archive mod!";
-
-    showArchiveStructureErrorDialog(api, message, files);
-
+    const message = "Conflicting Structures For Red4Ext Mod!";
+    showRed4ExtStructureErrorDialog(api, message, files);
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
 
-  warnUserIfModMightNeedManualReview(api, chosenInstructions);
+  log("info", "Red4Ext installer installing files.");
+  log("debug", "Red4Ext instructions: ", allInstructions);
 
-  log("info", "ArchiveOnly installer installing files.");
-  log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
-
-  return Promise.resolve({ instructions: chosenInstructions.instructions });
+  return Promise.resolve({ instructions: allInstructions });
 };
 
 // JSON Mods
@@ -834,8 +1036,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
 
   // just make sure we don't somehow have a CET mod that got here
   const cetModJson = files.filter(
-    (file: string) =>
-      path.basename(file).toLowerCase() === CET_MOD_CANONICAL_INIT_FILE,
+    (file: string) => path.basename(file).toLowerCase() === CET_MOD_CANONICAL_INIT_FILE,
   );
   if (cetModJson.length !== 0) {
     log("error", "We somehow got a CET mod in the JSON check");
@@ -846,16 +1047,11 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   }
   let proper = true;
   // check for options.json in the file list
-  const options = filtered.some((file: string) =>
-    file.endsWith("options.json"),
-  );
+  const options = filtered.some((file: string) => file.endsWith("options.json"));
   if (options) {
     log("debug", "Options.json files found: ", options);
     proper = filtered.some((f: string) =>
-      path
-        .dirname(f)
-        .toLowerCase()
-        .startsWith(path.normalize("r6/config/settings")),
+      path.dirname(f).toLowerCase().startsWith(path.normalize("r6/config/settings")),
     );
 
     if (!proper) {
@@ -881,9 +1077,7 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const filtered: string[] = files.filter(
-    (file: string) => path.extname(file) !== "",
-  );
+  const filtered: string[] = files.filter((file: string) => path.extname(file) !== "");
   log("info", "Located JSON files: ", filtered);
 
   let movedJson = false;
@@ -908,10 +1102,7 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   });
 
   if (movedJson)
-    log(
-      "info",
-      "JSON files were found outside their canonical locations: Fixed",
-    );
+    log("info", "JSON files were found outside their canonical locations: Fixed");
 
   log("debug", "Installing JSON files with: ", jsonFileInstructions);
 
@@ -1039,8 +1230,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
   });
 
   const shaderFiles = files.filter(
-    (file: string) =>
-      file.includes(RESHADE_SHADERS_DIR) && !file.endsWith(path.sep),
+    (file: string) => file.includes(RESHADE_SHADERS_DIR) && !file.endsWith(path.sep),
   );
 
   let shaderInstructions = [];
@@ -1122,13 +1312,7 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
 
   const message =
     "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-  fallbackInstallerReachedErrorDialog(
-    _api,
-    log,
-    message,
-    filtered,
-    instructions,
-  );
+  fallbackInstallerReachedErrorDialog(_api, log, message, filtered, instructions);
 
   return Promise.resolve({ instructions });
 };
@@ -1207,8 +1391,7 @@ const installers: Installer[] = [
     type: InstallerType.Red4Ext,
     id: "cp2077-red4ext-mod",
     testSupported: testForRed4ExtMod,
-    // install: installRed4ExtMod,
-    install: notInstallableMod,
+    install: installRed4ExtMod,
   },
   /*
   {

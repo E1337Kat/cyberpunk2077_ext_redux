@@ -1,14 +1,23 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
+import { Console } from "console";
 import { mock, MockProxy } from "jest-mock-extended";
-import { VortexAPI } from "../../src/vortex-wrapper";
+import { VortexApi } from "../../src/vortex-wrapper";
 import { installerPipeline, InstallerType } from "../../src/installers";
 import { fileTreeFromPaths } from "../../src/filetree";
 
 export const GAME_ID = "cyberpunk2077";
 
-export const mockVortexAPI: MockProxy<VortexAPI> = mock<VortexAPI>();
+// This is the most nonsense of all nonsense, but under some
+// conditions it seems to be possible for jest to override
+// `console`...
+//
+// eslint-disable-next-line no-global-assign
+console = new Console(process.stdout, process.stderr);
+
+// This also contains a log, don't forget... may need to mock it.
+export const mockVortexApi: MockProxy<VortexApi> = mock<VortexApi>();
 
 export const mockVortexLog = jest.fn();
 
@@ -29,7 +38,7 @@ export const getFallbackInstaller = () => {
 
 export const matchSpecific = async (installer, modFiles: string[]) =>
   installer.testSupported(
-    mockVortexAPI,
+    mockVortexApi,
     mockVortexLog,
     modFiles,
     fileTreeFromPaths(modFiles),

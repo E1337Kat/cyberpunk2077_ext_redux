@@ -104,15 +104,11 @@ describe("FileTree", () => {
       "topf3.notseek",
     ]);
 
-    expect(
-      dirWithSomeIn(path.normalize("."), matchSeek, fileTree),
-    ).toBeTruthy();
+    expect(dirWithSomeIn(path.normalize("."), matchSeek, fileTree)).toBeTruthy();
 
     expect(filesIn(path.normalize("sub1/"), Glob.Any, fileTree)).toEqual([]);
 
-    expect(
-      dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree),
-    ).toBeFalsy();
+    expect(dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree)).toBeFalsy();
 
     expect(filesIn(path.normalize("sub1/sub12/"), Glob.Any, fileTree)).toEqual([
       "sub1\\sub12\\f12.seek",
@@ -129,9 +125,7 @@ describe("FileTree", () => {
       "sub2\\x2h",
     ]);
 
-    expect(
-      dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree),
-    ).toBeTruthy();
+    expect(dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree)).toBeTruthy();
 
     expect(filesIn(path.normalize("sub2/sub22"), Glob.Any, fileTree)).toEqual([
       "sub2\\sub22\\f22.seek",
@@ -159,11 +153,7 @@ describe("FileTree", () => {
   test("findAllSubdirsWithSome excluding toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findAllSubdirsWithSome(
-      FILETREE_TOPLEVEL,
-      matchSeek,
-      fileTree,
-    );
+    const found = findAllSubdirsWithSome(FILETREE_TOPLEVEL, matchSeek, fileTree);
 
     expect(found).toEqual([
       path.normalize("sub1/sub12"),
@@ -188,26 +178,15 @@ describe("FileTree", () => {
   test("findTopmostSubdirsWithSome excluding toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findTopmostSubdirsWithSome(
-      FILETREE_TOPLEVEL,
-      matchSeek,
-      fileTree,
-    );
+    const found = findTopmostSubdirsWithSome(FILETREE_TOPLEVEL, matchSeek, fileTree);
 
-    expect(found).toEqual([
-      path.normalize("sub1/sub12"),
-      path.normalize("sub2"),
-    ]);
+    expect(found).toEqual([path.normalize("sub1/sub12"), path.normalize("sub2")]);
   });
 
   test("findTopmostSubdirsWithSome including toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findTopmostSubdirsWithSome(
-      FILETREE_ROOT,
-      matchSeek,
-      fileTree,
-    );
+    const found = findTopmostSubdirsWithSome(FILETREE_ROOT, matchSeek, fileTree);
 
     expect(found).toEqual([
       path.normalize("."),

@@ -5,7 +5,7 @@ import {
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
-import { matchInstaller, mockVortexAPI, mockVortexLog } from "./utils.helper";
+import { matchInstaller, mockVortexApi, mockVortexLog } from "./utils.helper";
 
 describe("Transforming modules to instructions", () => {
   beforeEach(() =>
@@ -49,7 +49,7 @@ describe("Transforming modules to instructions", () => {
           expect(installer.type).toBe(mod.expectedInstallerType);
 
           const installResult = await installer.install(
-            mockVortexAPI,
+            mockVortexApi,
             mockVortexLog,
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
@@ -74,7 +74,7 @@ describe("Transforming modules to instructions", () => {
 
           expect(() =>
             installer.install(
-              mockVortexAPI,
+              mockVortexApi,
               mockVortexLog,
               mod.inFiles,
               fileTreeFromPaths(mod.inFiles),
@@ -96,7 +96,7 @@ describe("Transforming modules to instructions", () => {
       type.forEach(async (mod, desc) => {
         test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
           const installResult = await fallbackInstaller.install(
-            mockVortexAPI,
+            mockVortexApi,
             mockVortexLog,
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
