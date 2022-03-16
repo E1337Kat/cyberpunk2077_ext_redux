@@ -22,6 +22,9 @@ import {
   VortexProgressDelegate,
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
+  VortexExtensionContext,
+  VortexTestSupportedFunc,
+  VortexInstallFunc,
 } from "./vortex-wrapper";
 import {
   CET_GLOBAL_INI,
@@ -1478,3 +1481,55 @@ export const installerPipeline: InstallerWithPriority[] = installers.reduce(
   addPriorityFrom(PRIORITY_STARTING_NUMBER),
   [],
 );
+
+export const wrapTestSupported =
+  (
+    vortex: VortexExtensionContext,
+    vortexApiThing,
+    installer: Installer,
+  ): VortexTestSupportedFunc =>
+  (files: string[], gameId: string, ...args) => {
+    const vortexLog: VortexLogFunc = vortexApiThing.log;
+    const vortexApi: VortexApi = {
+      ...vortex.api,
+      log: vortexApiThing.log,
+    };
+
+    if (gameId !== GAME_ID) {
+      return Promise.resolve({ supported: false, requiredFiles: [] });
+    }
+
+    vortexLog("info", `Testing for ${installer.type}, input files: `, files);
+    return installer.testSupported(
+      vortexApi,
+      vortexLog,
+      files,
+      fileTreeFromPaths(files),
+      gameId,
+      ...args,
+    );
+  };
+
+export const wrapInstall =
+  (
+    vortex: VortexExtensionContext,
+    vortexApiThing,
+    installer: Installer,
+  ): VortexInstallFunc =>
+  (files: string[], ...args) => {
+    const vortexLog: VortexLogFunc = vortexApiThing.log;
+    const vortexApi: VortexApi = {
+      ...vortex.api,
+      log: vortexLog,
+    };
+
+    vortexLog("info", `Trying to install using ${installer.type}`);
+
+    return installer.install(
+      vortexApi,
+      vortexLog,
+      files,
+      fileTreeFromPaths(files),
+      ...args,
+    );
+  };

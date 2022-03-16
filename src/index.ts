@@ -1,15 +1,8 @@
 import path from "path";
-import { fs, log, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
-import {
-  VortexInstallFunc,
-  VortexTestSupportedFunc,
-  VortexExtensionContext,
-  VortexGameStoreEntry,
-  VortexApi,
-  VortexLogFunc,
-} from "./vortex-wrapper";
-import { Installer, installerPipeline } from "./installers";
-import { fileTreeFromPaths } from "./filetree";
+import * as vapi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import { installerPipeline, wrapTestSupported, wrapInstall } from "./installers";
+
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -34,56 +27,16 @@ const moddingTools = [
 ];
 
 export const findGame = () =>
-  util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+  vapi.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
     (game: VortexGameStoreEntry) => game.gamePath,
   );
 
 const requiresGoGLauncher = () =>
-  util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
+  vapi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
 
-const prepareForModding = (discovery) => fs.readdirAsync(path.join(discovery.path));
-
-const wrapTestSupported =
-  (
-    vortexApi: VortexApi,
-    vortexLog: VortexLogFunc,
-    installer: Installer,
-  ): VortexTestSupportedFunc =>
-  (files: string[], gameId: string, ...args) => {
-    if (gameId !== GAME_ID) {
-      return Promise.resolve({ supported: false, requiredFiles: [] });
-    }
-
-    log("info", `Testing for ${installer.type}, input files: `, files);
-    return installer.testSupported(
-      vortexApi,
-      vortexLog,
-      files,
-      fileTreeFromPaths(files),
-      gameId,
-      ...args,
-    );
-  };
-
-const wrapInstall =
-  (
-    vortexApi: VortexApi,
-    vortexLog: VortexLogFunc,
-    installer: Installer,
-  ): VortexInstallFunc =>
-  (files: string[], ...args) => {
-    log("info", `Trying to install using ${installer.type}`);
-
-    return installer.install(
-      vortexApi,
-      vortexLog,
-      files,
-      fileTreeFromPaths(files),
-      ...args,
-    );
-  };
+const prepareForModding = (discovery) => vapi.fs.readdirAsync(path.join(discovery.path));
 
 // This is the main function Vortex will run when detecting the game extension.
 const main = (vortex: VortexExtensionContext) => {
@@ -112,17 +65,12 @@ const main = (vortex: VortexExtensionContext) => {
     },
   });
 
-  const enhancedVortexApi = {
-    ...vortex.api,
-    log,
-  };
-
   installerPipeline.forEach((installer) => {
     vortex.registerInstaller(
       installer.id,
       installer.priority,
-      wrapTestSupported(enhancedVortexApi, log, installer),
-      wrapInstall(enhancedVortexApi, log, installer),
+      wrapTestSupported(vortex, vapi, installer),
+      wrapInstall(vortex, vapi, installer),
     );
   });
 
