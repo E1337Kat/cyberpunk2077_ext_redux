@@ -13,6 +13,7 @@
   },
   "rules": {
     "arrow-body-style": ["error", "as-needed"],
+    "curly": "error",
     "func-style": "error",
     "import/prefer-default-export": "off",
     "linebreak-style": "off",
@@ -30,10 +31,7 @@
       }
     ],
     "@typescript-eslint/no-inferrable-types": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { "argsIgnorePattern": "^_" }
-    ],
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/quotes": "off"
   }
 }

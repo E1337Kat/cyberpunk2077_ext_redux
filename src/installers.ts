@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import fs from "fs";
 import { win32 } from "path";
 import KeyTree from "key-tree";
 import {
@@ -75,6 +75,10 @@ import {
   installRedscriptCore,
   testRed4ExtCore,
   installRed4ExtCore,
+  testCoreCsvMerge,
+  installCoreCsvMerge,
+  testCoreWolvenKitCli,
+  installCoreWolvenkit,
 } from "./core-installers";
 
 // Ensure we're using win32 conventions
@@ -98,6 +102,7 @@ export enum InstallerType {
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
+  CoreWolvenKit = "Core/WolvenKitCLI", // #32
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
@@ -1047,7 +1052,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   }
   let proper = true;
   // check for options.json in the file list
-  const options = filtered.some((file: string) => file.endsWith("options.json"));
+  const options = filtered.some((file: string) => path.basename(file) === "options.json");
   if (options) {
     log("debug", "Options.json files found: ", options);
     proper = filtered.some((f: string) =>
@@ -1061,6 +1066,11 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       log("info", message);
       return Promise.reject(new Error(message));
     }
+  } else if (
+    filtered.some((file: string) => KNOWN_JSON_FILES[path.basename(file)] === undefined)
+  ) {
+    log("error", "Found JSON files that aren't part of the game.");
+    return Promise.reject(new Error("Found JSON files that aren't part of the game."));
   }
 
   log("debug", "We got through it all and it is a JSON mod");
@@ -1077,8 +1087,14 @@ export const installJsonMod: VortexWrappedInstallFunc = (
   _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const filtered: string[] = files.filter((file: string) => path.extname(file) !== "");
-  log("info", "Located JSON files: ", filtered);
+  const jsonFiles: string[] = files.filter(
+    (file: string) => path.extname(file) === ".json",
+  );
+  const otherAllowedFiles = files.filter(
+    (file: string) => path.extname(file) === ".txt" || path.extname(file) === ".md",
+  );
+
+  const filtered = jsonFiles.concat(otherAllowedFiles);
 
   let movedJson = false;
 
@@ -1101,8 +1117,9 @@ export const installJsonMod: VortexWrappedInstallFunc = (
     };
   });
 
-  if (movedJson)
+  if (movedJson) {
     log("info", "JSON files were found outside their canonical locations: Fixed");
+  }
 
   log("debug", "Installing JSON files with: ", jsonFileInstructions);
 
@@ -1124,7 +1141,7 @@ const testForReshadeFile = (
     files.find((file: string) => path.extname(file) === INI_MOD_EXT),
   );
 
-  const data = readFileSync(fileToExamine, { encoding: "utf8" });
+  const data = fs.readFileSync(fileToExamine, { encoding: "utf8" });
 
   if (data === undefined) {
     log("error", "unable to read contents of ", fileToExamine);
@@ -1361,14 +1378,18 @@ const installers: Installer[] = [
     testSupported: testRed4ExtCore,
     install: installRed4ExtCore,
   },
-  /*
-    {
-      type: InstallerType.CoreCSVMerge,
-      id: "cp2077-core-csvmerge-mod",
-      testSupported: notSupportedModType,
-      install: notInstallableMod,
-    },
-    */
+  {
+    type: InstallerType.CoreCSVMerge,
+    id: "cp2077-core-csvmerge-mod",
+    testSupported: testCoreCsvMerge,
+    install: installCoreCsvMerge,
+  },
+  {
+    type: InstallerType.CoreWolvenKit,
+    id: "cp2077-core-wolvenkit-mod",
+    testSupported: testCoreWolvenKitCli,
+    install: installCoreWolvenkit,
+  },
   {
     type: InstallerType.RedCetMix,
     id: "cp2077-red-cet-mixture-mod",
@@ -1406,12 +1427,14 @@ const installers: Installer[] = [
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
+*/
   {
     type: InstallerType.INI,
     id: "cp2077-ini-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
+    testSupported: testForIniMod,
+    install: installIniMod,
   },
+  /*
   {
     type: InstallerType.Config,
     id: "cp2077-config-mod",
