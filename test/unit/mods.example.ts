@@ -1337,6 +1337,52 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
+export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
+  Object.entries({
+    invalidModContainingJustAnExe: {
+      expectedInstallerType: InstallerType.FallbackForOther,
+      inFiles: [path.normalize("bin/myProg.exe")],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("bin/myProg.exe"),
+          destination: path.normalize("bin/myProg.exe"),
+        },
+      ],
+    },
+    invalidModContainingRandomFiles: {
+      expectedInstallerType: InstallerType.FallbackForOther,
+      inFiles: ["Categorized AIO Command List.xlsx", "readme.md"],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("Categorized AIO Command List.xlsx"),
+          destination: path.normalize("Categorized AIO Command List.xlsx"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("readme.md"),
+          destination: path.normalize("readme.md"),
+        },
+      ],
+    },
+    invalidModWithDeepInvalidPath: {
+      expectedInstallerType: InstallerType.FallbackForOther,
+      inFiles: [
+        ...pathHierarchyFor(FAKE_STAGING_PATH),
+        path.join(FAKE_STAGING_PATH, "toodles.txt"),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(FAKE_STAGING_PATH, "toodles.txt"),
+          destination: path.join(FAKE_STAGING_PATH, "toodles.txt"),
+        },
+      ],
+    },
+  }), // object
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreCetInstall,
@@ -1352,6 +1398,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
+    ExampleInvalidModsForFallback,
   }),
 );
 

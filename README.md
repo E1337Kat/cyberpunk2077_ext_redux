@@ -66,7 +66,11 @@ You can use the [ISSUE_TEMPLATE](./ISSUE_TEMPLATE.md) to help us (you can copy i
 There's a [jest](https://jestjs.io/) test suite in `test/`, and it's automatically run on
 pre-commit. You can also use `npm run test` and/or configure that in your IDE.
 
-### Debugging
+### "Real" Test Suite
+
+[Vortex Extension Test Suite](https://next.nexusmods.com/cyberpunk2077/collections/hl2bnl) on Nexus contains a Collection that can be run to test live mods.
+
+## Reporting Bugs & Making Suggestions
 
 Debugging Typescript is great, probably\*, but just using tests and `console.log` works fine. Additionally, you can set the `DEBUG` env var to have all Vortex `log` calls logged to console during a test run.
 
