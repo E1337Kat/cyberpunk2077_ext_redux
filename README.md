@@ -66,6 +66,10 @@ You can use the [ISSUE_TEMPLATE](./ISSUE_TEMPLATE.md) to help us (you can copy i
 There's a [jest](https://jestjs.io/) test suite in `test/`, and it's automatically run on
 pre-commit. You can also use `npm run test` and/or configure that in your IDE.
 
+### "Real" Test Suite
+
+[Vortex Extension Test Suite](https://next.nexusmods.com/cyberpunk2077/collections/hl2bnl) on Nexus contains a Collection that can be run to test live mods.
+
 ## Reporting Bugs & Making Suggestions
 
 https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues
