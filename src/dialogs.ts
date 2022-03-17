@@ -308,14 +308,14 @@ export const showMultiTypeStructureErrorDialog = (
     ],
   });
   */
-export const fallbackInstallerReachedErrorDialog = (
+export const warnUserAboutHavingReachedFallbackInstallerDialog = (
   api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
   _installable: string[],
 ) => {
-  log("error", `Fallback installer: ${message}`, files);
+  log("warn", `Fallback installer: ${message}`, files);
 
   // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
 
@@ -330,9 +330,9 @@ export const fallbackInstallerReachedErrorDialog = (
         "reached the installer of last resort.  All files are being installed as " +
         "if unpackaged in the game root directory.\n" +
         "\n" +
-        "It is advised that you check to see that the mod has been installed correctly " +
-        "by checking the game folder.  If you need to move something, please do so in " +
-        "your mod staging folder which can be reached in the above toolbar or by right " +
+        "Please check to see that the mod has been installed correctly by checking " +
+        "the game folder.  If you need to move something, please do it your mod " +
+        "staging folder which can be reached in the above toolbar or by right " +
         "clicking the mod and selecting 'Open in File Manager'.\n\n" +
         "Got:\n" +
         `${files.join("\n")}`,

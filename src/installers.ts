@@ -70,7 +70,7 @@ import {
   useAllMatchingLayouts,
 } from "./installers.shared";
 import {
-  fallbackInstallerReachedErrorDialog,
+  warnUserAboutHavingReachedFallbackInstallerDialog,
   redCetMixedStructureErrorDialog,
   showRedscriptStructureErrorDialog,
   showArchiveInstallWarning,
@@ -169,23 +169,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 
 //   return Promise.resolve({ instructions });
 // }
-
-/**
- * @todo implement logic
- * @param _file a file to check
- * @returns true is the file is a reshade ini file, false otherwise
- */
-const reshadeINI = (_file: string): boolean => false;
-
-/**
- *
- * @param file Full file path string to check
- * @returns true if it looks like an INI mod file
- *
- * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
- */
-const matchIniFile = (file: string): boolean =>
-  path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
 
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
@@ -1367,24 +1350,24 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
+  gameId: string,
 ): Promise<VortexTestResult> => {
-  const hasIniMod = files.some(matchIniFile);
-  log("debug", "Probably INI mods: ", hasIniMod);
+  log("debug", "Fallback installer received Files: ", files);
 
-  // if (hasIniMod) {
-  //   log("info", "mod supported by this installer");
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Entering fallback installer: ", gameId);
+  if (!correctGame) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
   });
-  // }
-
-  // log("warn", "I dunno. Can't do nothing about this.");
-  // return Promise.resolve({
-  //   supported: false,
-  //   requiredFiles: [],
-  // });
 };
 
 /**
@@ -1399,18 +1382,18 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
-  const instr = filtered.map((file) => ({
-    type: "copy",
-    source: file,
-    destination: path.join(INI_MOD_PATH, path.basename(file)),
-  }));
-
-  const instructions = [].concat(instr);
+  const instructions = [].concat(instructionsForSameSourceAndDestPaths(files));
 
   const message =
     "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-  fallbackInstallerReachedErrorDialog(_api, log, message, filtered, instructions);
+
+  warnUserAboutHavingReachedFallbackInstallerDialog(
+    _api,
+    log,
+    message,
+    files,
+    instructions,
+  );
 
   return Promise.resolve({ instructions });
 };
@@ -1485,7 +1468,6 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
 
   const allInstructions = allInstructionsPerLayout.flatMap((i) => i.instructions);
 
-  console.log({ allInstructions });
   // Should still add this..
   // warnUserIfArchivesMightNeedManualReview(api, instrs stils needed);
   const haveFilesOutsideSelectedInstructions =
