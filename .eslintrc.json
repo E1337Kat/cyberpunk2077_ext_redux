@@ -13,7 +13,8 @@
   },
   "rules": {
     "arrow-body-style": ["error", "as-needed"],
-    "func-style": "off",
+    "curly": "error",
+    "func-style": "error",
     "import/prefer-default-export": "off",
     "linebreak-style": "off",
     "max-len": ["warn", { "code": 140, "comments": 140 }],
@@ -21,13 +22,16 @@
     "operator-linebreak": [
       "error",
       "after",
-      { "overrides": { "?": "before", ":": "before" } }
+      {
+        "overrides": {
+          "?": "before",
+          ":": "before",
+          "|": "before"
+        }
+      }
     ],
     "@typescript-eslint/no-inferrable-types": "off",
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { "argsIgnorePattern": "^_" }
-    ],
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "@typescript-eslint/quotes": "off"
   }
 }

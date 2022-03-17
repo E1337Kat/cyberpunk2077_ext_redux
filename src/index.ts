@@ -1,12 +1,8 @@
 import path from "path";
-import { fs, log, util } from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
-import {
-  VortexInstallFunc,
-  VortexTestSupportedFunc,
-  VortexExtensionContext,
-  VortexGameStoreEntry,
-} from "./vortex-wrapper";
-import { installerPipeline } from "./installers";
+import * as vapi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import { installerPipeline, wrapTestSupported, wrapInstall } from "./installers";
+
 // Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
 const GAME_ID = "cyberpunk2077";
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -30,42 +26,20 @@ const moddingTools = [
   },
 ];
 
-export function findGame() {
-  return util.GameStoreHelper.findByAppId([
-    STEAMAPP_ID,
-    GOGAPP_ID,
-    EPICAPP_ID,
-  ]).then((game: VortexGameStoreEntry) => game.gamePath);
-}
-// function findGame() {
-//   try {
-//     const instPath = winapi.RegGetValue(
-//       'HKEY_LOCAL_MACHINE',
-//       'SOFTWARE\\WOW6432Node\\GOG.com\\Games\\' + GOGAPP_ID,
-//       'PATH');
-//     if (!instPath) {
-//       throw new Error('empty registry key');
-//     }
-//     console.log("Install Path: " + instPath.value)
-//     return Promise.resolve(instPath.value);
-//   } catch (err) {
-//     return util.GameStoreHelper.findByAppId([STEAMAPP_ID,GOGAPP_ID,EPICAPP_ID])
-//       .then(game => game.gamePath);
-//   }
-// }
+export const findGame = () =>
+  vapi.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+    (game: VortexGameStoreEntry) => game.gamePath,
+  );
 
-function requiresGoGLauncher() {
-  return util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
+const requiresGoGLauncher = () =>
+  vapi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
-}
 
-function prepareForModding(discovery) {
-  return fs.readdirAsync(path.join(discovery.path));
-}
+const prepareForModding = (discovery) => vapi.fs.readdirAsync(path.join(discovery.path));
 
 // This is the main function Vortex will run when detecting the game extension.
-function main(vortex: VortexExtensionContext) {
+const main = (vortex: VortexExtensionContext) => {
   vortex.registerGame({
     id: GAME_ID,
     name: "Cyberpunk 2077",
@@ -92,21 +66,15 @@ function main(vortex: VortexExtensionContext) {
   });
 
   installerPipeline.forEach((installer) => {
-    const testSupportedWrapper: VortexTestSupportedFunc = (...args) =>
-      installer.testSupported(vortex.api, log, ...args);
-
-    const installWrapper: VortexInstallFunc = (...args) =>
-      installer.install(vortex.api, log, ...args);
-
     vortex.registerInstaller(
       installer.id,
       installer.priority,
-      testSupportedWrapper,
-      installWrapper,
+      wrapTestSupported(vortex, vapi, installer),
+      wrapInstall(vortex, vapi, installer),
     );
   });
 
   return true;
-}
+};
 
 export default main;

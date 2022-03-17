@@ -1,11 +1,11 @@
 /* eslint-disable prefer-template */
-import { VortexAPI, VortexLogFunc } from "./vortex-wrapper";
+import { NoInstructions } from "./installers.layouts";
+import { VortexApi, VortexLogFunc } from "./vortex-wrapper";
 
-const heredoc = (str: string) =>
-  str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
+const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
 
 export const redCetMixedStructureErrorDialog = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
@@ -35,11 +35,11 @@ export const redCetMixedStructureErrorDialog = (
   );
 };
 export const redWithInvalidFilesErrorDialog = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
-  installable: string[],
+  _installable: string[],
 ) => {
   log("error", `Redscript Mod installer: ${message}`, files);
 
@@ -66,10 +66,96 @@ export const redWithInvalidFilesErrorDialog = (
   );
 };
 
+// Should try to get this doc in a stronger format like using the layout
+//
+// Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/75
+//
+const red4extLayoutDescription = heredoc(`
+  Supported layouts for Red4Ext mods:
+
+  - \`.\\red4ext\\plugins\\[modname]\\[*.dll + any files/subdirs]   (canonical)\`
+    - (if any) \`.\\archive\\pc\\mod\\*.archive\`
+  - \`.\\red4ext\\plugins\\[*.dll + any files/subdirs]              (I can fix this to canonical)\`   
+    - (if any) \`.\\archive\\pc\\mod\\*.archive\`
+  - \`.\\[modname]\\[*.dll + any files/subdirs]                     (I can fix this to canonical)\`   
+    - (if any) \`.\\*.archive\`
+  - \`.\\*.dll                                                      (I can fix this to canonical)\`   
+    - (if any) \`.\\**\\[any files/subdirs]
+    - (if any) \`.\\*.archive\``);
+
+export const showRed4ExtReservedDllErrorDialog = (
+  api: VortexApi,
+  message: string,
+  dangerPaths: string[],
+): void => {
+  api.showDialog(
+    "error",
+    message,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        Because this mod has DLLs, it seems like it might be a Red4Ext mod, but I can't install
+        DLLs that look like they could conflict with known DLL files!
+
+        ${red4extLayoutDescription}
+
+        If any of the following contain DLLs that this mod _should_ install or this isn't a Red4Ext
+        mod at all, please report a bug and we'll see how we can handle it better! In the meanwhile,        
+        you can manually install the files (but please be careful!)
+
+        I cancelled the installation because of these files:
+
+        \`\`\`
+        ${dangerPaths.join("\n")}
+        \`\`\``),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
+export const showRed4ExtStructureErrorDialog = (
+  api: VortexApi,
+  message: string,
+  files: string[],
+  isMultiple?: NoInstructions,
+): void => {
+  const problemDescription = isMultiple
+    ? `
+        I found several possible Red4Ext mod layouts, but can only support one layout per mod.`
+    : `
+        This looks like a Red4Ext mod, but there are files outside any structure that I can handle.`;
+
+  api.showDialog(
+    "error",
+    message,
+    {
+      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
+      md: heredoc(
+        `Installation cancelled!
+
+        ${problemDescription} This mod can't be installed! You'll have to fix it
+        _outside_ Vortex for now!
+
+         Supported layouts:
+
+         ${red4extLayoutDescription}
+
+         These are the files I found in the mod:
+
+         \`\`\`
+         ${files.join("\n")}
+         \`\`\``,
+      ),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
 // Should maybe grab the result here when abstracting,
 // so that we can wait on it if needed
 export const showArchiveStructureErrorDialog = (
-  api: VortexAPI,
+  api: VortexApi,
   message: string,
   files: string[],
 ): void => {
@@ -77,6 +163,7 @@ export const showArchiveStructureErrorDialog = (
     "error",
     message,
     {
+      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
       // Extract this common layout messaging?
       // Maybe generate the supported layouts
       // from some documentation or smth.
@@ -103,7 +190,7 @@ export const showArchiveStructureErrorDialog = (
 };
 
 export const showArchiveInstallWarning = (
-  api: VortexAPI,
+  api: VortexApi,
   warnAboutSubdirs: boolean,
   warnAboutToplevel: boolean,
   files: string[],
@@ -118,6 +205,7 @@ export const showArchiveInstallWarning = (
     "info",
     "Mod Installed But May Need Manual Adjustment!",
     {
+      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
       md: heredoc(
         `I installed the mod, but it may need to be manually adjusted because:
 
@@ -172,14 +260,16 @@ export const showArchiveInstallWarning = (
     ],
   });
   */
-export const fallbackInstallerReachedErrorDialog = (
-  api: VortexAPI,
+export const warnUserAboutHavingReachedFallbackInstallerDialog = (
+  api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
-  installable: string[],
+  _installable: string[],
 ) => {
-  log("error", `Fallback installer: ${message}`, files);
+  log("warn", `Fallback installer: ${message}`, files);
+
+  // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
 
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
@@ -204,11 +294,11 @@ export const fallbackInstallerReachedErrorDialog = (
 };
 
 export const wolvenKitDesktopFoundErrorDialog = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
-  installable: string[],
+  _installable: string[],
 ) => {
   log("error", `CoreWolvenKit installer: ${message}`, files);
 

@@ -1,7 +1,7 @@
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+import { FileTree } from "./filetree";
 
 // Plain renames
-export type VortexAPI = Vortex.IExtensionApi;
 
 export type VortexExtensionContext = Vortex.IExtensionContext;
 export type VortexGameStoreEntry = Vortex.IGameStoreEntry;
@@ -14,14 +14,20 @@ export type VortexLogFunc = (
   metadata?: unknown,
 ) => void;
 
+export type VortexInitContext = Vortex.IExtensionContext;
+export interface VortexApi extends Vortex.IExtensionApi {
+  log: VortexLogFunc;
+}
+
 export type VortexTestResult = Vortex.ISupportedResult;
 export type VortexTestSupportedFunc = Vortex.TestSupported;
 
 // Vortex.TestSupported
 export type VortexWrappedTestSupportedFunc = (
-  vortexApi: VortexAPI,
+  vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
   files: string[],
+  fileTree: FileTree,
   gameID: string,
 ) => Promise<VortexTestResult>;
 
@@ -31,9 +37,10 @@ export type VortexInstruction = Vortex.IInstruction;
 
 // Vortex.InstallFunc
 export type VortexWrappedInstallFunc = (
-  vortexApi: VortexAPI,
+  vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
   files: string[],
+  fileTree: FileTree,
   destinationPath: string,
   gameId: string,
   progressDelegate: VortexProgressDelegate,

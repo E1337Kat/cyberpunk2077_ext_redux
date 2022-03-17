@@ -7,9 +7,10 @@
     }
   ],
   "compilerOptions": {
-    "types": ["jest", "node"],
+    "types": ["jest", "jest-expect-message", "node"],
     "rootDir": "..",
     "noEmit": true,
+    "sourceMap": true,
     "baseUrl": "..",
     "paths": {
       "*": ["../node_modules/vortex-api/lib/types/*"]

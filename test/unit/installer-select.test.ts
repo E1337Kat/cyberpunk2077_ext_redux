@@ -1,9 +1,5 @@
 import { AllModTypes, AllExpectedTestSupportFailures } from "./mods.example";
-import {
-  getFallbackInstaller,
-  matchInstaller,
-  matchSpecific,
-} from "./utils.helper";
+import { matchInstaller } from "./utils.helper";
 
 // These are actually already tested in installer-fix… (including
 // the expected failures!) but I guess it doesn’t hurt to have this.
@@ -25,17 +21,28 @@ describe("Selecting the installer for a mod type", () => {
     describe(`testSupport attempts that should fail, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`rejects with an error when ${desc}`, async () => {
-          expect(() => matchInstaller(mod.inFiles)).rejects.toThrowError(
-            mod.failure,
-          );
+          let message;
+
+          try {
+            // wow
+            await matchInstaller(mod.inFiles);
+          } catch (error) {
+            // such type
+            message = error.message;
+          } finally {
+            if (message) {
+              // much fp
+              expect(message).toEqual(mod.failure);
+            } else {
+              // very safety
+              expect(message, `should've rejected for ${desc}`).toEqual(mod.failure);
+            }
+          }
         });
       });
     });
   });
 
-  describe("Verifying that the fallback is last in the pipeline", () => {
-    const fallbackInstaller = getFallbackInstaller();
-  });
   // describe("fallback for anything that doesn't match other installers", () => {
   //   const fallbackInstaller = getFallbackInstaller();
 

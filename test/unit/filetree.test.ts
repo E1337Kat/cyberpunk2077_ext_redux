@@ -1,6 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import path from "path";
 import {
+  Glob,
+  dirWithSomeIn,
   fileTreeFromPaths,
   findAllSubdirsWithSome,
   findTopmostSubdirsWithSome,
@@ -8,7 +10,7 @@ import {
   FILETREE_ROOT,
   FILETREE_TOPLEVEL,
   filesIn,
-  dirWithSomeIn,
+  pathInTree,
 } from "../../src/filetree";
 
 const paths = [
@@ -22,11 +24,17 @@ const paths = [
   path.normalize("sub2/"),
   path.normalize("sub2/sub22/f22.seek"),
   path.normalize("sub2/sub23/f23.notseek"),
-  path.normalize("sub2/sub24/"),
+  path.normalize("sub2/emptydir/"),
   path.normalize("sub2/f24.seek"),
   path.normalize("sub2/f2r.notseek"),
   path.normalize("sub2/x2h"),
 ];
+
+const filePaths = paths.filter((p) => !p.endsWith(path.sep));
+const dirPaths = paths.filter((p) => p.endsWith(path.sep));
+
+const emptyDirPaths = [path.normalize("sub2/emptydir/")];
+const nonEmptyDirPaths = dirPaths.filter((d) => !emptyDirPaths.includes(d));
 
 const matchSeek = (f) => path.extname(f) === ".seek";
 
@@ -34,7 +42,7 @@ describe("FileTree", () => {
   test("doesn't store directories as values", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    expect(fileTree.getSub("")).toEqual([
+    expect(fileTree._kt.getSub(FILETREE_ROOT)).toEqual([
       path.normalize("topf1.seek"),
       path.normalize("topf2.seek"),
       path.normalize("topf3.notseek"),
@@ -51,8 +59,8 @@ describe("FileTree", () => {
   test("has expected root and top-level", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const rootNode = fileTree._getNode("");
-    const topNode = fileTree._getNode(".");
+    const rootNode = fileTree._kt._getNode("");
+    const topNode = fileTree._kt._getNode(".");
 
     expect(rootNode.key).toBe("");
     expect(topNode.key).toBe(".");
@@ -60,43 +68,69 @@ describe("FileTree", () => {
     expect(topNode.parent.parent).toBeUndefined();
   });
 
-  test("path lookup handling", () => {
+  test("pathInTree looks for files", () => {
+    const fileTree = fileTreeFromPaths(paths);
+    filePaths.forEach((p) => {
+      expect(pathInTree(p, fileTree)).toBeTruthy();
+    });
+
+    expect(pathInTree(path.normalize("foo"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("topf1"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
+  });
+
+  test("pathInTree looks for directories IF they have files somewhere under them", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    expect(filesIn(path.normalize("."), fileTree)).toEqual([
+    nonEmptyDirPaths.forEach((d) => {
+      expect(pathInTree(d, fileTree)).toBeTruthy();
+    });
+
+    emptyDirPaths.forEach((d) => {
+      expect(pathInTree(d, fileTree)).toBeFalsy();
+    });
+
+    expect(pathInTree(path.normalize("foo"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("topf1"), fileTree)).toBeFalsy();
+    expect(pathInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
+  });
+
+  test("path lookup", () => {
+    const fileTree = fileTreeFromPaths(paths);
+
+    expect(filesIn(path.normalize("."), Glob.Any, fileTree)).toEqual([
       "topf1.seek",
       "topf2.seek",
       "topf3.notseek",
     ]);
-    expect(
-      dirWithSomeIn(path.normalize("."), matchSeek, fileTree),
-    ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub1/"), fileTree)).toEqual([]);
-    expect(
-      dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree),
-    ).toBeFalsy();
+    expect(dirWithSomeIn(path.normalize("."), matchSeek, fileTree)).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub1/sub12/"), fileTree)).toEqual([
+    expect(filesIn(path.normalize("sub1/"), Glob.Any, fileTree)).toEqual([]);
+
+    expect(dirWithSomeIn(path.normalize("sub1/"), matchSeek, fileTree)).toBeFalsy();
+
+    expect(filesIn(path.normalize("sub1/sub12/"), Glob.Any, fileTree)).toEqual([
       "sub1\\sub12\\f12.seek",
       "sub1\\sub12\\f12.notseek",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("sub1/sub12/"), matchSeek, fileTree),
     ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub2/"), fileTree)).toEqual([
+    expect(filesIn(path.normalize("sub2/"), Glob.Any, fileTree)).toEqual([
       "sub2\\f24.seek",
       "sub2\\f2r.notseek",
       "sub2\\x2h",
     ]);
-    expect(
-      dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree),
-    ).toBeTruthy();
 
-    expect(filesIn(path.normalize("sub2/sub22"), fileTree)).toEqual([
+    expect(dirWithSomeIn(path.normalize("sub2/"), matchSeek, fileTree)).toBeTruthy();
+
+    expect(filesIn(path.normalize("sub2/sub22"), Glob.Any, fileTree)).toEqual([
       "sub2\\sub22\\f22.seek",
     ]);
+
     expect(
       dirWithSomeIn(path.normalize("sub2/sub22/"), matchSeek, fileTree),
     ).toBeTruthy();
@@ -119,11 +153,7 @@ describe("FileTree", () => {
   test("findAllSubdirsWithSome excluding toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findAllSubdirsWithSome(
-      FILETREE_TOPLEVEL,
-      matchSeek,
-      fileTree,
-    );
+    const found = findAllSubdirsWithSome(FILETREE_TOPLEVEL, matchSeek, fileTree);
 
     expect(found).toEqual([
       path.normalize("sub1/sub12"),
@@ -148,26 +178,15 @@ describe("FileTree", () => {
   test("findTopmostSubdirsWithSome excluding toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findTopmostSubdirsWithSome(
-      FILETREE_TOPLEVEL,
-      matchSeek,
-      fileTree,
-    );
+    const found = findTopmostSubdirsWithSome(FILETREE_TOPLEVEL, matchSeek, fileTree);
 
-    expect(found).toEqual([
-      path.normalize("sub1/sub12"),
-      path.normalize("sub2"),
-    ]);
+    expect(found).toEqual([path.normalize("sub1/sub12"), path.normalize("sub2")]);
   });
 
   test("findTopmostSubdirsWithSome including toplevel", () => {
     const fileTree = fileTreeFromPaths(paths);
 
-    const found = findTopmostSubdirsWithSome(
-      FILETREE_ROOT,
-      matchSeek,
-      fileTree,
-    );
+    const found = findTopmostSubdirsWithSome(FILETREE_ROOT, matchSeek, fileTree);
 
     expect(found).toEqual([
       path.normalize("."),

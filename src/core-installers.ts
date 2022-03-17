@@ -1,22 +1,19 @@
 import { win32 } from "path";
 import {
-  VortexAPI,
+  VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexInstruction,
   VortexInstallResult,
-  VortexProgressDelegate,
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { instructionsForSameSourceAndDestPaths } from "./installers";
+import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
+import { FileTree } from "./filetree";
 import { wolvenKitDesktopFoundErrorDialog } from "./dialogs";
 
 const path = win32;
 
-const CET_CORE_IDENTIFIER = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks.asi",
-);
+const CET_CORE_IDENTIFIERS = [path.normalize("bin/x64/plugins/cyber_engine_tweaks.asi")];
 
 const REDSCRIPT_CORE_IDENTIFIERS = [
   path.normalize("engine/config/base/scripts.ini"),
@@ -35,29 +32,28 @@ const CSVMERGE_UNIQUE_FILE = path.normalize("csvmerge/CSVMerge.cmd");
 const WOLVENKIT_UNIQUE_FILE = path.normalize("WolvenKit CLI/WolvenKit.CLI.exe");
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CET Core matcher, input files: ", files);
-
-  if (!files.includes(CET_CORE_IDENTIFIER))
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
+  const containsAllNecessaryCetFiles = CET_CORE_IDENTIFIERS.every((cetPath) =>
+    files.includes(cetPath),
+  );
 
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryCetFiles,
     requiredFiles: [],
   });
 };
 
 export const installCetCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   log("info", "Using CETCore installer");
@@ -68,68 +64,58 @@ export const installCetCore: VortexWrappedInstallFunc = (
 };
 
 export const testForRedscriptCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting Redscript Core matcher, input files: ", files);
+  const containsAllNecessaryRedsFiles = REDSCRIPT_CORE_IDENTIFIERS.every((redsPath) =>
+    files.includes(redsPath),
+  );
 
-  for (var index = 0; index < REDSCRIPT_CORE_IDENTIFIERS.length; index++) {
-    if (!files.includes(REDSCRIPT_CORE_IDENTIFIERS[index]))
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-  }
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryRedsFiles,
     requiredFiles: [],
   });
 };
 
 export const installRedscriptCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using RedscriptCore installer");
-
   const instructions = instructionsForSameSourceAndDestPaths(files);
 
   return Promise.resolve({ instructions });
 };
 
 export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting RED4ext Core matcher, input files: ", files);
+  const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every((red4extPath) =>
+    files.includes(red4extPath),
+  );
 
-  for (var index = 0; index < RED4EXT_CORE_IDENTIFIERS.length; index++) {
-    if (!files.includes(RED4EXT_CORE_IDENTIFIERS[index]))
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-  }
   return Promise.resolve({
-    supported: true,
+    supported: containsAllNecessaryRed4ExtPaths,
     requiredFiles: [],
   });
 };
 
 export const installRed4ExtCore: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using Red4ExtCore installer");
-
   const red4extInstructions = instructionsForSameSourceAndDestPaths(files);
 
   const pluginsDir = [].concat({
@@ -142,18 +128,21 @@ export const installRed4ExtCore: VortexWrappedInstallFunc = (
 };
 
 export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CSV Core matcher, input files: ", files);
 
-  if (!files.includes(CSVMERGE_UNIQUE_FILE))
+  if (!files.includes(CSVMERGE_UNIQUE_FILE)) {
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
+  }
+
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
@@ -161,9 +150,10 @@ export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
 };
 
 export const installCoreCsvMerge: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   log("info", "Using CSV installer");
@@ -174,29 +164,26 @@ export const installCoreCsvMerge: VortexWrappedInstallFunc = (
 };
 
 export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting WolvenKit CLI matcher, input files: ", files);
 
-  if (
-    files.some((file: string) =>
-      file.toLowerCase().startsWith("wolvenkit desktop"),
-    )
-  ) {
-    const message =
-      "WolvenKit Desktop is not able to be installed with Vortex.";
+  if (files.some((file: string) => file.toLowerCase().startsWith("wolvenkit desktop"))) {
+    const message = "WolvenKit Desktop is not able to be installed with Vortex.";
     wolvenKitDesktopFoundErrorDialog(api, log, message, files, []);
     return Promise.reject(new Error(message));
   }
 
-  if (!files.includes(WOLVENKIT_UNIQUE_FILE))
+  if (!files.includes(WOLVENKIT_UNIQUE_FILE)) {
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
+  }
 
   return Promise.resolve({
     supported: true,
@@ -205,16 +192,15 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
 };
 
 export const installCoreWolvenkit: VortexWrappedInstallFunc = (
-  api: VortexAPI,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
+  _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   log("info", "Using Wolvenkit CLI installer");
 
-  const allWolvenKitFiles = files.filter(
-    (file: string) => !file.endsWith(path.sep),
-  );
+  const allWolvenKitFiles = files.filter((file: string) => !file.endsWith(path.sep));
 
   const wolvenKitInstructions = allWolvenKitFiles.map((file: string) => {
     const regex = /^WolvenKit CLI/;

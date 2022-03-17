@@ -1,19 +1,23 @@
-import path, { join } from "path";
+import path from "path";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 
 import { pathHierarchyFor } from "./utils.helper";
+
+import { InstallerType } from "../../src/installers";
 
 import {
   CET_MOD_CANONICAL_INIT_FILE,
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
+  RED4EXT_MOD_CANONICAL_BASEDIR,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
-  InstallerType,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
   INI_MOD_PATH,
   RESHADE_MOD_PATH,
-  SHADERS_PATH,
-} from "../../src/installers";
+  RESHADE_SHADERS_PATH,
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+} from "../../src/installers.layouts";
 
 export type InFiles = string[];
 
@@ -23,11 +27,10 @@ export interface ExampleMod {
   outInstructions: Vortex.IInstruction[];
 }
 
-export type FailureMatchers = string | RegExp | Error;
 export interface ExampleFailingMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
-  failure?: FailureMatchers;
+  failure?: string;
 }
 
 export type ExampleModCategory = Map<string, ExampleMod>;
@@ -55,6 +58,9 @@ const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 const REDS_PREFIX = REDS_MOD_CANONICAL_PATH_PREFIX;
 const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
+const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
+const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
+
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
@@ -68,12 +74,8 @@ export const CoreCetInstall = new Map<string, ExampleMod>(
         path.join(`${GAME_DIR}/LICENSE`),
         path.join(`${GAME_DIR}/version.dll`),
         path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
-        path.join(
-          `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
-        ),
-        path.join(
-          `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
-        ),
+        path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`),
+        path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`),
         path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
         path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
         path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
@@ -252,9 +254,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("csvmerge/CSVMerge_Tutorial_&_Readme.txt"),
-          destination: path.normalize(
-            "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
-          ),
+          destination: path.normalize("csvmerge/CSVMerge_Tutorial_&_Readme.txt"),
         },
         {
           type: "copy",
@@ -296,12 +296,8 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.normalize(
-            "csvmerge/wolvenkitcli/install wkit console here",
-          ),
-          destination: path.normalize(
-            "csvmerge/wolvenkitcli/install wkit console here",
-          ),
+          source: path.normalize("csvmerge/wolvenkitcli/install wkit console here"),
+          destination: path.normalize("csvmerge/wolvenkitcli/install wkit console here"),
         },
         {
           type: "copy",
@@ -339,23 +335,17 @@ export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("WolvenKit CLI/AsyncEnumerable.dll"),
-          destination: path.normalize(
-            "csvmerge/wolvenkitcli/AsyncEnumerable.dll",
-          ),
+          destination: path.normalize("csvmerge/wolvenkitcli/AsyncEnumerable.dll"),
         },
         {
           type: "copy",
           source: path.normalize("WolvenKit CLI/Microsoft.Data.Sqlite.dll"),
-          destination: path.normalize(
-            "csvmerge/wolvenkitcli/Microsoft.Data.Sqlite.dll",
-          ),
+          destination: path.normalize("csvmerge/wolvenkitcli/Microsoft.Data.Sqlite.dll"),
         },
         {
           type: "copy",
           source: path.normalize("WolvenKit CLI//WolvenKit.CLI.exe"),
-          destination: path.normalize(
-            "csvmerge/wolvenkitcli//WolvenKit.CLI.exe",
-          ),
+          destination: path.normalize("csvmerge/wolvenkitcli//WolvenKit.CLI.exe"),
         },
       ],
     },
@@ -402,9 +392,7 @@ export const CetMod = new Map<string, ExampleMod>(
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         path.join(`${CET_PREFIX}/exmod/README.md`),
         path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/`),
-        path.join(
-          `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
-        ),
+        path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`),
         path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`),
         path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
         path.join(`${CET_PREFIX}/exmod/Modules/MagicCheats.lua`),
@@ -421,9 +409,7 @@ export const CetMod = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`,
-          ),
+          source: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`),
           destination: path.join(
             `${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`,
           ),
@@ -564,9 +550,7 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`script.reds`),
-          destination: path.join(
-            `${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`,
-          ),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
       ],
     },
@@ -582,26 +566,19 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(
-            `${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`,
-          ),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
         {
           type: "copy",
           source: path.join(`${REDS_PREFIX}/notascript.reds`),
-          destination: path.join(
-            `${REDS_PREFIX}/${FAKE_STAGING_NAME}/notascript.reds`,
-          ),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/notascript.reds`),
         },
       ],
     },
   }),
 );
 
-export const RedscriptModShouldFailInInstall = new Map<
-  string,
-  ExampleFailingMod
->(
+export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod>(
   Object.entries({
     redsScriptInTopLevelDirShouldFail: {
       expectedInstallerType: InstallerType.Redscript,
@@ -624,6 +601,203 @@ export const RedscriptModShouldFailInInstall = new Map<
     },
   }),
 );
+
+export const Red4ExtMod = new Map<string, ExampleMod>(
+  Object.entries({
+    red4extWithSingleFileCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+      ],
+    },
+    red4extWithMultipleFilesCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
+        },
+      ],
+    },
+    red4extIncludingNonRedsAndNonemptySubdirsCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/emptysubs/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
+        },
+      ],
+    },
+    red4extWithDllsInBasedirIsFixableNameable: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/`),
+        path.join(`${RED4EXT_PREFIX}/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/notascript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notascript.dll`),
+        },
+      ],
+    },
+    red4extWithFilesInBasedirANDSubdirsIeInCanonicalIsFixableNameable: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/notcanonicalnow/`),
+        path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
+          destination: path.join(
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notcanonicalnow/notascript.dll`,
+          ),
+        },
+      ],
+    },
+    red4extWithFilesInToplevelAndMaybeSubdirsIsFixableModnamed: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`script.dll`),
+        path.join(`notcanonicalnow/`),
+        path.join(`notcanonicalnow/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`notcanonicalnow/notascript.dll`),
+          destination: path.join(
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notcanonicalnow/notascript.dll`,
+          ),
+        },
+      ],
+    },
+    red4extWithFilesInToplevelSubdirIsFixable: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`notcanonicalnow/`),
+        path.join(`notcanonicalnow/notascript.dll`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`notcanonicalnow/notascript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
+        },
+      ],
+    },
+  }),
+);
+
+const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
+  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.map(
+    (dir: string): [string, ExampleFailingMod] => [
+      `red4ext DLL in dangerous dir ${dir}`,
+      {
+        expectedInstallerType: InstallerType.Red4Ext,
+        inFiles: [path.join(dir, "some.dll")],
+        failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+      },
+    ],
+  ),
+  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.map((dll: string): [string, ExampleFailingMod] => [
+    `red4ext DLL with reserved name ${dll}`,
+    {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [path.join(`bin/x64/scripties.dll`)],
+      failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+    },
+  ]),
+  ...Object.entries({
+    red4extWithMoreThanOneToplevelSubdirWithDllsFails: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        path.join(`subdir1/`),
+        path.join(`subdir1/script1.dll`),
+        path.join(`subdir2/`),
+        path.join(`subdir2/script2.dll`),
+      ],
+      failure: `Ambiguous Structure For Red4Ext Mod!`,
+    },
+  }),
+]);
 
 export const ArchiveOnly = new Map<string, ExampleMod>(
   Object.entries({
@@ -751,9 +925,7 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
     },
     archiveWithArchivesTopLevelAndFolder: {
       expectedInstallerType: InstallerType.ArchiveOnly,
-      inFiles: ["first.archive", "fold1/", "fold1/second.archive"].map(
-        path.normalize,
-      ),
+      inFiles: ["first.archive", "fold1/", "fold1/second.archive"].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
@@ -801,9 +973,7 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("fold1/thisisenough.md"),
-          destination: path.normalize(
-            `${ARCHIVE_PREFIX}/fold1/thisisenough.md`,
-          ),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/thisisenough.md`),
         },
       ],
     },
@@ -984,11 +1154,9 @@ export const JsonMod = new Map<string, ExampleMod>(
     },
     jsonInRandomFolder: {
       expectedInstallerType: InstallerType.Json,
-      inFiles: [
-        "fold1/",
-        "fold1/giweights.json",
-        "fold1/bumpersSettings.json",
-      ].map(path.normalize),
+      inFiles: ["fold1/", "fold1/giweights.json", "fold1/bumpersSettings.json"].map(
+        path.normalize,
+      ),
       outInstructions: [
         {
           type: "copy",
@@ -1036,9 +1204,7 @@ export const JsonMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("r6/config/settings/platform/pc/options.json"),
-          destination: path.normalize(
-            "r6/config/settings/platform/pc/options.json",
-          ),
+          destination: path.normalize("r6/config/settings/platform/pc/options.json"),
         },
       ],
     },
@@ -1055,9 +1221,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
     },
     jsonWithUnknownFileFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
-      inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(
-        path.normalize,
-      ),
+      inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(path.normalize),
       failure: "Found JSON files that aren't part of the game.",
     },
   }),
@@ -1133,12 +1297,12 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`),
         },
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Textures/lut.png"),
-          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Textures/lut.png`),
         },
       ],
     },
@@ -1161,12 +1325,12 @@ export const IniMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(`${SHADERS_PATH}/Shaders/fancy.fx`),
+          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`),
         },
         {
           type: "copy",
           source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
-          destination: path.normalize(`${SHADERS_PATH}/Textures/lut.png`),
+          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Textures/lut.png`),
         },
       ],
     },
@@ -1228,29 +1392,25 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreWolvenkitCliInstall,
     CetMod,
     RedscriptMod,
+    Red4ExtMod,
+    JsonMod,
     IniMod,
     ArchiveOnly,
     ValidExtraArchivesWithType,
-    JsonMod,
     ValidTypeCombinations,
     ExampleInvalidModsForFallback,
   }),
 );
 
-export const AllExpectedTestSupportFailures = new Map<
-  string,
-  ExampleFailingModCategory
->(
+export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     JsonModShouldFailInTest,
+    Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
   }),
 );
 
-export const AllExpectedInstallFailures = new Map<
-  string,
-  ExampleFailingModCategory
->(
+export const AllExpectedInstallFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     RedscriptModShouldFailInInstall,
   }),

@@ -1,16 +1,11 @@
+import mockFs from "mock-fs";
+import { fileTreeFromPaths } from "../../src/filetree";
 import {
   AllExpectedInstallFailures,
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
-import {
-  getFallbackInstaller,
-  matchInstaller,
-  mockVortexAPI,
-  mockVortexLog,
-} from "./utils.helper";
-
-const mockFs = require("mock-fs");
+import { matchInstaller, mockVortexApi, mockVortexLog } from "./utils.helper";
 
 describe("Transforming modules to instructions", () => {
   beforeEach(() =>
@@ -54,9 +49,10 @@ describe("Transforming modules to instructions", () => {
           expect(installer.type).toBe(mod.expectedInstallerType);
 
           const installResult = await installer.install(
-            mockVortexAPI,
+            mockVortexApi,
             mockVortexLog,
             mod.inFiles,
+            fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
             null,
             null,
@@ -78,9 +74,10 @@ describe("Transforming modules to instructions", () => {
 
           expect(() =>
             installer.install(
-              mockVortexAPI,
+              mockVortexApi,
               mockVortexLog,
               mod.inFiles,
+              fileTreeFromPaths(mod.inFiles),
               FAKE_STAGING_PATH,
               null,
               null,
@@ -91,27 +88,27 @@ describe("Transforming modules to instructions", () => {
     });
   });
 
+  /*
   describe("Verifying that the fallback is last in the pipeline", () => {
     const fallbackInstaller = getFallbackInstaller();
+
+    AllModTypes.forEach((type) => {
+      type.forEach(async (mod, desc) => {
+        test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
+          const installResult = await fallbackInstaller.install(
+            mockVortexApi,
+            mockVortexLog,
+            mod.inFiles,
+            fileTreeFromPaths(mod.inFiles),
+            FAKE_STAGING_PATH,
+            null,
+            null,
+          );
+
+          expect(installResult.instructions).toEqual([]);
+        });
+      });
+    });
   });
-  // describe("fallback for anything that doesn't match other installers", () => {
-  //   const fallbackInstaller = getFallbackInstaller();
-
-  //   AllModTypes.forEach((type) => {
-  //     type.forEach(async (mod, desc) => {
-  //       test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
-  //         const installResult = await fallbackInstaller.install(
-  //           mockVortexAPI,
-  //           mockVortexLog,
-  //           mod.inFiles,
-  //           FAKE_STAGING_PATH,
-  //           null,
-  //           null,
-  //         );
-
-  //         expect(installResult.instructions).toEqual([]);
-  //       });
-  //     });
-  //   });
-  // });
+  */
 });
