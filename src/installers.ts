@@ -84,6 +84,7 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
+import { trueish } from "./installers.utils";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -1345,6 +1346,128 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
+// MultiType installer
+
+export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
+  api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  const hasCanonCet = detectCetCanonLayout(fileTree);
+  const hasCanonRedscript = detectRedscriptCanonLayout(fileTree);
+  const hasCanonRed4Ext = detectRed4ExtCanonLayout(fileTree);
+
+  const doesntHaveAtLeastTwoTypes =
+    [hasCanonCet, hasCanonRedscript, hasCanonRed4Ext].filter(trueish).length < 2;
+
+  if (doesntHaveAtLeastTwoTypes) {
+    api.log("debug", "MultiType didn't match");
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  api.log("info", "MultiType mod detected", {
+    hasCanonCet,
+    hasCanonRedscript,
+    hasCanonRed4Ext,
+  });
+
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+// Install the Redscript stuff, as well as any archives we find
+export const installMultiTypeMod: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  /*
+  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
+  files.forEach((file) => fileTree.add(path.dirname(file), file));
+
+  // We could get a lot fancier here, but for now we don't accept
+  // subdirectories anywhere other than in a canonical location.
+
+  // .\*.reds -- not actually wanted in this case. we only will allow installation if all files are packaged nicely
+  const topLevelReds = fileTree.get(".").filter(matchRedscript);
+  if (topLevelReds.length > 0) {
+    const message =
+      "The reds are not correctly structured, installing through vortex isn't possible.";
+    redCetMixedStructureErrorDialog(api, log, message, files);
+    return Promise.reject(new Error(message));
+  }
+  // .\r6\scripts\*.reds
+  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
+
+  // We also only accept one subdir, anything else might be trouble
+  // But grab everything under it.
+
+  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+
+  // .\r6\scripts\[mod]\**\*
+  const canonRedsModFiles =
+    base && base.children.length === 1
+      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
+      : [];
+
+  const cetFiles = allCanonicalCetFiles(files);
+
+  if (cetFiles.length === 0) {
+    return Promise.reject(
+      new Error("Red + CET install but no CET files, should never get here"),
+    );
+  }
+
+  const installableReds = [canonRedsModFiles, redsDirReds].filter(
+    (location) => location.length > 0,
+  );
+
+  if (installableReds.length === 0) {
+    const message = "No Redscript found, should never get here.";
+    log("error", `Redscript Mod installer: ${message}`, files);
+    return Promise.reject(new Error(message));
+  }
+
+  // Only allow installation if all of the reds are either in their subfolder or not.
+  if (installableReds.length > 1) {
+    const message = "Conflicting Redscript locations, bailing out!";
+    redWithInvalidFilesErrorDialog(api, log, message, files, installableReds);
+
+    return Promise.reject(new Error(message));
+  }
+
+  // since cet has to be in a mod dir, lets use it's mod dir name for the reds if there is none.
+  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
+  const modName = moddir.children[0].key;
+
+  // Let's grab archives too
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
+
+  // Only one of these should exist but why discriminate?
+  const allSourcesAndDestinations = [
+    canonRedsModFiles.map(toSamePath),
+    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    cetFiles.map(toSamePath),
+    archiveOnlyFiles.map(toSamePath),
+  ];
+
+  const instructions = allSourcesAndDestinations.flatMap(
+    instructionsForSourceToDestPairs,
+  );
+
+  return Promise.resolve({ instructions });
+  */
+  return Promise.reject(new Error("shouldn't get here"));
+};
+
+// Setup stuff, pipeline
+
 // Rather than keep the order by entering numbers,
 // just keep the array ordered and we tag the
 // installers with priority here
@@ -1400,6 +1523,12 @@ const installers: Installer[] = [
     id: "cp2077-core-wolvenkit-mod",
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
+  },
+  {
+    type: InstallerType.MultiType,
+    id: "cp2077-multitype-mod",
+    testSupported: testForMultiTypeMod,
+    install: installMultiTypeMod,
   },
   {
     type: InstallerType.RedCetMix,
