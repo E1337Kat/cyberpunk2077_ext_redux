@@ -13,6 +13,7 @@ import {
   filesUnder,
   pathInTree,
   findDirectSubdirsWithSome,
+  dirWithSomeIn,
 } from "./filetree";
 import {
   VortexApi,
@@ -101,6 +102,7 @@ const makeModName = (vortexDestinationPath: string) =>
 // Types
 
 export enum InstallerType {
+  MultiType = "Multiple Types Combined", // #79
   CoreCET = "Core/CET", // #32
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
@@ -217,16 +219,15 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 // Last of the main ones to try, but first defined so that we
 // can use the layouts below.
 
+const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
+  dirWithSomeUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, fileTree);
+
 const archiveCanonInstructions = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasCanonFiles = dirWithSomeUnder(
-    ARCHIVE_ONLY_CANONICAL_PREFIX,
-    matchArchive,
-    fileTree,
-  );
+  const hasCanonFiles = detectArchiveCanonLayout(fileTree);
 
   if (!hasCanonFiles) {
     return NoInstructions.NoMatch;
@@ -240,16 +241,15 @@ const archiveCanonInstructions = (
   };
 };
 
+const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
+  dirWithSomeUnder(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX, matchArchive, fileTree);
+
 const archiveHeritageInstructions = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasOldCanonFiles = dirWithSomeUnder(
-    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-    matchArchive,
-    fileTree,
-  );
+  const hasOldCanonFiles = detectArchiveHeritageLayout(fileTree);
 
   if (!hasOldCanonFiles) {
     return NoInstructions.NoMatch;
@@ -473,6 +473,15 @@ const extraCanonArchiveInstructions = (
 
 // CET
 
+const matchCetInitLua = (f: string): boolean =>
+  path.basename(f) === CET_MOD_CANONICAL_INIT_FILE;
+
+const findCanonicalCetDirs = (fileTree: FileTree): string[] =>
+  findDirectSubdirsWithSome(CET_MOD_CANONICAL_PATH_PREFIX, matchCetInitLua, fileTree);
+
+const detectCetCanonLayout = (fileTree: FileTree): boolean =>
+  findCanonicalCetDirs(fileTree).length > 0;
+
 export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
@@ -603,29 +612,19 @@ export const installRedCetMixedMod: VortexWrappedInstallFunc = (
 // Archives: both canonical
 
 export const testForCetMod: VortexWrappedTestSupportedFunc = (
-  api: VortexApi,
+  _api: VortexApi,
   log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  _files: string[],
+  fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  const fileTree = new KeyTree({ separator: path.sep });
+  const hasCetFilesInANamedModDir = detectCetCanonLayout(fileTree);
 
-  files.forEach((file) => fileTree.add(file, file));
-
-  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  if (!moddir || moddir.children.length === 0) {
+  if (!hasCetFilesInANamedModDir) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
-  const hasCetFilesInANamedModDir = moddir.children.some(
-    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
-  );
-
-  if (hasCetFilesInANamedModDir) {
-    log("info", `Matching CET installer: ${hasCetFilesInANamedModDir}`);
-  }
+  log("info", `Matching CET installer: ${hasCetFilesInANamedModDir}`);
 
   return Promise.resolve({
     supported: hasCetFilesInANamedModDir,
@@ -672,6 +671,14 @@ export const installCetMod: VortexWrappedInstallFunc = (
 //
 // Archives:
 //  - Canonical both only
+
+const detectRedscriptCanonLayout = (fileTree: FileTree): boolean =>
+  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree)
+    .length > 0;
+
+const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
+  dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+
 export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
@@ -826,14 +833,15 @@ const red4extBasedirLayout: InstructionsFromFileTree = (
   };
 };
 
+const detectRed4ExtCanonLayout = (fileTree: FileTree): boolean =>
+  findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length > 0;
+
 const red4extCanonLayout: InstructionsFromFileTree = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasCanonFiles =
-    findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length >
-    0;
+  const hasCanonFiles = detectRed4ExtCanonLayout(fileTree);
 
   if (!hasCanonFiles) {
     return NoInstructions.NoMatch;
