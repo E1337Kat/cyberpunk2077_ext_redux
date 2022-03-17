@@ -192,26 +192,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 //   return Promise.resolve({ instructions });
 // }
 
-/**
- * @todo implement logic
- * @param _file a file to check
- * @returns true is the file is a reshade ini file, false otherwise
- */
-function reshadeINI(_file: string): boolean {
-  return false;
-}
-
-/**
- *
- * @param file Full file path string to check
- * @returns true if it looks like an INI mod file
- *
- * @todo distinguish Reshade ini files: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/8
- */
-function matchIniFile(file: string): boolean {
-  return path.extname(file).toLowerCase() === INI_MOD_EXT && !reshadeINI(file);
-}
-
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
 
@@ -1175,7 +1155,7 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   files: string[],
   gameId: string,
 ): Promise<VortexTestResult> => {
-  log("debug", "Checking Files: ", files);
+  log("debug", "Fallback installer received Files: ", files);
 
   // Make sure we're able to support this mod.
   const correctGame = gameId === GAME_ID;
@@ -1187,11 +1167,6 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
     });
   }
 
-  const hasIniMod = files.some(matchIniFile);
-  log("debug", "Probably INI mods: ", hasIniMod);
-
-  // if (hasIniMod) {
-  //   log("info", "mod supported by this installer");
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
@@ -1216,28 +1191,13 @@ export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
   files: string[],
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // Gather any INI files
-  const iniModFiles = files.filter(matchIniFile);
-
   log("info", "Fallback installer. Copying 1:1: ", files);
-  const filtered = files.filter((file: string) => !file.endsWith(path.sep));
-  const instr = filtered.map((file) => ({
-    type: "copy",
-    source: file,
-    destination: path.join(INI_MOD_PATH, path.basename(file)),
-  }));
 
-  const instructions = [].concat(instr);
+  const instructions = [].concat(instructionsForSameSourceAndDestPaths(files));
 
   const message =
     "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-  fallbackInstallerReachedErrorDialog(
-    _api,
-    log,
-    message,
-    filtered,
-    instructions,
-  );
+  fallbackInstallerReachedErrorDialog(_api, log, message, files, instructions);
 
   return Promise.resolve({ instructions });
 };
