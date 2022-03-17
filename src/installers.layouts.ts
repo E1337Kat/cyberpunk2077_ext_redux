@@ -114,10 +114,13 @@ export const enum NoLayout {
   Optional = "it's a valid result that nothing was found",
 }
 
-export type Layout = Red4ExtLayout | ArchiveLayout | NoLayout;
+export type Layout = MultiTypeLayout | Red4ExtLayout | ArchiveLayout | NoLayout;
 
 export const enum NoInstructions {
   NoMatch = "attempted layout didn't match",
+}
+
+export const enum InvalidLayout {
   OnlyOneAllowed = "there were too many subdirs that matched",
 }
 
@@ -126,9 +129,9 @@ export type Instructions = {
   instructions: VortexInstruction[];
 };
 
-export type MaybeInstructions = Instructions | NoInstructions;
+export type MaybeInstructions = Instructions | NoInstructions | InvalidLayout;
 
-export type InstructionsFromFileTree = (
+export type LayoutToInstructions = (
   api: VortexApi,
   modName: string,
   f: FileTree,

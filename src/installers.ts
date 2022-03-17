@@ -14,6 +14,8 @@ import {
   pathInTree,
   findDirectSubdirsWithSome,
   dirWithSomeIn,
+  fileCount,
+  sourcePaths,
 } from "./filetree";
 import {
   VortexApi,
@@ -50,10 +52,11 @@ import {
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
   ArchiveLayout,
   Instructions,
-  InstructionsFromFileTree,
+  LayoutToInstructions,
   NoInstructions,
   MaybeInstructions,
   NoLayout,
+  InvalidLayout,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -223,7 +226,7 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
   dirWithSomeUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, fileTree);
 
-const archiveCanonInstructions = (
+const archiveCanonLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
@@ -245,7 +248,7 @@ const archiveCanonInstructions = (
 const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
   dirWithSomeUnder(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX, matchArchive, fileTree);
 
-const archiveHeritageInstructions = (
+const archiveHeritageLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
@@ -395,7 +398,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   // Once again we could get fancy, but let's not
 
-  const possibleLayoutsToTryInOrder: InstructionsFromFileTree[] = [
+  const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
     archiveCanonInstructions,
     archiveHeritageInstructions,
     archiveOtherDirsToCanonInstructions,
@@ -410,7 +413,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   if (
     chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === NoInstructions.OnlyOneAllowed
+    chosenInstructions === InvalidLayout.OnlyOneAllowed
   ) {
     const message = "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -455,7 +458,7 @@ const extraCanonArchiveInstructions = (
 
   if (
     archiveLayoutToUse === NoInstructions.NoMatch ||
-    archiveLayoutToUse === NoInstructions.OnlyOneAllowed
+    archiveLayoutToUse === InvalidLayout.OnlyOneAllowed
   ) {
     api.log("debug", "No valid extra archives");
     return { kind: NoLayout.Optional, instructions: [] };
@@ -804,7 +807,7 @@ const reservedDllDir = (dir: string) =>
 const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
 
-const red4extBasedirLayout: InstructionsFromFileTree = (
+const red4extBasedirLayout: LayoutToInstructions = (
   _api: VortexApi,
   modName: string,
   fileTree: FileTree,
@@ -837,7 +840,7 @@ const red4extBasedirLayout: InstructionsFromFileTree = (
 const detectRed4ExtCanonLayout = (fileTree: FileTree): boolean =>
   findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length > 0;
 
-const red4extCanonLayout: InstructionsFromFileTree = (
+const red4extCanonLayout: LayoutToInstructions = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
@@ -856,7 +859,7 @@ const red4extCanonLayout: InstructionsFromFileTree = (
   };
 };
 
-const red4extToplevelLayout: InstructionsFromFileTree = (
+const red4extToplevelLayout: LayoutToInstructions = (
   _api: VortexApi,
   modName: string,
   fileTree: FileTree,
@@ -884,7 +887,7 @@ const red4extToplevelLayout: InstructionsFromFileTree = (
   };
 };
 
-const red4extModnamedToplevelLayout: InstructionsFromFileTree = (
+const red4extModnamedToplevelLayout: LayoutToInstructions = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
@@ -900,7 +903,7 @@ const red4extModnamedToplevelLayout: InstructionsFromFileTree = (
   }
 
   if (toplevelSubdirsWithFiles.length > 1) {
-    return NoInstructions.OnlyOneAllowed;
+    return InvalidLayout.OnlyOneAllowed;
   }
 
   const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
@@ -950,7 +953,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
 
   if (noToplevelDlls && tooManyToplevelDllSubdirs) {
     const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, NoInstructions.OnlyOneAllowed);
+    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
@@ -980,7 +983,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   // Move to test?
 
   // ...And is it a good idea to allow more than one canon subdir?
-  const possibleLayoutsToTryInOrder: InstructionsFromFileTree[] = [
+  const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
     red4extBasedirLayout,
     red4extCanonLayout,
     red4extToplevelLayout,
@@ -1000,9 +1003,9 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
-  if (chosenInstructions === NoInstructions.OnlyOneAllowed) {
+  if (chosenInstructions === InvalidLayout.OnlyOneAllowed) {
     const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, NoInstructions.OnlyOneAllowed);
+    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
@@ -1357,12 +1360,13 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
   const hasCanonRedscript = detectRedscriptCanonLayout(fileTree);
+  const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
   const hasCanonRed4Ext = detectRed4ExtCanonLayout(fileTree);
 
-  const doesntHaveAtLeastTwoTypes =
+  const hasAtLeastTwoTypes =
     [hasCanonCet, hasCanonRedscript, hasCanonRed4Ext].filter(trueish).length < 2;
 
-  if (doesntHaveAtLeastTwoTypes) {
+  if (!hasAtLeastTwoTypes) {
     api.log("debug", "MultiType didn't match");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }

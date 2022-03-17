@@ -1,7 +1,7 @@
 import path from "path";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import {
-  InstructionsFromFileTree,
+  LayoutToInstructions,
   NoInstructions,
   MaybeInstructions,
 } from "./installers.layouts";
@@ -58,7 +58,7 @@ export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
   modName: string,
   fileTree: FileTree,
-  possibleLayouts: InstructionsFromFileTree[],
+  possibleLayouts: LayoutToInstructions[],
 ): MaybeInstructions =>
   possibleLayouts.reduce(
     (found, tryLayout) =>

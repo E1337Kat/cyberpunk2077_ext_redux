@@ -1,5 +1,5 @@
 /* eslint-disable prefer-template */
-import { NoInstructions } from "./installers.layouts";
+import { InvalidLayout, NoInstructions } from "./installers.layouts";
 import { VortexApi, VortexLogFunc } from "./vortex-wrapper";
 
 const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
@@ -118,7 +118,7 @@ export const showRed4ExtStructureErrorDialog = (
   api: VortexApi,
   message: string,
   files: string[],
-  isMultiple?: NoInstructions,
+  isMultiple?: InvalidLayout,
 ): void => {
   const problemDescription = isMultiple
     ? `
