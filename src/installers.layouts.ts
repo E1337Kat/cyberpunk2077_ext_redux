@@ -42,11 +42,23 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |-📄 *.dll
  */
 
+// CET
+
+export const enum CetLayout {
+  Canon = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\[modname]\\init.lua + [any files + subdirs]`,
+}
 export const CET_GLOBAL_INI = path.normalize("bin/x64/global.ini");
 export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
 export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
+
+// Redscript
+
+export const enum RedscriptLayout {
+  Canon = `.\\r6\\scripts\\[modname]\\*.reds + [any files + subdirs]`,
+  Basedir = `.\\r6\\scripts\\*.reds + [any files + subdirs]`,
+}
 
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
@@ -54,10 +66,10 @@ export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
 // Red4Ext
 
 export const enum Red4ExtLayout {
-  Canon = `./red4ext/plugins/[modname]/[*.dll, any files or subdirs]`,
-  Basedir = `./red4ext/plugins/[*.dll, any files or subdirs]`,
-  Modnamed = `./[modname]/[*.dll, any files or subdirs]`,
-  Toplevel = `./[*.dll, any files or subdirs]`,
+  Canon = `.\\red4ext\\plugins\\[modname]\\[*.dll, any files or subdirs]`,
+  Basedir = `.\\red4ext\\plugins\\[*.dll, any files or subdirs]`,
+  Modnamed = `.\\[modname]\\[*.dll, any files or subdirs]`,
+  Toplevel = `.\\[*.dll, any files or subdirs]`,
 }
 
 export const RED4EXT_MOD_CANONICAL_EXTENSION = ".dll";
@@ -77,9 +89,7 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
   path.join(`wpfgfx_cor3.dll`),
 ];
 
-export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [
-  path.join(`bin\\x64\\`), // Not okay!
-];
+export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
 export const RESHADE_MOD_PATH = path.join("bin", "x64");
 export const RESHADE_SHADERS_DIR = "reshade-shaders";
@@ -97,9 +107,9 @@ export const KNOWN_JSON_FILES = {
 // Archives
 
 export const enum ArchiveLayout {
-  Canon,
-  Heritage,
-  Other,
+  Canon = `.\\archive\\pc\\mod\\*.archive`,
+  Heritage = `.\\archive\\pc\\patch\\*.archive`,
+  Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
 }
 
 export const MOD_FILE_EXT = ".archive";
@@ -114,7 +124,12 @@ export const enum NoLayout {
   Optional = "it's a valid result that nothing was found",
 }
 
-export type Layout = MultiTypeLayout | Red4ExtLayout | ArchiveLayout | NoLayout;
+export type Layout =
+  | CetLayout
+  | RedscriptLayout
+  | Red4ExtLayout
+  | ArchiveLayout
+  | NoLayout;
 
 export const enum NoInstructions {
   NoMatch = "attempted layout didn't match",

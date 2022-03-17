@@ -585,20 +585,6 @@ export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod
       inFiles: [path.join(`rexmod/script.reds`)],
       failure: "No Redscript found, should never get here.",
     },
-    cetWithRedsInTopLevelShouldFail: {
-      expectedInstallerType: InstallerType.RedCetMix,
-      inFiles: [
-        ...CET_PREFIXES,
-        path.join(`${CET_PREFIX}/exmod/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        path.join(`/script.reds`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-      ],
-      failure: "No Redscript found, should never get here.",
-    },
   }),
 );
 
@@ -1252,10 +1238,13 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
+// The instructions will be grouped in the order that we try
+// to match things, and normally within them.
+//
 export const ValidTypeCombinations = new Map<string, ExampleMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
-      expectedInstallerType: InstallerType.RedCetMix,
+      expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_PREFIXES,
         path.join(`${CET_PREFIX}/exmod/`),
@@ -1272,6 +1261,16 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
           source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
           destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
         },
@@ -1282,23 +1281,15 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        },
-        {
-          type: "copy",
           source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         },
       ],
     },
-    cetWithRedsAtRedsRootFixableUsesCetModName: {
-      expectedInstallerType: InstallerType.RedCetMix,
+    // We should probably add some kind of a reference to
+    // mods that are structured this way if they exist.
+    cetWithRedsAtRedsRootFixableUsesSyntheticModName: {
+      expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_PREFIXES,
         path.join(`${CET_PREFIX}/exmod/`),
@@ -1314,8 +1305,8 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/exmod/script.reds`),
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
           type: "copy",
@@ -1324,8 +1315,8 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          source: path.join(`${REDS_PREFIX}/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
         {
           type: "copy",
@@ -1334,7 +1325,8 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
       ],
     },
-    multiTypeCetWithRed4ExtCanonical: {
+    multiTypeCetRedscriptRed4ExtCanonical: {
+      // Mod example: Furigana
       expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_PREFIXES,
@@ -1343,6 +1335,8 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
         path.join(`${RED4EXT_PREFIX}/r4xmod/`),
         path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
         path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
@@ -1354,18 +1348,8 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/r4xmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/r4xmod/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/r4xmod/sme.ini`),
-          destination: path.join(`${REDS_PREFIX}/r4xmod/sme.ini`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/r4xmod/sub/subscript.dll`),
-          destination: path.join(`${REDS_PREFIX}/r4xmod/sub/subscript.dll`),
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
           type: "copy",
@@ -1374,14 +1358,48 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
         {
           type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
         },
         {
           type: "copy",
           source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         },
+      ],
+    },
+  }),
+);
+
+export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
+  Object.entries({
+    cetWithRedsInTopLevelShouldFail: {
+      failure: "No Redscript found, should never get here.",
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`/script.reds`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
     },
   }),

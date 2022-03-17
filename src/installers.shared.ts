@@ -4,6 +4,7 @@ import {
   LayoutToInstructions,
   NoInstructions,
   MaybeInstructions,
+  Instructions,
 } from "./installers.layouts";
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
@@ -65,3 +66,21 @@ export const useFirstMatchingLayoutForInstructions = (
       found === NoInstructions.NoMatch ? tryLayout(api, modName, fileTree) : found,
     NoInstructions.NoMatch,
   );
+
+export const useAllMatchingLayouts = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+  layoutsToTry: LayoutToInstructions[],
+): Instructions[] => {
+  const allInstructions = layoutsToTry
+    .map((layout) => layout(api, modName, fileTree))
+    .filter((instructions) => instructions !== NoInstructions.NoMatch);
+
+  console.log({ allInstructions });
+  const someValidInstructions: Instructions[] = allInstructions.filter(
+    (maybe): maybe is Instructions => (maybe as Instructions).kind !== undefined,
+  );
+
+  return someValidInstructions;
+};
