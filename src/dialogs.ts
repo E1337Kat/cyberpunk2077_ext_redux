@@ -1,5 +1,11 @@
 /* eslint-disable prefer-template */
-import { NoInstructions } from "./installers.layouts";
+import {
+  ArchiveLayout,
+  CetLayout,
+  InvalidLayout,
+  Red4ExtLayout,
+  RedscriptLayout,
+} from "./installers.layouts";
 import { VortexApi, VortexLogFunc } from "./vortex-wrapper";
 
 const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
@@ -34,12 +40,11 @@ export const redCetMixedStructureErrorDialog = (
     [{ label: "Ok, Mod Was Not Installed" }],
   );
 };
-export const redWithInvalidFilesErrorDialog = (
+export const showRedscriptStructureErrorDialog = (
   api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
-  _installable: string[],
 ) => {
   log("error", `Redscript Mod installer: ${message}`, files);
 
@@ -118,7 +123,7 @@ export const showRed4ExtStructureErrorDialog = (
   api: VortexApi,
   message: string,
   files: string[],
-  isMultiple?: NoInstructions,
+  isMultiple?: InvalidLayout,
 ): void => {
   const problemDescription = isMultiple
     ? `
@@ -227,6 +232,49 @@ export const showArchiveInstallWarning = (
         ${files.join("\n")}
         \`\`\``,
       ),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
+// Should try to carry in some more diagnostic information to the user
+// Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/81
+export const showMultiTypeStructureErrorDialog = (
+  api: VortexApi,
+  message: string,
+  files: string[],
+): void => {
+  api.showDialog(
+    "error",
+    message,
+    {
+      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
+      md: heredoc(`
+        Installation cancelled!
+
+        It looks like this mod combined multiple types of mods, but I can only
+        support them if they're well structured. Each different type within the
+        mod has to use the canonical layout for that type. (When it's just one
+        type of mod, I can make more assumptions and can support more possible
+        layouts.)
+
+        The installation was cancelled, so you'll have to fix the mod _outside_
+        Vortex for now.
+
+        These are the layouts I can support in combinations (NOTE: there can't
+        be any other kinds of files outside these.):
+
+        - \`${CetLayout.Canon}\`
+        - \`${RedscriptLayout.Canon}\`
+        - \`${Red4ExtLayout.Canon}\`
+        - \`${ArchiveLayout.Canon}\`
+        - \`${ArchiveLayout.Heritage}\`
+
+        These are the files I found in the mod:
+
+        \`\`\`
+        ${files.join("\n")}
+        \`\`\``),
     },
     [{ label: "Understood!" }],
   );
