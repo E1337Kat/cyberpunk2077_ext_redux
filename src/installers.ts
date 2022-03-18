@@ -44,6 +44,8 @@ import {
   MOD_FILE_EXT,
   JSON_FILE_EXT,
   KNOWN_JSON_FILES,
+  ASI_MOD_EXT,
+  ASI_MOD_PATH,
   ARCHIVE_ONLY_CANONICAL_EXT,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
@@ -83,6 +85,7 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
+import { forgetExtension } from "vortex-api/lib/actions";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -106,6 +109,7 @@ export enum InstallerType {
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   CoreWolvenKit = "Core/WolvenKitCLI", // #32
+  ASI = "ASI",
   RedCetMix = "RedCetMix",
   CET = "CET",
   Redscript = "Redscript",
@@ -159,6 +163,8 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 
 //   return Promise.resolve({ instructions });
 // }
+
+const matchAsiFile = (file: string) => path.extname(file) === ASI_MOD_EXT;
 
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
@@ -1259,6 +1265,67 @@ export const installIniMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
+export const testForAsiMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "ASI installer received files: ", files);
+
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Entering ASI installer: ", gameId);
+  if (!correctGame) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  // Doing this because ASI mods should always be "well-formed"
+
+  const fileTree = new KeyTree({ separator: path.sep });
+
+  files.forEach((file) => fileTree.add(file, file));
+
+  const moddir = fileTree._getNode(ASI_MOD_PATH);
+
+  if (!moddir || moddir.children.length === 0) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  const hasAsiFile = files.filter((file: string) => path.extname(file) === ASI_MOD_EXT);
+
+  if (hasAsiFile.length === 0) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  return Promise.resolve({ supported: true, requiredFiles: [] });
+};
+
+export const installAsiMod: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  // We know the mod is well formed, install everything in bin/x64/plugins and children
+
+  const allAsiModFiles = allFilesInFolder(ASI_MOD_PATH, files);
+
+  if (allAsiModFiles.length === 0) {
+    return Promise.reject(
+      new Error("ASI install but no ASI files, should never get here"),
+    );
+  }
+
+  const instructions = instructionsForSameSourceAndDestPaths(allAsiModFiles);
+
+  return Promise.resolve({ instructions });
+};
 // Fallback
 
 /**
@@ -1375,6 +1442,12 @@ const installers: Installer[] = [
     id: "cp2077-core-wolvenkit-mod",
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
+  },
+  {
+    type: InstallerType.ASI,
+    id: "cp2077-red-cet-mixture-mod",
+    testSupported: testForAsiMod,
+    install: installAsiMod,
   },
   {
     type: InstallerType.RedCetMix,

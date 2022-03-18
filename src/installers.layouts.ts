@@ -13,6 +13,7 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📄 *.ini -- Reshade mod
  * | | |-📁 reshade-shaders
  * | | |-📁 plugins
+ * | | | |- 📄 *.asi
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
  * | | | | | |-📁 SomeMod
@@ -93,6 +94,9 @@ export const KNOWN_JSON_FILES = {
   "giweights.json": path.join("engine", "config", "giweights.json"),
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
+
+export const ASI_MOD_EXT = ".asi";
+export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 
 // Archives
 
