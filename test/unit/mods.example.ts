@@ -1431,6 +1431,50 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         },
       ],
     },
+    "MultiType: CET + Reds + Archive (Canonical), Red4Ext basedir, FIXABLE [Example mod: Furigana]":
+      {
+        expectedInstallerType: InstallerType.MultiType,
+        inFiles: [
+          ...CET_PREFIXES,
+          path.join(`${CET_PREFIX}/exmod/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          ...REDS_PREFIXES,
+          path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          ...RED4EXT_PREFIXES,
+          path.join(`${RED4EXT_PREFIX}/script.dll`),
+          ...ARCHIVE_PREFIXES,
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        ],
+        outInstructions: [
+          {
+            type: "copy",
+            source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+            destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          },
+          {
+            type: "copy",
+            source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+            destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          },
+          {
+            type: "copy",
+            source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+            destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          },
+          {
+            type: "copy",
+            source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+            destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+          },
+          {
+            type: "copy",
+            source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+            destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          },
+        ],
+      },
   }),
 );
 

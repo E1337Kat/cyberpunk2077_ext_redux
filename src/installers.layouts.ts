@@ -136,7 +136,7 @@ export const enum NoInstructions {
 }
 
 export const enum InvalidLayout {
-  OnlyOneAllowed = "there were too many subdirs that matched",
+  Conflict = "can't determine what the intended layout is, conflicting files",
 }
 
 export type Instructions = {
