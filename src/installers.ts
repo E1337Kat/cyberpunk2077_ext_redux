@@ -1612,7 +1612,7 @@ const installers: Installer[] = [
   },
   {
     type: InstallerType.ASI,
-    id: "cp2077-red-cet-mixture-mod",
+    id: "cp2077-asi-mod",
     testSupported: testForAsiMod,
     install: installAsiMod,
   },
