@@ -68,12 +68,15 @@ describe("Transforming modules to instructions", () => {
     describe(`install attempts that should fail, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`rejects with an error when ${desc}`, async () => {
-          const installer = await matchInstaller(mod.inFiles);
-          expect(installer).toBeDefined();
-          expect(installer.type).toBe(mod.expectedInstallerType);
+          let message;
 
-          expect(() =>
-            installer.install(
+          try {
+            // wow
+            const installer = await matchInstaller(mod.inFiles);
+            expect(installer).toBeDefined();
+            expect(installer.type).toBe(mod.expectedInstallerType);
+
+            await installer.install(
               mockVortexApi,
               mockVortexLog,
               mod.inFiles,
@@ -81,8 +84,19 @@ describe("Transforming modules to instructions", () => {
               FAKE_STAGING_PATH,
               null,
               null,
-            ),
-          ).rejects.toThrowError(mod.failure);
+            );
+          } catch (error) {
+            // such type
+            message = error.message;
+          } finally {
+            if (message) {
+              // much fp
+              expect(message).toEqual(mod.failure);
+            } else {
+              // very safety
+              expect(message, `should've rejected for ${desc}`).toEqual(mod.failure);
+            }
+          }
         });
       });
     });

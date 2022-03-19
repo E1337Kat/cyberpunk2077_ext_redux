@@ -16,8 +16,9 @@ export type FileTree = {
 */
 
 export interface FileTree {
-  _kt: KeyTree;
-  _originalPaths: string[];
+  readonly _kt: KeyTree;
+  readonly _insertedPaths: string[];
+  readonly _originalPaths: string[];
 }
 
 export type PathFilter = (path: string) => boolean;
@@ -95,24 +96,37 @@ const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 const stripTrailingSeparator = (path: string): string =>
   path.replace(looksLikeADirectory, "");
 
-// Interface
+//
+//
+//
+//
+// API
+//
+//
+//
+//
+
+// Creation
 
 export const fileTreeFromPaths = (paths: string[]): FileTree => {
-  const tree: FileTree = {
-    _kt: new KeyTree({ separator: nodejsPath.sep }),
-    _originalPaths: paths,
+  const internalKeyTree = new KeyTree({ separator: nodejsPath.sep });
+
+  const filePathsOnly = paths.filter((path) => !path.endsWith(nodejsPath.sep));
+
+  // Yay mutation
+  filePathsOnly.forEach((path) => internalKeyTree.add(nodejsPath.dirname(path), path));
+
+  return {
+    _kt: internalKeyTree,
+    _insertedPaths: filePathsOnly,
+    _originalPaths: [...paths],
   };
-
-  paths.forEach((path) => {
-    const normalized = path; // nodejsPath.normalize(path);
-
-    if (!normalized.match(looksLikeADirectory)) {
-      tree._kt.add(nodejsPath.dirname(normalized), normalized);
-    }
-  });
-
-  return tree;
 };
+
+// Interface
+
+export const sourcePaths = (tree: FileTree): string[] => [...tree._originalPaths];
+export const fileCount = (tree: FileTree): number => tree._insertedPaths.length;
 
 export const subdirsIn = (dir: string, tree: FileTree): string[] => {
   const node = tree._kt._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle

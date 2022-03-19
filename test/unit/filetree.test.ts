@@ -11,6 +11,7 @@ import {
   FILETREE_TOPLEVEL,
   filesIn,
   pathInTree,
+  fileCount,
 } from "../../src/filetree";
 
 const paths = [
@@ -39,6 +40,14 @@ const nonEmptyDirPaths = dirPaths.filter((d) => !emptyDirPaths.includes(d));
 const matchSeek = (f) => path.extname(f) === ".seek";
 
 describe("FileTree", () => {
+  test("fileCount equals the number of non-directory paths", () => {
+    const fileTree = fileTreeFromPaths(paths);
+
+    const originalWithoutDirs = paths.filter((p) => !p.endsWith(path.sep));
+
+    expect(fileCount(fileTree)).toEqual(originalWithoutDirs.length);
+  });
+
   test("doesn't store directories as values", () => {
     const fileTree = fileTreeFromPaths(paths);
 
