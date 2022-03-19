@@ -72,7 +72,6 @@ import {
 } from "./installers.shared";
 import {
   warnUserAboutHavingReachedFallbackInstallerDialog,
-  redCetMixedStructureErrorDialog,
   showRedscriptStructureErrorDialog,
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
@@ -484,123 +483,6 @@ const cetCanonLayout = (
     kind: CetLayout.Canon,
     instructions: instructionsForSameSourceAndDestPaths(allCanonCetFiles),
   };
-};
-
-export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _gameId: string,
-): Promise<VortexTestResult> => {
-  const fileTree = new KeyTree({ separator: path.sep });
-
-  files.forEach((file) => fileTree.add(file, file));
-
-  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  if (!moddir || moddir.children.length === 0) {
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
-
-  const hasCetFilesInANamedModDir = moddir.children.some(
-    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
-  );
-
-  const redscriptFiles = allRedscriptFiles(files);
-  if (hasCetFilesInANamedModDir && redscriptFiles.length === 0) {
-    log("debug", "Have CET, but no redscript");
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
-
-  return Promise.resolve({
-    supported: hasCetFilesInANamedModDir,
-    requiredFiles: [],
-  });
-};
-
-// Install the Redscript stuff, as well as any archives we find
-export const installRedCetMixedMod: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
-  files.forEach((file) => fileTree.add(path.dirname(file), file));
-
-  // We could get a lot fancier here, but for now we don't accept
-  // subdirectories anywhere other than in a canonical location.
-
-  // .\*.reds -- not actually wanted in this case. we only will allow installation if all files are packaged nicely
-  const topLevelReds = fileTree.get(".").filter(matchRedscript);
-  if (topLevelReds.length > 0) {
-    const message =
-      "The reds are not correctly structured, installing through vortex isn't possible.";
-    redCetMixedStructureErrorDialog(api, log, message, files);
-    return Promise.reject(new Error(message));
-  }
-  // .\r6\scripts\*.reds
-  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
-
-  // We also only accept one subdir, anything else might be trouble
-  // But grab everything under it.
-
-  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  // .\r6\scripts\[mod]\**\*
-  const canonRedsModFiles =
-    base && base.children.length === 1
-      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
-      : [];
-
-  const cetFiles = allCanonicalCetFiles(files);
-
-  if (cetFiles.length === 0) {
-    return Promise.reject(
-      new Error("Red + CET install but no CET files, should never get here"),
-    );
-  }
-
-  const installableReds = [canonRedsModFiles, redsDirReds].filter(
-    (location) => location.length > 0,
-  );
-
-  if (installableReds.length === 0) {
-    const message = "No Redscript found, should never get here.";
-    log("error", `Redscript Mod installer: ${message}`, files);
-    return Promise.reject(new Error(message));
-  }
-
-  // Only allow installation if all of the reds are either in their subfolder or not.
-  if (installableReds.length > 1) {
-    const message = "Conflicting Redscript locations, bailing out!";
-    showRedscriptStructureErrorDialog(api, log, message, files);
-
-    return Promise.reject(new Error(message));
-  }
-
-  // since cet has to be in a mod dir, lets use it's mod dir name for the reds if there is none.
-  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-  const modName = moddir.children[0].key;
-
-  // Let's grab archives too
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
-
-  // Only one of these should exist but why discriminate?
-  const allSourcesAndDestinations = [
-    canonRedsModFiles.map(toSamePath),
-    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    cetFiles.map(toSamePath),
-    archiveOnlyFiles.map(toSamePath),
-  ];
-
-  const instructions = allSourcesAndDestinations.flatMap(
-    instructionsForSourceToDestPairs,
-  );
-
-  return Promise.resolve({ instructions });
 };
 
 // CET

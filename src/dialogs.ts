@@ -10,36 +10,6 @@ import { VortexApi, VortexLogFunc } from "./vortex-wrapper";
 
 const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
 
-export const redCetMixedStructureErrorDialog = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  message: string,
-  files: string[],
-) => {
-  log("error", `Redscript Mod installer: ${message}`, files);
-
-  // It'd be nicer to move at least the long text out, maybe constant
-  // for text + function for handling the boilerplate?
-  api.showDialog(
-    "error",
-    message,
-    {
-      md:
-        "I found several possible Redscript layouts, but can only support " +
-        "one layout per mod. This mod can't be installed! You will have to fix the " +
-        "mod manually _outside_ Vortex for now.\n" +
-        "\n" +
-        "Supported layouts:\n" +
-        " - `.\\r6\\scripts\\[modname]\\[any files and subfolders]` (canonical)\n" +
-        " - `.\\r6\\scripts\\*.reds` (I can fix this to canonical)\n" +
-        " - `.\\*.reds` (I can fix this to canonical)\n" +
-        "\n" +
-        "Got:\n" +
-        `${files.join("\n")}`,
-    },
-    [{ label: "Ok, Mod Was Not Installed" }],
-  );
-};
 export const showRedscriptStructureErrorDialog = (
   api: VortexApi,
   log: VortexLogFunc,
