@@ -6,39 +6,68 @@ import {
   Red4ExtLayout,
   RedscriptLayout,
 } from "./installers.layouts";
-import { VortexApi, VortexLogFunc } from "./vortex-wrapper";
+import { InstallDecision } from "./installers.shared";
+import { VortexApi, VortexDialogResult, VortexLogFunc } from "./vortex-wrapper";
 
 const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
 
-export const showRedscriptStructureErrorDialog = (
+export const enum PromptChoices {
+  Proceed = "Yes, Install To Staging Anyway",
+  Cancel = "No, Cancel Installation",
+}
+
+export const promptUserOnConflictRedscript = async (
   api: VortexApi,
   log: VortexLogFunc,
   message: string,
   files: string[],
-) => {
+): Promise<InstallDecision> => {
   log("error", `Redscript Mod installer: ${message}`, files);
 
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
-  api.showDialog(
-    "error",
+  const dialogResponse: VortexDialogResult = await api.showDialog(
+    "question",
     message,
     {
-      md:
-        "I found several possible Redscript layouts, but can only support " +
-        "one layout per mod. This mod can't be installed! You will have to fix the " +
-        "mod manually _outside_ Vortex for now.\n" +
-        "\n" +
-        "Supported layouts:\n" +
-        " - `.\\r6\\scripts\\[modname]\\[any files and subfolders]` (canonical)\n" +
-        " - `.\\r6\\scripts\\*.reds` (I can fix this to canonical)\n" +
-        " - `.\\*.reds` (I can fix this to canonical)\n" +
-        "\n" +
-        "Got:\n" +
-        `${files.join("\n")}`,
+      md: heredoc(
+        `You need to decide if you want to proceed or not. I can't
+         figure out the intended structure of this mod.
+
+         If you want to proceed, I'll install everything in the mod
+         into the staging folder. You will need to fix the mod manually
+         before you enable it.
+
+         To do so, once the mod is installed, click on the File Manager
+         option in the action menu (arrow down next to Remove on the right
+         in the mod listing.) Make your changes and just close the Manager.
+
+         Supported layouts for Redscript mods:
+
+         - \`${RedscriptLayout.Canon}\`
+         - \`${RedscriptLayout.Basedir}\`
+
+         Both can also include archives in their canonical location:
+
+         - \`${ArchiveLayout.Canon}\`
+         - \`${ArchiveLayout.Heritage}\`
+
+         These are the files I found in the mod:
+
+         \`\`\`
+         ${files.join("\n")}
+         \`\`\``,
+      ),
     },
-    [{ label: "Ok, Mod Was Not Installed" }],
+    [{ label: PromptChoices.Cancel }, { label: PromptChoices.Proceed }],
   );
+
+  const installDecision =
+    dialogResponse.action === PromptChoices.Proceed
+      ? InstallDecision.UserWantsToProceed
+      : InstallDecision.UserWantsToCancel;
+
+  return installDecision;
 };
 
 // Should try to get this doc in a stronger format like using the layout
@@ -283,7 +312,6 @@ export const warnUserAboutHavingReachedFallbackInstallerDialog = (
   log: VortexLogFunc,
   message: string,
   files: string[],
-  _installable: string[],
 ) => {
   log("warn", `Fallback installer: ${message}`, files);
 

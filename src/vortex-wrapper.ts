@@ -7,6 +7,8 @@ export type VortexExtensionContext = Vortex.IExtensionContext;
 export type VortexGameStoreEntry = Vortex.IGameStoreEntry;
 export type VortexProgressDelegate = Vortex.ProgressDelegate;
 
+export type VortexDialogResult = Vortex.IDialogResult;
+
 export type VortexLogLevel = "debug" | "info" | "warn" | "error";
 export type VortexLogFunc = (
   level: VortexLogLevel,

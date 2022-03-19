@@ -10,6 +10,12 @@ import {
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
+export const enum InstallDecision {
+  UserWantsToProceed = "User explicitly wants to proceed with the installation",
+
+  UserWantsToCancel = "User explicitly wants to cancel the installation",
+}
+
 // Vortex gives us a 'destination path', which is actually
 // the tempdir in which the archive is expanded into for
 // the duration of the installation.

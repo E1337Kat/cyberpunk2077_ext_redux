@@ -1,7 +1,11 @@
+import { notEmpty, mockDeep, MockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
+import { PromptChoices } from "../../src/dialogs";
 import { fileTreeFromPaths } from "../../src/filetree";
+import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
 import {
   AllExpectedInstallFailures,
+  AllExpectedInstallPromptables,
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
@@ -67,6 +71,67 @@ describe("Transforming modules to instructions", () => {
           );
 
           expect(installResult.instructions).toEqual(mod.outInstructions);
+        });
+      });
+    });
+  });
+
+  AllExpectedInstallPromptables.forEach((examples, set) => {
+    describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
+      examples.forEach(async (mod, desc) => {
+        test(`proceeds to produce fallback install when choosing to proceed on ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
+
+          // This, um, may need some cleaning up. -.-
+          const mockResult: VortexDialogResult = {
+            action: PromptChoices.Proceed,
+            input: undefined,
+          };
+          const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
+          mockApi.showDialog
+            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
+            .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
+
+          const installResult = await installer.install(
+            mockApi,
+            mockVortexLog,
+            mod.inFiles,
+            fileTreeFromPaths(mod.inFiles),
+            FAKE_STAGING_PATH,
+            null,
+            null,
+          );
+
+          expect(installResult.instructions).toEqual(mod.proceedOutInstructions);
+        });
+        test(`rejects the install when choosing to cancel on ${desc}`, async () => {
+          const installer = await matchInstaller(mod.inFiles);
+          expect(installer).toBeDefined();
+          expect(installer.type).toBe(mod.expectedInstallerType);
+
+          // This, um, may need some cleaning up. -.-
+          const mockResult: VortexDialogResult = {
+            action: PromptChoices.Cancel,
+            input: undefined,
+          };
+          const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
+          mockApi.showDialog
+            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
+            .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
+
+          expect(
+            installer.install(
+              mockApi,
+              mockVortexLog,
+              mod.inFiles,
+              fileTreeFromPaths(mod.inFiles),
+              FAKE_STAGING_PATH,
+              null,
+              null,
+            ),
+          ).rejects.toThrowError(new Error(mod.cancelErrorMessage));
         });
       });
     });

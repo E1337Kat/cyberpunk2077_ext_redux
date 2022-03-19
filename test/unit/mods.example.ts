@@ -1,6 +1,4 @@
 import path from "path";
-import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-
 import { pathHierarchyFor } from "./utils.helper";
 
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
@@ -19,23 +17,34 @@ import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
+import { VortexInstruction } from "../../src/vortex-wrapper";
+import { PromptChoices } from "../../src/dialogs";
 
 export type InFiles = string[];
 
-export interface ExampleMod {
+interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
-  outInstructions: Vortex.IInstruction[];
+}
+export interface ExampleSucceedingMod extends ExampleMod {
+  outInstructions: VortexInstruction[];
 }
 
-export interface ExampleFailingMod {
-  expectedInstallerType: InstallerType;
-  inFiles: InFiles;
+export interface ExampleFailingMod extends ExampleMod {
   failure?: string;
 }
 
-export type ExampleModCategory = Map<string, ExampleMod>;
+export interface ExampleForceInstallableMod extends ExampleMod {
+  proceedLabel: string;
+  proceedOutInstructions: VortexInstruction[];
+  cancelLabel: string;
+  cancelErrorMessage: string;
+}
+
+// Really should probably make this a sensible type but w/e
+export type ExampleModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
+export type ExampleForceInstallableModCategory = Map<string, ExampleForceInstallableMod>;
 
 export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
 export const FAKE_STAGING_PATH = path.join(
@@ -66,7 +75,7 @@ const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
-export const CoreCetInstall = new Map<string, ExampleMod>(
+export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreCetInstall: {
       expectedInstallerType: InstallerType.CoreCET,
@@ -141,7 +150,7 @@ export const CoreCetInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreRedscriptInstall = new Map<string, ExampleMod>(
+export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreRedscriptInstall: {
       expectedInstallerType: InstallerType.CoreRedscript,
@@ -177,7 +186,7 @@ export const CoreRedscriptInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
+export const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     Red4ExtCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreRed4ext,
@@ -213,7 +222,7 @@ export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
+export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreCsvMergeCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreCSVMerge,
@@ -324,7 +333,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
+export const CoreWolvenkitCliInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreWolvenKitCliCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreWolvenKit,
@@ -365,7 +374,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
     },
   }),
 );
-export const CetMod = new Map<string, ExampleMod>(
+export const CetMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -486,7 +495,7 @@ export const CetModShouldFail = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const RedscriptMod = new Map<string, ExampleMod>(
+export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     redsWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Redscript,
@@ -580,6 +589,38 @@ export const RedscriptMod = new Map<string, ExampleMod>(
   }),
 );
 
+export const RedscriptModShouldPromptForceInstall = new Map<
+  string,
+  ExampleForceInstallableMod
+>(
+  Object.entries({
+    redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/yay.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+      ],
+      proceedLabel: "hi",
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\yay.reds`),
+          destination: path.join(`${REDS_PREFIX}\\yay.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
+          destination: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
+        },
+      ],
+      cancelLabel: PromptChoices.Cancel,
+      cancelErrorMessage: "Redscript Mod: user chose to cancel installation on conflict",
+    },
+  }),
+);
+
 export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod>(
   Object.entries({
     redsScriptInTopLevelDirShouldFail: {
@@ -590,7 +631,7 @@ export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod
   }),
 );
 
-export const Red4ExtMod = new Map<string, ExampleMod>(
+export const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     red4extWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Red4Ext,
@@ -787,7 +828,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
   }),
 ]);
 
-export const ArchiveOnly = new Map<string, ExampleMod>(
+export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.ArchiveOnly,
@@ -968,7 +1009,7 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const ValidExtraArchivesWithType = new Map<string, ExampleMod>(
+export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithExtraArchiveFilesCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -1042,7 +1083,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleMod>(
   }),
 );
 
-export const JsonMod = new Map<string, ExampleMod>(
+export const JsonMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     jsonWithValidFileInRoot: {
       expectedInstallerType: InstallerType.Json,
@@ -1130,7 +1171,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const IniMod = new Map<string, ExampleMod>(
+export const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
@@ -1240,7 +1281,7 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
+export const ExampleInvalidModsForFallback = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     invalidModContainingJustAnExe: {
       expectedInstallerType: InstallerType.FallbackForOther,
@@ -1289,7 +1330,7 @@ export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
 // The instructions will be grouped in the order that we try
 // to match things, and normally within them.
 //
-export const ValidTypeCombinations = new Map<string, ExampleMod>(
+export const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
       expectedInstallerType: InstallerType.MultiType,
@@ -1521,6 +1562,15 @@ export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModC
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
+  }),
+);
+
+export const AllExpectedInstallPromptables = new Map<
+  string,
+  ExampleForceInstallableModCategory
+>(
+  Object.entries({
+    RedscriptModShouldPromptForceInstall,
   }),
 );
 

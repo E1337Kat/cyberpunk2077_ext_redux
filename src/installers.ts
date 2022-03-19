@@ -59,6 +59,7 @@ import {
   InvalidLayout,
   CetLayout,
   RedscriptLayout,
+  FallbackLayout,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -69,10 +70,11 @@ import {
   moveFromTo,
   useAllMatchingLayouts,
   makeSyntheticName,
+  InstallDecision,
 } from "./installers.shared";
 import {
   warnUserAboutHavingReachedFallbackInstallerDialog,
-  showRedscriptStructureErrorDialog,
+  promptUserOnConflictRedscript,
   showArchiveInstallWarning,
   showArchiveStructureErrorDialog,
   showMultiTypeStructureErrorDialog,
@@ -91,7 +93,7 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
-import { trueish } from "./installers.utils";
+import { exhaustiveMatchFailure, trueish } from "./installers.utils";
 import { GAME_ID } from "./index.metadata";
 
 // Ensure we're using win32 conventions
@@ -197,6 +199,104 @@ const allCanonicalCetFiles = (files: string[]) =>
 
 const allCanonicalArchiveOnlyFiles = (files: string[]) =>
   allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
+
+//
+//
+//
+//
+// Installers
+//
+// These should come in (roughly) reverse order of priority,
+// because the highest-priority ones will use Layouts and
+// other parts from the simpler installers.
+//
+//
+
+// Fallback
+
+/**
+ * Checks to see if the mod has any expected files in unexpected places
+ * @param files list of files
+ * @param gameId The internal game id
+ * @returns Promise which details if the files passed in need to make use of a specific installation method
+ */
+export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Fallback installer received Files: ", files);
+
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Entering fallback installer: ", gameId);
+  if (!correctGame) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+const findFallbackFiles = (fileTree: FileTree): string[] =>
+  filesUnder(FILETREE_ROOT, fileTree);
+
+const detectFallbackLayout = (_fileTree: FileTree): boolean => true;
+
+const fallbackLayout: LayoutToInstructions = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  if (!detectFallbackLayout(fileTree)) {
+    throw new Error("Should never get here");
+  }
+
+  const allTheFiles = findFallbackFiles(fileTree);
+
+  return {
+    kind: FallbackLayout.Unvalidated,
+    instructions: instructionsForSameSourceAndDestPaths(allTheFiles),
+  };
+};
+
+/**
+ * Installs files while correcting the directory structure as we go.
+ * @param files a list of files to be installed
+ * @returns a promise with an array detailing what files to install and how
+ */
+export const installAnyMod: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const instructions = fallbackLayout(api, undefined, fileTree);
+
+  if (
+    instructions === NoInstructions.NoMatch ||
+    instructions === InvalidLayout.Conflict
+  ) {
+    return Promise.reject(
+      new Error("Fallback produced no instructions, shouldn't ever get here"),
+    );
+  }
+
+  const message =
+    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
+
+  warnUserAboutHavingReachedFallbackInstallerDialog(api, log, message, files);
+
+  return Promise.resolve({ instructions: instructions.instructions });
+};
 
 // ArchiveOnly
 //
@@ -658,51 +758,91 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
 };
 
 // Install the Redscript stuff, as well as any archives we find
-export const installRedscriptMod: VortexWrappedInstallFunc = (
+export const installRedscriptMod: VortexWrappedInstallFunc = async (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
-  files.forEach((file) => fileTree.add(path.dirname(file), file));
-
   // We could get a lot fancier here, but for now we don't accept
   // subdirectories anywhere other than in a canonical location.
 
   // .\*.reds
-  const topLevelReds = fileTree.get(".").filter(matchRedscript);
+  // eslint-disable-next-line no-underscore-dangle
+  const hasToplevelReds = dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+  const toplevelReds = hasToplevelReds ? filesUnder(FILETREE_ROOT, fileTree) : [];
+
   // .\r6\scripts\*.reds
-  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
-
-  // We also only accept one subdir, anything else might be trouble
-  // But grab everything under it.
-
-  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  // .\r6\scripts\[mod]\**\*
-  const canonRedsModFiles =
-    base && base.children.length === 1
-      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
-      : [];
-
-  const installable = [canonRedsModFiles, redsDirReds, topLevelReds].filter(
-    (location) => location.length > 0,
+  // eslint-disable-next-line no-underscore-dangle
+  const hasBasedirReds = dirWithSomeIn(
+    REDS_MOD_CANONICAL_PATH_PREFIX,
+    matchRedscript,
+    fileTree,
   );
+  const basedirReds = hasBasedirReds
+    ? filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, fileTree)
+    : [];
 
-  if (installable.length === 0) {
+  const canonSubdirs = findDirectSubdirsWithSome(
+    REDS_MOD_CANONICAL_PATH_PREFIX,
+    matchRedscript,
+    fileTree,
+  );
+  const hasCanonReds = canonSubdirs.length > 0;
+  const canonReds = hasCanonReds
+    ? canonSubdirs.flatMap((dir) => filesUnder(dir, fileTree))
+    : [];
+
+  const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
+
+  if (installable.length < 1) {
     const message = "No Redscript found, should never get here.";
     log("error", `Redscript Mod installer: ${message}`, files);
     return Promise.reject(new Error(message));
   }
 
   if (installable.length > 1) {
-    const message = "Conflicting Redscript locations, bailing out!";
+    const userDecision = await promptUserOnConflictRedscript(
+      api,
+      api.log,
+      "Confusing File Layout For Redscript Mod!",
+      files,
+    );
 
-    showRedscriptStructureErrorDialog(api, api.log, message, files);
+    switch (userDecision) {
+      case InstallDecision.UserWantsToCancel: {
+        const message = "Redscript Mod: user chose to cancel installation on conflict";
+        api.log("info", message);
+        api.log("debug", "Input files: ", sourcePaths(fileTree));
+        return Promise.reject(new Error(message));
+      }
+      case InstallDecision.UserWantsToProceed: {
+        api.log("info", "Redscript Mod: user chose to continue installation on conflict");
+        api.log("info", "Redscript Mod: using fallback layout to install everything");
 
-    return Promise.reject(new Error(message));
+        const fallbackInstructions = fallbackLayout(api, undefined, fileTree);
+
+        if (
+          fallbackInstructions === InvalidLayout.Conflict ||
+          fallbackInstructions === NoInstructions.NoMatch
+        ) {
+          return Promise.reject(
+            new Error(
+              `Fallback layout failed, should never get here: ${fallbackInstructions}`,
+            ),
+          );
+        }
+
+        api.log("info", "Redscript Mod: instructions generated by fallback installer");
+        api.log("debug", "Instructions", fallbackInstructions.instructions);
+
+        return Promise.resolve({ instructions: fallbackInstructions.instructions });
+      }
+      default: {
+        return exhaustiveMatchFailure(userDecision);
+      }
+    }
   }
 
   const modName = makeSyntheticName(destinationPath);
@@ -712,9 +852,9 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
 
   // Only one of these should exist but why discriminate?
   const allSourcesAndDestinations = [
-    canonRedsModFiles.map(toSamePath),
-    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    topLevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    canonReds.map(toSamePath),
+    basedirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    toplevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
     archiveOnlyFiles.map(toSamePath),
   ];
 
@@ -1239,67 +1379,6 @@ export const installIniMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
-// Fallback
-
-/**
- * Checks to see if the mod has any expected files in unexpected places
- * @param files list of files
- * @param gameId The internal game id
- * @returns Promise which details if the files passed in need to make use of a specific installation method
- */
-export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  gameId: string,
-): Promise<VortexTestResult> => {
-  log("debug", "Fallback installer received Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Entering fallback installer: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
-};
-
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const instructions = [].concat(instructionsForSameSourceAndDestPaths(files));
-
-  const message =
-    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-
-  warnUserAboutHavingReachedFallbackInstallerDialog(
-    _api,
-    log,
-    message,
-    files,
-    instructions,
-  );
-
-  return Promise.resolve({ instructions });
-};
-
 // MultiType installer
 
 export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
@@ -1539,7 +1618,7 @@ const installers: Installer[] = [
     type: InstallerType.FallbackForOther,
     id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
-    install: installAnyModWithBasicFixes,
+    install: installAnyMod,
   },
 ];
 

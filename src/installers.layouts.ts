@@ -42,6 +42,12 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |-📄 *.dll
  */
 
+// Fallback
+export const enum FallbackLayout {
+  LooksSafe = ".\\**\\* - everything in this mod, and we've checked things we know to be risky",
+  Unvalidated = ".\\**\\* - everything in this mod, and nothing has been validated",
+}
+
 // CET
 
 export const enum CetLayout {
@@ -129,6 +135,7 @@ export type Layout =
   | RedscriptLayout
   | Red4ExtLayout
   | ArchiveLayout
+  | FallbackLayout
   | NoLayout;
 
 export const enum NoInstructions {
