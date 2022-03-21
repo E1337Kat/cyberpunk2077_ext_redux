@@ -43,6 +43,12 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |-📄 *.dll
  */
 
+// ASI
+
+export const enum AsiLayout {
+  Canon = `.\\bin\\x64\\plugins\\*.asi + [any files + subdirs]`,
+}
+
 // CET
 
 export const enum CetLayout {
@@ -129,6 +135,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | AsiLayout
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout

@@ -370,7 +370,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
 
 export const AsiMod = new Map<string, ExampleMod>(
   Object.entries({
-    standardAsiModInstall: {
+    asiModWithCet: {
       expectedInstallerType: InstallerType.ASI,
       inFiles: [
         ...ASI_PREFIXES,
@@ -401,6 +401,17 @@ export const AsiMod = new Map<string, ExampleMod>(
           type: "copy",
           source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
           destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
+        },
+      ],
+    },
+    standardAsiMod: {
+      expectedInstallerType: InstallerType.ASI,
+      inFiles: [...ASI_PREFIXES, `${ASI_PREFIX}/normal.asi`].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/normal.asi`),
+          destination: path.normalize(`${ASI_PREFIX}/normal.asi`),
         },
       ],
     },
