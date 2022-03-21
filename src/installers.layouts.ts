@@ -13,6 +13,7 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📄 *.ini -- Reshade mod
  * | | |-📁 reshade-shaders
  * | | |-📁 plugins
+ * | | | |- 📄 *.asi
  * | | | |-📁 cyber_engine_tweaks
  * | | | | |-📁 mods
  * | | | | | |-📁 SomeMod
@@ -41,6 +42,12 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📁 SomeMod
  * | | | |-📄 *.dll
  */
+
+// ASI
+
+export const enum AsiLayout {
+  Canon = `.\\bin\\x64\\plugins\\*.asi + [any files + subdirs]`,
+}
 
 // CET
 
@@ -104,6 +111,9 @@ export const KNOWN_JSON_FILES = {
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
 
+export const ASI_MOD_EXT = ".asi";
+export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
+
 // Archives
 
 export const enum ArchiveLayout {
@@ -125,6 +135,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | AsiLayout
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout
