@@ -49,11 +49,20 @@ export const promptUserOnConflict = async (
   files: string[],
 ): Promise<InstallDecision> => {
   api.log(
-    "error",
+    `error`,
     `${installerType}: conflicting layouts, can't install automatically`,
     files,
   );
-  api.log("info", `Asking user to proceed/cancel installation`);
+  api.log(`info`, `Asking user to proceed/cancel installation`);
+
+  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
+
+  if (supportedLayoutsDescription === undefined) {
+    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
+
+    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
+    return Promise.reject(new Error(errorCausingAnExitHopefullyInTestsAndNotInProd));
+  }
 
   const explanationForUser = `
     You need to decide if you want to proceed or not. I can't
@@ -71,12 +80,12 @@ export const promptUserOnConflict = async (
 
     These are the supported layouts for ${installerType} mods:
 
-    ${LayoutDescriptions[installerType]}
+    ${supportedLayoutsDescription}
 
     These are the files I found in the mod:
 
     \`\`\`
-    ${files.join("\n")}
+    ${files.join(`\n`)}
     \`\`\``;
 
   return promptUserToInstallOrCancel(
@@ -163,43 +172,6 @@ export const showRed4ExtStructureErrorDialog = (
          ${red4extLayoutDescription}
 
          These are the files I found in the mod:
-
-         \`\`\`
-         ${files.join("\n")}
-         \`\`\``,
-      ),
-    },
-    [{ label: "Understood!" }],
-  );
-};
-
-// Should maybe grab the result here when abstracting,
-// so that we can wait on it if needed
-export const showArchiveStructureErrorDialog = (
-  api: VortexApi,
-  message: string,
-  files: string[],
-): void => {
-  api.showDialog(
-    "error",
-    message,
-    {
-      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
-      // Extract this common layout messaging?
-      // Maybe generate the supported layouts
-      // from some documentation or smth.
-      md: heredoc(
-        `I found several possible Archive layouts, but can only support one layout per mod.
-         This mod can't be installed! You will have to fix the mod manually _outside_ Vortex for now.
-
-         Supported layouts:
-
-        - \`.\\archive\\pc\\mod\\[*.archive + any files/subdirs]     (canonical)\`
-        - \`.\\archive\\pc\\patch\\[*.archive + any files/subdirs]   (old way, I can fix this to new)\`
-        - \`.\\**\\[*.archive + any files/subdirs]                   (I can fix this to canonical)\`
-        - \`.\\[*.archive + any files/subdirs]                       (I can fix this to canonical)\`
-
-         Got:
 
          \`\`\`
          ${files.join("\n")}

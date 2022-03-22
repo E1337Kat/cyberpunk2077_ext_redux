@@ -131,16 +131,26 @@ export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/
 //
 //
 
+// There's probably some way to make this type-level AND indexable
+// but for now just gonna check and raise if the description is missing.
 export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.Redscript,
     `
     - \`${RedscriptLayout.Canon}\` (Canonical)
-    |   - + \`${ArchiveLayout.Canon}\` (if any)
-    |   - + \`${ArchiveLayout.Heritage}\` (if any)
+    |   - + \`${ArchiveLayout.Canon}\`
+    |   - + \`${ArchiveLayout.Heritage}\`
     - \`${RedscriptLayout.Basedir}\`  (Can be fixed to canonical)
-    |   - \`${ArchiveLayout.Canon}\`
-    |   - \`${ArchiveLayout.Heritage}\`
+    |   - + \`${ArchiveLayout.Canon}\`
+    |   - + \`${ArchiveLayout.Heritage}\`
+    `,
+  ],
+  [
+    InstallerType.ArchiveOnly,
+    `
+    - \`${ArchiveLayout.Canon}\` (Canonical)
+    - \`${ArchiveLayout.Heritage}\` (Old style, fixable to Canon)
+    - \`${ArchiveLayout.Other}\`
     `,
   ],
 ]);
