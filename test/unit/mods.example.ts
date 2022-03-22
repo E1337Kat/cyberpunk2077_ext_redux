@@ -828,6 +828,61 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
   }),
 ]);
 
+export const Red4ExtModShouldPromptForceInstall = new Map<
+  string,
+  ExampleForceInstallableMod
+>(
+  Object.entries({
+    red4extWithMultipleSubdirsPromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        path.join(`subdir1/`),
+        path.join(`subdir1/script1.dll`),
+        path.join(`subdir2/`),
+        path.join(`subdir2/script2.dll`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`subdir1\\script1.dll`),
+          destination: path.join(`subdir1\\script1.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`subdir2\\script2.dll`),
+          destination: path.join(`subdir2\\script2.dll`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
+    },
+    red4extWithExtraArchivesInWrongPlacePromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        path.join(`subdir1/`),
+        path.join(`subdir1/script1.dll`),
+        path.join(`outtaplace.archive`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`subdir1\\script1.dll`),
+          destination: path.join(`subdir1\\script1.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`outtaplace.archive`),
+          destination: path.join(`outtaplace.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
+    },
+  }),
+);
+
 export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
@@ -1602,6 +1657,7 @@ export const AllExpectedInstallPromptables = new Map<
 >(
   Object.entries({
     RedscriptModShouldPromptForceInstall,
+    Red4ExtModShouldPromptForceInstall,
     ArchiveOnlyModShouldPromptForceInstall,
   }),
 );
