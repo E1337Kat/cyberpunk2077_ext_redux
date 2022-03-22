@@ -34,7 +34,7 @@ export interface ExampleFailingMod extends ExampleMod {
   failure?: string;
 }
 
-export interface ExampleForceInstallableMod extends ExampleMod {
+export interface ExamplePromptInstallableMod extends ExampleMod {
   proceedLabel: string;
   proceedOutInstructions: VortexInstruction[];
   cancelLabel: string;
@@ -44,7 +44,10 @@ export interface ExampleForceInstallableMod extends ExampleMod {
 // Really should probably make this a sensible type but w/e
 export type ExampleModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
-export type ExampleForceInstallableModCategory = Map<string, ExampleForceInstallableMod>;
+export type ExamplePromptInstallableModCategory = Map<
+  string,
+  ExamplePromptInstallableMod
+>;
 
 export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
 export const FAKE_STAGING_PATH = path.join(
@@ -589,9 +592,9 @@ export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const RedscriptModShouldPromptForceInstall = new Map<
+export const RedscriptModShouldPromptForInstall = new Map<
   string,
-  ExampleForceInstallableMod
+  ExamplePromptInstallableMod
 >(
   Object.entries({
     redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
@@ -816,9 +819,9 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
   ]),
 ]);
 
-export const Red4ExtModShouldPromptForceInstall = new Map<
+export const Red4ExtModShouldPromptForInstall = new Map<
   string,
-  ExampleForceInstallableMod
+  ExamplePromptInstallableMod
 >(
   Object.entries({
     red4extWithMultipleSubdirsPromptsOnConflictForFallback: {
@@ -1052,9 +1055,9 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
   }), // object
 );
 
-export const ArchiveOnlyModShouldPromptForceInstall = new Map<
+export const ArchiveOnlyModShouldPromptForInstall = new Map<
   string,
-  ExampleForceInstallableMod
+  ExamplePromptInstallableMod
 >(
   Object.entries({
     archiveWithToplevelAndCanonicalFilesPromptsOnConflictForFallback: {
@@ -1612,9 +1615,9 @@ export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const MultiTypeModShouldPromptForceInstall = new Map<
+export const MultiTypeModShouldPromptForInstall = new Map<
   string,
-  ExampleForceInstallableMod
+  ExamplePromptInstallableMod
 >(
   Object.entries({
     multitypeWithArchivesAtToplevelPromptsOnConflict: {
@@ -1775,13 +1778,14 @@ export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModC
 
 export const AllExpectedInstallPromptables = new Map<
   string,
-  ExampleForceInstallableModCategory
+  ExamplePromptInstallableModCategory
 >(
   Object.entries({
-    MultiTypeModShouldPromptForceInstall,
-    RedscriptModShouldPromptForceInstall,
-    Red4ExtModShouldPromptForceInstall,
-    ArchiveOnlyModShouldPromptForceInstall,
+    MultiTypeModShouldPromptForInstall,
+    RedscriptModShouldPromptForInstall,
+    Red4ExtModShouldPromptForInstall,
+    ArchiveOnlyModShouldPromptForInstall,
+    FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),
 );
 
