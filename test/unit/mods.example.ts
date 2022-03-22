@@ -1358,23 +1358,30 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
   }), // object
 );
 
-export const ExampleInvalidModsForFallback = new Map<string, ExampleSucceedingMod>(
+export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
   Object.entries({
     invalidModContainingJustAnExe: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [path.normalize("bin/myProg.exe")],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.normalize("bin/myProg.exe"),
           destination: path.normalize("bin/myProg.exe"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
     invalidModContainingRandomFiles: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: ["Categorized AIO Command List.xlsx", "readme.md"],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.normalize("Categorized AIO Command List.xlsx"),
@@ -1386,20 +1393,25 @@ export const ExampleInvalidModsForFallback = new Map<string, ExampleSucceedingMo
           destination: path.normalize("readme.md"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
     invalidModWithDeepInvalidPath: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [
         ...pathHierarchyFor(FAKE_STAGING_PATH),
         path.join(FAKE_STAGING_PATH, "toodles.txt"),
       ],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.join(FAKE_STAGING_PATH, "toodles.txt"),
           destination: path.join(FAKE_STAGING_PATH, "toodles.txt"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
   }), // object
 );
@@ -1764,7 +1776,6 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
-    ExampleInvalidModsForFallback,
   }),
 );
 
