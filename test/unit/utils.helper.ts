@@ -31,7 +31,7 @@ export const getFallbackInstaller = () => {
   const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
 
   test("last installer in pipeline is the fallback", () => {
-    expect(fallbackInstaller.type).toBe(InstallerType.FallbackForOther);
+    expect(fallbackInstaller.type).toBe(InstallerType.Fallback);
   });
 
   return fallbackInstaller;

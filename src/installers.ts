@@ -1577,7 +1577,7 @@ const installers: Installer[] = [
     install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.FallbackForOther,
+    type: InstallerType.Fallback,
     id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
     install: installAnyMod,

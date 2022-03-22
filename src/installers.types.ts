@@ -22,7 +22,7 @@ export enum InstallerType {
   LUT = "LUT", // #31
   ArchiveOnly = "ArchiveOnly",
   Json = "JSON",
-  FallbackForOther = "FallbackForOther",
+  Fallback = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }
 
