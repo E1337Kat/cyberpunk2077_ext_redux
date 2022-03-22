@@ -121,7 +121,7 @@ describe("Transforming modules to instructions", () => {
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
-          expect(
+          const expectation = expect(
             installer.install(
               mockApi,
               mockVortexLog,
@@ -131,7 +131,9 @@ describe("Transforming modules to instructions", () => {
               null,
               null,
             ),
-          ).rejects.toThrowError(new Error(mod.cancelErrorMessage));
+          );
+
+          await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
         });
       });
     });
