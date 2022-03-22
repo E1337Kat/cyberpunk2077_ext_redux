@@ -1,5 +1,6 @@
 import path from "path";
 import { FileTree } from "./filetree";
+import { InstallerType } from "./installers.types";
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 /** Correct Directory structure:
@@ -123,6 +124,26 @@ export const MOD_FILE_EXT = ".archive";
 export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
 export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
 export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
+
+//
+//
+// Full descriptions
+//
+//
+
+export const LayoutDescriptions = new Map<InstallerType, string>([
+  [
+    InstallerType.Redscript,
+    `
+    - \`${RedscriptLayout.Canon}\` (Canonical)
+    |   - + \`${ArchiveLayout.Canon}\` (if any)
+    |   - + \`${ArchiveLayout.Heritage}\` (if any)
+    - \`${RedscriptLayout.Basedir}\`  (Can be fixed to canonical)
+    |   - \`${ArchiveLayout.Canon}\`
+    |   - \`${ArchiveLayout.Heritage}\`
+    `,
+  ],
+]);
 
 // Layouts to instructions
 

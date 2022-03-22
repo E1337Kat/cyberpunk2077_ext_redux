@@ -70,7 +70,6 @@ import {
   moveFromTo,
   useAllMatchingLayouts,
   makeSyntheticName,
-  InstallDecision,
 } from "./installers.shared";
 import {
   warnUserAboutHavingReachedFallbackInstallerDialog,
@@ -95,48 +94,18 @@ import {
 } from "./core-installers";
 import { exhaustiveMatchFailure, trueish } from "./installers.utils";
 import { GAME_ID } from "./index.metadata";
+import {
+  InstallDecision,
+  Installer,
+  InstallerType,
+  InstallerWithPriority,
+} from "./installers.types";
 
 // Ensure we're using win32 conventions
 const path = win32;
 
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 // I figured some wiggle room on either side is nice :) - Ellie
-
-// Types
-
-export enum InstallerType {
-  MultiType = "Multiple Types Combined", // #79
-  CoreCET = "Core/CET", // #32
-  CoreRedscript = "Core/Redscript", // #32
-  CoreRed4ext = "Core/Red4ext", // #32
-  CoreCSVMerge = "Core/CSVMerge", // #32
-  CoreWolvenKit = "Core/WolvenKitCLI", // #32
-  RedCetMix = "RedCetMix",
-  CET = "CET",
-  Redscript = "Redscript",
-  Red4Ext = "Red4ext", // #5
-  TweakDB = "TweakDB", // #6
-  AXL = "AXL", // #28
-  INI = "INI", // #29
-  Config = "Config", // #30
-  Reshade = "Reshade", // #8
-  LUT = "LUT", // #31
-  ArchiveOnly = "ArchiveOnly",
-  Json = "JSON",
-  FallbackForOther = "FallbackForOther",
-  NotSupported = "[Trying to install something not supported]",
-}
-
-export interface Installer {
-  type: InstallerType;
-  id: string;
-  testSupported: VortexWrappedTestSupportedFunc;
-  install: VortexWrappedInstallFunc;
-}
-
-export interface InstallerWithPriority extends Installer {
-  priority: number;
-}
 
 // testSupported that always fails
 //
@@ -161,9 +130,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 ) => {
   throw new Error("Should never get here");
 };
-
-//   return Promise.resolve({ instructions });
-// }
 
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;

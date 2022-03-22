@@ -2,7 +2,6 @@ import path from "path";
 import { pathHierarchyFor } from "./utils.helper";
 
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
-import { InstallerType } from "../../src/installers";
 
 import {
   CET_MOD_CANONICAL_INIT_FILE,
@@ -18,7 +17,8 @@ import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
 import { VortexInstruction } from "../../src/vortex-wrapper";
-import { PromptChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/dialogs";
+import { InstallerType } from "../../src/installers.types";
 
 export type InFiles = string[];
 
@@ -615,7 +615,7 @@ export const RedscriptModShouldPromptForceInstall = new Map<
           destination: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
         },
       ],
-      cancelLabel: PromptChoices.Cancel,
+      cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: "Redscript Mod: user chose to cancel installation on conflict",
     },
   }),

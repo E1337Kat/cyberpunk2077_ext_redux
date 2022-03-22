@@ -4,8 +4,9 @@ import * as path from "path";
 import { Console } from "console";
 import { mockDeep, MockProxy } from "jest-mock-extended";
 import { VortexApi } from "../../src/vortex-wrapper";
-import { installerPipeline, InstallerType } from "../../src/installers";
+import { installerPipeline } from "../../src/installers";
 import { fileTreeFromPaths } from "../../src/filetree";
+import { InstallerType } from "../../src/installers.types";
 
 export const GAME_ID = "cyberpunk2077";
 
