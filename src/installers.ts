@@ -74,7 +74,6 @@ import {
 import {
   warnUserAboutHavingReachedFallbackInstallerDialog,
   showArchiveInstallWarning,
-  showMultiTypeStructureErrorDialog,
   showRed4ExtReservedDllErrorDialog,
   promptUserOnConflict,
 } from "./dialogs";
@@ -695,7 +694,7 @@ const redscriptBasedirLayout = (
 const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
   findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
-const detectRedscriptCanonLayout = (fileTree: FileTree): boolean =>
+const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree) &&
   findCanonicalRedscriptDirs(fileTree).length > 0;
 
@@ -877,7 +876,7 @@ const red4extBasedirLayout: LayoutToInstructions = (
 const findCanonicalRed4ExtDirs = (fileTree: FileTree) =>
   findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
 
-const detectRed4ExtCanonLayout = (fileTree: FileTree): boolean =>
+const detectRed4ExtCanonOnlyLayout = (fileTree: FileTree): boolean =>
   !detectRed4ExtBasedirLayout(fileTree) && findCanonicalRed4ExtDirs(fileTree).length > 0;
 
 const red4extCanonLayout: LayoutToInstructions = (
@@ -885,7 +884,7 @@ const red4extCanonLayout: LayoutToInstructions = (
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasCanonFiles = detectRed4ExtCanonLayout(fileTree);
+  const hasCanonFiles = detectRed4ExtCanonOnlyLayout(fileTree);
 
   if (!hasCanonFiles) {
     return NoInstructions.NoMatch;
@@ -1342,11 +1341,14 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
-  const hasCanonRedscript = detectRedscriptCanonLayout(fileTree);
+  const hasCanonRedscript = detectRedscriptCanonOnlyLayout(fileTree);
   const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
-  const hasCanonRed4Ext = detectRed4ExtCanonLayout(fileTree);
+  const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
+  // The Onlys may need better naming.. they already check that
+  // there's no basedir stuff, so we can use both here without
+  // additional checks.
   const hasAtLeastTwoTypes =
     [
       hasCanonCet,
@@ -1385,8 +1387,18 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
   // Should extract this to wrapper..
   const modName = makeSyntheticName(destinationPath);
 
-  // For 'performance', I guess we could  drop the
-  // ones we know we won't be hitting, but..
+  // This should be more robust. Currently we kinda rely
+  // on it being very unlikely that these kinds of mods
+  // are broken in ways like having canon and basedir
+  // stuff but that's not guaranteed.
+  //
+  // Defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/96
+
+  // Also notable: Basedirs currently *override* Canon.
+  // This is probably the desired behavior but I dunno
+  // if we could at least make it somehow more obvious
+  // in the naming scheme.. it's clearer in specific
+  // installers where we choose one layout only.
   const allInstructionSets: LayoutToInstructions[] = [
     cetCanonLayout,
     redscriptBasedirLayout,
@@ -1412,10 +1424,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (allInstructionsPerLayout.length < 1 || haveFilesOutsideSelectedInstructions) {
-    const message = "Couldn't Figure Out How To Combine Everything In This Mod!";
-    api.log("error", message, sourcePaths(fileTree));
-    showMultiTypeStructureErrorDialog(api, message, sourcePaths(fileTree));
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.MultiType, fileTree);
   }
 
   api.log("info", "MultiType installer installing files.");

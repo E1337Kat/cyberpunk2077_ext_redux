@@ -169,6 +169,22 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     - \`${ArchiveLayout.Other}\`
     `,
   ],
+  [
+    InstallerType.MultiType,
+    `
+    - \`${CetLayout.Canon}\`
+    - One of
+    |   - \`${RedscriptLayout.Canon}\`
+    |   - \`${RedscriptLayout.Basedir}\`
+    - One of
+    |   - \`${Red4ExtLayout.Canon}\`
+    |   - \`${Red4ExtLayout.Basedir}\`
+    - One of
+    |   - \`${ArchiveLayout.Canon}\`
+    |   - \`${ArchiveLayout.Heritage}\`
+    - (No files can exist outside the above locations)
+    `,
+  ],
 ]);
 
 // Layouts to instructions
