@@ -47,18 +47,10 @@ export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 export type ExampleForceInstallableModCategory = Map<string, ExampleForceInstallableMod>;
 
 export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
-export const FAKE_STAGING_PATH = path.join(
-  "unno",
-  "why",
-  "this",
-  FAKE_STAGING_ZIPFILE,
-  path.sep,
-);
+export const FAKE_STAGING_PATH = path.join("unno", "why", "this", FAKE_STAGING_ZIPFILE, path.sep);
 export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
 
-const CORE_CET_FULL_PATH_DEPTH = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
-);
+const CORE_CET_FULL_PATH_DEPTH = path.normalize("bin/x64/plugins/cyber_engine_tweaks/scripts/json");
 const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
 const GAME_DIR = path.normalize("bin/x64");
 
@@ -114,21 +106,13 @@ export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
         },
         {
           type: "copy",
-          source: path.join(
-            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
-          ),
-          destination: path.join(
-            `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
-          ),
+          source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`),
+          destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`),
         },
         {
           type: "copy",
-          source: path.join(
-            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
-          ),
-          destination: path.join(
-            `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
-          ),
+          source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`),
+          destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`),
         },
         {
           type: "copy",
@@ -231,9 +215,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
         `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
         ...pathHierarchyFor("csvmerge/mods/Example_Mod_Folder"),
         ...pathHierarchyFor(
-          path.normalize(
-            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods",
-          ),
+          path.normalize("csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories/mods"),
         ),
         "csvmerge/CSVMerge.cmd",
         "csvmerge/CSVMerge_Tutorial_&_Readme.txt",
@@ -250,12 +232,8 @@ export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize(
-            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
-          ),
-          destination: path.normalize(
-            `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
-          ),
+          source: path.normalize(`${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`),
+          destination: path.normalize(`${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`),
         },
         {
           type: "copy",
@@ -289,21 +267,13 @@ export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
         },
         {
           type: "copy",
-          source: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
-          ),
-          destination: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .code file goes here",
-          ),
+          source: path.normalize("csvmerge/mods/Example_Mod_Folder/your .code file goes here"),
+          destination: path.normalize("csvmerge/mods/Example_Mod_Folder/your .code file goes here"),
         },
         {
           type: "copy",
-          source: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
-          ),
-          destination: path.normalize(
-            "csvmerge/mods/Example_Mod_Folder/your .item files go here",
-          ),
+          source: path.normalize("csvmerge/mods/Example_Mod_Folder/your .item files go here"),
+          destination: path.normalize("csvmerge/mods/Example_Mod_Folder/your .item files go here"),
         },
         {
           type: "copy",
@@ -312,9 +282,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
         },
         {
           type: "copy",
-          source: path.normalize(
-            "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
-          ),
+          source: path.normalize("csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv"),
           destination: path.normalize(
             "csvmerge/wolvenkitcli/mod/CSVMerge/base/gameplay/factories.csv",
           ),
@@ -367,9 +335,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
     CoreWolvenKitDetectedDesktop: {
       expectedInstallerType: InstallerType.NotSupported,
-      inFiles: ["WolvenKit Desktop/", "WolvenKit Desktop/WolvenKit.exe"].map(
-        path.normalize,
-      ),
+      inFiles: ["WolvenKit Desktop/", "WolvenKit Desktop/WolvenKit.exe"].map(path.normalize),
       failure: "WolvenKit Desktop is not able to be installed with Vortex.",
     },
   }),
@@ -411,19 +377,13 @@ export const CetMod = new Map<string, ExampleSucceedingMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
-          ),
-          destination: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
-          ),
+          source: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`),
         },
         {
           type: "copy",
           source: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`),
-          destination: path.join(
-            `${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`,
-          ),
+          destination: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`),
         },
         {
           type: "copy",
@@ -485,11 +445,7 @@ export const CetModShouldFail = new Map<string, ExampleFailingMod>(
   Object.entries({
     CetModWithIniShouldFail: {
       expectedInstallerType: InstallerType.CET,
-      inFiles: [
-        path.join(`exmod/`),
-        path.join(`exmod/${CET_INIT}`),
-        path.join(`exmod/some.ini`),
-      ],
+      inFiles: [path.join(`exmod/`), path.join(`exmod/${CET_INIT}`), path.join(`exmod/some.ini`)],
       failure: "Improperly packaged CET mod with ini file",
     },
   }),
@@ -589,10 +545,7 @@ export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const RedscriptModShouldPromptForceInstall = new Map<
-  string,
-  ExampleForceInstallableMod
->(
+export const RedscriptModShouldPromptForceInstall = new Map<string, ExampleForceInstallableMod>(
   Object.entries({
     redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Redscript,
@@ -602,7 +555,7 @@ export const RedscriptModShouldPromptForceInstall = new Map<
         path.join(`${REDS_PREFIX}/rexmod/`),
         path.join(`${REDS_PREFIX}/rexmod/script.reds`),
       ],
-      proceedLabel: "hi",
+      proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
           type: "copy",
@@ -616,7 +569,7 @@ export const RedscriptModShouldPromptForceInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: "Redscript Mod: user chose to cancel installation on conflict",
+      cancelErrorMessage: "Redscript: user chose to cancel installation on conflict",
     },
   }),
 );
@@ -796,16 +749,14 @@ export const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
 );
 
 const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
-  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.map(
-    (dir: string): [string, ExampleFailingMod] => [
-      `red4ext DLL in dangerous dir ${dir}`,
-      {
-        expectedInstallerType: InstallerType.Red4Ext,
-        inFiles: [path.join(dir, "some.dll")],
-        failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
-      },
-    ],
-  ),
+  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.map((dir: string): [string, ExampleFailingMod] => [
+    `red4ext DLL in dangerous dir ${dir}`,
+    {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [path.join(dir, "some.dll")],
+      failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+    },
+  ]),
   ...RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.map((dll: string): [string, ExampleFailingMod] => [
     `red4ext DLL with reserved name ${dll}`,
     {
@@ -832,9 +783,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.ArchiveOnly,
-      inFiles: [...ARCHIVE_PREFIXES, `${ARCHIVE_PREFIX}/first.archive`].map(
-        path.normalize,
-      ),
+      inFiles: [...ARCHIVE_PREFIXES, `${ARCHIVE_PREFIX}/first.archive`].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
@@ -893,16 +842,12 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize(
-            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
-          ),
+          source: path.normalize(`${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
           type: "copy",
-          source: path.normalize(
-            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
-          ),
+          source: path.normalize(`${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
@@ -936,9 +881,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
     },
     archiveWithArchivesInRandomFolder: {
       expectedInstallerType: InstallerType.ArchiveOnly,
-      inFiles: ["fold1/", "fold1/first.archive", "fold1/second.archive"].map(
-        path.normalize,
-      ),
+      inFiles: ["fold1/", "fold1/first.archive", "fold1/second.archive"].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
@@ -1098,9 +1041,7 @@ export const JsonMod = new Map<string, ExampleSucceedingMod>(
     },
     jsonInRandomFolder: {
       expectedInstallerType: InstallerType.Json,
-      inFiles: ["fold1/", "fold1/giweights.json", "fold1/bumpersSettings.json"].map(
-        path.normalize,
-      ),
+      inFiles: ["fold1/", "fold1/giweights.json", "fold1/bumpersSettings.json"].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
@@ -1160,8 +1101,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
     jsonWithInvalidFileInRootFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
-      failure:
-        "Improperly located options.json file found.  We don't know where it belongs.",
+      failure: "Improperly located options.json file found.  We don't know where it belongs.",
     },
     jsonWithUnknownFileFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
@@ -1565,12 +1505,10 @@ export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModC
   }),
 );
 
-export const AllExpectedInstallPromptables = new Map<
-  string,
-  ExampleForceInstallableModCategory
->(
+export const AllExpectedInstallPromptables = new Map<string, ExampleForceInstallableModCategory>(
   Object.entries({
     RedscriptModShouldPromptForceInstall,
+    ArchiveOnlyModShouldPromptForceInstall,
   }),
 );
 
