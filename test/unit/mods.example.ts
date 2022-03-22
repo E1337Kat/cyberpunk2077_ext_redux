@@ -1612,6 +1612,140 @@ export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
   }),
 );
 
+export const MultiTypeModShouldPromptForceInstall = new Map<
+  string,
+  ExampleForceInstallableMod
+>(
+  Object.entries({
+    multitypeWithArchivesAtToplevelPromptsOnConflict: {
+      expectedInstallerType: InstallerType.MultiType,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4xmod/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`magicgoeselsewhere.archive`),
+      ],
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`magicgoeselsewhere.archive`),
+          destination: path.join(`magicgoeselsewhere.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+    },
+    multitypeWithCanonAndToplevelRedsPromptsOnConflict: {
+      expectedInstallerType: InstallerType.MultiType,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`topsies.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4xmod/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+      ],
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`topsies.reds`),
+          destination: path.join(`topsies.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+          destination: path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+    },
+  }),
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreCetInstall,
@@ -1644,6 +1778,7 @@ export const AllExpectedInstallPromptables = new Map<
   ExampleForceInstallableModCategory
 >(
   Object.entries({
+    MultiTypeModShouldPromptForceInstall,
     RedscriptModShouldPromptForceInstall,
     Red4ExtModShouldPromptForceInstall,
     ArchiveOnlyModShouldPromptForceInstall,
