@@ -1,6 +1,6 @@
 import { notEmpty, mockDeep, MockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
-import { PromptChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/dialogs";
 import { fileTreeFromPaths } from "../../src/filetree";
 import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
 import {
@@ -86,7 +86,7 @@ describe("Transforming modules to instructions", () => {
 
           // This, um, may need some cleaning up. -.-
           const mockResult: VortexDialogResult = {
-            action: PromptChoices.Proceed,
+            action: InstallChoices.Proceed,
             input: undefined,
           };
           const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
@@ -113,7 +113,7 @@ describe("Transforming modules to instructions", () => {
 
           // This, um, may need some cleaning up. -.-
           const mockResult: VortexDialogResult = {
-            action: PromptChoices.Cancel,
+            action: InstallChoices.Cancel,
             input: undefined,
           };
           const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();

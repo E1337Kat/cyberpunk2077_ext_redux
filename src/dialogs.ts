@@ -3,77 +3,94 @@ import {
   ArchiveLayout,
   CetLayout,
   InvalidLayout,
+  LayoutDescriptions,
   Red4ExtLayout,
   RedscriptLayout,
 } from "./installers.layouts";
-import { InstallDecision } from "./installers.shared";
+import { InstallDecision, InstallerType } from "./installers.types";
 import { VortexApi, VortexDialogResult, VortexLogFunc } from "./vortex-wrapper";
 
-const heredoc = (str: string) => str.replace(/^[ \t]+/gm, "").replace(/\n{3,}/g, "\n\n");
-
-export const enum PromptChoices {
+export const enum InstallChoices {
   Proceed = "Yes, Install To Staging Anyway",
   Cancel = "No, Cancel Installation",
 }
 
-export const promptUserOnConflictRedscript = async (
-  api: VortexApi,
-  log: VortexLogFunc,
-  message: string,
-  files: string[],
-): Promise<InstallDecision> => {
-  log("error", `Redscript Mod installer: ${message}`, files);
+const heredoc = (str: string) =>
+  str
+    .replace(/^[ \t]+/gm, "") // Remove leading whitespace on each row
+    .replace("|", " ") // Drop |'s that protected leading whitespace
+    .replace(/\n{3,}/g, "\n\n"); // And squash extra empty lines into one empty max
 
-  // It'd be nicer to move at least the long text out, maybe constant
-  // for text + function for handling the boilerplate?
+export const promptUserToInstallOrCancel = async (
+  api: VortexApi,
+  title: string,
+  explanation: string,
+): Promise<InstallDecision> => {
   const dialogResponse: VortexDialogResult = await api.showDialog(
     "question",
-    message,
+    title,
     {
-      md: heredoc(
-        `You need to decide if you want to proceed or not. I can't
-         figure out the intended structure of this mod.
-
-         If you want to proceed, I'll install everything in the mod
-         into the staging folder. You will need to fix the mod manually
-         before you enable it.
-
-         To do so, once the mod is installed, click on the File Manager
-         option in the action menu (arrow down next to Remove on the right
-         in the mod listing.) Make your changes and just close the Manager.
-
-         Supported layouts for Redscript mods:
-
-         - \`${RedscriptLayout.Canon}\`
-         - \`${RedscriptLayout.Basedir}\`
-
-         Both can also include archives in their canonical location:
-
-         - \`${ArchiveLayout.Canon}\`
-         - \`${ArchiveLayout.Heritage}\`
-
-         These are the files I found in the mod:
-
-         \`\`\`
-         ${files.join("\n")}
-         \`\`\``,
-      ),
+      md: heredoc(explanation),
     },
-    [{ label: PromptChoices.Cancel }, { label: PromptChoices.Proceed }],
+    [{ label: InstallChoices.Cancel }, { label: InstallChoices.Proceed }],
   );
 
   const installDecision =
-    dialogResponse.action === PromptChoices.Proceed
+    dialogResponse.action === InstallChoices.Proceed
       ? InstallDecision.UserWantsToProceed
       : InstallDecision.UserWantsToCancel;
 
   return installDecision;
 };
 
+export const promptUserOnConflict = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  files: string[],
+): Promise<InstallDecision> => {
+  api.log(
+    "error",
+    `${installerType}: conflicting layouts, can't install automatically`,
+    files,
+  );
+  api.log("info", `Asking user to proceed/cancel installation`);
+
+  const explanationForUser = `
+    You need to decide if you want to proceed or not. I can't
+    figure out the intended structure of this mod.
+
+    If you want to proceed, I'll install everything in the mod
+    into the Staging folder. You will need to check and possibly
+    fix the mod manually before you enable it. (The Staging folder
+    is where all installed mods live - they only go into the game
+    mod folder when enabled.)
+
+    To do so, once the mod is installed, click on the File Manager
+    option in the action menu (arrow down next to Remove on the right
+    in the mod listing.) Make your changes and just close the Manager.
+
+    These are the supported layouts for ${installerType} mods:
+
+    ${LayoutDescriptions[installerType]}
+
+    These are the files I found in the mod:
+
+    \`\`\`
+    ${files.join("\n")}
+    \`\`\``;
+
+  return promptUserToInstallOrCancel(
+    api,
+    `Can't Figure Out How To Install This Mod!`,
+    explanationForUser,
+  );
+};
+
 // Should try to get this doc in a stronger format like using the layout
 //
 // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/75
 //
+// Move this to LayoutDescriptions!
 const red4extLayoutDescription = heredoc(`
   Supported layouts for Red4Ext mods:
 
