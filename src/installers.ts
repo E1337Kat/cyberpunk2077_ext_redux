@@ -76,7 +76,6 @@ import {
   showArchiveInstallWarning,
   showMultiTypeStructureErrorDialog,
   showRed4ExtReservedDllErrorDialog,
-  showRed4ExtStructureErrorDialog,
   promptUserOnConflict,
 } from "./dialogs";
 import {
@@ -985,12 +984,10 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
-  const toplevelDllDirs = findDirectSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
 
   const noDllDirs = allDllSubdirs.length < 1;
   const noToplevelDlls = toplevelDlls.length < 1;
-  const tooManyToplevelDllSubdirs = toplevelDllDirs.length > 1;
 
   if (noDllDirs && noToplevelDlls) {
     log("info", "Doesn't look like a Red4Ext mod");
@@ -1009,17 +1006,12 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
     return Promise.reject(new Error(message));
   }
 
-  if (noToplevelDlls && tooManyToplevelDllSubdirs) {
-    const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.Conflict);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
-  }
-
   // Red4Ext itself handled elsewhere
   if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
+
+  // Good enough, this is the right installer, more checks in `install`
 
   return Promise.resolve({ supported: true, requiredFiles: [] });
 };
@@ -1061,10 +1053,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   }
 
   if (chosenInstructions === InvalidLayout.Conflict) {
-    const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.Conflict);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
   }
 
   const extraArchiveLayoutsAllowed = chosenInstructions.kind !== Red4ExtLayout.Toplevel;
@@ -1080,10 +1069,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    const message = "Conflicting Structures For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
   }
 
   log("info", "Red4Ext installer installing files.");

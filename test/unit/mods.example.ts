@@ -814,18 +814,6 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
       failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
     },
   ]),
-  ...Object.entries({
-    red4extWithMoreThanOneToplevelSubdirWithDllsFails: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        path.join(`subdir1/`),
-        path.join(`subdir1/script1.dll`),
-        path.join(`subdir2/`),
-        path.join(`subdir2/script2.dll`),
-      ],
-      failure: `Ambiguous Structure For Red4Ext Mod!`,
-    },
-  }),
 ]);
 
 export const Red4ExtModShouldPromptForceInstall = new Map<

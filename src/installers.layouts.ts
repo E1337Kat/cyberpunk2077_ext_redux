@@ -146,6 +146,22 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.Red4Ext,
+    `
+    - \`${Red4ExtLayout.Canon}\` (Canonical)
+    |   - + \`${ArchiveLayout.Canon}\`
+    |   - + \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Basedir}\` (Can be fixed to canonical)
+    |   - + \`${ArchiveLayout.Canon}\`
+    |   - + \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Modnamed}\` (Can be fixed to canonical)
+    |   - + \`${ArchiveLayout.Canon}\`
+    |   - + \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Toplevel}\` (Can be fixed to canonical)
+    |   - (No other files allowed)
+    `,
+  ],
+  [
     InstallerType.ArchiveOnly,
     `
     - \`${ArchiveLayout.Canon}\` (Canonical)
