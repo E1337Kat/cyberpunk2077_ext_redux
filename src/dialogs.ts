@@ -4,15 +4,7 @@ import {
   EXTENSION_URL_GITHUB,
   EXTENSION_URL_NEXUS,
 } from "./index.metadata";
-import {
-  ArchiveLayout,
-  ARCHIVE_ONLY_CANONICAL_PREFIX,
-  CetLayout,
-  InvalidLayout,
-  LayoutDescriptions,
-  Red4ExtLayout,
-  RedscriptLayout,
-} from "./installers.layouts";
+import { ARCHIVE_ONLY_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
 import { VortexApi, VortexDialogResult, VortexLogFunc } from "./vortex-wrapper";
 
@@ -115,91 +107,30 @@ export const promptUserOnConflict = async (
   );
 };
 
-// Should try to get this doc in a stronger format like using the layout
-//
-// Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/75
-//
-// Move this to LayoutDescriptions!
-const red4extLayoutDescription = heredoc(`
-  Supported layouts for Red4Ext mods:
-
-  - \`.\\red4ext\\plugins\\[modname]\\[*.dll + any files/subdirs]   (canonical)\`
-    - (if any) \`.\\archive\\pc\\mod\\*.archive\`
-  - \`.\\red4ext\\plugins\\[*.dll + any files/subdirs]              (I can fix this to canonical)\`   
-    - (if any) \`.\\archive\\pc\\mod\\*.archive\`
-  - \`.\\[modname]\\[*.dll + any files/subdirs]                     (I can fix this to canonical)\`   
-    - (if any) \`.\\*.archive\`
-  - \`.\\*.dll                                                      (I can fix this to canonical)\`   
-    - (if any) \`.\\**\\[any files/subdirs]
-    - (if any) \`.\\*.archive\``);
-
-export const showRed4ExtReservedDllErrorDialog = (
+export const promptUserToInstallOrCancelOnReachingFallback = (
   api: VortexApi,
-  message: string,
-  dangerPaths: string[],
-): void => {
-  api.showDialog(
-    "error",
-    message,
-    {
-      md: heredoc(`
-        Installation cancelled!
-
-        Because this mod has DLLs, it seems like it might be a Red4Ext mod, but I can't install
-        DLLs that look like they could conflict with known DLL files!
-
-        ${red4extLayoutDescription}
-
-        If any of the following contain DLLs that this mod _should_ install or this isn't a Red4Ext
-        mod at all, please report a bug and we'll see how we can handle it better! In the meanwhile,        
-        you can manually install the files (but please be careful!)
-
-        I cancelled the installation because of these files:
-
-        \`\`\`
-        ${dangerPaths.join("\n")}
-        \`\`\``),
-    },
-    [{ label: "Understood!" }],
-  );
-};
-
-export const showRed4ExtStructureErrorDialog = (
-  api: VortexApi,
-  message: string,
   files: string[],
-  isMultiple?: InvalidLayout,
-): void => {
-  const problemDescription = isMultiple
-    ? `
-        I found several possible Red4Ext mod layouts, but can only support one layout per mod.`
-    : `
-        This looks like a Red4Ext mod, but there are files outside any structure that I can handle.`;
+) => {
+  api.log("info", `Fallback installer reached, prompting to proceed/cancel`, files);
 
-  api.showDialog(
-    "error",
-    message,
-    {
-      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
-      md: heredoc(
-        `Installation cancelled!
+  const fallbackTitle = `You Have Reached The Fallback Installer!`;
 
-        ${problemDescription} This mod can't be installed! You'll have to fix it
-        _outside_ Vortex for now!
+  const fallbackExplanation = `
+    I wasn't able to figure out what kind of mod this is, so you have
+    reached the fallback installer (ta-dah!)
 
-         Supported layouts:
+    ${INSTRUCTIONS_TO_FIX_IN_STAGING}
 
-         ${red4extLayoutDescription}
+    ${INSTRUCTIONS_TO_REPORT_ISSUE}
 
-         These are the files I found in the mod:
+    These are the files in the mod:
 
-         \`\`\`
-         ${files.join("\n")}
-         \`\`\``,
-      ),
-    },
-    [{ label: "Understood!" }],
-  );
+    \`\`\`
+    ${files.join("\n")}
+    \`\`\`
+    `;
+
+  return promptUserToInstallOrCancel(api, fallbackTitle, fallbackExplanation);
 };
 
 export const showArchiveInstallWarning = (
@@ -258,104 +189,6 @@ export const showArchiveInstallWarning = (
   );
 };
 
-// Should try to carry in some more diagnostic information to the user
-// Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/81
-export const showMultiTypeStructureErrorDialog = (
-  api: VortexApi,
-  message: string,
-  files: string[],
-): void => {
-  api.showDialog(
-    "error",
-    message,
-    {
-      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
-      md: heredoc(`
-        Installation cancelled!
-
-        It looks like this mod combined multiple types of mods, but I can only
-        support them if they're well structured. Each different type within the
-        mod has to use the canonical layout for that type. (When it's just one
-        type of mod, I can make more assumptions and can support more possible
-        layouts.)
-
-        The installation was cancelled, so you'll have to fix the mod _outside_
-        Vortex for now.
-
-        These are the layouts I can support in combinations (NOTE: there can't
-        be any other kinds of files outside these.):
-
-        - \`${CetLayout.Canon}\`
-        - \`${RedscriptLayout.Canon}\`
-        - \`${Red4ExtLayout.Canon}\`
-        - \`${ArchiveLayout.Canon}\`
-        - \`${ArchiveLayout.Heritage}\`
-
-        These are the files I found in the mod:
-
-        \`\`\`
-        ${files.join("\n")}
-        \`\`\``),
-    },
-    [{ label: "Understood!" }],
-  );
-};
-
-// Example notif + dialog
-/*
-  api.sendNotification({
-    type: "warning",
-    title: message,
-    message: "Check mod files in File Manager!",
-    actions: [
-      {
-        title: "More info",
-        action: (dismiss) => {
-          api.showDialog(
-            "info",
-            "Archive Files Moved To Top Level",
-            {
-              text:
-                "There were some archive files outside the canonical mod folder " +
-                ".\\archive\\pc\\mod or inside a subdirectory. " +
-                "The installer moved them all to the top level. Please check " +
-                "the mod in File Manager (Down Arrow next to the Remove action " +
-                "in the mod list) to verify the files are correct!",
-            },
-            [{ label: "Close", action: () => dismiss() }],
-          );
-        },
-      },
-    ],
-  });
-  */
-
-export const promptUserToInstallOrCancelOnReachingFallback = (
-  api: VortexApi,
-  files: string[],
-) => {
-  api.log("info", `Fallback installer reached, prompting to proceed/cancel`, files);
-
-  const fallbackTitle = `You Have Reached The Fallback Installer!`;
-
-  const fallbackExplanation = `
-    I wasn't able to figure out what kind of mod this is, so you have
-    reached the fallback installer (ta-dah!)
-
-    ${INSTRUCTIONS_TO_FIX_IN_STAGING}
-
-    ${INSTRUCTIONS_TO_REPORT_ISSUE}
-
-    These are the files in the mod:
-
-    \`\`\`
-    ${files.join("\n")}
-    \`\`\`
-    `;
-
-  return promptUserToInstallOrCancel(api, fallbackTitle, fallbackExplanation);
-};
-
 export const wolvenKitDesktopFoundErrorDialog = (
   api: VortexApi,
   log: VortexLogFunc,
@@ -379,5 +212,40 @@ export const wolvenKitDesktopFoundErrorDialog = (
         "installed through Vortex",
     },
     [{ label: "Ok, I'll get WolvenKit.Console" }],
+  );
+};
+
+export const showRed4ExtReservedDllErrorDialog = (
+  api: VortexApi,
+  message: string,
+  dangerPaths: string[],
+): void => {
+  api.showDialog(
+    "error",
+    message,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        Because this mod has DLLs, it seems like it might be a Red4Ext mod, but I can't install
+        DLLs that look like they could conflict with known DLL files!
+
+        These are the supported layouts for Red4Ext mods:
+
+        ${LayoutDescriptions.get(InstallerType.Red4Ext)}
+
+        If any of the files below contain DLLs that this mod _should_ install or this isn't a Red4Ext
+        mod at all, please report a bug and we'll see how we can handle it better! In the meanwhile,
+        you can manually install the files (but please be careful with DLLs!)
+
+        ${INSTRUCTIONS_TO_REPORT_ISSUE}
+
+        I cancelled the installation because of these files:
+
+        \`\`\`
+        ${dangerPaths.join("\n")}
+        \`\`\``),
+    },
+    [{ label: "Understood!" }],
   );
 };
