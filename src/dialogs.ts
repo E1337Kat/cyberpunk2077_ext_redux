@@ -6,6 +6,7 @@ import {
 } from "./index.metadata";
 import {
   ArchiveLayout,
+  ARCHIVE_ONLY_CANONICAL_PREFIX,
   CetLayout,
   InvalidLayout,
   LayoutDescriptions,
@@ -207,31 +208,44 @@ export const showArchiveInstallWarning = (
   warnAboutToplevel: boolean,
   files: string[],
 ): void => {
-  const subdirWarning =
-    "- There are *.archive files in subdirectories (any files in them won't be loaded)";
+  const subdirWarning = warnAboutSubdirs
+    ? `
+      - There are \`*.archive\` files in subdirectories
 
-  const toplevelWarning =
-    "- There's more than one top-level *.archive (which could be unintentional)";
+      The game does not read archives in subdirectories. You may be expected
+      to pick some of these to place into \`${ARCHIVE_ONLY_CANONICAL_PREFIX}\`.
+      `
+    : `\n`;
+
+  const toplevelWarning = warnAboutToplevel
+    ? `
+      - There's more than one top-level \`*.archive\`
+
+      This might be intentional, it's perfectly OK to have multiple archives if
+      they do different things. However, it could also be an oversight, or you
+      might be expected to pick only some of these to place into \`${ARCHIVE_ONLY_CANONICAL_PREFIX}\`
+      `
+    : `\n`;
 
   api.showDialog(
     "info",
     "Mod Installed But May Need Manual Adjustment!",
     {
-      // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/76
       md: heredoc(
         `I installed the mod, but it may need to be manually adjusted because:
 
-        ${warnAboutSubdirs ? subdirWarning : "\n"}
-        ${warnAboutToplevel ? toplevelWarning : "\n"}
+        ${subdirWarning}
 
-        This could be unintentional, but you might also be expected to only pick some
-        of the files to use, or it could be an oversight or an unstructured mod.
+        ${toplevelWarning}
 
-        Make sure to read any instructions the mod might have, and then if necessary adjust the installation manually.
-        You can open and modify the mod by clicking 'Open in File Manager' in the Action Menu (dropdown next to 'Remove').
+        Make sure to read any instructions the mod might have, and then if necessary
+        adjust the installation manually.
 
-        If you want to keep multiple variants of the mod (for different colors, for example), you can click 'Reinstall'
-        in the Action Menu, and select to install a variant (give it a good name!).
+        ${INSTRUCTIONS_TO_FIX_IN_STAGING}
+
+        If you want to keep multiple variants of the mod (for different colors, for example),
+        you can click 'Reinstall' in the Action Menu, and select to install a variant (give
+        it a good name!).
 
         These are the files I installed:
 
