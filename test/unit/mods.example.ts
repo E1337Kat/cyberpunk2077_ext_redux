@@ -13,6 +13,7 @@ import {
   INI_MOD_PATH,
   RESHADE_MOD_PATH,
   RESHADE_SHADERS_PATH,
+  ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
@@ -77,6 +78,9 @@ const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
+
+const ASI_PREFIX = ASI_MOD_PATH;
+const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -377,6 +381,57 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
     },
   }),
 );
+
+export const AsiMod = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    asiModWithCet: {
+      expectedInstallerType: InstallerType.ASI,
+      inFiles: [
+        ...ASI_PREFIXES,
+        `${ASI_PREFIX}/DiscordRPCHelper.asi`,
+        `${ASI_PREFIX}/discord_game_sdk.dll`,
+        ...CET_PREFIXES,
+        `${CET_PREFIX}/CP77 Discord RPC/`,
+        `${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`,
+        `${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`,
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
+          destination: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
+          destination: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
+          destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
+          destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
+        },
+      ],
+    },
+    standardAsiMod: {
+      expectedInstallerType: InstallerType.ASI,
+      inFiles: [...ASI_PREFIXES, `${ASI_PREFIX}/normal.asi`].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/normal.asi`),
+          destination: path.normalize(`${ASI_PREFIX}/normal.asi`),
+        },
+      ],
+    },
+  }),
+);
+
 export const CetMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
@@ -1768,6 +1823,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
+    AsiMod,
     CetMod,
     RedscriptMod,
     Red4ExtMod,

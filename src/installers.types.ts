@@ -4,13 +4,13 @@ import {
 } from "./vortex-wrapper";
 
 export enum InstallerType {
-  MultiType = "Multiple Types Combined", // #79
   CoreCET = "Core/CET", // #32
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
   CoreCSVMerge = "Core/CSVMerge", // #32
   CoreWolvenKit = "Core/WolvenKitCLI", // #32
-  RedCetMix = "RedCetMix",
+  ASI = "ASI",
+  MultiType = "Multiple Types Combined", // #79
   CET = "CET",
   Redscript = "Redscript",
   Red4Ext = "Red4ext", // #5
@@ -20,8 +20,8 @@ export enum InstallerType {
   Config = "Config", // #30
   Reshade = "Reshade", // #8
   LUT = "LUT", // #31
-  ArchiveOnly = "ArchiveOnly",
   Json = "JSON",
+  ArchiveOnly = "ArchiveOnly",
   Fallback = "FallbackForOther",
   NotSupported = "[Trying to install something not supported]",
 }

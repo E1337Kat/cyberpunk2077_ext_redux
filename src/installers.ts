@@ -47,6 +47,8 @@ import {
   MOD_FILE_EXT,
   JSON_FILE_EXT,
   KNOWN_JSON_FILES,
+  ASI_MOD_EXT,
+  ASI_MOD_PATH,
   ARCHIVE_ONLY_CANONICAL_EXT,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
@@ -60,6 +62,7 @@ import {
   CetLayout,
   RedscriptLayout,
   FallbackLayout,
+  AsiLayout,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -127,6 +130,8 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 ) => {
   throw new Error("Should never get here");
 };
+
+const matchAsiFile = (file: string) => path.extname(file) === ASI_MOD_EXT;
 
 const matchRedscript = (file: string) =>
   path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
@@ -1323,6 +1328,90 @@ export const installIniMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions });
 };
 
+const findCanonicalAsiDirs = (fileTree: FileTree) =>
+  filesIn(ASI_MOD_PATH, matchAsiFile, fileTree);
+
+const detectASICanonLayout = (fileTree: FileTree): boolean =>
+  findCanonicalAsiDirs(fileTree).length > 0;
+
+const findCanonicalAsiFiles = (fileTree: FileTree): string[] =>
+  filesUnder(ASI_MOD_PATH, fileTree);
+
+export const testForAsiMod: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  _gameId: string,
+): Promise<VortexTestResult> => {
+  if (!detectASICanonLayout(fileTree)) {
+    log("info", "Doesn't look like an ASI mod");
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  return Promise.resolve({ supported: true, requiredFiles: [] });
+};
+
+const asiCanonLayout: LayoutToInstructions = (
+  _api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasBasedirFiles = filesIn(ASI_MOD_PATH, matchAsiFile, fileTree).length > 0;
+
+  if (!hasBasedirFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allCanonAsiFiles = findCanonicalAsiFiles(fileTree);
+
+  if (allCanonAsiFiles.length === 0) {
+    return NoInstructions.NoMatch;
+  }
+
+  return {
+    kind: AsiLayout.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonAsiFiles),
+  };
+};
+
+export const installAsiMod: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const modname = makeSyntheticName(destinationPath);
+
+  const chosenInstructions = asiCanonLayout(api, modname, fileTree);
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === InvalidLayout.Conflict
+  ) {
+    const message = "ASI installer failed to generate instructions";
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  const { instructions } = chosenInstructions;
+
+  const haveFilesOutsideSelectedInstructions =
+    instructions.length !== fileCount(fileTree);
+
+  if (haveFilesOutsideSelectedInstructions) {
+    const message = `Too many files in ASI Mod! ${instructions.length}`;
+    log("error", message, files);
+    return Promise.reject(new Error(message));
+  }
+
+  log("info", "ASI installer installing files.");
+  log("debug", "ASI instructions: ", instructions);
+
+  return Promise.resolve({ instructions });
+};
+
 // MultiType installer
 
 export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
@@ -1482,6 +1571,12 @@ const installers: Installer[] = [
     id: "cp2077-core-wolvenkit-mod",
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
+  },
+  {
+    type: InstallerType.ASI,
+    id: "cp2077-asi-mod",
+    testSupported: testForAsiMod,
+    install: installAsiMod,
   },
   {
     type: InstallerType.MultiType,
