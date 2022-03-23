@@ -13,10 +13,10 @@ export const enum InstallChoices {
   Cancel = "No, Cancel Installation",
 }
 
-const heredoc = (str: string) =>
+export const heredoc = (str: string) =>
   str
     .replace(/^[ \t]+/gm, "") // Remove leading whitespace on each row
-    .replace("|", " ") // Drop |'s that protected leading whitespace
+    .replace(/^\|/gm, ` `) // Drop |'s that protected leading whitespace
     .replace(/\n{3,}/g, "\n\n"); // And squash extra empty lines into one empty max
 
 const INSTRUCTIONS_TO_FIX_IN_STAGING = `

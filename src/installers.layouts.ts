@@ -148,27 +148,27 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.Redscript,
     `
     - \`${RedscriptLayout.Canon}\` (Canonical)
-    |   - + \`${ArchiveLayout.Canon}\`
-    |   - + \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     - \`${RedscriptLayout.Basedir}\`  (Can be fixed to canonical)
-    |   - + \`${ArchiveLayout.Canon}\`
-    |   - + \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     `,
   ],
   [
     InstallerType.Red4Ext,
     `
     - \`${Red4ExtLayout.Canon}\` (Canonical)
-    |   - + \`${ArchiveLayout.Canon}\`
-    |   - + \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     - \`${Red4ExtLayout.Basedir}\` (Can be fixed to canonical)
-    |   - + \`${ArchiveLayout.Canon}\`
-    |   - + \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     - \`${Red4ExtLayout.Modnamed}\` (Can be fixed to canonical)
-    |   - + \`${ArchiveLayout.Canon}\`
-    |   - + \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     - \`${Red4ExtLayout.Toplevel}\` (Can be fixed to canonical)
-    |   - (No other files allowed)
+    | - (No other files allowed)
     `,
   ],
   [
@@ -184,14 +184,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `
     - \`${CetLayout.Canon}\`
     - One of
-    |   - \`${RedscriptLayout.Canon}\`
-    |   - \`${RedscriptLayout.Basedir}\`
+    | - \`${RedscriptLayout.Canon}\`
+    | - \`${RedscriptLayout.Basedir}\`
     - One of
-    |   - \`${Red4ExtLayout.Canon}\`
-    |   - \`${Red4ExtLayout.Basedir}\`
+    | - \`${Red4ExtLayout.Canon}\`
+    | - \`${Red4ExtLayout.Basedir}\`
     - One of
-    |   - \`${ArchiveLayout.Canon}\`
-    |   - \`${ArchiveLayout.Heritage}\`
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
     - (No files can exist outside the above locations)
 
     For separate mod types I can make better guesses and support
