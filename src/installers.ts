@@ -72,10 +72,10 @@ import {
   makeSyntheticName,
 } from "./installers.shared";
 import {
-  warnUserAboutHavingReachedFallbackInstallerDialog,
   showArchiveInstallWarning,
   showRed4ExtReservedDllErrorDialog,
   promptUserOnConflict,
+  promptUserToInstallOrCancelOnReachingFallback,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -177,37 +177,6 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 
 // Fallback
 
-/**
- * Checks to see if the mod has any expected files in unexpected places
- * @param files list of files
- * @param gameId The internal game id
- * @returns Promise which details if the files passed in need to make use of a specific installation method
- */
-export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  gameId: string,
-): Promise<VortexTestResult> => {
-  log("debug", "Fallback installer received Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Entering fallback installer: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
-};
-
 const findFallbackFiles = (fileTree: FileTree): string[] =>
   filesUnder(FILETREE_ROOT, fileTree);
 
@@ -230,48 +199,12 @@ const fallbackLayout: LayoutToInstructions = (
   };
 };
 
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installAnyMod: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const instructions = fallbackLayout(api, undefined, fileTree);
-
-  if (
-    instructions === NoInstructions.NoMatch ||
-    instructions === InvalidLayout.Conflict
-  ) {
-    return Promise.reject(
-      new Error("Fallback produced no instructions, shouldn't ever get here"),
-    );
-  }
-
-  const message =
-    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-
-  warnUserAboutHavingReachedFallbackInstallerDialog(api, log, message, files);
-
-  return Promise.resolve({ instructions: instructions.instructions });
-};
-
-const useFallbackOrFailBasedOnUserDecision = async (
+const useFallbackOrFail = (
   api: VortexApi,
   installerType: InstallerType,
   fileTree: FileTree,
+  installDecision: InstallDecision,
 ): Promise<VortexInstallResult> => {
-  const installDecision = await promptUserOnConflict(
-    api,
-    installerType,
-    sourcePaths(fileTree),
-  );
-
   switch (installDecision) {
     case InstallDecision.UserWantsToCancel: {
       const message = `${installerType}: user chose to cancel installation on conflict`;
@@ -309,10 +242,69 @@ const useFallbackOrFailBasedOnUserDecision = async (
   }
 };
 
+const useFallbackOrFailBasedOnUserDecision = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  fileTree: FileTree,
+): Promise<VortexInstallResult> => {
+  const installDecision = await promptUserOnConflict(
+    api,
+    installerType,
+    sourcePaths(fileTree),
+  );
+
+  return useFallbackOrFail(api, installerType, fileTree, installDecision);
+};
+
+export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Fallback installer received Files: ", files);
+
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Entering fallback installer: ", gameId);
+  if (!correctGame) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installAnyModFallback: VortexWrappedInstallFunc = async (
+  api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
+    api,
+    sourcePaths(fileTree),
+  );
+
+  return useFallbackOrFail(api, InstallerType.Fallback, fileTree, installDecision);
+};
+
+//
+//
+//
 // ArchiveOnly
 //
 // Last of the main ones to try, but first defined so that we
 // can use the layouts below.
+//
+//
 
 const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
   dirWithSomeUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, fileTree);
@@ -1580,7 +1572,7 @@ const installers: Installer[] = [
     type: InstallerType.Fallback,
     id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
-    install: installAnyMod,
+    install: installAnyModFallback,
   },
 ];
 

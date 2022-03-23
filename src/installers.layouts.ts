@@ -45,8 +45,8 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 // Fallback
 export const enum FallbackLayout {
-  LooksSafe = ".\\**\\* - everything in this mod, and we've checked things we know to be risky",
-  Unvalidated = ".\\**\\* - everything in this mod, and nothing has been validated",
+  LooksSafe = `.\\**\\* - everything in this mod, and we've checked things we know to be risky`,
+  Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
 }
 
 // CET
@@ -183,6 +183,17 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     |   - \`${ArchiveLayout.Canon}\`
     |   - \`${ArchiveLayout.Heritage}\`
     - (No files can exist outside the above locations)
+
+    For separate mod types I can make better guesses and support
+    more fixable cases than I can here.
+    `,
+  ],
+  [
+    InstallerType.Fallback,
+    `
+    - \`${FallbackLayout.Unvalidated}\`
+
+    This is the fallback installer. That means I can install anything.
     `,
   ],
 ]);
