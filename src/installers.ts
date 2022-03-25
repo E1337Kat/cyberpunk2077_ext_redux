@@ -114,7 +114,6 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
   _log: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
@@ -125,7 +124,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
   _files: string[],
   _fileTree: FileTree,
   _destinationPath: string,
-  _gameId: string,
   _progressDelegate: VortexProgressDelegate,
 ) => {
   throw new Error("Should never get here");
@@ -266,20 +264,8 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Fallback installer received Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Entering fallback installer: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
@@ -411,7 +397,6 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   let supported: boolean;
   const filtered = files.filter(
@@ -603,7 +588,6 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCetFilesInANamedModDir = detectCetCanonLayout(fileTree);
 
@@ -736,7 +720,6 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const redscriptFiles = allRedscriptFiles(files);
 
@@ -971,7 +954,6 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
@@ -1074,7 +1056,6 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
@@ -1212,7 +1193,6 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
@@ -1325,7 +1305,6 @@ export const testForAsiMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   if (!detectASICanonLayout(fileTree)) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
@@ -1401,7 +1380,6 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   _log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
   const hasCanonRedscript = detectRedscriptCanonOnlyLayout(fileTree);
@@ -1664,7 +1642,7 @@ export const wrapTestSupported =
     vortexApiThing,
     installer: Installer,
   ): VortexTestSupportedFunc =>
-  (files: string[], gameId: string, ...args) => {
+  (files: string[], gameId: string) => {
     const vortexLog: VortexLogFunc = vortexApiThing.log;
     const vortexApi: VortexApi = {
       ...vortex.api,
@@ -1676,15 +1654,8 @@ export const wrapTestSupported =
       return Promise.resolve({ supported: false, requiredFiles: [] });
     }
 
-    vortexLog("info", `Testing for ${installer.type}, input files: `, files);
-    return installer.testSupported(
-      vortexApi,
-      vortexLog,
-      files,
-      fileTreeFromPaths(files),
-      gameId,
-      ...args,
-    );
+    vortexLog(`info`, `Testing for ${installer.type}, input files: `, files);
+    return installer.testSupported(vortexApi, vortexLog, files, fileTreeFromPaths(files));
   };
 
 export const wrapInstall =
@@ -1693,7 +1664,14 @@ export const wrapInstall =
     vortexApiThing,
     installer: Installer,
   ): VortexInstallFunc =>
-  (files: string[], ...args) => {
+  (
+    files: string[],
+    destinationPath: string,
+    _gameId: string,
+    progressDelegate: VortexProgressDelegate,
+    choices?: unknown,
+    unattended?: boolean,
+  ) => {
     const vortexLog: VortexLogFunc = vortexApiThing.log;
     const vortexApi: VortexApi = {
       ...vortex.api,
@@ -1707,7 +1685,10 @@ export const wrapInstall =
       vortexLog,
       files,
       fileTreeFromPaths(files),
-      ...args,
+      destinationPath,
+      progressDelegate,
+      choices,
+      unattended,
     );
   };
 
@@ -1716,7 +1697,6 @@ const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
   _vortexLog: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> =>
   // Test in ~~production~~ install!
   //
@@ -1736,7 +1716,6 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   files: string[],
   fileTree: FileTree,
   destinationPath: string,
-  gameId: string,
   progressDelegate: VortexProgressDelegate,
   choices?: unknown,
   unattended?: boolean,
@@ -1757,7 +1736,6 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
         vortexLog,
         files,
         fileTree,
-        gameId,
       );
 
       if (testResult.supported === true) {
@@ -1785,7 +1763,6 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
       files,
       fileTree,
       destinationPath,
-      gameId,
       progressDelegate,
       choices,
       unattended,

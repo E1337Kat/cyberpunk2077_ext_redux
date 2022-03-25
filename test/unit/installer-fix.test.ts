@@ -9,7 +9,7 @@ import {
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
-import { GAME_ID, mockVortexApi, mockVortexLog } from "./utils.helper";
+import { mockVortexApi, mockVortexLog } from "./utils.helper";
 
 // Should switch this to compute the path in case changed, but eh..
 /*
@@ -62,7 +62,6 @@ describe("Transforming modules to instructions", () => {
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
-            GAME_ID,
             null,
           );
 
@@ -91,7 +90,6 @@ describe("Transforming modules to instructions", () => {
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
-            GAME_ID,
             null,
           );
 
@@ -114,7 +112,6 @@ describe("Transforming modules to instructions", () => {
               mod.inFiles,
               fileTreeFromPaths(mod.inFiles),
               FAKE_STAGING_PATH,
-              GAME_ID,
               null,
             ),
           );
