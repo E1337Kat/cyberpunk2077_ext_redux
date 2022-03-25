@@ -44,7 +44,17 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |-📄 *.dll
  */
 
+// Giftwrapped
+
+export const enum GiftwrapLayout {
+  ExtraToplevelDir = `.\\**\\[any dir that should be toplevel: archive, bin, engine, r6, red4ext]`,
+}
+
+export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`];
+
+//
 // Fallback
+
 export const enum FallbackLayout {
   LooksSafe = `.\\**\\* - everything in this mod, and we've checked things we know to be risky`,
   Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
@@ -221,6 +231,7 @@ export type Layout =
   | Red4ExtLayout
   | ArchiveLayout
   | FallbackLayout
+  | GiftwrapLayout
   | NoLayout;
 
 export const enum NoInstructions {

@@ -16,6 +16,8 @@ import {
   dirWithSomeIn,
   fileCount,
   sourcePaths,
+  subdirNamesIn,
+  subtreeFrom,
 } from "./filetree";
 import {
   VortexApi,
@@ -28,6 +30,7 @@ import {
   VortexExtensionContext,
   VortexTestSupportedFunc,
   VortexInstallFunc,
+  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   CET_GLOBAL_INI,
@@ -63,6 +66,7 @@ import {
   RedscriptLayout,
   FallbackLayout,
   AsiLayout,
+  KNOWN_TOPLEVEL_DIRS,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -1710,6 +1714,37 @@ const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
   // do that, then.
   Promise.resolve({ supported: true, requiredFiles: [] });
 
+const detectGiftwrapLayout = (fileTree: FileTree) => {
+  const toplevelDirs = subdirNamesIn(FILETREE_ROOT, fileTree);
+
+  console.log({ toplevelDirs });
+  if (toplevelDirs.length !== 1) {
+    return false;
+  }
+
+  const toplevelDir = toplevelDirs[0];
+
+  const subdirs = subdirNamesIn(toplevelDir, fileTree);
+
+  const subdirsMatchingKnownToplevelSubdirs = subdirs.filter((dir) =>
+    KNOWN_TOPLEVEL_DIRS.includes(dir),
+  );
+
+  console.log({
+    toplevelDirs,
+    knownToplevelSubdirs: subdirsMatchingKnownToplevelSubdirs,
+  });
+
+  if (subdirs.length !== subdirsMatchingKnownToplevelSubdirs.length) {
+    return false;
+  }
+
+  // For now, we’ll allow files to exist at toplevel
+  // since we do have a reasonable indication the
+  // top of the mod is a wrapper
+  return true;
+};
+
 const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
@@ -1724,6 +1759,19 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
 
   vortexApi.log(`info`, `${me}: input files: ${sourcePaths(fileTree)}`);
 
+  const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
+
+  const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
+
+  const unwrappedTree = haveGiftwrappedMod ? subtreeFrom(wrapperDir, fileTree) : fileTree;
+
+  const unwrappedPaths = sourcePaths(unwrappedTree);
+
+  if (haveGiftwrappedMod) {
+    vortexApi.log(`info`, `${me}: found giftwrapped mod, unwrapped.`);
+    vortexApi.log(`debug`, `${me}: using unwrapped filetree: `, unwrappedPaths);
+  }
+
   let matchingInstaller: Installer;
 
   try {
@@ -1734,8 +1782,8 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
       const testResult = await candidateInstaller.testSupported(
         vortexApi,
         vortexLog,
-        files,
-        fileTree,
+        unwrappedPaths,
+        unwrappedTree,
       );
 
       if (testResult.supported === true) {
@@ -1760,8 +1808,8 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
     const selectedInstructions = await matchingInstaller.install(
       vortexApi,
       vortexLog,
-      files,
-      fileTree,
+      unwrappedPaths,
+      unwrappedTree,
       destinationPath,
       progressDelegate,
       choices,
@@ -1770,8 +1818,19 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
 
     vortexApi.log(`debug`, `${me}: installing using ${matchingInstaller.type}`);
 
+    const instructionsWithRealSources = haveGiftwrappedMod
+      ? selectedInstructions.instructions.map(
+          ({ type, source, destination }: VortexInstruction) => ({
+            type,
+            destination,
+            source: path.join(wrapperDir, source),
+          }),
+        )
+      : selectedInstructions.instructions;
+
+    console.log({ instructionsWithRealSources });
     return Promise.resolve({
-      instructions: selectedInstructions.instructions,
+      instructions: instructionsWithRealSources,
     });
   } catch (ex) {
     const errorMessage = `${me}: installation error: ${ex.message}`;

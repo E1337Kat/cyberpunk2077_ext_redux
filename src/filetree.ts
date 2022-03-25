@@ -135,15 +135,18 @@ export const fileTreeFromPaths = (paths: string[]): FileTree => {
 export const sourcePaths = (tree: FileTree): string[] => [...tree._originalPaths];
 export const fileCount = (tree: FileTree): number => tree._insertedPaths.length;
 
-export const subdirsIn = (dir: string, tree: FileTree): string[] => {
+export const subdirNamesIn = (dir: string, tree: FileTree): string[] => {
   const node = tree._kt._getNode(stripTrailingSeparator(dir)); // eslint-disable-line no-underscore-dangle
 
   if (!node || node.children.length < 1) {
     return [];
   }
 
-  return node.children.map((subdir) => nodejsPath.join(dir, subdir.key));
+  return node.children.map((c) => c.key);
 };
+
+export const subdirsIn = (dir: string, tree: FileTree): string[] =>
+  subdirNamesIn(dir, tree).map((subdir) => nodejsPath.join(dir, subdir));
 
 export const pathInTree = (path: string, tree: FileTree): boolean =>
   // We _could_ just keep track of the paths but since it's possible to mutate..
@@ -204,3 +207,13 @@ export const findDirectSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   subdirsIn(dir, tree).filter((subdir) => dirWithSomeIn(subdir, predicate, tree));
+
+// Subtree creation
+
+export const subtreeFrom = (dir: string, fileTree: FileTree): FileTree => {
+  const subtreeFiles = filesUnder(dir, fileTree).map((path) =>
+    nodejsPath.join(...path.split(nodejsPath.sep).slice(1)),
+  );
+
+  return fileTreeFromPaths(subtreeFiles);
+};
