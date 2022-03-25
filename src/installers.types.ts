@@ -4,6 +4,9 @@ import {
 } from "./vortex-wrapper";
 
 export enum InstallerType {
+  // Meta-installer, won't be in the pipeline itself
+  Pipeline = `V2077 Installer Pipeline`,
+  //
   CoreCET = "Core/CET", // #32
   CoreRedscript = "Core/Redscript", // #32
   CoreRed4ext = "Core/Red4ext", // #32
