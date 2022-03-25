@@ -797,13 +797,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
 
   const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
 
-  if (installable.length < 1) {
-    const message = "No Redscript found, should never get here.";
-    log("error", `Redscript Mod installer: ${message}`, files);
-    return Promise.reject(new Error(message));
-  }
-
-  if (installable.length > 1) {
+  if (installable.length !== 1) {
     return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Redscript, fileTree);
   }
 
