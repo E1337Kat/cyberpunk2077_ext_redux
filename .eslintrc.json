@@ -12,6 +12,7 @@
     "project": "./tsconfig.eslint.json"
   },
   "rules": {
+    "no-debugger": "warn",
     "arrow-body-style": ["error", "as-needed"],
     "curly": "error",
     "func-style": "error",
