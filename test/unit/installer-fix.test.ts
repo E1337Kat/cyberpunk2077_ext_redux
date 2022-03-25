@@ -6,7 +6,7 @@ import { internalPipelineInstaller } from "../../src/installers";
 import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
 import {
   AllExpectedInstallPromptables,
-  AllModTypes,
+  AllExpectedSuccesses,
   FAKE_STAGING_PATH,
 } from "./mods.example";
 import { mockVortexApi, mockVortexLog } from "./utils.helper";
@@ -52,7 +52,7 @@ describe("Transforming modules to instructions", () => {
   );
   afterEach(() => mockFs.restore());
 
-  AllModTypes.forEach((examples, set) => {
+  AllExpectedSuccesses.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
