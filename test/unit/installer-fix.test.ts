@@ -5,7 +5,6 @@ import { fileTreeFromPaths } from "../../src/filetree";
 import { internalPipelineInstaller } from "../../src/installers";
 import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
 import {
-  AllExpectedInstallFailures,
   AllExpectedInstallPromptables,
   AllModTypes,
   FAKE_STAGING_PATH,
@@ -121,40 +120,6 @@ describe("Transforming modules to instructions", () => {
           );
 
           await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
-        });
-      });
-    });
-  });
-
-  AllExpectedInstallFailures.forEach((examples, set) => {
-    describe(`install attempts that should fail, ${set}`, () => {
-      examples.forEach(async (mod, desc) => {
-        test(`rejects with an error when ${desc}`, async () => {
-          let message;
-
-          try {
-            // wow
-            await internalPipelineInstaller.install(
-              mockVortexApi,
-              mockVortexLog,
-              mod.inFiles,
-              fileTreeFromPaths(mod.inFiles),
-              FAKE_STAGING_PATH,
-              GAME_ID,
-              null,
-            );
-          } catch (error) {
-            // such type
-            message = error.message;
-          } finally {
-            if (message) {
-              // much fp
-              expect(message).toEqual(mod.failure);
-            } else {
-              // very safety
-              expect(message, `should've rejected for ${desc}`).toEqual(mod.failure);
-            }
-          }
         });
       });
     });

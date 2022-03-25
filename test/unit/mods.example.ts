@@ -682,15 +682,19 @@ export const RedscriptModShouldPromptForInstall = new Map<
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
-  }),
-);
-
-export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    redsScriptInTopLevelDirShouldFail: {
+    redsWithRedsInToplevelSubdirPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`rexmod/script.reds`)],
-      failure: "No Redscript found, should never get here.",
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`rexmod/script.reds`),
+          destination: path.join(`rexmod/script.reds`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
   }),
 );
@@ -1859,11 +1863,5 @@ export const AllExpectedInstallPromptables = new Map<
     Red4ExtModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
-  }),
-);
-
-export const AllExpectedInstallFailures = new Map<string, ExampleFailingModCategory>(
-  Object.entries({
-    RedscriptModShouldFailInInstall,
   }),
 );
