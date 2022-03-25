@@ -82,6 +82,12 @@ const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 const ASI_PREFIX = ASI_MOD_PATH;
 const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
+// Some loggy helpers
+
+const PIPELINE_LOG = `${InstallerType.Pipeline}: installation error: `;
+const expectedUserCancelMessageFor = (installerType: InstallerType) =>
+  `${PIPELINE_LOG}${installerType}: user chose to cancel installation on conflict`;
+
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreCetInstall: {
@@ -674,7 +680,7 @@ export const RedscriptModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: "Redscript: user chose to cancel installation on conflict",
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
   }),
 );
@@ -901,7 +907,7 @@ export const Red4ExtModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Red4Ext),
     },
     red4extWithExtraArchivesInWrongPlacePromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Red4Ext,
@@ -924,7 +930,7 @@ export const Red4ExtModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Red4Ext),
     },
   }),
 );
@@ -1136,7 +1142,7 @@ export const ArchiveOnlyModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: "ArchiveOnly: user chose to cancel installation on conflict",
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ArchiveOnly),
     },
   }),
 );
@@ -1430,7 +1436,7 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
     },
     invalidModContainingRandomFiles: {
       expectedInstallerType: InstallerType.Fallback,
@@ -1449,7 +1455,7 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
     },
     invalidModWithDeepInvalidPath: {
       expectedInstallerType: InstallerType.Fallback,
@@ -1466,7 +1472,7 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
     },
   }), // object
 );
@@ -1745,7 +1751,7 @@ export const MultiTypeModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.MultiType),
     },
     multitypeWithCanonAndToplevelRedsPromptsOnConflict: {
       expectedInstallerType: InstallerType.MultiType,
@@ -1811,7 +1817,7 @@ export const MultiTypeModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.MultiType),
     },
   }),
 );
