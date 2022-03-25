@@ -1544,43 +1544,43 @@ const addPriorityFrom = (start: number) => {
 const installers: Installer[] = [
   {
     type: InstallerType.CoreCET,
-    id: "cp2077-core-cet-mod",
+    id: InstallerType.CoreCET,
     testSupported: testForCetCore,
     install: installCetCore,
   },
   {
     type: InstallerType.CoreRedscript,
-    id: "cp2077-core-redscript-mod",
+    id: InstallerType.CoreRedscript,
     testSupported: testForRedscriptCore,
     install: installRedscriptCore,
   },
   {
     type: InstallerType.CoreRed4ext,
-    id: "cp2077-core-red4ext-mod",
+    id: InstallerType.CoreRed4ext,
     testSupported: testRed4ExtCore,
     install: installRed4ExtCore,
   },
   {
     type: InstallerType.CoreCSVMerge,
-    id: "cp2077-core-csvmerge-mod",
+    id: InstallerType.CoreCSVMerge,
     testSupported: testCoreCsvMerge,
     install: installCoreCsvMerge,
   },
   {
     type: InstallerType.CoreWolvenKit,
-    id: "cp2077-core-wolvenkit-mod",
+    id: InstallerType.CoreWolvenKit,
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
   },
   {
     type: InstallerType.ASI,
-    id: "cp2077-asi-mod",
+    id: InstallerType.ASI,
     testSupported: testForAsiMod,
     install: installAsiMod,
   },
   {
     type: InstallerType.MultiType,
-    id: "cp2077-multitype-mod",
+    id: InstallerType.MultiType,
     testSupported: testForMultiTypeMod,
     install: installMultiTypeMod,
   },
@@ -1595,19 +1595,19 @@ const installers: Installer[] = [
   // },
   {
     type: InstallerType.CET,
-    id: "cp2077-cet-mod",
+    id: InstallerType.CET,
     testSupported: testForCetMod,
     install: installCetMod,
   },
   {
     type: InstallerType.Redscript,
-    id: "cp2077-redscript-mod",
+    id: InstallerType.Redscript,
     testSupported: testForRedscriptMod,
     install: installRedscriptMod,
   },
   {
     type: InstallerType.Red4Ext,
-    id: "cp2077-red4ext-mod",
+    id: InstallerType.Red4Ext,
     testSupported: testForRed4ExtMod,
     install: installRed4ExtMod,
   },
@@ -1627,7 +1627,7 @@ const installers: Installer[] = [
 */
   {
     type: InstallerType.INI,
-    id: "cp2077-ini-mod",
+    id: InstallerType.INI,
     testSupported: testForIniMod,
     install: installIniMod,
   },
@@ -1653,19 +1653,19 @@ const installers: Installer[] = [
 
   {
     type: InstallerType.Json,
-    id: "cp2077-json-mod",
+    id: InstallerType.Json,
     testSupported: testForJsonMod,
     install: installJsonMod,
   },
   {
     type: InstallerType.ArchiveOnly,
-    id: "cp2077-basic-archive-mod",
+    id: InstallerType.ArchiveOnly,
     testSupported: testForArchiveOnlyMod,
     install: installArchiveOnlyMod,
   },
   {
     type: InstallerType.Fallback,
-    id: "cp2077-fallback-for-others-mod",
+    id: InstallerType.Fallback,
     testSupported: testAnyOtherModFallback,
     install: installAnyModFallback,
   },

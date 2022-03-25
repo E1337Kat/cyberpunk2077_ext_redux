@@ -7,26 +7,26 @@ export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself
   Pipeline = `V2077 Installer Pipeline`,
   //
-  CoreCET = "Core/CET", // #32
-  CoreRedscript = "Core/Redscript", // #32
-  CoreRed4ext = "Core/Red4ext", // #32
-  CoreCSVMerge = "Core/CSVMerge", // #32
-  CoreWolvenKit = "Core/WolvenKitCLI", // #32
-  ASI = "ASI",
-  MultiType = "Multiple Types Combined", // #79
-  CET = "CET",
-  Redscript = "Redscript",
-  Red4Ext = "Red4ext", // #5
-  TweakDB = "TweakDB", // #6
-  AXL = "AXL", // #28
-  INI = "INI", // #29
-  Config = "Config", // #30
-  Reshade = "Reshade", // #8
-  LUT = "LUT", // #31
-  Json = "JSON",
-  ArchiveOnly = "ArchiveOnly",
-  Fallback = "FallbackForOther",
-  NotSupported = "[Trying to install something not supported]",
+  CoreCET = `Core/CET Installer`,
+  CoreRedscript = `Core/Redscript Installer`,
+  CoreRed4ext = `Core/Red4ext Installer`,
+  CoreCSVMerge = `Core/CSVMerge Installer`,
+  CoreWolvenKit = `Core/WolvenKitCLI Installer`,
+  ASI = `ASI Installer`,
+  MultiType = `MultiType Installer`,
+  CET = `CET Installer`,
+  Redscript = `Redscript Installer`,
+  Red4Ext = `Red4ext Installer`,
+  TweakDB = `TweakDB Installer`,
+  AXL = `AXL Installer`,
+  INI = `INI Installer`,
+  Config = `Config Installer`,
+  Reshade = `Reshade Installer`,
+  LUT = `LUT Installer`,
+  Json = `JSON Installer`,
+  ArchiveOnly = `ArchiveOnly Installer`,
+  Fallback = `Fallback Installer`,
+  NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE GETTING USED>`,
 }
 
 export interface Installer {
