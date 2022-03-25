@@ -980,7 +980,6 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   const noToplevelDlls = toplevelDlls.length < 1;
 
   if (noDllDirs && noToplevelDlls) {
-    log("info", "Doesn't look like a Red4Ext mod");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
@@ -1081,7 +1080,6 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
     (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
   );
   if (filtered.length === 0) {
-    log("info", "No JSON files");
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -1216,16 +1214,6 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   _fileTree: FileTree,
   _gameId: string,
 ): Promise<VortexTestResult> => {
-  // Make sure we're able to support this mod.
-  const correctGame = _gameId === GAME_ID;
-  log("info", "Checking for INI files: ", _gameId);
-  if (!correctGame) {
-    // no mods?
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
   );
@@ -1245,14 +1233,15 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
         path.extname(file) === REDS_MOD_CANONICAL_EXTENSION,
     )
   ) {
-    log("info", "INI file detected within a CET or Redscript mod, aborting");
+    // These should  actually error out, we should not get here
+    log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
   if (files.includes(CET_GLOBAL_INI)) {
-    log("info", "CET Installer detected, not processing as INI");
+    log(`error`, `CET Installer detected, not processing as INI`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -1339,7 +1328,6 @@ export const testForAsiMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   if (!detectASICanonLayout(fileTree)) {
-    log("info", "Doesn't look like an ASI mod");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
@@ -1684,6 +1672,7 @@ export const wrapTestSupported =
     };
 
     if (gameId !== GAME_ID) {
+      vortexApi.log(`error`, `Not a ${GAME_ID} mod: ${gameId}`);
       return Promise.resolve({ supported: false, requiredFiles: [] });
     }
 
@@ -1780,14 +1769,12 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   } catch (ex) {
     const errorMessage = `${me}: error trying to find installer (should not happen): ${ex.message}`;
     vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
     return Promise.reject(new Error(errorMessage));
   }
 
   if (matchingInstaller === undefined) {
     const errorMessage = `${me}: should never reach this point, means no installer matched`;
     vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
     return Promise.reject(new Error(errorMessage));
   }
 
@@ -1812,7 +1799,6 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   } catch (ex) {
     const errorMessage = `${me}: installation error: ${ex.message}`;
     vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
     return Promise.reject(new Error(errorMessage));
   }
 };
