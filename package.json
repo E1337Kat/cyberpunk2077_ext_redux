@@ -12,6 +12,7 @@
     "pre-commit": "lint-staged",
     "test": "jest --no-cache --verbose=true --silent=false",
     "test-clean": "jest --clearCache && npm run test",
+    "test-debug": "jest --clearCache && node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --verbose=true --silent=false --no-cache",
     "repl": "ts-node -r tsconfig-paths/register",
     "postinstall": "patch-package",
     "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color",
