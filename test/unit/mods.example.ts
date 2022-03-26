@@ -88,11 +88,16 @@ const REDS_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${REDS_PREFIX}`);
 const RED4EXT_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${RED4EXT_PREFIX}`);
 const ARCHIVE_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${ARCHIVE_PREFIX}`);
 
+/*
+ * Let's see about maybe enabling these later
+ *
 // Some loggy helpers
 
 const PIPELINE_LOG = `${InstallerType.Pipeline}: installation error: `;
+*/
+
 const expectedUserCancelMessageFor = (installerType: InstallerType) =>
-  `${PIPELINE_LOG}${installerType}: user chose to cancel installation on conflict`;
+  `${installerType}: user chose to cancel installation on conflict`;
 
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -1892,7 +1897,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
   }),
 );
 
-export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModCategory>(
+export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,

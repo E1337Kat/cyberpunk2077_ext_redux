@@ -1,15 +1,16 @@
-import { notEmpty, mockDeep, MockProxy } from "jest-mock-extended";
+import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
 import { InstallChoices } from "../../src/dialogs";
-import { fileTreeFromPaths } from "../../src/filetree";
-import { internalPipelineInstaller } from "../../src/installers";
-import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
+import { GAME_ID } from "../../src/index.metadata";
+import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
+import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
 import {
+  AllExpectedDirectFailures,
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
   FAKE_STAGING_PATH,
 } from "./mods.example";
-import { mockVortexApi, mockVortexLog } from "./utils.helper";
+import { getMockVortexLog } from "./utils.helper";
 
 // Should switch this to compute the path in case changed, but eh..
 /*
@@ -20,7 +21,7 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 */
 
 describe("Transforming modules to instructions", () => {
-  beforeEach(() =>
+  beforeEach(() => {
     mockFs({
       unno: {
         why: {
@@ -48,20 +49,33 @@ describe("Transforming modules to instructions", () => {
           },
         },
       },
-    }),
-  );
+    });
+  });
+
   afterEach(() => mockFs.restore());
 
   AllExpectedSuccesses.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
-          const installResult = await internalPipelineInstaller.install(
-            mockVortexApi,
-            mockVortexLog,
+          //
+          const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
+            mockDeep<VortexExtensionContext>();
+
+          mockVortexExtensionContext.api.showDialog
+            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
+            .mockReturnValue(Promise.resolve(true));
+
+          const wrappedInstall = wrapInstall(
+            mockVortexExtensionContext,
+            { log: getMockVortexLog() },
+            internalPipelineInstaller,
+          );
+
+          const installResult = await wrappedInstall(
             mod.inFiles,
-            fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
+            GAME_ID,
             null,
           );
 
@@ -79,17 +93,24 @@ describe("Transforming modules to instructions", () => {
             action: InstallChoices.Proceed,
             input: undefined,
           };
-          const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
-          mockApi.showDialog
+
+          const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
+            mockDeep<VortexExtensionContext>();
+
+          mockVortexExtensionContext.api.showDialog
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
-          const installResult = await internalPipelineInstaller.install(
-            mockApi,
-            mockVortexLog,
+          const wrappedInstall = wrapInstall(
+            mockVortexExtensionContext,
+            { log: getMockVortexLog },
+            internalPipelineInstaller,
+          );
+
+          const installResult = await wrappedInstall(
             mod.inFiles,
-            fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
+            GAME_ID,
             null,
           );
 
@@ -100,20 +121,22 @@ describe("Transforming modules to instructions", () => {
             action: InstallChoices.Cancel,
             input: undefined,
           };
-          const mockApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
-          mockApi.showDialog
+
+          const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
+            mockDeep<VortexExtensionContext>();
+
+          mockVortexExtensionContext.api.showDialog
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
+          const wrappedInstall = wrapInstall(
+            mockVortexExtensionContext,
+            { log: getMockVortexLog },
+            internalPipelineInstaller,
+          );
+
           const expectation = expect(
-            internalPipelineInstaller.install(
-              mockApi,
-              mockVortexLog,
-              mod.inFiles,
-              fileTreeFromPaths(mod.inFiles),
-              FAKE_STAGING_PATH,
-              null,
-            ),
+            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
@@ -122,27 +145,32 @@ describe("Transforming modules to instructions", () => {
     });
   });
 
-  /*
-  describe("Verifying that the fallback is last in the pipeline", () => {
-    const fallbackInstaller = getFallbackInstaller();
+  AllExpectedDirectFailures.forEach((examples, set) => {
+    describe(`mods that installers reject without prompt, ${set}`, () => {
+      examples.forEach((mod, desc) => {
+        test(`rejects the install outright when ${desc}`, async () => {
+          //
 
-    AllModTypes.forEach((type) => {
-      type.forEach(async (mod, desc) => {
-        test(`doesn’t produce any instructions handled by specific installers when ${desc}`, async () => {
-          const installResult = await fallbackInstaller.install(
-            mockVortexApi,
-            mockVortexLog,
-            mod.inFiles,
-            fileTreeFromPaths(mod.inFiles),
-            FAKE_STAGING_PATH,
-            null,
-            null,
+          const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
+            mockDeep<VortexExtensionContext>();
+
+          mockVortexExtensionContext.api.showDialog
+            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
+            .mockReturnValue(Promise.resolve(true));
+
+          const wrappedInstall = wrapInstall(
+            mockVortexExtensionContext,
+            { log: getMockVortexLog },
+            internalPipelineInstaller,
           );
 
-          expect(installResult.instructions).toEqual([]);
-        });
-      });
-    });
-  });
-  */
+          const expectation = expect(
+            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
+          );
+
+          await expectation.rejects.toThrowError(new Error(mod.failure));
+        }); // t
+      }); // fE
+    }); // d
+  }); // fE
 });
