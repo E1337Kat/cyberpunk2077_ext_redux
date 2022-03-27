@@ -1,5 +1,6 @@
 import path from "path";
 import { FileTree } from "./filetree";
+import { InstallerType } from "./installers.types";
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 /** Correct Directory structure:
@@ -42,6 +43,12 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📁 SomeMod
  * | | | |-📄 *.dll
  */
+
+// Fallback
+export const enum FallbackLayout {
+  LooksSafe = `.\\**\\* - everything in this mod, and we've checked things we know to be risky`,
+  Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
+}
 
 // ASI
 
@@ -128,6 +135,79 @@ export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
 export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
 export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
 
+//
+//
+// Full descriptions
+//
+//
+
+// There's probably some way to make this type-level AND indexable
+// but for now just gonna check and raise if the description is missing.
+export const LayoutDescriptions = new Map<InstallerType, string>([
+  [
+    InstallerType.Redscript,
+    `
+    - \`${RedscriptLayout.Canon}\` (Canonical)
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    - \`${RedscriptLayout.Basedir}\`  (Can be fixed to canonical)
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    `,
+  ],
+  [
+    InstallerType.Red4Ext,
+    `
+    - \`${Red4ExtLayout.Canon}\` (Canonical)
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Basedir}\` (Can be fixed to canonical)
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Modnamed}\` (Can be fixed to canonical)
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    - \`${Red4ExtLayout.Toplevel}\` (Can be fixed to canonical)
+    | - (No other files allowed)
+    `,
+  ],
+  [
+    InstallerType.ArchiveOnly,
+    `
+    - \`${ArchiveLayout.Canon}\` (Canonical)
+    - \`${ArchiveLayout.Heritage}\` (Old style, fixable to Canon)
+    - \`${ArchiveLayout.Other}\`
+    `,
+  ],
+  [
+    InstallerType.MultiType,
+    `
+    - \`${CetLayout.Canon}\`
+    - One of
+    | - \`${RedscriptLayout.Canon}\`
+    | - \`${RedscriptLayout.Basedir}\`
+    - One of
+    | - \`${Red4ExtLayout.Canon}\`
+    | - \`${Red4ExtLayout.Basedir}\`
+    - One of
+    | - \`${ArchiveLayout.Canon}\`
+    | - \`${ArchiveLayout.Heritage}\`
+    - (No files can exist outside the above locations)
+
+    For separate mod types I can make better guesses and support
+    more fixable cases than I can here.
+    `,
+  ],
+  [
+    InstallerType.Fallback,
+    `
+    - \`${FallbackLayout.Unvalidated}\`
+
+    This is the fallback installer. That means I can install anything.
+    `,
+  ],
+]);
+
 // Layouts to instructions
 
 export const enum NoLayout {
@@ -140,6 +220,7 @@ export type Layout =
   | RedscriptLayout
   | Red4ExtLayout
   | ArchiveLayout
+  | FallbackLayout
   | NoLayout;
 
 export const enum NoInstructions {
@@ -147,7 +228,7 @@ export const enum NoInstructions {
 }
 
 export const enum InvalidLayout {
-  OnlyOneAllowed = "there were too many subdirs that matched",
+  Conflict = "can't determine what the intended layout is, conflicting files",
 }
 
 export type Instructions = {

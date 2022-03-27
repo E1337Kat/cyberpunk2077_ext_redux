@@ -61,6 +61,7 @@ import {
   InvalidLayout,
   CetLayout,
   RedscriptLayout,
+  FallbackLayout,
   AsiLayout,
 } from "./installers.layouts";
 import {
@@ -71,16 +72,13 @@ import {
   useFirstMatchingLayoutForInstructions,
   moveFromTo,
   useAllMatchingLayouts,
+  makeSyntheticName,
 } from "./installers.shared";
 import {
-  warnUserAboutHavingReachedFallbackInstallerDialog,
-  redCetMixedStructureErrorDialog,
-  showRedscriptStructureErrorDialog,
   showArchiveInstallWarning,
-  showArchiveStructureErrorDialog,
-  showMultiTypeStructureErrorDialog,
   showRed4ExtReservedDllErrorDialog,
-  showRed4ExtStructureErrorDialog,
+  promptUserOnConflict,
+  promptUserToInstallOrCancelOnReachingFallback,
 } from "./dialogs";
 import {
   testForCetCore,
@@ -94,58 +92,20 @@ import {
   testCoreWolvenKitCli,
   installCoreWolvenkit,
 } from "./core-installers";
-import { trueish } from "./installers.utils";
+import { exhaustiveMatchFailure, trueish } from "./installers.utils";
+import { GAME_ID } from "./index.metadata";
+import {
+  InstallDecision,
+  Installer,
+  InstallerType,
+  InstallerWithPriority,
+} from "./installers.types";
 
 // Ensure we're using win32 conventions
 const path = win32;
 
-const GAME_ID = "cyberpunk2077";
-
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 // I figured some wiggle room on either side is nice :) - Ellie
-
-// Vortex gives us a 'destination path', which is actually
-// the tempdir in which the archive is expanded into for
-// the duration of the installation.
-const makeModName = (vortexDestinationPath: string) =>
-  path.basename(vortexDestinationPath, ".installing");
-
-// Types
-
-export enum InstallerType {
-  MultiType = "Multiple Types Combined", // #79
-  CoreCET = "Core/CET", // #32
-  CoreRedscript = "Core/Redscript", // #32
-  CoreRed4ext = "Core/Red4ext", // #32
-  CoreCSVMerge = "Core/CSVMerge", // #32
-  CoreWolvenKit = "Core/WolvenKitCLI", // #32
-  ASI = "ASI",
-  RedCetMix = "RedCetMix",
-  CET = "CET",
-  Redscript = "Redscript",
-  Red4Ext = "Red4ext", // #5
-  TweakDB = "TweakDB", // #6
-  AXL = "AXL", // #28
-  INI = "INI", // #29
-  Config = "Config", // #30
-  Reshade = "Reshade", // #8
-  LUT = "LUT", // #31
-  ArchiveOnly = "ArchiveOnly",
-  Json = "JSON",
-  FallbackForOther = "FallbackForOther",
-  NotSupported = "[Trying to install something not supported]",
-}
-
-export interface Installer {
-  type: InstallerType;
-  id: string;
-  testSupported: VortexWrappedTestSupportedFunc;
-  install: VortexWrappedInstallFunc;
-}
-
-export interface InstallerWithPriority extends Installer {
-  priority: number;
-}
 
 // testSupported that always fails
 //
@@ -170,9 +130,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
 ) => {
   throw new Error("Should never get here");
 };
-
-//   return Promise.resolve({ instructions });
-// }
 
 const matchAsiFile = (file: string) => path.extname(file) === ASI_MOD_EXT;
 
@@ -211,10 +168,148 @@ const allCanonicalCetFiles = (files: string[]) =>
 const allCanonicalArchiveOnlyFiles = (files: string[]) =>
   allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
 
+//
+//
+//
+//
+// Installers
+//
+// These should come in (roughly) reverse order of priority,
+// because the highest-priority ones will use Layouts and
+// other parts from the simpler installers.
+//
+//
+
+// Fallback
+
+const findFallbackFiles = (fileTree: FileTree): string[] =>
+  filesUnder(FILETREE_ROOT, fileTree);
+
+const detectFallbackLayout = (_fileTree: FileTree): boolean => true;
+
+const fallbackLayout: LayoutToInstructions = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  if (!detectFallbackLayout(fileTree)) {
+    throw new Error("Should never get here");
+  }
+
+  const allTheFiles = findFallbackFiles(fileTree);
+
+  return {
+    kind: FallbackLayout.Unvalidated,
+    instructions: instructionsForSameSourceAndDestPaths(allTheFiles),
+  };
+};
+
+const useFallbackOrFail = (
+  api: VortexApi,
+  installerType: InstallerType,
+  fileTree: FileTree,
+  installDecision: InstallDecision,
+): Promise<VortexInstallResult> => {
+  switch (installDecision) {
+    case InstallDecision.UserWantsToCancel: {
+      const message = `${installerType}: user chose to cancel installation on conflict`;
+      api.log(`info`, message);
+      api.log(`debug`, `Input files: `, sourcePaths(fileTree));
+      return Promise.reject(new Error(message));
+    }
+    case InstallDecision.UserWantsToProceed: {
+      api.log(`info`, `${installerType}: user chose to continue installation`);
+      api.log(`info`, `${installerType}: using fallback layout to install everything`);
+
+      const fallbackInstructions = fallbackLayout(api, undefined, fileTree);
+
+      if (
+        fallbackInstructions === InvalidLayout.Conflict ||
+        fallbackInstructions === NoInstructions.NoMatch
+      ) {
+        return Promise.reject(
+          new Error(
+            `Fallback layout failed, should never get here: ${fallbackInstructions}`,
+          ),
+        );
+      }
+
+      api.log(`info`, `${installerType}: instructions generated by fallback installer`);
+      api.log(`debug`, `Instructions`, fallbackInstructions.instructions);
+
+      return Promise.resolve({
+        instructions: fallbackInstructions.instructions,
+      });
+    }
+    default: {
+      return exhaustiveMatchFailure(installDecision);
+    }
+  }
+};
+
+const useFallbackOrFailBasedOnUserDecision = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  fileTree: FileTree,
+): Promise<VortexInstallResult> => {
+  const installDecision = await promptUserOnConflict(
+    api,
+    installerType,
+    sourcePaths(fileTree),
+  );
+
+  return useFallbackOrFail(api, installerType, fileTree, installDecision);
+};
+
+export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  gameId: string,
+): Promise<VortexTestResult> => {
+  log("debug", "Fallback installer received Files: ", files);
+
+  // Make sure we're able to support this mod.
+  const correctGame = gameId === GAME_ID;
+  log("info", "Entering fallback installer: ", gameId);
+  if (!correctGame) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  return Promise.resolve({
+    supported: true,
+    requiredFiles: [],
+  });
+};
+
+export const installAnyModFallback: VortexWrappedInstallFunc = async (
+  api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
+    api,
+    sourcePaths(fileTree),
+  );
+
+  return useFallbackOrFail(api, InstallerType.Fallback, fileTree, installDecision);
+};
+
+//
+//
+//
 // ArchiveOnly
 //
 // Last of the main ones to try, but first defined so that we
 // can use the layouts below.
+//
+//
 
 const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
   dirWithSomeUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, fileTree);
@@ -310,6 +405,7 @@ const warnUserIfArchivesMightNeedManualReview = (
     showArchiveInstallWarning(api, warnAboutSubdirs, warnAboutToplevel, destinationPaths);
   }
 };
+
 export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
@@ -383,13 +479,10 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const fileTree = fileTreeFromPaths(files);
-
   // Once again we could get fancy, but let's not
-
   const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
     archiveCanonLayout,
     archiveHeritageLayout,
@@ -405,7 +498,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   if (
     chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.OnlyOneAllowed
+    chosenInstructions === InvalidLayout.Conflict
   ) {
     const message = "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -416,12 +509,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     chosenInstructions.instructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    const message = "Conflicting layouts for Archive mod!";
-
-    showArchiveStructureErrorDialog(api, message, files);
-
-    log("error", message, files);
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.ArchiveOnly, fileTree);
   }
 
   warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
@@ -450,7 +538,7 @@ const extraCanonArchiveInstructions = (
 
   if (
     archiveLayoutToUse === NoInstructions.NoMatch ||
-    archiveLayoutToUse === InvalidLayout.OnlyOneAllowed
+    archiveLayoutToUse === InvalidLayout.Conflict
   ) {
     api.log("debug", "No valid extra archives");
     return { kind: NoLayout.Optional, instructions: [] };
@@ -496,123 +584,6 @@ const cetCanonLayout = (
     kind: CetLayout.Canon,
     instructions: instructionsForSameSourceAndDestPaths(allCanonCetFiles),
   };
-};
-
-export const testForRedCetMixedMod: VortexWrappedTestSupportedFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _gameId: string,
-): Promise<VortexTestResult> => {
-  const fileTree = new KeyTree({ separator: path.sep });
-
-  files.forEach((file) => fileTree.add(file, file));
-
-  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  if (!moddir || moddir.children.length === 0) {
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
-
-  const hasCetFilesInANamedModDir = moddir.children.some(
-    (child) => child.getChild(CET_MOD_CANONICAL_INIT_FILE) !== null,
-  );
-
-  const redscriptFiles = allRedscriptFiles(files);
-  if (hasCetFilesInANamedModDir && redscriptFiles.length === 0) {
-    log("debug", "Have CET, but no redscript");
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
-
-  return Promise.resolve({
-    supported: hasCetFilesInANamedModDir,
-    requiredFiles: [],
-  });
-};
-
-// Install the Redscript stuff, as well as any archives we find
-export const installRedCetMixedMod: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
-  files.forEach((file) => fileTree.add(path.dirname(file), file));
-
-  // We could get a lot fancier here, but for now we don't accept
-  // subdirectories anywhere other than in a canonical location.
-
-  // .\*.reds -- not actually wanted in this case. we only will allow installation if all files are packaged nicely
-  const topLevelReds = fileTree.get(".").filter(matchRedscript);
-  if (topLevelReds.length > 0) {
-    const message =
-      "The reds are not correctly structured, installing through vortex isn't possible.";
-    redCetMixedStructureErrorDialog(api, log, message, files);
-    return Promise.reject(new Error(message));
-  }
-  // .\r6\scripts\*.reds
-  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
-
-  // We also only accept one subdir, anything else might be trouble
-  // But grab everything under it.
-
-  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  // .\r6\scripts\[mod]\**\*
-  const canonRedsModFiles =
-    base && base.children.length === 1
-      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
-      : [];
-
-  const cetFiles = allCanonicalCetFiles(files);
-
-  if (cetFiles.length === 0) {
-    return Promise.reject(
-      new Error("Red + CET install but no CET files, should never get here"),
-    );
-  }
-
-  const installableReds = [canonRedsModFiles, redsDirReds].filter(
-    (location) => location.length > 0,
-  );
-
-  if (installableReds.length === 0) {
-    const message = "No Redscript found, should never get here.";
-    log("error", `Redscript Mod installer: ${message}`, files);
-    return Promise.reject(new Error(message));
-  }
-
-  // Only allow installation if all of the reds are either in their subfolder or not.
-  if (installableReds.length > 1) {
-    const message = "Conflicting Redscript locations, bailing out!";
-    showRedscriptStructureErrorDialog(api, log, message, files);
-
-    return Promise.reject(new Error(message));
-  }
-
-  // since cet has to be in a mod dir, lets use it's mod dir name for the reds if there is none.
-  const moddir = fileTree._getNode(CET_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-  const modName = moddir.children[0].key;
-
-  // Let's grab archives too
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
-
-  // Only one of these should exist but why discriminate?
-  const allSourcesAndDestinations = [
-    canonRedsModFiles.map(toSamePath),
-    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    cetFiles.map(toSamePath),
-    archiveOnlyFiles.map(toSamePath),
-  ];
-
-  const instructions = allSourcesAndDestinations.flatMap(
-    instructionsForSourceToDestPairs,
-  );
-
-  return Promise.resolve({ instructions });
 };
 
 // CET
@@ -688,12 +659,6 @@ export const installCetMod: VortexWrappedInstallFunc = (
 // Archives:
 //  - Canonical both only
 
-const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
-  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
-
-const detectRedscriptCanonLayout = (fileTree: FileTree): boolean =>
-  findCanonicalRedscriptDirs(fileTree).length > 0;
-
 const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
@@ -723,6 +688,13 @@ const redscriptBasedirLayout = (
   };
 };
 
+const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
+  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+
+const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
+  !detectRedscriptBasedirLayout(fileTree) &&
+  findCanonicalRedscriptDirs(fileTree).length > 0;
+
 const redscriptCanonLayout = (
   api: VortexApi,
   _modName: string,
@@ -733,7 +705,7 @@ const redscriptCanonLayout = (
   );
 
   if (allCanonRedscriptFiles.length < 1) {
-    api.log("debug", "No canonical Redscript files found.");
+    api.log("error", "No canonical Redscript files found.");
     return NoInstructions.NoMatch;
   }
 
@@ -742,12 +714,15 @@ const redscriptCanonLayout = (
   // layouts need to be robust enough in themselves if they
   // would otherwise depend on some external check that isn't
   // always present.
+  //
+  // Generally, shouldn't get here.
+  //
   const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
 
   if (hasBasedirReds) {
     // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "Conflict in Redscript Canon: Basedir has reds");
-    return InvalidLayout.OnlyOneAllowed;
+    api.log("debug", "No instructions from canon: basedir overrides");
+    return NoInstructions.NoMatch;
   }
 
   return {
@@ -784,63 +759,64 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
 };
 
 // Install the Redscript stuff, as well as any archives we find
-export const installRedscriptMod: VortexWrappedInstallFunc = (
+export const installRedscriptMod: VortexWrappedInstallFunc = async (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const fileTree: KeyTree = new KeyTree({ separator: path.sep });
-  files.forEach((file) => fileTree.add(path.dirname(file), file));
-
   // We could get a lot fancier here, but for now we don't accept
   // subdirectories anywhere other than in a canonical location.
 
   // .\*.reds
-  const topLevelReds = fileTree.get(".").filter(matchRedscript);
+  // eslint-disable-next-line no-underscore-dangle
+  const hasToplevelReds = dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+  const toplevelReds = hasToplevelReds ? filesUnder(FILETREE_ROOT, fileTree) : [];
+
   // .\r6\scripts\*.reds
-  const redsDirReds = fileTree.get(REDS_MOD_CANONICAL_PATH_PREFIX).filter(matchRedscript);
-
-  // We also only accept one subdir, anything else might be trouble
-  // But grab everything under it.
-
-  const base = fileTree._getNode(REDS_MOD_CANONICAL_PATH_PREFIX); // eslint-disable-line no-underscore-dangle
-
-  // .\r6\scripts\[mod]\**\*
-  const canonRedsModFiles =
-    base && base.children.length === 1
-      ? fileTree.getSub(path.join(REDS_MOD_CANONICAL_PATH_PREFIX, base.children[0].key))
-      : [];
-
-  const installable = [canonRedsModFiles, redsDirReds, topLevelReds].filter(
-    (location) => location.length > 0,
+  // eslint-disable-next-line no-underscore-dangle
+  const hasBasedirReds = dirWithSomeIn(
+    REDS_MOD_CANONICAL_PATH_PREFIX,
+    matchRedscript,
+    fileTree,
   );
+  const basedirReds = hasBasedirReds
+    ? filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, fileTree)
+    : [];
 
-  if (installable.length === 0) {
+  const canonSubdirs = findDirectSubdirsWithSome(
+    REDS_MOD_CANONICAL_PATH_PREFIX,
+    matchRedscript,
+    fileTree,
+  );
+  const hasCanonReds = canonSubdirs.length > 0;
+  const canonReds = hasCanonReds
+    ? canonSubdirs.flatMap((dir) => filesUnder(dir, fileTree))
+    : [];
+
+  const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
+
+  if (installable.length < 1) {
     const message = "No Redscript found, should never get here.";
     log("error", `Redscript Mod installer: ${message}`, files);
     return Promise.reject(new Error(message));
   }
 
   if (installable.length > 1) {
-    const message = "Conflicting Redscript locations, bailing out!";
-
-    showRedscriptStructureErrorDialog(api, api.log, message, files);
-
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Redscript, fileTree);
   }
 
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
   // Let's grab archives too
   const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
 
   // Only one of these should exist but why discriminate?
   const allSourcesAndDestinations = [
-    canonRedsModFiles.map(toSamePath),
-    redsDirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    topLevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    canonReds.map(toSamePath),
+    basedirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
+    toplevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
     archiveOnlyFiles.map(toSamePath),
   ];
 
@@ -859,19 +835,24 @@ const reservedDllDir = (dir: string) =>
 const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
 
+const findBasedirRed4ExtFiles = (fileTree: FileTree) =>
+  filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+
+const detectRed4ExtBasedirLayout = (fileTree: FileTree): boolean =>
+  dirWithSomeIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
+
 const red4extBasedirLayout: LayoutToInstructions = (
   _api: VortexApi,
   modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasBasedirFiles =
-    filesIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length > 0;
+  const hasBasedirFiles = detectRed4ExtBasedirLayout(fileTree);
 
   if (!hasBasedirFiles) {
     return NoInstructions.NoMatch;
   }
 
-  const allPathsUnderBase = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+  const allFilesUnderBase = findBasedirRed4ExtFiles(fileTree);
 
   const canonicalModnamedPath = path.join(
     RED4EXT_MOD_CANONICAL_BASEDIR,
@@ -879,7 +860,7 @@ const red4extBasedirLayout: LayoutToInstructions = (
     path.sep,
   );
 
-  const allFromBaseToModname: string[][] = allPathsUnderBase.map(
+  const allFromBaseToModname: string[][] = allFilesUnderBase.map(
     moveFromTo(RED4EXT_MOD_CANONICAL_BASEDIR, canonicalModnamedPath),
   );
 
@@ -892,17 +873,34 @@ const red4extBasedirLayout: LayoutToInstructions = (
 const findCanonicalRed4ExtDirs = (fileTree: FileTree) =>
   findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
 
-const detectRed4ExtCanonLayout = (fileTree: FileTree): boolean =>
-  findCanonicalRed4ExtDirs(fileTree).length > 0;
+const detectRed4ExtCanonOnlyLayout = (fileTree: FileTree): boolean =>
+  !detectRed4ExtBasedirLayout(fileTree) && findCanonicalRed4ExtDirs(fileTree).length > 0;
 
 const red4extCanonLayout: LayoutToInstructions = (
-  _api: VortexApi,
+  api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasCanonFiles = detectRed4ExtCanonLayout(fileTree);
+  const hasCanonFiles = detectRed4ExtCanonOnlyLayout(fileTree);
 
   if (!hasCanonFiles) {
+    return NoInstructions.NoMatch;
+  }
+
+  // This is maybe slightly annoying to check, but makes
+  // logic elsewhere cleaner. I suppose we can decide that
+  // layouts need to be robust enough in themselves if they
+  // would otherwise depend on some external check that isn't
+  // always present.
+  //
+  // Generally, we *shouldn't* get here and the problem should
+  // have already been detected in test, but..
+  //
+  const hasBasedirReds = detectRed4ExtBasedirLayout(fileTree);
+
+  if (hasBasedirReds) {
+    // Errors need to be handled downstream if it's relevant there
+    api.log("debug", "No instructions from canon: basedir overrides");
     return NoInstructions.NoMatch;
   }
 
@@ -958,7 +956,7 @@ const red4extModnamedToplevelLayout: LayoutToInstructions = (
   }
 
   if (toplevelSubdirsWithFiles.length > 1) {
-    return InvalidLayout.OnlyOneAllowed;
+    return InvalidLayout.Conflict;
   }
 
   const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
@@ -982,12 +980,10 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
-  const toplevelDllDirs = findDirectSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
 
   const noDllDirs = allDllSubdirs.length < 1;
   const noToplevelDlls = toplevelDlls.length < 1;
-  const tooManyToplevelDllSubdirs = toplevelDllDirs.length > 1;
 
   if (noDllDirs && noToplevelDlls) {
     log("info", "Doesn't look like a Red4Ext mod");
@@ -1006,17 +1002,12 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
     return Promise.reject(new Error(message));
   }
 
-  if (noToplevelDlls && tooManyToplevelDllSubdirs) {
-    const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
-  }
-
   // Red4Ext itself handled elsewhere
   if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
+
+  // Good enough, this is the right installer, more checks in `install`
 
   return Promise.resolve({ supported: true, requiredFiles: [] });
 };
@@ -1028,7 +1019,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
   // At this point we know from the test that none of
   // these are in dangerous locations
@@ -1057,11 +1048,8 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
-  if (chosenInstructions === InvalidLayout.OnlyOneAllowed) {
-    const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
+  if (chosenInstructions === InvalidLayout.Conflict) {
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
   }
 
   const extraArchiveLayoutsAllowed = chosenInstructions.kind !== Red4ExtLayout.Toplevel;
@@ -1077,10 +1065,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    const message = "Conflicting Structures For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files);
-    log("error", message, files);
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
   }
 
   log("info", "Red4Ext installer installing files.");
@@ -1357,7 +1342,7 @@ export const testForAsiMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  gameId: string,
+  _gameId: string,
 ): Promise<VortexTestResult> => {
   if (!detectASICanonLayout(fileTree)) {
     log("info", "Doesn't look like an ASI mod");
@@ -1384,8 +1369,6 @@ const asiCanonLayout: LayoutToInstructions = (
     return NoInstructions.NoMatch;
   }
 
-  const allFiles = allCanonAsiFiles;
-
   return {
     kind: AsiLayout.Canon,
     instructions: instructionsForSameSourceAndDestPaths(allCanonAsiFiles),
@@ -1399,93 +1382,32 @@ export const installAsiMod: VortexWrappedInstallFunc = (
   fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const modname = makeModName(destinationPath);
+  const modname = makeSyntheticName(destinationPath);
 
   const chosenInstructions = asiCanonLayout(api, modname, fileTree);
 
   if (
     chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.OnlyOneAllowed
+    chosenInstructions === InvalidLayout.Conflict
   ) {
     const message = "ASI installer failed to generate instructions";
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
 
-  const instructions = chosenInstructions.instructions;
+  const { instructions } = chosenInstructions;
 
   const haveFilesOutsideSelectedInstructions =
     instructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    const message = "Too many files in ASI Mod! " + instructions.length.toString();
+    const message = `Too many files in ASI Mod! ${instructions.length}`;
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
 
   log("info", "ASI installer installing files.");
   log("debug", "ASI instructions: ", instructions);
-
-  return Promise.resolve({ instructions });
-};
-
-// Fallback
-
-/**
- * Checks to see if the mod has any expected files in unexpected places
- * @param files list of files
- * @param gameId The internal game id
- * @returns Promise which details if the files passed in need to make use of a specific installation method
- */
-export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  gameId: string,
-): Promise<VortexTestResult> => {
-  log("debug", "Fallback installer received Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Entering fallback installer: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
-};
-
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installAnyModWithBasicFixes: VortexWrappedInstallFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const instructions = [].concat(instructionsForSameSourceAndDestPaths(files));
-
-  const message =
-    "The Fallback installer was reached.  The mod has been installed, but may not function as expected.";
-
-  warnUserAboutHavingReachedFallbackInstallerDialog(
-    _api,
-    log,
-    message,
-    files,
-    instructions,
-  );
 
   return Promise.resolve({ instructions });
 };
@@ -1500,19 +1422,22 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
-  const hasCanonRedscript = detectRedscriptCanonLayout(fileTree);
+  const hasCanonRedscript = detectRedscriptCanonOnlyLayout(fileTree);
   const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
-  const hasCanonRed4Ext = detectRed4ExtCanonLayout(fileTree);
+  const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
+  const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
-  if (hasCanonRedscript && hasBasedirRedscript) {
-    const message = "Conflicting Redscript Layouts, Cancelling!";
-    showRedscriptStructureErrorDialog(api, api.log, message, sourcePaths(fileTree));
-    return Promise.reject(new Error(message));
-  }
-
+  // The Onlys may need better naming.. they already check that
+  // there's no basedir stuff, so we can use both here without
+  // additional checks.
   const hasAtLeastTwoTypes =
-    [hasCanonCet, hasCanonRedscript, hasBasedirRedscript, hasCanonRed4Ext].filter(trueish)
-      .length > 1;
+    [
+      hasCanonCet,
+      hasCanonRedscript,
+      hasBasedirRedscript,
+      hasCanonRed4Ext,
+      hasBasedirRed4Ext,
+    ].filter(trueish).length > 1;
 
   if (!hasAtLeastTwoTypes) {
     api.log("debug", "MultiType didn't match");
@@ -1524,6 +1449,7 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
     hasCanonRedscript,
     hasBasedirRedscript,
     hasCanonRed4Ext,
+    hasBasedirRed4Ext,
   });
 
   return Promise.resolve({
@@ -1540,12 +1466,25 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // Should extract this to wrapper..
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
+  // This should be more robust. Currently we kinda rely
+  // on it being very unlikely that these kinds of mods
+  // are broken in ways like having canon and basedir
+  // stuff but that's not guaranteed.
+  //
+  // Defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/96
+
+  // Also notable: Basedirs currently *override* Canon.
+  // This is probably the desired behavior but I dunno
+  // if we could at least make it somehow more obvious
+  // in the naming scheme.. it's clearer in specific
+  // installers where we choose one layout only.
   const allInstructionSets: LayoutToInstructions[] = [
     cetCanonLayout,
     redscriptBasedirLayout,
-    redscriptCanonLayout, // A bit annoying but we explicitly check no basedir here
+    redscriptCanonLayout,
+    red4extBasedirLayout,
     red4extCanonLayout,
     archiveCanonLayout,
     archiveHeritageLayout,
@@ -1566,10 +1505,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (allInstructionsPerLayout.length < 1 || haveFilesOutsideSelectedInstructions) {
-    const message = "Couldn't Figure Out How To Combine Everything In This Mod!";
-    api.log("error", message, sourcePaths(fileTree));
-    showMultiTypeStructureErrorDialog(api, message, sourcePaths(fileTree));
-    return Promise.reject(new Error(message));
+    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.MultiType, fileTree);
   }
 
   api.log("info", "MultiType installer installing files.");
@@ -1728,10 +1664,10 @@ const installers: Installer[] = [
     install: installArchiveOnlyMod,
   },
   {
-    type: InstallerType.FallbackForOther,
+    type: InstallerType.Fallback,
     id: "cp2077-fallback-for-others-mod",
     testSupported: testAnyOtherModFallback,
-    install: installAnyModWithBasicFixes,
+    install: installAnyModFallback,
   },
 ];
 

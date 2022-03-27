@@ -1,16 +1,10 @@
 import path from "path";
 import * as vapi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
-import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
-import { installerPipeline, wrapTestSupported, wrapInstall } from "./installers";
 
-// Nexus Mods domain for the game. e.g. nexusmods.com/bloodstainedritualofthenight
-const GAME_ID = "cyberpunk2077";
-// Steam Application ID, you can get this from https://steamdb.info/apps/
-const STEAMAPP_ID = "1091500";
-// GOG Application ID, you can get this from https://www.gogdb.org/
-const GOGAPP_ID = "1423049311";
-// Epic Application ID
-const EPICAPP_ID = "Ginger";
+// Our stuff
+import { EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID } from "./index.metadata";
+import { installerPipeline, wrapTestSupported, wrapInstall } from "./installers";
+import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
 
 const moddingTools = [
   {
