@@ -71,6 +71,7 @@ import {
   useFirstMatchingLayoutForInstructions,
   moveFromTo,
   useAllMatchingLayouts,
+  makeSyntheticName,
 } from "./installers.shared";
 import {
   warnUserAboutHavingReachedFallbackInstallerDialog,
@@ -95,20 +96,13 @@ import {
   installCoreWolvenkit,
 } from "./core-installers";
 import { trueish } from "./installers.utils";
+import { GAME_ID } from "./index.metadata";
 
 // Ensure we're using win32 conventions
 const path = win32;
 
-const GAME_ID = "cyberpunk2077";
-
 const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
 // I figured some wiggle room on either side is nice :) - Ellie
-
-// Vortex gives us a 'destination path', which is actually
-// the tempdir in which the archive is expanded into for
-// the duration of the installation.
-const makeModName = (vortexDestinationPath: string) =>
-  path.basename(vortexDestinationPath, ".installing");
 
 // Types
 
@@ -831,7 +825,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
   // Let's grab archives too
   const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
@@ -1028,7 +1022,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
   // At this point we know from the test that none of
   // these are in dangerous locations
@@ -1540,7 +1534,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // Should extract this to wrapper..
-  const modName = makeModName(destinationPath);
+  const modName = makeSyntheticName(destinationPath);
 
   const allInstructionSets: LayoutToInstructions[] = [
     cetCanonLayout,

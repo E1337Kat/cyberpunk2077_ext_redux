@@ -1,5 +1,6 @@
 import path from "path";
 import { FileTree, FILETREE_ROOT } from "./filetree";
+import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
   LayoutToInstructions,
   NoInstructions,
@@ -8,6 +9,12 @@ import {
 } from "./installers.layouts";
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
+
+// Vortex gives us a 'destination path', which is actually
+// the tempdir in which the archive is expanded into for
+// the duration of the installation.
+export const makeSyntheticName = (vortexDestinationPath: string) =>
+  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexDestinationPath, ".installing")}`;
 
 // Source to dest path mapping helpers
 export const toSamePath = (f: string) => [f, f];
@@ -77,7 +84,6 @@ export const useAllMatchingLayouts = (
     .map((layout) => layout(api, modName, fileTree))
     .filter((instructions) => instructions !== NoInstructions.NoMatch);
 
-  console.log({ allInstructions });
   const someValidInstructions: Instructions[] = allInstructions.filter(
     (maybe): maybe is Instructions => (maybe as Instructions).kind !== undefined,
   );
