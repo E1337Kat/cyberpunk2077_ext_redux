@@ -399,7 +399,7 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
 
   if (
     chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.Conflict
+    chosenInstructions === InvalidLayout.OnlyOneAllowed
   ) {
     const message = "ArchiveOnly installer failed to generate any instructions!";
     log("error", message, files);
@@ -444,7 +444,7 @@ const extraCanonArchiveInstructions = (
 
   if (
     archiveLayoutToUse === NoInstructions.NoMatch ||
-    archiveLayoutToUse === InvalidLayout.Conflict
+    archiveLayoutToUse === InvalidLayout.OnlyOneAllowed
   ) {
     api.log("debug", "No valid extra archives");
     return { kind: NoLayout.Optional, instructions: [] };
@@ -682,6 +682,12 @@ export const installCetMod: VortexWrappedInstallFunc = (
 // Archives:
 //  - Canonical both only
 
+const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
+  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+
+const detectRedscriptCanonLayout = (fileTree: FileTree): boolean =>
+  findCanonicalRedscriptDirs(fileTree).length > 0;
+
 const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
@@ -711,13 +717,6 @@ const redscriptBasedirLayout = (
   };
 };
 
-const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
-  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
-
-const detectRedscriptCanonLayout = (fileTree: FileTree): boolean =>
-  !detectRedscriptBasedirLayout(fileTree) &&
-  findCanonicalRedscriptDirs(fileTree).length > 0;
-
 const redscriptCanonLayout = (
   api: VortexApi,
   _modName: string,
@@ -728,7 +727,7 @@ const redscriptCanonLayout = (
   );
 
   if (allCanonRedscriptFiles.length < 1) {
-    api.log("error", "No canonical Redscript files found.");
+    api.log("debug", "No canonical Redscript files found.");
     return NoInstructions.NoMatch;
   }
 
@@ -737,15 +736,12 @@ const redscriptCanonLayout = (
   // layouts need to be robust enough in themselves if they
   // would otherwise depend on some external check that isn't
   // always present.
-  //
-  // Generally, shouldn't get here.
-  //
   const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
 
   if (hasBasedirReds) {
     // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "No instructions from canon: basedir overrides");
-    return NoInstructions.NoMatch;
+    api.log("debug", "Conflict in Redscript Canon: Basedir has reds");
+    return InvalidLayout.OnlyOneAllowed;
   }
 
   return {
@@ -857,24 +853,19 @@ const reservedDllDir = (dir: string) =>
 const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
 
-const findBasedirRed4ExtFiles = (fileTree: FileTree) =>
-  filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
-
-const detectRed4ExtBasedirLayout = (fileTree: FileTree): boolean =>
-  dirWithSomeIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
-
 const red4extBasedirLayout: LayoutToInstructions = (
   _api: VortexApi,
   modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasBasedirFiles = detectRed4ExtBasedirLayout(fileTree);
+  const hasBasedirFiles =
+    filesIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree).length > 0;
 
   if (!hasBasedirFiles) {
     return NoInstructions.NoMatch;
   }
 
-  const allFilesUnderBase = findBasedirRed4ExtFiles(fileTree);
+  const allPathsUnderBase = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
 
   const canonicalModnamedPath = path.join(
     RED4EXT_MOD_CANONICAL_BASEDIR,
@@ -882,7 +873,7 @@ const red4extBasedirLayout: LayoutToInstructions = (
     path.sep,
   );
 
-  const allFromBaseToModname: string[][] = allFilesUnderBase.map(
+  const allFromBaseToModname: string[][] = allPathsUnderBase.map(
     moveFromTo(RED4EXT_MOD_CANONICAL_BASEDIR, canonicalModnamedPath),
   );
 
@@ -896,33 +887,16 @@ const findCanonicalRed4ExtDirs = (fileTree: FileTree) =>
   findDirectSubdirsWithSome(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
 
 const detectRed4ExtCanonLayout = (fileTree: FileTree): boolean =>
-  !detectRed4ExtBasedirLayout(fileTree) && findCanonicalRed4ExtDirs(fileTree).length > 0;
+  findCanonicalRed4ExtDirs(fileTree).length > 0;
 
 const red4extCanonLayout: LayoutToInstructions = (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
   const hasCanonFiles = detectRed4ExtCanonLayout(fileTree);
 
   if (!hasCanonFiles) {
-    return NoInstructions.NoMatch;
-  }
-
-  // This is maybe slightly annoying to check, but makes
-  // logic elsewhere cleaner. I suppose we can decide that
-  // layouts need to be robust enough in themselves if they
-  // would otherwise depend on some external check that isn't
-  // always present.
-  //
-  // Generally, we *shouldn't* get here and the problem should
-  // have already been detected in test, but..
-  //
-  const hasBasedirReds = detectRed4ExtBasedirLayout(fileTree);
-
-  if (hasBasedirReds) {
-    // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "No instructions from canon: basedir overrides");
     return NoInstructions.NoMatch;
   }
 
@@ -978,7 +952,7 @@ const red4extModnamedToplevelLayout: LayoutToInstructions = (
   }
 
   if (toplevelSubdirsWithFiles.length > 1) {
-    return InvalidLayout.Conflict;
+    return InvalidLayout.OnlyOneAllowed;
   }
 
   const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
@@ -1028,7 +1002,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
 
   if (noToplevelDlls && tooManyToplevelDllSubdirs) {
     const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.Conflict);
+    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
@@ -1077,9 +1051,9 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     return Promise.reject(new Error(message));
   }
 
-  if (chosenInstructions === InvalidLayout.Conflict) {
+  if (chosenInstructions === InvalidLayout.OnlyOneAllowed) {
     const message = "Ambiguous Structure For Red4Ext Mod!";
-    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.Conflict);
+    showRed4ExtStructureErrorDialog(api, message, files, InvalidLayout.OnlyOneAllowed);
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
@@ -1523,16 +1497,16 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   const hasCanonRedscript = detectRedscriptCanonLayout(fileTree);
   const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
   const hasCanonRed4Ext = detectRed4ExtCanonLayout(fileTree);
-  const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
+
+  if (hasCanonRedscript && hasBasedirRedscript) {
+    const message = "Conflicting Redscript Layouts, Cancelling!";
+    showRedscriptStructureErrorDialog(api, api.log, message, sourcePaths(fileTree));
+    return Promise.reject(new Error(message));
+  }
 
   const hasAtLeastTwoTypes =
-    [
-      hasCanonCet,
-      hasCanonRedscript,
-      hasBasedirRedscript,
-      hasCanonRed4Ext,
-      hasBasedirRed4Ext,
-    ].filter(trueish).length > 1;
+    [hasCanonCet, hasCanonRedscript, hasBasedirRedscript, hasCanonRed4Ext].filter(trueish)
+      .length > 1;
 
   if (!hasAtLeastTwoTypes) {
     api.log("debug", "MultiType didn't match");
@@ -1544,7 +1518,6 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
     hasCanonRedscript,
     hasBasedirRedscript,
     hasCanonRed4Ext,
-    hasBasedirRed4Ext,
   });
 
   return Promise.resolve({
@@ -1563,13 +1536,10 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
   // Should extract this to wrapper..
   const modName = makeSyntheticName(destinationPath);
 
-  // For 'performance', I guess we could  drop the
-  // ones we know we won't be hitting, but..
   const allInstructionSets: LayoutToInstructions[] = [
     cetCanonLayout,
     redscriptBasedirLayout,
-    redscriptCanonLayout,
-    red4extBasedirLayout,
+    redscriptCanonLayout, // A bit annoying but we explicitly check no basedir here
     red4extCanonLayout,
     archiveCanonLayout,
     archiveHeritageLayout,
