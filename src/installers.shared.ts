@@ -2,13 +2,14 @@ import path from "path";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
-  LayoutToInstructions,
-  NoInstructions,
-  MaybeInstructions,
   Instructions,
+  LayoutToInstructions,
+  MaybeInstructions,
+  NoInstructions,
 } from "./installers.layouts";
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
+// Types
 
 // Vortex gives us a 'destination path', which is actually
 // the tempdir in which the archive is expanded into for

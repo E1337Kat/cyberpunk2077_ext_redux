@@ -1,10 +1,7 @@
 import path from "path";
-import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-
 import { pathHierarchyFor } from "./utils.helper";
 
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
-import { InstallerType } from "../../src/installers";
 
 import {
   CET_MOD_CANONICAL_INIT_FILE,
@@ -16,26 +13,42 @@ import {
   INI_MOD_PATH,
   RESHADE_MOD_PATH,
   RESHADE_SHADERS_PATH,
+  ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
+import { VortexInstruction } from "../../src/vortex-wrapper";
+import { InstallChoices } from "../../src/dialogs";
+import { InstallerType } from "../../src/installers.types";
 
 export type InFiles = string[];
 
-export interface ExampleMod {
+interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
-  outInstructions: Vortex.IInstruction[];
+}
+export interface ExampleSucceedingMod extends ExampleMod {
+  outInstructions: VortexInstruction[];
 }
 
-export interface ExampleFailingMod {
-  expectedInstallerType: InstallerType;
-  inFiles: InFiles;
+export interface ExampleFailingMod extends ExampleMod {
   failure?: string;
 }
 
-export type ExampleModCategory = Map<string, ExampleMod>;
+export interface ExamplePromptInstallableMod extends ExampleMod {
+  proceedLabel: string;
+  proceedOutInstructions: VortexInstruction[];
+  cancelLabel: string;
+  cancelErrorMessage: string;
+}
+
+// Really should probably make this a sensible type but w/e
+export type ExampleModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
+export type ExamplePromptInstallableModCategory = Map<
+  string,
+  ExamplePromptInstallableMod
+>;
 
 export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
 export const FAKE_STAGING_PATH = path.join(
@@ -66,7 +79,10 @@ const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
-export const CoreCetInstall = new Map<string, ExampleMod>(
+const ASI_PREFIX = ASI_MOD_PATH;
+const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
+
+export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreCetInstall: {
       expectedInstallerType: InstallerType.CoreCET,
@@ -141,7 +157,7 @@ export const CoreCetInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreRedscriptInstall = new Map<string, ExampleMod>(
+export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreRedscriptInstall: {
       expectedInstallerType: InstallerType.CoreRedscript,
@@ -177,7 +193,7 @@ export const CoreRedscriptInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
+export const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     Red4ExtCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreRed4ext,
@@ -213,7 +229,7 @@ export const CoreRed4ExtInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
+export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreCsvMergeCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreCSVMerge,
@@ -324,7 +340,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleMod>(
   }),
 );
 
-export const CoreWolvenkitCliInstall = new Map<string, ExampleMod>(
+export const CoreWolvenkitCliInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreWolvenKitCliCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreWolvenKit,
@@ -365,7 +381,58 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
     },
   }),
 );
-export const CetMod = new Map<string, ExampleMod>(
+
+export const AsiMod = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    asiModWithCet: {
+      expectedInstallerType: InstallerType.ASI,
+      inFiles: [
+        ...ASI_PREFIXES,
+        `${ASI_PREFIX}/DiscordRPCHelper.asi`,
+        `${ASI_PREFIX}/discord_game_sdk.dll`,
+        ...CET_PREFIXES,
+        `${CET_PREFIX}/CP77 Discord RPC/`,
+        `${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`,
+        `${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`,
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
+          destination: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
+          destination: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
+          destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
+          destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
+        },
+      ],
+    },
+    standardAsiMod: {
+      expectedInstallerType: InstallerType.ASI,
+      inFiles: [...ASI_PREFIXES, `${ASI_PREFIX}/normal.asi`].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize(`${ASI_PREFIX}/normal.asi`),
+          destination: path.normalize(`${ASI_PREFIX}/normal.asi`),
+        },
+      ],
+    },
+  }),
+);
+
+export const CetMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -486,7 +553,7 @@ export const CetModShouldFail = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const RedscriptMod = new Map<string, ExampleMod>(
+export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     redsWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Redscript,
@@ -580,6 +647,38 @@ export const RedscriptMod = new Map<string, ExampleMod>(
   }),
 );
 
+export const RedscriptModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/yay.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\yay.reds`),
+          destination: path.join(`${REDS_PREFIX}\\yay.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
+          destination: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "Redscript: user chose to cancel installation on conflict",
+    },
+  }),
+);
+
 export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod>(
   Object.entries({
     redsScriptInTopLevelDirShouldFail: {
@@ -590,7 +689,7 @@ export const RedscriptModShouldFailInInstall = new Map<string, ExampleFailingMod
   }),
 );
 
-export const Red4ExtMod = new Map<string, ExampleMod>(
+export const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     red4extWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Red4Ext,
@@ -773,8 +872,14 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
       failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
     },
   ]),
-  ...Object.entries({
-    red4extWithMoreThanOneToplevelSubdirWithDllsFails: {
+]);
+
+export const Red4ExtModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    red4extWithMultipleSubdirsPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Red4Ext,
       inFiles: [
         path.join(`subdir1/`),
@@ -782,12 +887,49 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
         path.join(`subdir2/`),
         path.join(`subdir2/script2.dll`),
       ],
-      failure: `Ambiguous Structure For Red4Ext Mod!`,
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`subdir1\\script1.dll`),
+          destination: path.join(`subdir1\\script1.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`subdir2\\script2.dll`),
+          destination: path.join(`subdir2\\script2.dll`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
+    },
+    red4extWithExtraArchivesInWrongPlacePromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        path.join(`subdir1/`),
+        path.join(`subdir1/script1.dll`),
+        path.join(`outtaplace.archive`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`subdir1\\script1.dll`),
+          destination: path.join(`subdir1\\script1.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`outtaplace.archive`),
+          destination: path.join(`outtaplace.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "Red4ext: user chose to cancel installation on conflict",
     },
   }),
-]);
+);
 
-export const ArchiveOnly = new Map<string, ExampleMod>(
+export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.ArchiveOnly,
@@ -968,7 +1110,38 @@ export const ArchiveOnly = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const ValidExtraArchivesWithType = new Map<string, ExampleMod>(
+export const ArchiveOnlyModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    archiveWithToplevelAndCanonicalFilesPromptsOnConflictForFallback: {
+      expectedInstallerType: InstallerType.ArchiveOnly,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`outtaplace.archive`),
+        path.join(`${ARCHIVE_PREFIX}/innaspot.archive`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`outtaplace.archive`),
+          destination: path.join(`outtaplace.archive`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${ARCHIVE_PREFIX}\\innaspot.archive`),
+          destination: path.join(`${ARCHIVE_PREFIX}\\innaspot.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: "ArchiveOnly: user chose to cancel installation on conflict",
+    },
+  }),
+);
+
+export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithExtraArchiveFilesCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -1042,7 +1215,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleMod>(
   }),
 );
 
-export const JsonMod = new Map<string, ExampleMod>(
+export const JsonMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     jsonWithValidFileInRoot: {
       expectedInstallerType: InstallerType.Json,
@@ -1130,7 +1303,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const IniMod = new Map<string, ExampleMod>(
+export const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
@@ -1240,23 +1413,30 @@ export const IniMod = new Map<string, ExampleMod>(
   }), // object
 );
 
-export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
+export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
   Object.entries({
     invalidModContainingJustAnExe: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [path.normalize("bin/myProg.exe")],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.normalize("bin/myProg.exe"),
           destination: path.normalize("bin/myProg.exe"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
     invalidModContainingRandomFiles: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: ["Categorized AIO Command List.xlsx", "readme.md"],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.normalize("Categorized AIO Command List.xlsx"),
@@ -1268,20 +1448,25 @@ export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
           destination: path.normalize("readme.md"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
     invalidModWithDeepInvalidPath: {
-      expectedInstallerType: InstallerType.FallbackForOther,
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [
         ...pathHierarchyFor(FAKE_STAGING_PATH),
         path.join(FAKE_STAGING_PATH, "toodles.txt"),
       ],
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
         {
           type: "copy",
           source: path.join(FAKE_STAGING_PATH, "toodles.txt"),
           destination: path.join(FAKE_STAGING_PATH, "toodles.txt"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.Fallback}: user chose to cancel installation on conflict`,
     },
   }), // object
 );
@@ -1289,7 +1474,7 @@ export const ExampleInvalidModsForFallback = new Map<string, ExampleMod>(
 // The instructions will be grouped in the order that we try
 // to match things, and normally within them.
 //
-export const ValidTypeCombinations = new Map<string, ExampleMod>(
+export const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
       expectedInstallerType: InstallerType.MultiType,
@@ -1497,6 +1682,140 @@ export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
   }),
 );
 
+export const MultiTypeModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    multitypeWithArchivesAtToplevelPromptsOnConflict: {
+      expectedInstallerType: InstallerType.MultiType,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4xmod/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`magicgoeselsewhere.archive`),
+      ],
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`magicgoeselsewhere.archive`),
+          destination: path.join(`magicgoeselsewhere.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+    },
+    multitypeWithCanonAndToplevelRedsPromptsOnConflict: {
+      expectedInstallerType: InstallerType.MultiType,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`topsies.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4xmod/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/`),
+        path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+      ],
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          destination: path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        },
+        {
+          type: "copy",
+          source: path.join(`topsies.reds`),
+          destination: path.join(`topsies.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+          destination: path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.MultiType}: user chose to cancel installation on conflict`,
+    },
+  }),
+);
+
 export const AllModTypes = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreCetInstall,
@@ -1504,6 +1823,7 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
+    AsiMod,
     CetMod,
     RedscriptMod,
     Red4ExtMod,
@@ -1512,7 +1832,6 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
-    ExampleInvalidModsForFallback,
   }),
 );
 
@@ -1521,6 +1840,19 @@ export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModC
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
+  }),
+);
+
+export const AllExpectedInstallPromptables = new Map<
+  string,
+  ExamplePromptInstallableModCategory
+>(
+  Object.entries({
+    MultiTypeModShouldPromptForInstall,
+    RedscriptModShouldPromptForInstall,
+    Red4ExtModShouldPromptForInstall,
+    ArchiveOnlyModShouldPromptForInstall,
+    FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),
 );
 

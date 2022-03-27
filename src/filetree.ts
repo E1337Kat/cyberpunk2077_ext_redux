@@ -96,6 +96,13 @@ const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 const stripTrailingSeparator = (path: string): string =>
   path.replace(looksLikeADirectory, "");
 
+// Annoyingly all three mechanisms behave subtly differently wrt. paths.
+// get() does one thing, getSub() another, and _getNode() a third..
+// Need to unify them (or, really, just write the damn tree) but for
+// now be careful where you use which normalization.
+const normalizeDir = (dir: string): string =>
+  dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir);
+
 //
 //
 //
@@ -150,14 +157,10 @@ export const filesIn = (
   dir: string,
   predicate: PathFilter | Glob,
   tree: FileTree,
-): string[] => {
-  const normalizedDir =
-    dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir);
-
-  return predicate !== Glob.Any
-    ? tree._kt.get(normalizedDir).filter(predicate)
-    : tree._kt.get(normalizedDir);
-};
+): string[] =>
+  predicate !== Glob.Any
+    ? tree._kt.get(normalizeDir(dir)).filter(predicate)
+    : tree._kt.get(normalizeDir(dir));
 
 export const filesUnder = (dir: string, tree: FileTree): string[] =>
   tree._kt.getSub(stripTrailingSeparator(dir));
@@ -166,7 +169,7 @@ export const dirWithSomeIn = (
   dir: string,
   predicate: PathFilter,
   tree: FileTree,
-): boolean => tree._kt.get(stripTrailingSeparator(dir)).some(predicate);
+): boolean => tree._kt.get(normalizeDir(dir)).some(predicate);
 
 export const dirWithSomeUnder = (
   dir: string,

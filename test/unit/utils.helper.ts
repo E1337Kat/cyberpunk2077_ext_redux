@@ -2,10 +2,11 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { Console } from "console";
-import { mock, MockProxy } from "jest-mock-extended";
+import { mockDeep, MockProxy } from "jest-mock-extended";
 import { VortexApi } from "../../src/vortex-wrapper";
-import { installerPipeline, InstallerType } from "../../src/installers";
+import { installerPipeline } from "../../src/installers";
 import { fileTreeFromPaths } from "../../src/filetree";
+import { InstallerType } from "../../src/installers.types";
 
 export const GAME_ID = "cyberpunk2077";
 
@@ -17,7 +18,7 @@ export const GAME_ID = "cyberpunk2077";
 console = new Console(process.stdout, process.stderr);
 
 // This also contains a log, don't forget... may need to mock it.
-export const mockVortexApi: MockProxy<VortexApi> = mock<VortexApi>();
+export const mockVortexApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
 
 export const mockVortexLog = jest.fn();
 
@@ -30,7 +31,7 @@ export const getFallbackInstaller = () => {
   const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
 
   test("last installer in pipeline is the fallback", () => {
-    expect(fallbackInstaller.type).toBe(InstallerType.FallbackForOther);
+    expect(fallbackInstaller.type).toBe(InstallerType.Fallback);
   });
 
   return fallbackInstaller;
