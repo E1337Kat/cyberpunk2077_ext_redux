@@ -3,7 +3,6 @@ import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line impor
 
 import { pathHierarchyFor } from "./utils.helper";
 
-import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
 import { InstallerType } from "../../src/installers";
 
 import {
@@ -38,15 +37,14 @@ export interface ExampleFailingMod {
 export type ExampleModCategory = Map<string, ExampleMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 
-export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
+export const FAKE_STAGING_NAME = "mymegamod-43335455-wth-1";
 export const FAKE_STAGING_PATH = path.join(
   "unno",
   "why",
   "this",
-  FAKE_STAGING_ZIPFILE,
+  FAKE_STAGING_NAME,
   path.sep,
 );
-export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
 
 const CORE_CET_FULL_PATH_DEPTH = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
@@ -607,7 +605,7 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
       ],
     },
@@ -623,12 +621,12 @@ export const RedscriptMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
         {
           type: "copy",
           source: path.join(`${REDS_PREFIX}/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/notascript.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/notascript.reds`),
         },
       ],
     },
@@ -736,12 +734,12 @@ export const Red4ExtMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`${RED4EXT_PREFIX}/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
         },
         {
           type: "copy",
           source: path.join(`${RED4EXT_PREFIX}/notascript.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notascript.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notascript.dll`),
         },
       ],
     },
@@ -757,13 +755,13 @@ export const Red4ExtMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`${RED4EXT_PREFIX}/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
         },
         {
           type: "copy",
           source: path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
           destination: path.join(
-            `${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notcanonicalnow/notascript.dll`,
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notcanonicalnow/notascript.dll`,
           ),
         },
       ],
@@ -780,13 +778,13 @@ export const Red4ExtMod = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/script.dll`),
         },
         {
           type: "copy",
           source: path.join(`notcanonicalnow/notascript.dll`),
           destination: path.join(
-            `${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notcanonicalnow/notascript.dll`,
+            `${RED4EXT_PREFIX}/${FAKE_STAGING_NAME}/notcanonicalnow/notascript.dll`,
           ),
         },
       ],
@@ -1419,7 +1417,7 @@ export const ValidTypeCombinations = new Map<string, ExampleMod>(
         {
           type: "copy",
           source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_STAGING_NAME}/script.reds`),
         },
         {
           type: "copy",

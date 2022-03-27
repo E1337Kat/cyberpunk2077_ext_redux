@@ -7,21 +7,13 @@ import {
 } from "./mods.example";
 import { matchInstaller, mockVortexApi, mockVortexLog } from "./utils.helper";
 
-// Should switch this to compute the path in case changed, but eh..
-/*
-const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<object>(
-  (subDir: object, dir: string) => Object.fromEntries([[dir, subDir]]),
-  fakeStagingDirContent,
-);
-*/
-
 describe("Transforming modules to instructions", () => {
   beforeEach(() =>
     mockFs({
       unno: {
         why: {
           this: {
-            "vortexusesthezipfileasdir-3429 4": {
+            "mymegamod-43335455-wth-1": {
               "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
               "serious.ini": "[super serious]\nWings=false",
               "superreshade.ini":
