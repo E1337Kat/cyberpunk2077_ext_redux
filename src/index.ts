@@ -1,9 +1,9 @@
 import path from "path";
-import * as vapi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 
 // Our stuff
 import { EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID } from "./index.metadata";
-import { installerPipeline, wrapTestSupported, wrapInstall } from "./installers";
+import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
 
 const moddingTools = [
@@ -21,16 +21,17 @@ const moddingTools = [
 ];
 
 export const findGame = () =>
-  vapi.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+  vortexApi.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
     (game: VortexGameStoreEntry) => game.gamePath,
   );
 
 const requiresGoGLauncher = () =>
-  vapi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
+  vortexApi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
 
-const prepareForModding = (discovery) => vapi.fs.readdirAsync(path.join(discovery.path));
+const prepareForModding = (discovery) =>
+  vortexApi.fs.readdirAsync(path.join(discovery.path));
 
 // This is the main function Vortex will run when detecting the game extension.
 const main = (vortex: VortexExtensionContext) => {
@@ -59,14 +60,12 @@ const main = (vortex: VortexExtensionContext) => {
     },
   });
 
-  installerPipeline.forEach((installer) => {
-    vortex.registerInstaller(
-      installer.id,
-      installer.priority,
-      wrapTestSupported(vortex, vapi, installer),
-      wrapInstall(vortex, vapi, installer),
-    );
-  });
+  vortex.registerInstaller(
+    internalPipelineInstaller.id,
+    internalPipelineInstaller.priority,
+    wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
+    wrapInstall(vortex, vortexApi, internalPipelineInstaller),
+  );
 
   return true;
 };

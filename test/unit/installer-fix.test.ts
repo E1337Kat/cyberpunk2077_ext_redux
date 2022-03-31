@@ -2,14 +2,14 @@ import { notEmpty, mockDeep, MockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
 import { InstallChoices } from "../../src/dialogs";
 import { fileTreeFromPaths } from "../../src/filetree";
+import { internalPipelineInstaller } from "../../src/installers";
 import { VortexApi, VortexDialogResult } from "../../src/vortex-wrapper";
 import {
-  AllExpectedInstallFailures,
   AllExpectedInstallPromptables,
   AllModTypes,
   FAKE_STAGING_PATH,
 } from "./mods.example";
-import { matchInstaller, mockVortexApi, mockVortexLog } from "./utils.helper";
+import { GAME_ID, mockVortexApi, mockVortexLog } from "./utils.helper";
 
 // Should switch this to compute the path in case changed, but eh..
 /*
@@ -56,17 +56,13 @@ describe("Transforming modules to instructions", () => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
-          const installer = await matchInstaller(mod.inFiles);
-          expect(installer).toBeDefined();
-          expect(installer.type).toBe(mod.expectedInstallerType);
-
-          const installResult = await installer.install(
+          const installResult = await internalPipelineInstaller.install(
             mockVortexApi,
             mockVortexLog,
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
-            null,
+            GAME_ID,
             null,
           );
 
@@ -80,11 +76,6 @@ describe("Transforming modules to instructions", () => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to produce fallback install when choosing to proceed on ${desc}`, async () => {
-          const installer = await matchInstaller(mod.inFiles);
-          expect(installer).toBeDefined();
-          expect(installer.type).toBe(mod.expectedInstallerType);
-
-          // This, um, may need some cleaning up. -.-
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Proceed,
             input: undefined,
@@ -94,24 +85,19 @@ describe("Transforming modules to instructions", () => {
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
-          const installResult = await installer.install(
+          const installResult = await internalPipelineInstaller.install(
             mockApi,
             mockVortexLog,
             mod.inFiles,
             fileTreeFromPaths(mod.inFiles),
             FAKE_STAGING_PATH,
-            null,
+            GAME_ID,
             null,
           );
 
           expect(installResult.instructions).toEqual(mod.proceedOutInstructions);
         });
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
-          const installer = await matchInstaller(mod.inFiles);
-          expect(installer).toBeDefined();
-          expect(installer.type).toBe(mod.expectedInstallerType);
-
-          // This, um, may need some cleaning up. -.-
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Cancel,
             input: undefined,
@@ -122,56 +108,18 @@ describe("Transforming modules to instructions", () => {
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
           const expectation = expect(
-            installer.install(
+            internalPipelineInstaller.install(
               mockApi,
               mockVortexLog,
               mod.inFiles,
               fileTreeFromPaths(mod.inFiles),
               FAKE_STAGING_PATH,
-              null,
+              GAME_ID,
               null,
             ),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
-        });
-      });
-    });
-  });
-
-  AllExpectedInstallFailures.forEach((examples, set) => {
-    describe(`install attempts that should fail, ${set}`, () => {
-      examples.forEach(async (mod, desc) => {
-        test(`rejects with an error when ${desc}`, async () => {
-          let message;
-
-          try {
-            // wow
-            const installer = await matchInstaller(mod.inFiles);
-            expect(installer).toBeDefined();
-            expect(installer.type).toBe(mod.expectedInstallerType);
-
-            await installer.install(
-              mockVortexApi,
-              mockVortexLog,
-              mod.inFiles,
-              fileTreeFromPaths(mod.inFiles),
-              FAKE_STAGING_PATH,
-              null,
-              null,
-            );
-          } catch (error) {
-            // such type
-            message = error.message;
-          } finally {
-            if (message) {
-              // much fp
-              expect(message).toEqual(mod.failure);
-            } else {
-              // very safety
-              expect(message, `should've rejected for ${desc}`).toEqual(mod.failure);
-            }
-          }
         });
       });
     });

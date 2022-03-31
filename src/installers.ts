@@ -104,8 +104,8 @@ import {
 // Ensure we're using win32 conventions
 const path = win32;
 
-const PRIORITY_STARTING_NUMBER = 30; // Why? Fomod is 20, then.. who knows? Don't go over 99
-// I figured some wiggle room on either side is nice :) - Ellie
+const PRIORITY_FOR_PIPELINE_INSTALLER = 30; // Fomod is 20. Leave a couple slots if someone wants in before us
+const PRIORITY_STARTING_NUMBER = PRIORITY_FOR_PIPELINE_INSTALLER + 1;
 
 // testSupported that always fails
 //
@@ -797,13 +797,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
 
   const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
 
-  if (installable.length < 1) {
-    const message = "No Redscript found, should never get here.";
-    log("error", `Redscript Mod installer: ${message}`, files);
-    return Promise.reject(new Error(message));
-  }
-
-  if (installable.length > 1) {
+  if (installable.length !== 1) {
     return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Redscript, fileTree);
   }
 
@@ -1544,43 +1538,43 @@ const addPriorityFrom = (start: number) => {
 const installers: Installer[] = [
   {
     type: InstallerType.CoreCET,
-    id: "cp2077-core-cet-mod",
+    id: InstallerType.CoreCET,
     testSupported: testForCetCore,
     install: installCetCore,
   },
   {
     type: InstallerType.CoreRedscript,
-    id: "cp2077-core-redscript-mod",
+    id: InstallerType.CoreRedscript,
     testSupported: testForRedscriptCore,
     install: installRedscriptCore,
   },
   {
     type: InstallerType.CoreRed4ext,
-    id: "cp2077-core-red4ext-mod",
+    id: InstallerType.CoreRed4ext,
     testSupported: testRed4ExtCore,
     install: installRed4ExtCore,
   },
   {
     type: InstallerType.CoreCSVMerge,
-    id: "cp2077-core-csvmerge-mod",
+    id: InstallerType.CoreCSVMerge,
     testSupported: testCoreCsvMerge,
     install: installCoreCsvMerge,
   },
   {
     type: InstallerType.CoreWolvenKit,
-    id: "cp2077-core-wolvenkit-mod",
+    id: InstallerType.CoreWolvenKit,
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
   },
   {
     type: InstallerType.ASI,
-    id: "cp2077-asi-mod",
+    id: InstallerType.ASI,
     testSupported: testForAsiMod,
     install: installAsiMod,
   },
   {
     type: InstallerType.MultiType,
-    id: "cp2077-multitype-mod",
+    id: InstallerType.MultiType,
     testSupported: testForMultiTypeMod,
     install: installMultiTypeMod,
   },
@@ -1595,19 +1589,19 @@ const installers: Installer[] = [
   // },
   {
     type: InstallerType.CET,
-    id: "cp2077-cet-mod",
+    id: InstallerType.CET,
     testSupported: testForCetMod,
     install: installCetMod,
   },
   {
     type: InstallerType.Redscript,
-    id: "cp2077-redscript-mod",
+    id: InstallerType.Redscript,
     testSupported: testForRedscriptMod,
     install: installRedscriptMod,
   },
   {
     type: InstallerType.Red4Ext,
-    id: "cp2077-red4ext-mod",
+    id: InstallerType.Red4Ext,
     testSupported: testForRed4ExtMod,
     install: installRed4ExtMod,
   },
@@ -1627,7 +1621,7 @@ const installers: Installer[] = [
 */
   {
     type: InstallerType.INI,
-    id: "cp2077-ini-mod",
+    id: InstallerType.INI,
     testSupported: testForIniMod,
     install: installIniMod,
   },
@@ -1653,19 +1647,19 @@ const installers: Installer[] = [
 
   {
     type: InstallerType.Json,
-    id: "cp2077-json-mod",
+    id: InstallerType.Json,
     testSupported: testForJsonMod,
     install: installJsonMod,
   },
   {
     type: InstallerType.ArchiveOnly,
-    id: "cp2077-basic-archive-mod",
+    id: InstallerType.ArchiveOnly,
     testSupported: testForArchiveOnlyMod,
     install: installArchiveOnlyMod,
   },
   {
     type: InstallerType.Fallback,
-    id: "cp2077-fallback-for-others-mod",
+    id: InstallerType.Fallback,
     testSupported: testAnyOtherModFallback,
     install: installAnyModFallback,
   },
@@ -1727,3 +1721,106 @@ export const wrapInstall =
       ...args,
     );
   };
+
+const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
+  _vortexApi: VortexApi,
+  _vortexLog: VortexLogFunc,
+  _files: string[],
+  _fileTree: FileTree,
+  _gameId: string,
+): Promise<VortexTestResult> =>
+  // Test in ~~production~~ install!
+  //
+  // Seriously though, this does mean that nothing will run
+  // after us. Anything that for some reason wants to be run
+  // for CP2077 mods will need to run in the priority slots
+  // before ours.
+  //
+  // Doing this avoids having to match the installer twice,
+  // but if it turns out to be necessary... well, we can just
+  // do that, then.
+  Promise.resolve({ supported: true, requiredFiles: [] });
+
+const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
+  vortexApi: VortexApi,
+  vortexLog: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  destinationPath: string,
+  gameId: string,
+  progressDelegate: VortexProgressDelegate,
+  choices?: unknown,
+  unattended?: boolean,
+): Promise<VortexInstallResult> => {
+  const me = InstallerType.Pipeline;
+
+  vortexApi.log(`info`, `${me}: input files: ${sourcePaths(fileTree)}`);
+
+  let matchingInstaller: Installer;
+
+  try {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const candidateInstaller of installerPipeline) {
+      vortexApi.log(`debug`, `${me}: Trying ${candidateInstaller.type}`);
+      // eslint-disable-next-line no-await-in-loop
+      const testResult = await candidateInstaller.testSupported(
+        vortexApi,
+        vortexLog,
+        files,
+        fileTree,
+        gameId,
+      );
+
+      if (testResult.supported === true) {
+        vortexApi.log(`info`, `${me}: using ${candidateInstaller.type}`);
+        matchingInstaller = candidateInstaller;
+        break;
+      }
+    }
+  } catch (ex) {
+    const errorMessage = `${me}: error trying to find installer (should not happen): ${ex.message}`;
+    vortexApi.log(`error`, errorMessage);
+    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
+    return Promise.reject(new Error(errorMessage));
+  }
+
+  if (matchingInstaller === undefined) {
+    const errorMessage = `${me}: should never reach this point, means no installer matched`;
+    vortexApi.log(`error`, errorMessage);
+    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
+    return Promise.reject(new Error(errorMessage));
+  }
+
+  try {
+    const selectedInstructions = await matchingInstaller.install(
+      vortexApi,
+      vortexLog,
+      files,
+      fileTree,
+      destinationPath,
+      gameId,
+      progressDelegate,
+      choices,
+      unattended,
+    );
+
+    vortexApi.log(`debug`, `${me}: installing using ${matchingInstaller.type}`);
+
+    return Promise.resolve({
+      instructions: selectedInstructions.instructions,
+    });
+  } catch (ex) {
+    const errorMessage = `${me}: installation error: ${ex.message}`;
+    vortexApi.log(`error`, errorMessage);
+    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
+    return Promise.reject(new Error(errorMessage));
+  }
+};
+
+export const internalPipelineInstaller: InstallerWithPriority = {
+  priority: PRIORITY_FOR_PIPELINE_INSTALLER,
+  type: InstallerType.Pipeline,
+  id: InstallerType.Pipeline,
+  testSupported: testUsingPipelineOfInstallers,
+  install: installUsingPipelineOfInstallers,
+};

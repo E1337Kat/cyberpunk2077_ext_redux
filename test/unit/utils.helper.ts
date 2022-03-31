@@ -23,8 +23,14 @@ export const mockVortexApi: MockProxy<VortexApi> = mockDeep<VortexApi>();
 export const mockVortexLog = jest.fn();
 
 if (process.env.DEBUG) {
-  // eslint-disable-next-line no-console
-  mockVortexLog.mockImplementation((...args) => console.log("Log:", args));
+  mockVortexLog.mockImplementation((...args) =>
+    // eslint-disable-next-line no-console
+    console.log(`log():`, args),
+  );
+  mockVortexApi.log.mockImplementation((...args) =>
+    // eslint-disable-next-line no-console
+    console.log(`api.log:`, args),
+  );
 }
 
 export const getFallbackInstaller = () => {
