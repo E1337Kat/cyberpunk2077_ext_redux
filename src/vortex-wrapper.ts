@@ -30,7 +30,6 @@ export type VortexWrappedTestSupportedFunc = (
   vortexLog: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  gameID: string,
 ) => Promise<VortexTestResult>;
 
 export type VortexInstallFunc = Vortex.InstallFunc;
@@ -44,7 +43,6 @@ export type VortexWrappedInstallFunc = (
   files: string[],
   fileTree: FileTree,
   destinationPath: string,
-  gameId: string,
   progressDelegate: VortexProgressDelegate,
   choices?: unknown,
   unattended?: boolean,

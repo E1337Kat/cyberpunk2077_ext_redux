@@ -16,6 +16,8 @@ import {
   dirWithSomeIn,
   fileCount,
   sourcePaths,
+  subdirNamesIn,
+  subtreeFrom,
 } from "./filetree";
 import {
   VortexApi,
@@ -28,6 +30,7 @@ import {
   VortexExtensionContext,
   VortexTestSupportedFunc,
   VortexInstallFunc,
+  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   CET_GLOBAL_INI,
@@ -63,6 +66,7 @@ import {
   RedscriptLayout,
   FallbackLayout,
   AsiLayout,
+  KNOWN_TOPLEVEL_DIRS,
 } from "./installers.layouts";
 import {
   toSamePath,
@@ -114,7 +118,6 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
   _log: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
@@ -125,7 +128,6 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
   _files: string[],
   _fileTree: FileTree,
   _destinationPath: string,
-  _gameId: string,
   _progressDelegate: VortexProgressDelegate,
 ) => {
   throw new Error("Should never get here");
@@ -266,20 +268,8 @@ export const testAnyOtherModFallback: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Fallback installer received Files: ", files);
-
-  // Make sure we're able to support this mod.
-  const correctGame = gameId === GAME_ID;
-  log("info", "Entering fallback installer: ", gameId);
-  if (!correctGame) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
   return Promise.resolve({
     supported: true,
     requiredFiles: [],
@@ -411,7 +401,6 @@ export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   let supported: boolean;
   const filtered = files.filter(
@@ -603,7 +592,6 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCetFilesInANamedModDir = detectCetCanonLayout(fileTree);
 
@@ -736,7 +724,6 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const redscriptFiles = allRedscriptFiles(files);
 
@@ -971,7 +958,6 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
   const toplevelDlls = filesIn(FILETREE_ROOT, matchDll, fileTree);
@@ -980,7 +966,6 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   const noToplevelDlls = toplevelDlls.length < 1;
 
   if (noDllDirs && noToplevelDlls) {
-    log("info", "Doesn't look like a Red4Ext mod");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
@@ -1075,13 +1060,11 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
   );
   if (filtered.length === 0) {
-    log("info", "No JSON files");
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -1214,18 +1197,7 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
-  // Make sure we're able to support this mod.
-  const correctGame = _gameId === GAME_ID;
-  log("info", "Checking for INI files: ", _gameId);
-  if (!correctGame) {
-    // no mods?
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
   );
@@ -1245,14 +1217,15 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
         path.extname(file) === REDS_MOD_CANONICAL_EXTENSION,
     )
   ) {
-    log("info", "INI file detected within a CET or Redscript mod, aborting");
+    // These should  actually error out, we should not get here
+    log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
   if (files.includes(CET_GLOBAL_INI)) {
-    log("info", "CET Installer detected, not processing as INI");
+    log(`error`, `CET Installer detected, not processing as INI`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -1336,10 +1309,8 @@ export const testForAsiMod: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   if (!detectASICanonLayout(fileTree)) {
-    log("info", "Doesn't look like an ASI mod");
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
@@ -1413,7 +1384,6 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   _log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
   const hasCanonRedscript = detectRedscriptCanonOnlyLayout(fileTree);
@@ -1665,38 +1635,159 @@ const installers: Installer[] = [
   },
 ];
 
-export const installerPipeline: InstallerWithPriority[] = installers.reduce(
+const installerPipeline: InstallerWithPriority[] = installers.reduce(
   addPriorityFrom(PRIORITY_STARTING_NUMBER),
   [],
 );
 
+//
+// Install nonsense
+//
+
+const detectGiftwrapLayout = (fileTree: FileTree) => {
+  const toplevelDirs = subdirNamesIn(FILETREE_ROOT, fileTree);
+
+  if (toplevelDirs.length !== 1) {
+    return false;
+  }
+
+  const toplevelDir = toplevelDirs[0];
+
+  const allFirstLevelSubdirs = subdirNamesIn(toplevelDir, fileTree);
+
+  if (allFirstLevelSubdirs.length < 1) {
+    return false;
+  }
+
+  const subdirsMatchingKnownToplevelSubdirs = allFirstLevelSubdirs.filter((dir) =>
+    KNOWN_TOPLEVEL_DIRS.includes(dir),
+  );
+
+  if (allFirstLevelSubdirs.length === subdirsMatchingKnownToplevelSubdirs.length) {
+    return true;
+  }
+
+  // For now, we’ll allow files to exist at toplevel
+  // since we do have a reasonable indication the
+  // top of the mod is a wrapper
+  return false;
+};
+
+const enum Transform {
+  Unwrapped = `Tree with extra top-level directory removed`,
+  None = `No transforms`,
+}
+
+// This is probably nonsense especially since we're not giving
+// these types the *actual* transform to complete whenever. That's
+// just way overkill for this problem, but result is that this is
+// kind of a half-assed type for nothing more than a bit of safety.
+interface NotModifiedFileTree {
+  readonly transform: Transform.None;
+  readonly fileTree: FileTree;
+}
+
+interface UnwrappedFileTree {
+  readonly transform: Transform.Unwrapped;
+  readonly fileTree: FileTree;
+  readonly originalTree: FileTree;
+  readonly wrapperDir: string;
+}
+
+type ProcessedFileTree = NotModifiedFileTree | UnwrappedFileTree;
+
+const unwrapTreeIfNecessary = (api: VortexApi, fileTree: FileTree): ProcessedFileTree => {
+  const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
+
+  const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
+
+  const transformedTree = haveGiftwrappedMod
+    ? subtreeFrom(wrapperDir, fileTree)
+    : fileTree;
+
+  const unwrappedPaths = sourcePaths(transformedTree);
+
+  if (haveGiftwrappedMod) {
+    api.log(`info`, `Mod was giftwrapped, unwrapped it for install.`);
+    api.log(`debug`, `Using unwrapped filetree: `, unwrappedPaths);
+
+    return {
+      transform: Transform.Unwrapped,
+      fileTree: transformedTree,
+      originalTree: fileTree,
+      wrapperDir,
+    } as UnwrappedFileTree;
+  }
+
+  return {
+    transform: undefined,
+    fileTree,
+  } as NotModifiedFileTree;
+};
+
+const giftwrapSourcesIfNecessary = (
+  api: VortexApi,
+  treeInUse: ProcessedFileTree,
+  instructions: VortexInstruction[],
+): VortexInstruction[] =>
+  treeInUse.transform === Transform.Unwrapped
+    ? instructions.map(({ type, source, destination }: VortexInstruction) => ({
+        type,
+        source: path.join(treeInUse.wrapperDir, source),
+        destination,
+      }))
+    : instructions;
+
+//
+// (wrap) `testSupported`
+//
+//  Before hitting actual installers(s), make sure the tree is the way
+//  we want it to be - no extra toplevel dir for example.
+//
+//  Also passes in some extra data like `VortexApi` and our `FileTree`.
+//
+//  @type `VortexTestSupportedFunc`
+//
 export const wrapTestSupported =
   (
     vortex: VortexExtensionContext,
     vortexApiThing,
     installer: Installer,
   ): VortexTestSupportedFunc =>
-  (files: string[], gameId: string, ...args) => {
+  (files: string[], gameId: string) => {
+    //
     const vortexLog: VortexLogFunc = vortexApiThing.log;
-    const vortexApi: VortexApi = {
-      ...vortex.api,
-      log: vortexApiThing.log,
-    };
+    const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
     if (gameId !== GAME_ID) {
+      vortexApi.log(`error`, `Not a ${GAME_ID} mod: ${gameId}`);
       return Promise.resolve({ supported: false, requiredFiles: [] });
     }
 
-    vortexLog("info", `Testing for ${installer.type}, input files: `, files);
+    vortexApi.log(`info`, `Testing for ${installer.type}`);
+    vortexApi.log(`debug`, `Input files: `, files);
+
+    const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+
     return installer.testSupported(
       vortexApi,
       vortexLog,
-      files,
-      fileTreeFromPaths(files),
-      gameId,
-      ...args,
+      sourcePaths(treeForTesting.fileTree),
+      treeForTesting.fileTree,
     );
   };
+
+//
+//  (wrap) `install`
+//
+//  Before hitting actual installer(s), make sure the tree is the way
+//  we want it to be - no extra toplevel dir for example.
+//
+//  Also passes in some extra data like `VortexApi` and our `FileTree`,
+//  and loses some unnecessary stuff.
+//
+//  @type `VortexInstallFunc`
+//
 
 export const wrapInstall =
   (
@@ -1704,117 +1795,129 @@ export const wrapInstall =
     vortexApiThing,
     installer: Installer,
   ): VortexInstallFunc =>
-  (files: string[], ...args) => {
+  async (
+    files: string[],
+    destinationPath: string,
+    _gameId: string,
+    progressDelegate: VortexProgressDelegate,
+    choices?: unknown,
+    unattended?: boolean,
+  ): Promise<VortexInstallResult> => {
+    //
     const vortexLog: VortexLogFunc = vortexApiThing.log;
-    const vortexApi: VortexApi = {
-      ...vortex.api,
-      log: vortexLog,
-    };
+    const vortexApi: VortexApi = { ...vortex.api, log: vortexLog };
 
-    vortexLog("info", `Trying to install using ${installer.type}`);
+    vortexApi.log(`info`, `Trying to install using ${installer.type}`);
+    vortexApi.log(`debug`, `Input files:`, files);
 
-    return installer.install(
+    const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+
+    const { instructions } = await installer.install(
       vortexApi,
       vortexLog,
-      files,
-      fileTreeFromPaths(files),
-      ...args,
+      sourcePaths(treeForInstallers.fileTree),
+      treeForInstallers.fileTree,
+      destinationPath,
+      progressDelegate,
+      choices,
+      unattended,
     );
+
+    const instructionsWithCorrectSources = giftwrapSourcesIfNecessary(
+      vortexApi,
+      treeForInstallers,
+      instructions,
+    );
+
+    return Promise.resolve({
+      instructions: instructionsWithCorrectSources,
+    });
   };
 
+// Test in ~~production~~ install!
+//
+// Seriously though, this does mean that nothing will run
+// after us. Anything that for some reason wants to be run
+// for CP2077 mods will need to run in the priority slots
+// before ours.
+//
+// Doing this avoids having to match the installer twice,
+// but if it turns out to be necessary... well, we can just
+// do that, then.
 const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
   _vortexApi: VortexApi,
   _vortexLog: VortexLogFunc,
   _files: string[],
   _fileTree: FileTree,
-  _gameId: string,
-): Promise<VortexTestResult> =>
-  // Test in ~~production~~ install!
-  //
-  // Seriously though, this does mean that nothing will run
-  // after us. Anything that for some reason wants to be run
-  // for CP2077 mods will need to run in the priority slots
-  // before ours.
-  //
-  // Doing this avoids having to match the installer twice,
-  // but if it turns out to be necessary... well, we can just
-  // do that, then.
-  Promise.resolve({ supported: true, requiredFiles: [] });
+): Promise<VortexTestResult> => Promise.resolve({ supported: true, requiredFiles: [] });
 
+//
+// Installer that tries each actual installer in the pipeline in
+// turn (by priority) for `testSupport` on the mod. If an installer
+// is found, it's used to get the instructions. If not: error.
+//
 const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
   destinationPath: string,
-  gameId: string,
   progressDelegate: VortexProgressDelegate,
   choices?: unknown,
   unattended?: boolean,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
 
-  vortexApi.log(`info`, `${me}: input files: ${sourcePaths(fileTree)}`);
+  // I want to rewrite this using a `Result<T, E>` so bad.
 
+  // Technically I guess we could use Layouts here, one wrapped and
+  // one unwrapped.. dunno if that'd make it much cleaner, maybe worth it
   let matchingInstaller: Installer;
 
-  try {
-    // eslint-disable-next-line no-restricted-syntax
-    for (const candidateInstaller of installerPipeline) {
-      vortexApi.log(`debug`, `${me}: Trying ${candidateInstaller.type}`);
-      // eslint-disable-next-line no-await-in-loop
-      const testResult = await candidateInstaller.testSupported(
-        vortexApi,
-        vortexLog,
-        files,
-        fileTree,
-        gameId,
-      );
+  // Let it reject
 
-      if (testResult.supported === true) {
-        vortexApi.log(`info`, `${me}: using ${candidateInstaller.type}`);
-        matchingInstaller = candidateInstaller;
-        break;
-      }
-    }
-  } catch (ex) {
-    const errorMessage = `${me}: error trying to find installer (should not happen): ${ex.message}`;
-    vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
-    return Promise.reject(new Error(errorMessage));
-  }
-
-  if (matchingInstaller === undefined) {
-    const errorMessage = `${me}: should never reach this point, means no installer matched`;
-    vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
-    return Promise.reject(new Error(errorMessage));
-  }
-
-  try {
-    const selectedInstructions = await matchingInstaller.install(
+  // eslint-disable-next-line no-restricted-syntax
+  for (const candidateInstaller of installerPipeline) {
+    vortexApi.log(`debug`, `${me}: Trying ${candidateInstaller.type}`);
+    // eslint-disable-next-line no-await-in-loop
+    const testResult = await candidateInstaller.testSupported(
       vortexApi,
       vortexLog,
-      files,
+      sourcePaths(fileTree),
       fileTree,
-      destinationPath,
-      gameId,
-      progressDelegate,
-      choices,
-      unattended,
     );
 
-    vortexApi.log(`debug`, `${me}: installing using ${matchingInstaller.type}`);
+    if (testResult.supported === true) {
+      vortexApi.log(`info`, `${me}: using ${candidateInstaller.type}`);
+      matchingInstaller = candidateInstaller;
+      break;
+    }
+  }
 
-    return Promise.resolve({
-      instructions: selectedInstructions.instructions,
-    });
-  } catch (ex) {
-    const errorMessage = `${me}: installation error: ${ex.message}`;
+  // Maybe this check doesn't really belong here? Can we assume this?
+  // Guess we'll know, at least.
+  if (matchingInstaller === undefined) {
+    const errorMessage = `${me}: no installer matched this mod (this should never happen!)`;
     vortexApi.log(`error`, errorMessage);
-    vortexApi.log(`debug`, `Input files: `, sourcePaths(fileTree));
     return Promise.reject(new Error(errorMessage));
   }
+
+  const selectedInstructions = await matchingInstaller.install(
+    vortexApi,
+    vortexLog,
+    sourcePaths(fileTree),
+    fileTree,
+    destinationPath,
+    progressDelegate,
+    choices,
+    unattended,
+  );
+
+  vortexApi.log(`debug`, `${me}: installing using ${matchingInstaller.type}`);
+
+  return Promise.resolve({
+    instructions: selectedInstructions.instructions,
+  });
 };
 
 export const internalPipelineInstaller: InstallerWithPriority = {

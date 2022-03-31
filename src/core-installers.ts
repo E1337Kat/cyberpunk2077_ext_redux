@@ -36,7 +36,6 @@ export const testForCetCore: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CET Core matcher, input files: ", files);
   const containsAllNecessaryCetFiles = CET_CORE_IDENTIFIERS.every((cetPath) =>
@@ -68,7 +67,6 @@ export const testForRedscriptCore: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const containsAllNecessaryRedsFiles = REDSCRIPT_CORE_IDENTIFIERS.every((redsPath) =>
     files.includes(redsPath),
@@ -97,7 +95,6 @@ export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every((red4extPath) =>
     files.includes(red4extPath),
@@ -132,7 +129,6 @@ export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting CSV Core matcher, input files: ", files);
 
@@ -168,7 +164,6 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
   log: VortexLogFunc,
   files: string[],
   _fileTree: FileTree,
-  _gameId: string,
 ): Promise<VortexTestResult> => {
   log("debug", "Starting WolvenKit CLI matcher, input files: ", files);
 

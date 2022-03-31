@@ -82,11 +82,22 @@ const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 const ASI_PREFIX = ASI_MOD_PATH;
 const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
+const GIFTWRAP_PREFIX = `some-dirname`;
+const CET_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${CET_PREFIX}`);
+const REDS_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${REDS_PREFIX}`);
+const RED4EXT_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${RED4EXT_PREFIX}`);
+const ARCHIVE_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${ARCHIVE_PREFIX}`);
+
+/*
+ * Let's see about maybe enabling these later
+ *
 // Some loggy helpers
 
 const PIPELINE_LOG = `${InstallerType.Pipeline}: installation error: `;
+*/
+
 const expectedUserCancelMessageFor = (installerType: InstallerType) =>
-  `${PIPELINE_LOG}${installerType}: user chose to cancel installation on conflict`;
+  `${installerType}: user chose to cancel installation on conflict`;
 
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -1673,6 +1684,46 @@ export const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
+export const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    multipleModtypesWrappedAreUnwrappedFixable: {
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...CET_GIFTWRAPS,
+        path.join(`${GIFTWRAP_PREFIX}/${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_GIFTWRAPS,
+        path.join(`${GIFTWRAP_PREFIX}/${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_GIFTWRAPS,
+        path.join(`${GIFTWRAP_PREFIX}/${RED4EXT_PREFIX}/script.dll`),
+        ...ARCHIVE_GIFTWRAPS,
+        path.join(`${GIFTWRAP_PREFIX}/${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${GIFTWRAP_PREFIX}/${CET_PREFIX}/exmod/${CET_INIT}`),
+          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GIFTWRAP_PREFIX}/${REDS_PREFIX}/rexmod/script.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GIFTWRAP_PREFIX}/${RED4EXT_PREFIX}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${GIFTWRAP_PREFIX}/${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        },
+      ],
+    },
+  }),
+);
+
 export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
   Object.entries({
     cetWithRedsInTopLevelShouldFail: {
@@ -1826,7 +1877,7 @@ export const MultiTypeModShouldPromptForInstall = new Map<
   }),
 );
 
-export const AllModTypes = new Map<string, ExampleModCategory>(
+export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreCetInstall,
     CoreRedscriptInstall,
@@ -1842,10 +1893,11 @@ export const AllModTypes = new Map<string, ExampleModCategory>(
     ArchiveOnly,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
+    GiftwrappedModsFixable,
   }),
 );
 
-export const AllExpectedTestSupportFailures = new Map<string, ExampleFailingModCategory>(
+export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,

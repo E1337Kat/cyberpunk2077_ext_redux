@@ -72,9 +72,23 @@ pre-commit. You can also use `npm run test` and/or configure that in your IDE.
 
 ## Reporting Bugs & Making Suggestions
 
-Debugging Typescript is great, probably\*, but just using tests and `console.log` works fine. Additionally, you can set the `DEBUG` env var to have all Vortex `log` calls logged to console during a test run.
+Debugging Typescript is great, probably\*, but just using tests and `console.log` works fine. Additionally,
+you can set the `DEBUG` env var to have all Vortex `log` calls logged to console during a test run.
 
 In WSL/posix: `$ DEBUG=1 npm run test`
 In PSH: `> $env:DEBUG=1; npm run test; Remove-Item Env:\DEBUG` (Yes, really. Put it in a function. Reasonable envs might get added in next psh, or might not!)
 
-\* It's not.
+\* It's not that bad, really. If you run `npm run test-debug`, it'll print you instructions on how to debug using a chromium browser.
+
+For VSCode, there are launch scripts in .vscode/. "Debug Jest Tests" will start jest right from VSCode,
+but the second is the more useful one: it attaches to any node process that is launched with the debug config.
+
+Either way:
+
+1. Add `debugger;` statement in your code wherever you want to stop (or just set a breakpoint in the IDE)
+2. Use `npm run test-debug` to start jest and run all tests, BUT
+3. `npm run test-debug -- -t 'somestringinyourtestname'` will only run the matching tests. Very helpful.
+4. Once you kick off the tests, go to VSCode's debugger and launch |> using `Attach to Node`
+5. Have fun!
+
+Sourcemaps should be getting generated so you should see correct lines in the debugger.
