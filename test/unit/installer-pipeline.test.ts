@@ -150,13 +150,17 @@ describe("Transforming modules to instructions", () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
           //
-
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
-          mockVortexExtensionContext.api.showDialog
-            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
-            .mockReturnValue(Promise.resolve(true));
+          const dialogMock = mockVortexExtensionContext.api.showDialog.calledWith(
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+          );
+
+          dialogMock.mockResolvedValue(true);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
@@ -169,6 +173,14 @@ describe("Transforming modules to instructions", () => {
           );
 
           await expectation.rejects.toThrowError(new Error(mod.failure));
+
+          if (mod.errorDialogTitle) {
+            const actualCalls = dialogMock.mock.calls;
+
+            expect(actualCalls.length).toBe(1);
+            expect(actualCalls[0][0]).toBe(`error`);
+            expect(actualCalls[0][1]).toBe(mod.errorDialogTitle);
+          }
         }); // t
       }); // fE
     }); // d

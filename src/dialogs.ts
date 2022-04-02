@@ -201,7 +201,7 @@ export const wolvenKitDesktopFoundErrorDialog = (
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
   api.showDialog(
-    "info",
+    `error`,
     message,
     {
       md:

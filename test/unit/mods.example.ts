@@ -32,7 +32,8 @@ export interface ExampleSucceedingMod extends ExampleMod {
 }
 
 export interface ExampleFailingMod extends ExampleMod {
-  failure?: string;
+  failure: string;
+  errorDialogTitle: string;
 }
 
 export interface ExamplePromptInstallableMod extends ExampleMod {
@@ -206,6 +207,65 @@ export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
           destination: path.join("r6/scripts/redscript.toml"),
         },
       ],
+    },
+  }),
+);
+
+const copiedToSamePath = (...args: string[]): VortexInstruction => ({
+  type: `copy`,
+  source: path.join(...args),
+  destination: path.join(...args),
+});
+
+const createdDirectory = (...args: string[]): VortexInstruction => ({
+  type: `mkdir`,
+  destination: path.join(...args),
+});
+
+export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    coreRedscriptInstall: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        createdDirectory(`r6\\tweaks\\`), // This is a special case
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+      ],
+    },
+  }),
+);
+
+export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
+  string,
+  ExampleFailingMod
+>(
+  Object.entries({
+    coreTweakXLWithExtraFiles: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+      ],
+      failure: "something",
+      errorDialogTitle: `i dunno really`,
     },
   }),
 );
@@ -395,6 +455,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
         path.normalize,
       ),
       failure: "WolvenKit Desktop is not able to be installed with Vortex.",
+      errorDialogTitle: `WolvenKit Desktop is not able to be installed with Vortex.`,
     },
   }),
 );
@@ -901,6 +962,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
         expectedInstallerType: InstallerType.Red4Ext,
         inFiles: [path.join(dir, "some.dll")],
         failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+        errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
       },
     ],
   ),
@@ -910,6 +972,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
       expectedInstallerType: InstallerType.Red4Ext,
       inFiles: [path.join(`bin/x64/scripties.dll`)],
       failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+      errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
     },
   ]),
 ]);
@@ -1327,6 +1390,7 @@ export const JsonMod = new Map<string, ExampleSucceedingMod>(
   }), // object
 );
 
+// These errordialogs should be fixed as part o https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
 export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
     jsonWithInvalidFileInRootFailsInTest: {
@@ -1334,11 +1398,13 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
         "Improperly located options.json file found.  We don't know where it belongs.",
+      errorDialogTitle: undefined,
     },
     jsonWithUnknownFileFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(path.normalize),
       failure: "Found JSON files that aren't part of the game.",
+      errorDialogTitle: undefined,
     },
   }),
 );
@@ -1747,6 +1813,7 @@ export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
   Object.entries({
     cetWithRedsInTopLevelShouldFail: {
       failure: "No Redscript found, should never get here.",
+      errorDialogTitle: `what the hec`,
       expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_PREFIXES,
@@ -1903,6 +1970,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
+    CoreTweakXLInstall,
     AsiMod,
     CetMod,
     RedscriptMod,
@@ -1921,6 +1989,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
+    CoreTweakXLShouldFailOnInstallIfNotExactLayout,
   }),
 );
 
