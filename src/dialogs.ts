@@ -39,6 +39,22 @@ const INSTRUCTIONS_TO_REPORT_ISSUE = `
     - ${EXTENSION_URL_GITHUB}
     `;
 
+// This'll be converted to a reject down the line somewhere
+const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType) => {
+  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
+
+  if (supportedLayoutsDescription === undefined) {
+    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
+
+    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
+    throw new Error(errorCausingAnExitHopefullyInTestsAndNotInProd);
+  }
+
+  return supportedLayoutsDescription;
+};
+
+// Dialog functions
+
 export const promptUserToInstallOrCancel = async (
   api: VortexApi,
   title: string,
@@ -59,20 +75,6 @@ export const promptUserToInstallOrCancel = async (
       : InstallDecision.UserWantsToCancel;
 
   return installDecision;
-};
-
-// This'll be converted to a reject down the line somewhere
-const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType) => {
-  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
-
-  if (supportedLayoutsDescription === undefined) {
-    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
-
-    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
-    throw new Error(errorCausingAnExitHopefullyInTestsAndNotInProd);
-  }
-
-  return supportedLayoutsDescription;
 };
 
 export const promptUserOnConflict = async (
