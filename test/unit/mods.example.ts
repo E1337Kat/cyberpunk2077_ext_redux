@@ -1,5 +1,5 @@
 import path from "path";
-import { pathHierarchyFor } from "./utils.helper";
+import { copiedToSamePath, createdDirectory, pathHierarchyFor } from "./utils.helper";
 
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
 
@@ -211,17 +211,6 @@ export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const copiedToSamePath = (...args: string[]): VortexInstruction => ({
-  type: `copy`,
-  source: path.join(...args),
-  destination: path.join(...args),
-});
-
-const createdDirectory = (...args: string[]): VortexInstruction => ({
-  type: `mkdir`,
-  destination: path.join(...args),
-});
-
 export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreRedscriptInstall: {
@@ -238,8 +227,8 @@ export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
       ],
       outInstructions: [
-        copiedToSamePath(`r6\\scripts\\TweakXL\\TweakXL.reds`),
         createdDirectory(`r6\\tweaks\\`), // This is a special case
+        copiedToSamePath(`r6\\scripts\\TweakXL\\TweakXL.reds`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
       ],
     },
@@ -263,9 +252,25 @@ export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\TweakXL\\`),
         path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        path.join(`archive\\pc\\mod\\tweakarchive.archive`),
       ],
-      failure: "something",
-      errorDialogTitle: `i dunno really`,
+      failure: `Didn't Find Expected TweakXL Installation!`,
+      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
+    },
+    coreTweakXLWithMissingFiles: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+      ],
+      failure: `Didn't Find Expected TweakXL Installation!`,
+      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
     },
   }),
 );

@@ -2,6 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { Console } from "console";
+import { VortexInstruction } from "../../src/vortex-wrapper";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -34,3 +35,14 @@ export const pathHierarchyFor = (entirePath: string): string[] => {
 
   return hierarchy.slice(1);
 };
+
+export const copiedToSamePath = (...args: string[]): VortexInstruction => ({
+  type: `copy`,
+  source: path.join(...args),
+  destination: path.join(...args),
+});
+
+export const createdDirectory = (...args: string[]): VortexInstruction => ({
+  type: `mkdir`,
+  destination: path.join(...args),
+});
