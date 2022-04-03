@@ -1809,26 +1809,6 @@ export const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    cetWithRedsInTopLevelShouldFail: {
-      failure: "No Redscript found, should never get here.",
-      errorDialogTitle: `what the hec`,
-      expectedInstallerType: InstallerType.MultiType,
-      inFiles: [
-        ...CET_PREFIXES,
-        path.join(`${CET_PREFIX}/exmod/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        path.join(`/script.reds`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-      ],
-    },
-  }),
-);
-
 export const MultiTypeModShouldPromptForInstall = new Map<
   string,
   ExamplePromptInstallableMod
