@@ -76,6 +76,11 @@ export const enum CoreTweakXLLayout {
               `,
 }
 
+export const TWEAK_XL_CORE_FILES = [
+  path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+  path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+];
+
 //
 // TweakXL Mods
 //
@@ -86,11 +91,12 @@ export const enum CoreTweakXLLayout {
 
 export const enum TweakXLLayout {
   Canon = `
-          - .\\r6\\tweaks\\**\\*.{yaml,yml}
+          - .\\r6\\tweaks\\[*.yaml, *.yml]
+          - .\\r6\\tweaks\\[any subdirs]\\[*.yaml, *.yml]
           `,
 }
 
-export const TWEAKXL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
+export const TWEAK_XL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
 
 // ASI
 

@@ -1,4 +1,3 @@
-import { win32 } from "path";
 import {
   VortexApi,
   VortexLogFunc,
@@ -11,20 +10,15 @@ import {
 import { FileTree, fileCount, pathInTree, sourcePaths } from "./filetree";
 import { InstallerType } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./dialogs";
-
-const path = win32;
-
-export const TWEAK_XL_CORE_FILES = [
-  path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
-  path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
-];
-
-export const TWEAK_XL_TWEAKDIR = path.join(`r6\\tweaks\\`);
+import {
+  TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
+  TWEAK_XL_CORE_FILES,
+} from "./installers.layouts";
 
 const coreTweakXLInstructions: VortexInstruction[] = [
   {
     type: `mkdir`,
-    destination: `r6\\tweaks\\`,
+    destination: TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   },
   {
     type: `copy`,

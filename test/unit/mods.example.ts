@@ -16,7 +16,7 @@ import {
   ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
-  TWEAKXL_MOD_CANONICAL_PATH_PREFIX,
+  TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import { InstallChoices } from "../../src/dialogs";
@@ -78,7 +78,7 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
-const TWEAKXL_PATH = TWEAKXL_MOD_CANONICAL_PATH_PREFIX;
+const TWEAKXL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
 const TWEAKXL_PATHS = pathHierarchyFor(TWEAKXL_PATH);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
