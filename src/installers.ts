@@ -95,7 +95,7 @@ import {
   installCoreCsvMerge,
   testCoreWolvenKitCli,
   installCoreWolvenkit,
-} from "./core-installers";
+} from "./installer.core";
 import { exhaustiveMatchFailure, trueish } from "./installers.utils";
 import { GAME_ID } from "./index.metadata";
 import {
