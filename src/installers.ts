@@ -104,6 +104,7 @@ import {
   InstallerType,
   InstallerWithPriority,
 } from "./installers.types";
+import { installCoreTweakXL, TestForCoreTweakXL } from "./installer.core-tweak-xl";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -1072,8 +1073,8 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   }
 
   // This little change should allow properly constructed AMM addons to install in the fallback
-  const cetModJson = files.filter((file: string) =>
-    path.basename(file).toLowerCase() === CET_MOD_CANONICAL_INIT_FILE,
+  const cetModJson = files.filter(
+    (file: string) => path.basename(file).toLowerCase() === CET_MOD_CANONICAL_INIT_FILE,
   );
   if (cetModJson.length !== 0) {
     log("error", "We somehow got a CET mod in the JSON check");
@@ -1082,6 +1083,10 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       requiredFiles: [],
     });
   }
+
+  // This should probably be moved or made prompting:
+  // https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
+
   let proper = true;
   // check for options.json in the file list
   const options = filtered.some((file: string) => path.basename(file) === "options.json");
@@ -1535,6 +1540,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreWolvenKit,
     testSupported: testCoreWolvenKitCli,
     install: installCoreWolvenkit,
+  },
+  {
+    type: InstallerType.CoreTweakXL,
+    id: InstallerType.CoreTweakXL,
+    testSupported: TestForCoreTweakXL,
+    install: installCoreTweakXL,
   },
   {
     type: InstallerType.ASI,

@@ -61,6 +61,20 @@ export const promptUserToInstallOrCancel = async (
   return installDecision;
 };
 
+// This'll be converted to a reject down the line somewhere
+const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType) => {
+  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
+
+  if (supportedLayoutsDescription === undefined) {
+    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
+
+    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
+    throw new Error(errorCausingAnExitHopefullyInTestsAndNotInProd);
+  }
+
+  return supportedLayoutsDescription;
+};
+
 export const promptUserOnConflict = async (
   api: VortexApi,
   installerType: InstallerType,
@@ -73,14 +87,7 @@ export const promptUserOnConflict = async (
   );
   api.log(`info`, `Asking user to proceed/cancel installation`);
 
-  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
-
-  if (supportedLayoutsDescription === undefined) {
-    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
-
-    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
-    return Promise.reject(new Error(errorCausingAnExitHopefullyInTestsAndNotInProd));
-  }
+  const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
 
   const explanationForUser = `
     You need to decide if you want to proceed or not. I can't
@@ -244,6 +251,41 @@ export const showRed4ExtReservedDllErrorDialog = (
 
         \`\`\`
         ${dangerPaths.join("\n")}
+        \`\`\``),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
+export const showWarningForUnrecoverableStructureError = (
+  api: VortexApi,
+  installerType: InstallerType,
+  warningTitle: string,
+  filesToList: string[],
+): void => {
+  const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
+
+  api.showDialog(
+    "error",
+    warningTitle,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        This looks like the ${installerType} kind of mod, but it doesn't fit the expected
+        file layout. This one is pretty strict, so I can't install this mod because there's
+        a higher risk that something's wrong with the mod.
+
+        These are the supported layouts for ${installerType}:
+
+        ${supportedLayoutsDescription}
+
+        ${INSTRUCTIONS_TO_REPORT_ISSUE}
+
+        The mod contains these files:
+
+        \`\`\`
+        ${filesToList.join("\n")}
         \`\`\``),
     },
     [{ label: "Understood!" }],
