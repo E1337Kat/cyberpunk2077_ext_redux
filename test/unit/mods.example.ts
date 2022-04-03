@@ -16,6 +16,7 @@ import {
   ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+  TWEAKXL_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import { InstallChoices } from "../../src/dialogs";
@@ -76,6 +77,9 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
 const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
+
+const TWEAKXL_PATH = TWEAKXL_MOD_CANONICAL_PATH_PREFIX;
+const TWEAKXL_PATHS = pathHierarchyFor(TWEAKXL_PATH);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
@@ -271,6 +275,73 @@ export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
       ],
       failure: `Didn't Find Expected TweakXL Installation!`,
       errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
+    },
+  }),
+);
+
+export const TweakXLMod = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    tweakXLWithFilesInCanonicalDir: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: [
+        ...TWEAKXL_PATHS,
+        path.join(`${TWEAKXL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAKXL_PATH}\\myothertweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAKXL_PATH}\\myothertweak.yml`),
+      ],
+    },
+    tweakXLWithFilesInSubdirsCanonical: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: [
+        ...TWEAKXL_PATHS,
+        path.join(`${TWEAKXL_PATH}\\sub1\\mytweak.yaml`),
+        path.join(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+        path.join(`${TWEAKXL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAKXL_PATH}\\sub1\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+        copiedToSamePath(`${TWEAKXL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+      ],
+    },
+    tweakXLWithFilesInBasedirAndSubdirsCanonical: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: [
+        ...TWEAKXL_PATHS,
+        path.join(`${TWEAKXL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+      ],
+    },
+  }),
+);
+
+export const TweakXLModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    tweakXLWithFileAtToplevelPromptsToInstall: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: [path.join(`mytweak.yaml`)],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [copiedToSamePath(`mytweak.yaml`)],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.NotSupported),
+    },
+    tweakXLWithIncorrectFileExtension: {
+      expectedInstallerType: InstallerType.NotSupported,
+      inFiles: [path.join(`${TWEAKXL_PATH}\\mytweak.json`)],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.json`)],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.NotSupported),
     },
   }),
 );
@@ -1962,6 +2033,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
     CoreTweakXLInstall,
+    TweakXLMod,
     AsiMod,
     CetMod,
     RedscriptMod,
@@ -1992,6 +2064,7 @@ export const AllExpectedInstallPromptables = new Map<
     MultiTypeModShouldPromptForInstall,
     RedscriptModShouldPromptForInstall,
     Red4ExtModShouldPromptForInstall,
+    TweakXLModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),

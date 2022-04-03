@@ -76,6 +76,22 @@ export const enum CoreTweakXLLayout {
               `,
 }
 
+//
+// TweakXL Mods
+//
+
+// This is the required layout, so enforce it
+//
+// https://github.com/psiberx/cp2077-tweak-xl/wiki/YAML-Tweaks
+
+export const enum TweakXLLayout {
+  Canon = `
+          - .\\r6\\tweaks\\**\\*.{yaml,yml}
+          `,
+}
+
+export const TWEAKXL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
+
 // ASI
 
 export const enum AsiLayout {
@@ -143,6 +159,8 @@ export const KNOWN_JSON_FILES = {
   "giweights.json": path.join("engine", "config", "giweights.json"),
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
+
+// ASI
 
 export const ASI_MOD_EXT = ".asi";
 export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
