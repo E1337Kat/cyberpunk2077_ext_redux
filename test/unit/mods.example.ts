@@ -707,6 +707,25 @@ export const RedscriptModShouldPromptForInstall = new Map<
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
+    redsPatchWithoutCanonical: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/dirname/`),
+        path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
+          destination: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
+    },
   }),
 );
 
