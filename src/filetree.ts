@@ -165,8 +165,14 @@ export const filesIn = (
     ? tree._kt.get(normalizeDir(dir)).filter(predicate)
     : tree._kt.get(normalizeDir(dir));
 
-export const filesUnder = (dir: string, tree: FileTree): string[] =>
-  tree._kt.getSub(stripTrailingSeparator(dir));
+export const filesUnder = (
+  dir: string,
+  predicate: PathFilter | Glob,
+  tree: FileTree,
+): string[] =>
+  predicate !== Glob.Any
+    ? tree._kt.getSub(stripTrailingSeparator(dir)).filter(predicate)
+    : tree._kt.getSub(stripTrailingSeparator(dir));
 
 export const dirWithSomeIn = (
   dir: string,
@@ -211,7 +217,7 @@ export const findDirectSubdirsWithSome = (
 // Subtree creation
 
 export const subtreeFrom = (dir: string, fileTree: FileTree): FileTree => {
-  const subtreeFiles = filesUnder(dir, fileTree).map((path) =>
+  const subtreeFiles = filesUnder(dir, Glob.Any, fileTree).map((path) =>
     nodejsPath.join(...path.split(nodejsPath.sep).slice(1)),
   );
 

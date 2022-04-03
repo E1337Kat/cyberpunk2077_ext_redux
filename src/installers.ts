@@ -18,6 +18,7 @@ import {
   sourcePaths,
   subdirNamesIn,
   subtreeFrom,
+  Glob,
 } from "./filetree";
 import {
   VortexApi,
@@ -186,7 +187,7 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 // Fallback
 
 const findFallbackFiles = (fileTree: FileTree): string[] =>
-  filesUnder(FILETREE_ROOT, fileTree);
+  filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
 
 const detectFallbackLayout = (_fileTree: FileTree): boolean => true;
 
@@ -316,7 +317,7 @@ const archiveCanonLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, fileTree);
+  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, Glob.Any, fileTree);
 
   return {
     kind: ArchiveLayout.Canon,
@@ -338,7 +339,11 @@ const archiveHeritageLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const oldCanonFiles = filesUnder(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX, fileTree);
+  const oldCanonFiles = filesUnder(
+    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+    Glob.Any,
+    fileTree,
+  );
 
   const oldToNewMap = oldCanonFiles.map((f: string) => [
     f,
@@ -361,7 +366,7 @@ const archiveOtherDirsToCanonLayout = (
 ): MaybeInstructions => {
   const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
 
-  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, fileTree));
+  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, Glob.Any, fileTree));
 
   const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
     f,
@@ -562,7 +567,7 @@ const cetCanonLayout = (
   fileTree: FileTree,
 ): MaybeInstructions => {
   const allCanonCetFiles = findCanonicalCetDirs(fileTree).flatMap((namedSubdir) =>
-    filesUnder(namedSubdir, fileTree),
+    filesUnder(namedSubdir, Glob.Any, fileTree),
   );
 
   if (allCanonCetFiles.length < 1) {
@@ -663,7 +668,11 @@ const redscriptBasedirLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const allBasedirAndSubdirFiles = filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, fileTree);
+  const allBasedirAndSubdirFiles = filesUnder(
+    REDS_MOD_CANONICAL_PATH_PREFIX,
+    Glob.Any,
+    fileTree,
+  );
 
   const modnamedDir = path.join(REDS_MOD_CANONICAL_PATH_PREFIX, modName);
 
@@ -690,7 +699,7 @@ const redscriptCanonLayout = (
   fileTree: FileTree,
 ): MaybeInstructions => {
   const allCanonRedscriptFiles = findCanonicalRedscriptDirs(fileTree).flatMap(
-    (namedSubdir) => filesUnder(namedSubdir, fileTree),
+    (namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree),
   );
 
   if (allCanonRedscriptFiles.length < 1) {
@@ -760,7 +769,9 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   // .\*.reds
   // eslint-disable-next-line no-underscore-dangle
   const hasToplevelReds = dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
-  const toplevelReds = hasToplevelReds ? filesUnder(FILETREE_ROOT, fileTree) : [];
+  const toplevelReds = hasToplevelReds
+    ? filesUnder(FILETREE_ROOT, Glob.Any, fileTree)
+    : [];
 
   // .\r6\scripts\*.reds
   // eslint-disable-next-line no-underscore-dangle
@@ -770,7 +781,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
     fileTree,
   );
   const basedirReds = hasBasedirReds
-    ? filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, fileTree)
+    ? filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, Glob.Any, fileTree)
     : [];
 
   const canonSubdirs = findDirectSubdirsWithSome(
@@ -780,7 +791,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   );
   const hasCanonReds = canonSubdirs.length > 0;
   const canonReds = hasCanonReds
-    ? canonSubdirs.flatMap((dir) => filesUnder(dir, fileTree))
+    ? canonSubdirs.flatMap((dir) => filesUnder(dir, Glob.Any, fileTree))
     : [];
 
   const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
@@ -818,7 +829,7 @@ const reservedDllName = (file: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.includes(path.join(file));
 
 const findBasedirRed4ExtFiles = (fileTree: FileTree) =>
-  filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+  filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, Glob.Any, fileTree);
 
 const detectRed4ExtBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(RED4EXT_MOD_CANONICAL_BASEDIR, matchDll, fileTree);
@@ -886,7 +897,7 @@ const red4extCanonLayout: LayoutToInstructions = (
     return NoInstructions.NoMatch;
   }
 
-  const allCanonFiles = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, fileTree);
+  const allCanonFiles = filesUnder(RED4EXT_MOD_CANONICAL_BASEDIR, Glob.Any, fileTree);
 
   return {
     kind: Red4ExtLayout.Canon,
@@ -908,7 +919,7 @@ const red4extToplevelLayout: LayoutToInstructions = (
   // No messing about: a DLL at top level means this entire
   // thing has to be part of it. Nothing else allowed.
 
-  const allTheFilesEverywhere = filesUnder(FILETREE_ROOT, fileTree);
+  const allTheFilesEverywhere = filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
 
   const canonicalModnamedPath = path.join(RED4EXT_MOD_CANONICAL_BASEDIR, modName);
 
@@ -943,7 +954,7 @@ const red4extModnamedToplevelLayout: LayoutToInstructions = (
 
   const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
     (dir) =>
-      filesUnder(dir, fileTree).map(
+      filesUnder(dir, Glob.Any, fileTree).map(
         moveFromTo(FILETREE_ROOT, RED4EXT_MOD_CANONICAL_BASEDIR),
       ),
   );
@@ -1307,7 +1318,7 @@ const detectASICanonLayout = (fileTree: FileTree): boolean =>
   findCanonicalAsiDirs(fileTree).length > 0;
 
 const findCanonicalAsiFiles = (fileTree: FileTree): string[] =>
-  filesUnder(ASI_MOD_PATH, fileTree);
+  filesUnder(ASI_MOD_PATH, Glob.Any, fileTree);
 
 export const testForAsiMod: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
