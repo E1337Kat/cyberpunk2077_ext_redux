@@ -617,16 +617,22 @@ export const CetMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CetModShouldFail = new Map<string, ExampleFailingMod>(
+export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
-    CetModWithIniShouldFail: {
-      expectedInstallerType: InstallerType.CET,
+    cetModWithIniShouldPromptToInstall: {
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [
         path.join(`exmod/`),
         path.join(`exmod/${CET_INIT}`),
         path.join(`exmod/some.ini`),
       ],
-      failure: "Improperly packaged CET mod with ini file",
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        copiedToSamePath(`exmod\\${CET_INIT}`),
+        copiedToSamePath(`exmod\\some.ini`),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `Fallback Installer: user chose to cancel installation on conflict`,
     },
   }),
 );
