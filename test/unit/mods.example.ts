@@ -8,6 +8,7 @@ import {
   CET_MOD_CANONICAL_PATH_PREFIX,
   REDS_MOD_CANONICAL_PATH_PREFIX,
   RED4EXT_MOD_CANONICAL_BASEDIR,
+  AMM_MOD_PREFIX,
   ARCHIVE_ONLY_CANONICAL_PREFIX,
   ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
   INI_MOD_PATH,
@@ -1662,41 +1663,21 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
       inFiles: [
         ...ARCHIVE_PREFIXES,
         path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
-        ...pathHierarchyFor(
-          path.normalize("bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/"),
-        ),
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/",
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/",
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/",
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/",
-        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
-      ].map(path.normalize),
+        ...pathHierarchyFor(AMM_MOD_PREFIX),
+        path.join(AMM_MOD_PREFIX, "Collabs/"),
+        path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/"),
+        path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/proximas_propshop_v4.lua"),
+        path.join(AMM_MOD_PREFIX, "User/"),
+        path.join(AMM_MOD_PREFIX, "User/Decor/"),
+        path.join(AMM_MOD_PREFIX, "User/Decor/Cyber Noir Flat.json"),
+      ],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
-          destination: path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
-        },
-        {
-          type: "copy",
-          source: path.normalize(
-            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
-          ),
-          destination: path.normalize(
-            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
-          ),
-        },
-        {
-          type: "copy",
-          source: path.normalize(
-            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
-          ),
-          destination: path.normalize(
-            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
-          ),
-        },
+        copiedToSamePath(path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive")),
+        copiedToSamePath(
+          path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/proximas_propshop_v4.lua"),
+        ),
+        copiedToSamePath(path.join(AMM_MOD_PREFIX, "User/Decor/Cyber Noir Flat.json")),
       ],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
