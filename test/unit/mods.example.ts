@@ -78,8 +78,8 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
-const TWEAKXL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
-const TWEAKXL_PATHS = pathHierarchyFor(TWEAKXL_PATH);
+const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
+const TWEAK_XL_PATHS = pathHierarchyFor(TWEAK_XL_PATH);
 
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
@@ -102,7 +102,7 @@ const PIPELINE_LOG = `${InstallerType.Pipeline}: installation error: `;
 */
 
 const expectedUserCancelMessageFor = (installerType: InstallerType) =>
-  `${installerType}: user chose to cancel installation on conflict`;
+  `${installerType}: user chose to cancel installation`;
 
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -282,41 +282,41 @@ export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
 export const TweakXLMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     tweakXLWithFilesInCanonicalDir: {
-      expectedInstallerType: InstallerType.NotSupported,
+      expectedInstallerType: InstallerType.TweakXL,
       inFiles: [
-        ...TWEAKXL_PATHS,
-        path.join(`${TWEAKXL_PATH}\\mytweak.yaml`),
-        path.join(`${TWEAKXL_PATH}\\myothertweak.yml`),
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\myothertweak.yml`),
       ],
       outInstructions: [
-        copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.yaml`),
-        copiedToSamePath(`${TWEAKXL_PATH}\\myothertweak.yml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\myothertweak.yml`),
       ],
     },
     tweakXLWithFilesInSubdirsCanonical: {
-      expectedInstallerType: InstallerType.NotSupported,
+      expectedInstallerType: InstallerType.TweakXL,
       inFiles: [
-        ...TWEAKXL_PATHS,
-        path.join(`${TWEAKXL_PATH}\\sub1\\mytweak.yaml`),
-        path.join(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
-        path.join(`${TWEAKXL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\sub1\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+        path.join(`${TWEAK_XL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
       ],
       outInstructions: [
-        copiedToSamePath(`${TWEAKXL_PATH}\\sub1\\mytweak.yaml`),
-        copiedToSamePath(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
-        copiedToSamePath(`${TWEAKXL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub1\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
       ],
     },
     tweakXLWithFilesInBasedirAndSubdirsCanonical: {
-      expectedInstallerType: InstallerType.NotSupported,
+      expectedInstallerType: InstallerType.TweakXL,
       inFiles: [
-        ...TWEAKXL_PATHS,
-        path.join(`${TWEAKXL_PATH}\\mytweak.yaml`),
-        path.join(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
       ],
       outInstructions: [
-        copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.yaml`),
-        copiedToSamePath(`${TWEAKXL_PATH}\\sub2\\myothertweak.yml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
       ],
     },
   }),
@@ -327,21 +327,21 @@ export const TweakXLModShouldPromptForInstall = new Map<
   ExamplePromptInstallableMod
 >(
   Object.entries({
-    tweakXLWithFileAtToplevelPromptsToInstall: {
-      expectedInstallerType: InstallerType.NotSupported,
+    tweakXLWithFileAtToplevelPromptsToInstallThroughFallback: {
+      expectedInstallerType: InstallerType.TweakXL,
       inFiles: [path.join(`mytweak.yaml`)],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [copiedToSamePath(`mytweak.yaml`)],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.NotSupported),
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
     },
-    tweakXLWithIncorrectFileExtension: {
-      expectedInstallerType: InstallerType.NotSupported,
-      inFiles: [path.join(`${TWEAKXL_PATH}\\mytweak.json`)],
+    tweakXLWithIncorrectFileExtensionPromptsToInstallDirectly: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [path.join(`${TWEAK_XL_PATH}\\mytweak.xml`)],
       proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [copiedToSamePath(`${TWEAKXL_PATH}\\mytweak.json`)],
+      proceedOutInstructions: [copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.xml`)],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.NotSupported),
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.TweakXL),
     },
   }),
 );
@@ -708,7 +708,7 @@ export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
         copiedToSamePath(`exmod\\some.ini`),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `Fallback Installer: user chose to cancel installation on conflict`,
+      cancelErrorMessage: `Fallback Installer: user chose to cancel installation`,
     },
   }),
 );
