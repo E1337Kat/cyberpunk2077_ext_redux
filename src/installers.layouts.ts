@@ -167,6 +167,12 @@ export const KNOWN_JSON_FILES = {
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
 
+// AMM
+
+export const AMM_MOD_PREFIX = path.normalize(
+  "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/",
+);
+
 // ASI
 
 export const ASI_MOD_EXT = ".asi";
