@@ -61,6 +61,44 @@ export const enum FallbackLayout {
   Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
 }
 
+//
+// Core installers
+//
+
+//
+// Core TweakXL
+
+export const enum CoreTweakXLLayout {
+  OnlyValid = `
+              - .\\r6\\scripts\\TweakXL\\TweakXL.reds
+              - .\\r6\\tweaks\\                       (note, empty directory is an exception)
+              - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
+              `,
+}
+
+export const TWEAK_XL_CORE_FILES = [
+  path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+  path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+];
+
+//
+// TweakXL Mods
+//
+
+// This is the required layout, so enforce it
+//
+// https://github.com/psiberx/cp2077-tweak-xl/wiki/YAML-Tweaks
+
+export const enum TweakXLLayout {
+  Canon = `
+          - .\\r6\\tweaks\\[*.yaml, *.yml]
+          - .\\r6\\tweaks\\[any subdirs]\\[*.yaml, *.yml]
+          `,
+}
+
+export const TWEAK_XL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
+export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
+
 // ASI
 
 export const enum AsiLayout {
@@ -129,6 +167,8 @@ export const KNOWN_JSON_FILES = {
   "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
 };
 
+// ASI
+
 export const ASI_MOD_EXT = ".asi";
 export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 
@@ -155,6 +195,20 @@ export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/
 // There's probably some way to make this type-level AND indexable
 // but for now just gonna check and raise if the description is missing.
 export const LayoutDescriptions = new Map<InstallerType, string>([
+  [
+    InstallerType.CoreTweakXL,
+    `
+    - \`${CoreTweakXLLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreTweakXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.TweakXL,
+    `
+    - \`${TweakXLLayout.Canon}\`
+    `,
+  ],
   [
     InstallerType.Redscript,
     `
@@ -230,6 +284,7 @@ export type Layout =
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout
+  | TweakXLLayout
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout

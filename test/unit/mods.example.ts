@@ -1,5 +1,5 @@
 import path from "path";
-import { pathHierarchyFor } from "./utils.helper";
+import { copiedToSamePath, createdDirectory, pathHierarchyFor } from "./utils.helper";
 
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
 
@@ -16,6 +16,7 @@ import {
   ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+  TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import { InstallChoices } from "../../src/dialogs";
@@ -32,7 +33,8 @@ export interface ExampleSucceedingMod extends ExampleMod {
 }
 
 export interface ExampleFailingMod extends ExampleMod {
-  failure?: string;
+  failure: string;
+  errorDialogTitle: string;
 }
 
 export interface ExamplePromptInstallableMod extends ExampleMod {
@@ -76,6 +78,9 @@ const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
+const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
+const TWEAK_XL_PATHS = pathHierarchyFor(TWEAK_XL_PATH);
+
 const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
@@ -97,7 +102,7 @@ const PIPELINE_LOG = `${InstallerType.Pipeline}: installation error: `;
 */
 
 const expectedUserCancelMessageFor = (installerType: InstallerType) =>
-  `${installerType}: user chose to cancel installation on conflict`;
+  `${installerType}: user chose to cancel installation`;
 
 export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -206,6 +211,137 @@ export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
           destination: path.join("r6/scripts/redscript.toml"),
         },
       ],
+    },
+  }),
+);
+
+export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    coreRedscriptInstall: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+      ],
+      outInstructions: [
+        createdDirectory(`r6\\tweaks\\`), // This is a special case
+        copiedToSamePath(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+      ],
+    },
+  }),
+);
+
+export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
+  string,
+  ExampleFailingMod
+>(
+  Object.entries({
+    coreTweakXLWithExtraFiles: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        path.join(`archive\\pc\\mod\\tweakarchive.archive`),
+      ],
+      failure: `Didn't Find Expected TweakXL Installation!`,
+      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
+    },
+    coreTweakXLWithMissingFiles: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`r6\\`),
+        path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\TweakXL\\`),
+        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
+        path.join(`r6\\tweaks\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+      ],
+      failure: `Didn't Find Expected TweakXL Installation!`,
+      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
+    },
+  }),
+);
+
+export const TweakXLMod = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    tweakXLWithFilesInCanonicalDir: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\myothertweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\myothertweak.yml`),
+      ],
+    },
+    tweakXLWithFilesInSubdirsCanonical: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\sub1\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+        path.join(`${TWEAK_XL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub1\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
+      ],
+    },
+    tweakXLWithFilesInBasedirAndSubdirsCanonical: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        path.join(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.yaml`),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\sub2\\myothertweak.yml`),
+      ],
+    },
+  }),
+);
+
+export const TweakXLModShouldPromptForInstall = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    tweakXLWithFileAtToplevelPromptsToInstallThroughFallback: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [path.join(`mytweak.yaml`)],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [copiedToSamePath(`mytweak.yaml`)],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+    },
+    tweakXLWithIncorrectFileExtensionPromptsToInstallDirectly: {
+      expectedInstallerType: InstallerType.TweakXL,
+      inFiles: [path.join(`${TWEAK_XL_PATH}\\mytweak.xml`)],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.xml`)],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.TweakXL),
     },
   }),
 );
@@ -395,6 +531,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
         path.normalize,
       ),
       failure: "WolvenKit Desktop is not able to be installed with Vortex.",
+      errorDialogTitle: `WolvenKit Desktop is not able to be installed with Vortex.`,
     },
   }),
 );
@@ -556,16 +693,22 @@ export const CetMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CetModShouldFail = new Map<string, ExampleFailingMod>(
+export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
-    CetModWithIniShouldFail: {
-      expectedInstallerType: InstallerType.CET,
+    cetModWithIniShouldPromptToInstall: {
+      expectedInstallerType: InstallerType.Fallback,
       inFiles: [
         path.join(`exmod/`),
         path.join(`exmod/${CET_INIT}`),
         path.join(`exmod/some.ini`),
       ],
-      failure: "Improperly packaged CET mod with ini file",
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        copiedToSamePath(`exmod\\${CET_INIT}`),
+        copiedToSamePath(`exmod\\some.ini`),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `Fallback Installer: user chose to cancel installation`,
     },
   }),
 );
@@ -901,6 +1044,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
         expectedInstallerType: InstallerType.Red4Ext,
         inFiles: [path.join(dir, "some.dll")],
         failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+        errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
       },
     ],
   ),
@@ -910,6 +1054,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
       expectedInstallerType: InstallerType.Red4Ext,
       inFiles: [path.join(`bin/x64/scripties.dll`)],
       failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
+      errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
     },
   ]),
 ]);
@@ -1327,6 +1472,7 @@ export const JsonMod = new Map<string, ExampleSucceedingMod>(
   }), // object
 );
 
+// These errordialogs should be fixed as part o https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
 export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
     jsonWithInvalidFileInRootFailsInTest: {
@@ -1334,11 +1480,13 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
       inFiles: ["giweights.json", "options.json"].map(path.normalize),
       failure:
         "Improperly located options.json file found.  We don't know where it belongs.",
+      errorDialogTitle: undefined,
     },
     jsonWithUnknownFileFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(path.normalize),
       failure: "Found JSON files that aren't part of the game.",
+      errorDialogTitle: undefined,
     },
   }),
 );
@@ -1743,25 +1891,6 @@ export const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const InvalidTypeCombinations = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    cetWithRedsInTopLevelShouldFail: {
-      failure: "No Redscript found, should never get here.",
-      expectedInstallerType: InstallerType.MultiType,
-      inFiles: [
-        ...CET_PREFIXES,
-        path.join(`${CET_PREFIX}/exmod/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        path.join(`/script.reds`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-      ],
-    },
-  }),
-);
-
 export const MultiTypeModShouldPromptForInstall = new Map<
   string,
   ExamplePromptInstallableMod
@@ -1903,6 +2032,8 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
+    CoreTweakXLInstall,
+    TweakXLMod,
     AsiMod,
     CetMod,
     RedscriptMod,
@@ -1921,6 +2052,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     JsonModShouldFailInTest,
     Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
+    CoreTweakXLShouldFailOnInstallIfNotExactLayout,
   }),
 );
 
@@ -1932,6 +2064,7 @@ export const AllExpectedInstallPromptables = new Map<
     MultiTypeModShouldPromptForInstall,
     RedscriptModShouldPromptForInstall,
     Red4ExtModShouldPromptForInstall,
+    TweakXLModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),

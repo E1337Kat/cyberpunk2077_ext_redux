@@ -6,26 +6,31 @@ import {
 export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself
   Pipeline = `V2077 Installer Pipeline`,
-  //
+  // 'Core' installers for the mod type enablers themselves
   CoreCET = `Core/CET Installer`,
   CoreRedscript = `Core/Redscript Installer`,
   CoreRed4ext = `Core/Red4ext Installer`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
+  CoreTweakXL = `Core TweakXL Installer`,
   CoreWolvenKit = `Core/WolvenKitCLI Installer`,
-  ASI = `ASI Installer`,
-  MultiType = `MultiType Installer`,
-  CET = `CET Installer`,
-  Redscript = `Redscript Installer`,
-  Red4Ext = `Red4ext Installer`,
-  TweakDB = `TweakDB Installer`,
-  AXL = `AXL Installer`,
-  INI = `INI Installer`,
-  Config = `Config Installer`,
-  Reshade = `Reshade Installer`,
-  LUT = `LUT Installer`,
-  Json = `JSON Installer`,
-  ArchiveOnly = `ArchiveOnly Installer`,
+  // Mods
+  ASI = `ASI Mod Installer`,
+  MultiType = `MultiType Mod Installer`,
+  CET = `CET Mod Installer`,
+  Redscript = `Redscript Mod Installer`,
+  Red4Ext = `Red4ext Mod Installer`,
+  TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
+  TweakXL = `TweakXL Mod Installer`,
+  AXL = `AXL Mod Installer`,
+  INI = `INI Mod Installer`,
+  Config = `Config Mod Installer`,
+  Reshade = `Reshade Mod Installer`,
+  LUT = `LUT Mod Installer`,
+  Json = `JSON Mod Installer`,
+  ArchiveOnly = `ArchiveOnly Mod Installer`,
+  // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,
+  // Used as a marker
   NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE GETTING USED>`,
 }
 

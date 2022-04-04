@@ -39,6 +39,22 @@ const INSTRUCTIONS_TO_REPORT_ISSUE = `
     - ${EXTENSION_URL_GITHUB}
     `;
 
+// This'll be converted to a reject down the line somewhere
+const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType) => {
+  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
+
+  if (supportedLayoutsDescription === undefined) {
+    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
+
+    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
+    throw new Error(errorCausingAnExitHopefullyInTestsAndNotInProd);
+  }
+
+  return supportedLayoutsDescription;
+};
+
+// Dialog functions
+
 export const promptUserToInstallOrCancel = async (
   api: VortexApi,
   title: string,
@@ -61,30 +77,26 @@ export const promptUserToInstallOrCancel = async (
   return installDecision;
 };
 
-export const promptUserOnConflict = async (
+export const promptUserOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
   files: string[],
 ): Promise<InstallDecision> => {
   api.log(
     `error`,
-    `${installerType}: conflicting layouts, can't install automatically`,
+    `${installerType}: unresolvable layout, can't install automatically`,
     files,
   );
   api.log(`info`, `Asking user to proceed/cancel installation`);
 
-  const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
-
-  if (supportedLayoutsDescription === undefined) {
-    const errorCausingAnExitHopefullyInTestsAndNotInProd = `No layout description found for ${installerType}, exiting`;
-
-    api.log(`error`, errorCausingAnExitHopefullyInTestsAndNotInProd);
-    return Promise.reject(new Error(errorCausingAnExitHopefullyInTestsAndNotInProd));
-  }
+  const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
 
   const explanationForUser = `
-    You need to decide if you want to proceed or not. I can't
-    figure out the intended structure of this mod.
+    This looked like the ${installerType} kind of mod to me, but I can't figure
+    out what the intended layout here is. It's also possible I've misidentified
+    the mod, or that this is a valid layout I just don't understand (yet)!
+
+    You need to decide if you want to proceed or not.
 
     ${INSTRUCTIONS_TO_FIX_IN_STAGING}
 
@@ -201,7 +213,7 @@ export const wolvenKitDesktopFoundErrorDialog = (
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
   api.showDialog(
-    "info",
+    `error`,
     message,
     {
       md:
@@ -244,6 +256,41 @@ export const showRed4ExtReservedDllErrorDialog = (
 
         \`\`\`
         ${dangerPaths.join("\n")}
+        \`\`\``),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
+export const showWarningForUnrecoverableStructureError = (
+  api: VortexApi,
+  installerType: InstallerType,
+  warningTitle: string,
+  filesToList: string[],
+): void => {
+  const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
+
+  api.showDialog(
+    "error",
+    warningTitle,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        This looks like the ${installerType} kind of mod, but it doesn't fit the expected
+        file layout. This one is pretty strict, so I can't install this mod because there's
+        a higher risk that something's wrong with the mod.
+
+        These are the supported layouts for ${installerType}:
+
+        ${supportedLayoutsDescription}
+
+        ${INSTRUCTIONS_TO_REPORT_ISSUE}
+
+        The mod contains these files:
+
+        \`\`\`
+        ${filesToList.join("\n")}
         \`\`\``),
     },
     [{ label: "Understood!" }],
