@@ -14,6 +14,8 @@ console = new Console(process.stdout, process.stderr);
 export const getMockVortexLog = () => {
   const mockLog = jest.fn();
 
+  // eslint-disable-next-line no-constant-condition
+  //  if (process.env.DEBUG || true) {
   if (process.env.DEBUG) {
     mockLog.mockImplementation((...args) =>
       // eslint-disable-next-line no-console

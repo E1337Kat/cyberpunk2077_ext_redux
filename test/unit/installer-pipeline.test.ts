@@ -103,7 +103,7 @@ describe("Transforming modules to instructions", () => {
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
-            { log: getMockVortexLog },
+            { log: getMockVortexLog() },
             internalPipelineInstaller,
           );
 
@@ -131,7 +131,7 @@ describe("Transforming modules to instructions", () => {
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
-            { log: getMockVortexLog },
+            { log: getMockVortexLog() },
             internalPipelineInstaller,
           );
 
@@ -164,7 +164,7 @@ describe("Transforming modules to instructions", () => {
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
-            { log: getMockVortexLog },
+            { log: getMockVortexLog() },
             internalPipelineInstaller,
           );
 
