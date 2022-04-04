@@ -218,7 +218,7 @@ export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
 
 export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    coreRedscriptInstall: {
+    coreTweakXLInstallCanon: {
       expectedInstallerType: InstallerType.CoreTweakXL,
       inFiles: [
         path.join(`r6\\`),
@@ -343,6 +343,41 @@ export const TweakXLModShouldPromptForInstall = new Map<
       proceedOutInstructions: [copiedToSamePath(`${TWEAK_XL_PATH}\\mytweak.xml`)],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.TweakXL),
+    },
+  }),
+);
+
+export const CoreArchiveXLInstall = new Map<string, ExampleSucceedingMod>(
+  Object.entries({
+    coreArchiveXLInstallCanon: {
+      expectedInstallerType: InstallerType.CoreArchiveXL,
+      inFiles: [
+        path.join(`red4ext\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\ArchiveXL\\`),
+        path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+      ],
+      outInstructions: [copiedToSamePath(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`)],
+    },
+  }),
+);
+
+export const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
+  string,
+  ExampleFailingMod
+>(
+  Object.entries({
+    coreArchiveXLWithExtraFiles: {
+      expectedInstallerType: InstallerType.CoreArchiveXL,
+      inFiles: [
+        path.join(`red4ext\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\ArchiveXL\\`),
+        path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+        path.join(`archive\\pc\\mod\\tweakarchive.archive`),
+      ],
+      failure: `Didn't Find Expected ArchiveXL Installation!`,
+      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
     },
   }),
 );
@@ -2060,6 +2095,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreWolvenkitCliInstall,
     CoreTweakXLInstall,
     TweakXLMod,
+    CoreArchiveXLInstall,
     AsiMod,
     CetMod,
     RedscriptMod,
@@ -2079,6 +2115,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     Red4ExtModShouldFailInTest,
     CoreWolvenKitShouldFailInTest,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
+    CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
   }),
 );
 
