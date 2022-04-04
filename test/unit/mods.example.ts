@@ -1656,6 +1656,51 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
     },
+    // Fallback for mods containing JSON that will later be handled by AMM
+    validAmmModUsingFallback: {
+      expectedInstallerType: InstallerType.Fallback,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
+        ...pathHierarchyFor(
+          path.normalize("bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/"),
+        ),
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/",
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/",
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/",
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/",
+        "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
+      ].map(path.normalize),
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        {
+          type: "copy",
+          source: path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
+          destination: path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
+          ),
+          destination: path.normalize(
+            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/Collabs/Custom Props/proximas_propshop_v4.lua",
+          ),
+        },
+        {
+          type: "copy",
+          source: path.normalize(
+            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
+          ),
+          destination: path.normalize(
+            "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/User/Decor/Cyber Noir Flat.json",
+          ),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+    },
   }), // object
 );
 
