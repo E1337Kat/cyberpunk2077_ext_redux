@@ -94,13 +94,17 @@ import {
 import { trueish } from "./installers.utils";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
-import { installCoreTweakXL, TestForCoreTweakXL } from "./installer.core-tweak-xl";
+import {
+  installCoreTweakXL,
+  TestForCoreTweakXL as testForCoreTweakXL,
+} from "./installer.core-tweak-xl";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
   testForFallback,
   installFallback,
 } from "./installer.fallback";
 import { installTweakXLMod, TestForTweakXLMod } from "./installer.tweak-xl";
+import { installCoreArchiveXL, testForCoreArchiveXL } from "./installer.core-archive-xl";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -1461,8 +1465,14 @@ const installers: Installer[] = [
   {
     type: InstallerType.CoreTweakXL,
     id: InstallerType.CoreTweakXL,
-    testSupported: TestForCoreTweakXL,
+    testSupported: testForCoreTweakXL,
     install: installCoreTweakXL,
+  },
+  {
+    type: InstallerType.CoreArchiveXL,
+    id: InstallerType.CoreArchiveXL,
+    testSupported: testForCoreArchiveXL,
+    install: installCoreArchiveXL,
   },
   {
     type: InstallerType.ASI,

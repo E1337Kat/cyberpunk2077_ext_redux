@@ -12,6 +12,7 @@ export enum InstallerType {
   CoreRed4ext = `Core/Red4ext Installer`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
+  CoreArchiveXL = `Core ArchiveXL Installer`,
   CoreWolvenKit = `Core/WolvenKitCLI Installer`,
   // Mods
   ASI = `ASI Mod Installer`,
@@ -31,7 +32,7 @@ export enum InstallerType {
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,
   // Used as a marker
-  NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE GETTING USED>`,
+  NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE SEEN OUTSIDE TESTS>`,
 }
 
 export interface Installer {

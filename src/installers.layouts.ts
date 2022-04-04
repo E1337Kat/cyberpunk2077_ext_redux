@@ -99,6 +99,20 @@ export const enum TweakXLLayout {
 export const TWEAK_XL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
 export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 
+//
+// Core ArchiveXL
+//
+
+export const enum CoreArchiveXLLayout {
+  OnlyValid = `
+          - .\\red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll
+          `,
+}
+
+export const ARCHIVE_XL_CORE_FILES = [
+  path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+];
+
 // ASI
 
 export const enum AsiLayout {
@@ -207,6 +221,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     - \`${CoreTweakXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreTweakXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.CoreArchiveXL,
+    `
+    - \`${CoreArchiveXLLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
     `,
   ],
   [
