@@ -96,7 +96,7 @@ import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
 import { installCoreTweakXL, TestForCoreTweakXL } from "./installer.core-tweak-xl";
 import {
-  useFallbackOrFailBasedOnUserDecision,
+  promptToFallbackOrFailOnUnresolvableLayout,
   testForFallback,
   installFallback,
 } from "./installer.fallback";
@@ -389,7 +389,11 @@ export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
     chosenInstructions.instructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.ArchiveOnly, fileTree);
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.ArchiveOnly,
+      fileTree,
+    );
   }
 
   warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
@@ -682,7 +686,11 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
 
   if (installable.length !== 1) {
-    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Redscript, fileTree);
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.Redscript,
+      fileTree,
+    );
   }
 
   const modName = makeSyntheticName(destinationPath);
@@ -925,7 +933,11 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   }
 
   if (chosenInstructions === InvalidLayout.Conflict) {
-    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.Red4Ext,
+      fileTree,
+    );
   }
 
   const extraArchiveLayoutsAllowed = chosenInstructions.kind !== Red4ExtLayout.Toplevel;
@@ -941,7 +953,11 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (haveFilesOutsideSelectedInstructions) {
-    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.Red4Ext, fileTree);
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.Red4Ext,
+      fileTree,
+    );
   }
 
   log("info", "Red4Ext installer installing files.");
@@ -1370,7 +1386,11 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     allInstructions.length !== fileCount(fileTree);
 
   if (allInstructionsPerLayout.length < 1 || haveFilesOutsideSelectedInstructions) {
-    return useFallbackOrFailBasedOnUserDecision(api, InstallerType.MultiType, fileTree);
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.MultiType,
+      fileTree,
+    );
   }
 
   api.log("info", "MultiType installer installing files.");

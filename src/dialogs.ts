@@ -77,14 +77,14 @@ export const promptUserToInstallOrCancel = async (
   return installDecision;
 };
 
-export const promptUserOnConflict = async (
+export const promptUserOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
   files: string[],
 ): Promise<InstallDecision> => {
   api.log(
     `error`,
-    `${installerType}: conflicting layouts, can't install automatically`,
+    `${installerType}: unresolvable layout, can't install automatically`,
     files,
   );
   api.log(`info`, `Asking user to proceed/cancel installation`);
@@ -92,8 +92,11 @@ export const promptUserOnConflict = async (
   const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
 
   const explanationForUser = `
-    You need to decide if you want to proceed or not. I can't
-    figure out the intended structure of this mod.
+    This looked like the ${installerType} kind of mod to me, but I can't figure
+    out what the intended layout here is. It's also possible I've misidentified
+    the mod, or that this is a valid layout I just don't understand (yet)!
+
+    You need to decide if you want to proceed or not.
 
     ${INSTRUCTIONS_TO_FIX_IN_STAGING}
 
