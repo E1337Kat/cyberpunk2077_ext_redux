@@ -97,6 +97,7 @@ export const enum TweakXLLayout {
 }
 
 export const TWEAK_XL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
+export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 
 // ASI
 
@@ -203,6 +204,12 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.TweakXL,
+    `
+    - \`${TweakXLLayout.Canon}\`
+    `,
+  ],
+  [
     InstallerType.Redscript,
     `
     - \`${RedscriptLayout.Canon}\` (Canonical)
@@ -277,6 +284,7 @@ export type Layout =
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout
+  | TweakXLLayout
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout

@@ -1,5 +1,5 @@
 import {
-  promptUserOnConflict,
+  promptUserOnUnresolvableLayout,
   promptUserToInstallOrCancelOnReachingFallback,
 } from "./dialogs";
 import { filesUnder, FileTree, FILETREE_ROOT, Glob, sourcePaths } from "./filetree";
@@ -52,7 +52,7 @@ export const useFallbackOrFail = (
 ): Promise<VortexInstallResult> => {
   switch (installDecision) {
     case InstallDecision.UserWantsToCancel: {
-      const message = `${installerType}: user chose to cancel installation on conflict`;
+      const message = `${installerType}: user chose to cancel installation`;
       api.log(`info`, message);
       api.log(`debug`, `Input files: `, sourcePaths(fileTree));
       return Promise.reject(new Error(message));
@@ -87,12 +87,12 @@ export const useFallbackOrFail = (
   }
 };
 
-export const useFallbackOrFailBasedOnUserDecision = async (
+export const promptToFallbackOrFailOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
   fileTree: FileTree,
 ): Promise<VortexInstallResult> => {
-  const installDecision = await promptUserOnConflict(
+  const installDecision = await promptUserOnUnresolvableLayout(
     api,
     installerType,
     sourcePaths(fileTree),
