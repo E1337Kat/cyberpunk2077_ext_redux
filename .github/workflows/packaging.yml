@@ -11,7 +11,7 @@ jobs:
   dependencies:
     runs-on: windows-latest
 
-    name: Build
+    name: Dependencies
 
     steps:
     - uses: actions/checkout@v2
@@ -30,14 +30,13 @@ jobs:
 
     name: Tests
     needs: [dependencies]
-    # steps:
-    # - uses: actions/checkout@v2
-    # - uses: actions/setup-node@v2
-    #   with:
-    #     node-version: 16.x
-    #     cache: 'npm'
-
-    # - run: npm install
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+    - run: npm install
 
     - name: Run The Tests
       run: npm run test
@@ -46,16 +45,15 @@ jobs:
     if: "contains(github.event.commits[0].message, '[gonk]') && test.status == 'success'"
     runs-on: windows-latest
 
-    name: Package
+    name: Package Dev Build
     needs: [dependencies, test]
     steps:
-    # - uses: actions/checkout@v2
-    # - uses: actions/setup-node@v2
-    #   with:
-    #     node-version: 16.x
-    #     cache: 'npm'
-
-    # - run: npm install
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+    - run: npm install
 
     - name: package it up
       run: npm run pack-dev
@@ -67,13 +65,12 @@ jobs:
     name: Package
     needs: [dependencies, test]
     steps:
-    # - uses: actions/checkout@v2
-    #   uses: actions/setup-node@v2
-    #   with:
-    #     node-version: 16.x
-    #     cache: 'npm'
-
-    # - run: npm install
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+    - run: npm install
 
     - name: package it up
       run: npm run pack
