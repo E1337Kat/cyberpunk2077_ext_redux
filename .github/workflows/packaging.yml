@@ -42,7 +42,7 @@ jobs:
       run: npm run test
   
   package-dev:
-    if: "contains(github.event.commits[0].message, '[gonk]') && test.status == 'success'"
+    if: "contains(github.event.commits[0].message, '[gonk]') && needs.test.status == 'success'"
     runs-on: windows-latest
 
     name: Package Dev Build
@@ -59,7 +59,7 @@ jobs:
       run: npm run pack-dev
 
   package-release:
-    if: "contains(github.event.commits[0].message, '[release]') && test.status == 'success'"
+    if: "contains(github.event.commits[0].message, '[release]') && needs.test.status == 'success'"
     runs-on: windows-latest
 
     name: Package
