@@ -50,7 +50,7 @@ const tweakXLCanonLayout = (
 
 // testSupport
 
-export const TestForTweakXLMod: VortexWrappedTestSupportedFunc = (
+export const testForTweakXLMod: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

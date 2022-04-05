@@ -22,13 +22,12 @@ export enum InstallerType {
   Red4Ext = `Red4ext Mod Installer`,
   TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
   TweakXL = `TweakXL Mod Installer`,
-  AXL = `AXL Mod Installer`,
   INI = `INI Mod Installer`,
   Config = `Config Mod Installer`,
   Reshade = `Reshade Mod Installer`,
   LUT = `LUT Mod Installer`,
   Json = `JSON Mod Installer`,
-  ArchiveOnly = `ArchiveOnly Mod Installer`,
+  Archive = `Archive-only and ArchiveXL Mod Installer`,
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,
   // Used as a marker

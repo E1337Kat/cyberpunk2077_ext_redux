@@ -4,7 +4,7 @@ import {
   EXTENSION_URL_GITHUB,
   EXTENSION_URL_NEXUS,
 } from "./index.metadata";
-import { ARCHIVE_ONLY_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
+import { ARCHIVE_MOD_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
 import { VortexApi, VortexDialogResult, VortexLogFunc } from "./vortex-wrapper";
 
@@ -149,6 +149,7 @@ export const showArchiveInstallWarning = (
   api: VortexApi,
   warnAboutSubdirs: boolean,
   warnAboutToplevel: boolean,
+  warnAboutXLs: boolean,
   files: string[],
 ): void => {
   const subdirWarning = warnAboutSubdirs
@@ -156,7 +157,7 @@ export const showArchiveInstallWarning = (
       - There are \`*.archive\` files in subdirectories
 
       The game does not read archives in subdirectories. You may be expected
-      to pick some of these to place into \`${ARCHIVE_ONLY_CANONICAL_PREFIX}\`.
+      to pick some of these to place into \`${ARCHIVE_MOD_CANONICAL_PREFIX}\`.
       `
     : `\n`;
 
@@ -166,7 +167,19 @@ export const showArchiveInstallWarning = (
 
       This might be intentional, it's perfectly OK to have multiple archives if
       they do different things. However, it could also be an oversight, or you
-      might be expected to pick only some of these to place into \`${ARCHIVE_ONLY_CANONICAL_PREFIX}\`
+      might be expected to pick only some of these to place into \`${ARCHIVE_MOD_CANONICAL_PREFIX}\`
+      `
+    : `\n`;
+
+  const xlWarning = warnAboutXLs
+    ? `
+      - There are \`*.xl\` files in subdirectories
+
+      XL files are not supported in subdirectories. They must be placed into
+      the Archive mod basedir \`${ARCHIVE_MOD_CANONICAL_PREFIX}\`. It's possible
+      you're intended to choose one, but either way you'll have to move the XLs
+      manually if the mod otherwise looks valid.
+
       `
     : `\n`;
 
@@ -176,6 +189,8 @@ export const showArchiveInstallWarning = (
     {
       md: heredoc(
         `I installed the mod, but it may need to be manually adjusted because:
+
+        ${xlWarning}
 
         ${subdirWarning}
 
