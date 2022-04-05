@@ -43,12 +43,6 @@ import {
 } from "./vortex-wrapper";
 
 //
-// To deprecate
-//
-export const allCanonicalArchiveOnlyFiles = (fileTree: FileTree) =>
-  filesUnder(ARCHIVE_MOD_CANONICAL_PREFIX, Glob.Any, fileTree);
-
-//
 
 const matchArchive: PathFilter = (file: string): boolean =>
   path.extname(file) === ARCHIVE_MOD_FILE_EXTENSION;
@@ -362,7 +356,7 @@ export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveLayoutToUse = useFirstMatchingLayoutForInstructions(
+  const archiveInstructionsToUse = useFirstMatchingLayoutForInstructions(
     api,
     undefined,
     fileTree,
@@ -370,10 +364,10 @@ export const extraCanonArchiveInstructions = (
   );
 
   if (
-    archiveLayoutToUse === NoInstructions.NoMatch ||
-    archiveLayoutToUse === InvalidLayout.Conflict
+    archiveInstructionsToUse === NoInstructions.NoMatch ||
+    archiveInstructionsToUse === InvalidLayout.Conflict
   ) {
-    api.log("debug", "No valid extra archives");
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra archives`);
     return { kind: NoLayout.Optional, instructions: [] };
   }
 
@@ -384,6 +378,7 @@ export const extraCanonArchiveInstructions = (
   // it'll be a better design in addition to the robustness.
   //
   // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
+  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
 
-  return archiveLayoutToUse;
+  return archiveInstructionsToUse;
 };
