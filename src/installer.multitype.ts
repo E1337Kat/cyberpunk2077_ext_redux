@@ -1,7 +1,10 @@
 // MultiType installer
 
 import { FileTree, fileCount } from "./filetree";
-import { archiveCanonLayout, archiveHeritageLayout } from "./installer.archive";
+import {
+  detectExtraArchiveLayouts,
+  extraCanonArchiveInstructions,
+} from "./installer.archive";
 import { detectCetCanonLayout, cetCanonLayout } from "./installer.cet";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
@@ -16,6 +19,10 @@ import {
   redscriptBasedirLayout,
   redscriptCanonLayout,
 } from "./installer.redscript";
+import {
+  detectAllowedTweakXLLayouts,
+  tweakXLAllowedInMultiInstructions,
+} from "./installer.tweak-xl";
 import { LayoutToInstructions } from "./installers.layouts";
 import { makeSyntheticName, useAllMatchingLayouts } from "./installers.shared";
 import { InstallerType } from "./installers.types";
@@ -40,6 +47,9 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
   const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
+  const hasCanonTweakXL = detectAllowedTweakXLLayouts(fileTree);
+
+  const hasExtraArchives = detectExtraArchiveLayouts(fileTree);
 
   // The Onlys may need better naming.. they already check that
   // there's no basedir stuff, so we can use both here without
@@ -51,20 +61,22 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
       hasBasedirRedscript,
       hasCanonRed4Ext,
       hasBasedirRed4Ext,
+      hasCanonTweakXL,
     ].filter(trueish).length > 1;
 
-  if (!hasAtLeastTwoTypes) {
-    api.log("debug", "MultiType didn't match");
+  // For now, let's define these specifically. Should also move
+  // the special handling in CET and Reds to this mode (and then
+  // I think we might also be able to unify these two if we don't
+  // need to worry about the archive special cases..)
+  const hasValidExtraArchives =
+    hasExtraArchives && (hasCanonTweakXL || hasCanonRed4Ext || hasBasedirRed4Ext);
+
+  if (!hasAtLeastTwoTypes && !hasValidExtraArchives) {
+    api.log(`debug`, `${InstallerType.MultiType}: no multitype match`);
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
-  api.log("info", "MultiType mod detected", {
-    hasCanonCet,
-    hasCanonRedscript,
-    hasBasedirRedscript,
-    hasCanonRed4Ext,
-    hasBasedirRed4Ext,
-  });
+  api.log(`info`, `${InstallerType.MultiType}: found multiple mod types to handle`);
 
   return Promise.resolve({
     supported: true,
@@ -100,8 +112,6 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     redscriptCanonLayout,
     red4extBasedirLayout,
     red4extCanonLayout,
-    archiveCanonLayout,
-    archiveHeritageLayout,
   ];
 
   const allInstructionsPerLayout = useAllMatchingLayouts(
@@ -111,14 +121,20 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     allInstructionSets,
   );
 
-  const allInstructions = allInstructionsPerLayout.flatMap((i) => i.instructions);
+  const allInstructionsWeProduced = allInstructionsPerLayout.flatMap(
+    (i) => i.instructions,
+  );
 
-  // Should still add this..
-  // warnUserIfArchivesMightNeedManualReview(api, instrs stils needed);
+  const allInstructions = [
+    ...allInstructionsWeProduced,
+    ...extraCanonArchiveInstructions(api, fileTree).instructions,
+    ...tweakXLAllowedInMultiInstructions(api, fileTree).instructions,
+  ];
+
   const haveFilesOutsideSelectedInstructions =
     allInstructions.length !== fileCount(fileTree);
 
-  if (allInstructionsPerLayout.length < 1 || haveFilesOutsideSelectedInstructions) {
+  if (allInstructions.length < 1 || haveFilesOutsideSelectedInstructions) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.MultiType,
@@ -126,8 +142,11 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = (
     );
   }
 
-  api.log("info", "MultiType installer installing files.");
-  api.log("debug", "MultiType instructions: ", allInstructions);
+  // Should still add this..
+  // warnUserIfArchivesMightNeedManualReview(api, instrs stils needed);
+
+  api.log(`info`, `${InstallerType.MultiType}: installing`);
+  api.log(`debug`, `${InstallerType.MultiType}: instructions:`, allInstructions);
 
   return Promise.resolve({ instructions: allInstructions });
 };
