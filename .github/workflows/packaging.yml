@@ -58,6 +58,12 @@ jobs:
     - name: package it up
       run: npm run pack-dev
 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dev-release-zip
+        path: 'cyberpunk2077-dev-*.7z'
+
   package-release:
     if: "contains(github.event.commits[0].message, '[release]')"
     runs-on: windows-latest
@@ -74,3 +80,9 @@ jobs:
 
     - name: package it up
       run: npm run pack
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-zip
+        path: 'cyberpunk2077-*.7z'
