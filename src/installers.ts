@@ -3,12 +3,9 @@ import { win32 } from "path";
 import KeyTree from "key-tree";
 import {
   findAllSubdirsWithSome,
-  dirWithSomeUnder,
   FileTree,
-  PathFilter,
   fileTreeFromPaths,
   FILETREE_ROOT,
-  subdirsIn,
   filesIn,
   filesUnder,
   pathInTree,
@@ -48,20 +45,13 @@ import {
   RESHADE_SHADERS_DIR,
   INI_MOD_EXT,
   INI_MOD_PATH,
-  MOD_FILE_EXT,
   JSON_FILE_EXT,
   KNOWN_JSON_FILES,
   ASI_MOD_EXT,
   ASI_MOD_PATH,
-  ARCHIVE_ONLY_CANONICAL_EXT,
-  ARCHIVE_ONLY_CANONICAL_PREFIX,
-  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-  ArchiveLayout,
-  Instructions,
   LayoutToInstructions,
   NoInstructions,
   MaybeInstructions,
-  NoLayout,
   InvalidLayout,
   CetLayout,
   RedscriptLayout,
@@ -78,7 +68,7 @@ import {
   useAllMatchingLayouts,
   makeSyntheticName,
 } from "./installers.shared";
-import { showArchiveInstallWarning, showRed4ExtReservedDllErrorDialog } from "./dialogs";
+import { showRed4ExtReservedDllErrorDialog } from "./dialogs";
 import {
   testForCetCore,
   installCetCore,
@@ -94,17 +84,22 @@ import {
 import { trueish } from "./installers.utils";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
-import {
-  installCoreTweakXL,
-  TestForCoreTweakXL as testForCoreTweakXL,
-} from "./installer.core-tweak-xl";
+import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
   testForFallback,
   installFallback,
 } from "./installer.fallback";
-import { installTweakXLMod, TestForTweakXLMod } from "./installer.tweak-xl";
+import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
 import { installCoreArchiveXL, testForCoreArchiveXL } from "./installer.core-archive-xl";
+import {
+  allCanonicalArchiveOnlyFiles,
+  extraCanonArchiveInstructions,
+  testForArchiveMod,
+  installArchiveMod,
+  archiveCanonLayout,
+  archiveHeritageLayout,
+} from "./installer.archive";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -141,9 +136,6 @@ const matchRedscript = (file: string) =>
 
 const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
-const matchArchive: PathFilter = (file: string): boolean =>
-  path.extname(file) === ARCHIVE_ONLY_CANONICAL_EXT;
-
 // Installers
 const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
@@ -168,9 +160,6 @@ const allFilesInFolder = (folder: string, files: string[]) => {
 const allCanonicalCetFiles = (files: string[]) =>
   allFilesInFolder(CET_MOD_CANONICAL_PATH_PREFIX, files);
 
-const allCanonicalArchiveOnlyFiles = (files: string[]) =>
-  allFilesInFolder(ARCHIVE_ONLY_CANONICAL_PREFIX, files);
-
 //
 //
 //
@@ -182,267 +171,6 @@ const allCanonicalArchiveOnlyFiles = (files: string[]) =>
 // other parts from the simpler installers.
 //
 //
-
-//
-//
-//
-// ArchiveOnly
-//
-// Last of the main ones to try, but first defined so that we
-// can use the layouts below.
-//
-//
-
-const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
-  dirWithSomeUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, fileTree);
-
-const archiveCanonLayout = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const hasCanonFiles = detectArchiveCanonLayout(fileTree);
-
-  if (!hasCanonFiles) {
-    return NoInstructions.NoMatch;
-  }
-
-  const allCanonFiles = filesUnder(ARCHIVE_ONLY_CANONICAL_PREFIX, Glob.Any, fileTree);
-
-  return {
-    kind: ArchiveLayout.Canon,
-    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
-  };
-};
-
-const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
-  dirWithSomeUnder(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX, matchArchive, fileTree);
-
-const archiveHeritageLayout = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const hasOldCanonFiles = detectArchiveHeritageLayout(fileTree);
-
-  if (!hasOldCanonFiles) {
-    return NoInstructions.NoMatch;
-  }
-
-  const oldCanonFiles = filesUnder(
-    ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
-    Glob.Any,
-    fileTree,
-  );
-
-  const oldToNewMap = oldCanonFiles.map((f: string) => [
-    f,
-    f.replace(
-      path.normalize(ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX),
-      path.normalize(ARCHIVE_ONLY_CANONICAL_PREFIX),
-    ),
-  ]);
-
-  return {
-    kind: ArchiveLayout.Heritage,
-    instructions: instructionsForSourceToDestPairs(oldToNewMap),
-  };
-};
-
-const archiveOtherDirsToCanonLayout = (
-  _api: VortexApi,
-  _modName: string,
-  fileTree: FileTree,
-): MaybeInstructions => {
-  const allDirs = findAllSubdirsWithSome(FILETREE_ROOT, matchArchive, fileTree);
-
-  const allFiles = allDirs.flatMap((dir: string) => filesUnder(dir, Glob.Any, fileTree));
-
-  const allToPrefixedMap: string[][] = allFiles.map((f: string) => [
-    f,
-    path.join(ARCHIVE_ONLY_CANONICAL_PREFIX, f),
-  ]);
-
-  return {
-    kind: ArchiveLayout.Other,
-    instructions: instructionsForSourceToDestPairs(allToPrefixedMap),
-  };
-};
-
-const warnUserIfArchivesMightNeedManualReview = (
-  api: VortexApi,
-  chosenInstructions: Instructions,
-) => {
-  // Trying out the tree-based approach..
-  const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
-  const newTree = fileTreeFromPaths(destinationPaths);
-
-  const warnAboutSubdirs = subdirsIn(ARCHIVE_ONLY_CANONICAL_PREFIX, newTree).length > 0;
-
-  const hasMultipleTopLevelFiles =
-    filesIn(ARCHIVE_ONLY_CANONICAL_PREFIX, matchArchive, newTree).length > 1;
-
-  const multipleTopLevelsMightBeIntended =
-    chosenInstructions.kind !== ArchiveLayout.Other;
-
-  const warnAboutToplevel = !multipleTopLevelsMightBeIntended && hasMultipleTopLevelFiles;
-
-  if (warnAboutSubdirs || warnAboutToplevel) {
-    showArchiveInstallWarning(api, warnAboutSubdirs, warnAboutToplevel, destinationPaths);
-  }
-};
-
-export const testForArchiveOnlyMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  let supported: boolean;
-  const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === MOD_FILE_EXT,
-  );
-
-  if (filtered.length === 0) {
-    log("info", "No archives.");
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  if (files.length > filtered.length) {
-    // Figure out what the leftovers are and if they matter
-    // such as readmes, usage text, etc.
-    const unfiltered = files.filter((f: string) => !filtered.includes(f));
-
-    const importantBaseDirs = ["bin", "r6", "red4ext"];
-    const hasNonArchive =
-      unfiltered.find((f: string) =>
-        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
-      ) !== undefined;
-
-    // there is a base folder for non archive mods, so why bother.
-    if (hasNonArchive) {
-      log("info", "Other mod folder exist... probably an archive as part of those.");
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-    }
-
-    supported = true;
-  } else if (files.length === filtered.length) {
-    // all files are archives
-    supported = true;
-  } else {
-    supported = false;
-    log(
-      "error",
-      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
-    );
-  }
-
-  if (supported !== undefined && supported) {
-    log("info", "Only archive files, so installing them should be easy peasy.");
-  } else {
-    supported = false;
-  }
-
-  return Promise.resolve({
-    supported,
-    requiredFiles: [],
-  });
-};
-
-/**
- * Installs files while correcting the directory structure as we go.
- * @param files a list of files to be installed
- * @returns a promise with an array detailing what files to install and how
- */
-export const installArchiveOnlyMod: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  // Once again we could get fancy, but let's not
-  const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
-    archiveCanonLayout,
-    archiveHeritageLayout,
-    archiveOtherDirsToCanonLayout,
-  ];
-
-  const chosenInstructions = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    possibleLayoutsToTryInOrder,
-  );
-
-  if (
-    chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.Conflict
-  ) {
-    const message = "ArchiveOnly installer failed to generate any instructions!";
-    log("error", message, files);
-    return Promise.reject(new Error(message));
-  }
-
-  const haveFilesOutsideSelectedInstructions =
-    chosenInstructions.instructions.length !== fileCount(fileTree);
-
-  if (haveFilesOutsideSelectedInstructions) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
-      api,
-      InstallerType.ArchiveOnly,
-      fileTree,
-    );
-  }
-
-  warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
-
-  log("info", "ArchiveOnly installer installing files.");
-  log("debug", "ArchiveOnly instructions: ", chosenInstructions.instructions);
-
-  return Promise.resolve({ instructions: chosenInstructions.instructions });
-};
-
-const extraArchiveLayoutsAllowedInOtherModTypes = [
-  archiveCanonLayout,
-  archiveHeritageLayout,
-];
-
-const extraCanonArchiveInstructions = (
-  api: VortexApi,
-  fileTree: FileTree,
-): Instructions => {
-  const archiveLayoutToUse = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    extraArchiveLayoutsAllowedInOtherModTypes,
-  );
-
-  if (
-    archiveLayoutToUse === NoInstructions.NoMatch ||
-    archiveLayoutToUse === InvalidLayout.Conflict
-  ) {
-    api.log("debug", "No valid extra archives");
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
-
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-
-  return archiveLayoutToUse;
-};
 
 // CET
 
@@ -512,7 +240,7 @@ export const installCetMod: VortexWrappedInstallFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   const cetFiles = allCanonicalCetFiles(files);
@@ -524,7 +252,7 @@ export const installCetMod: VortexWrappedInstallFunc = (
   }
 
   // Let's grab anything else we might reasonably have
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(fileTree);
 
   const allTheFiles = cetFiles.concat(archiveOnlyFiles);
 
@@ -701,7 +429,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   const modName = makeSyntheticName(destinationPath);
 
   // Let's grab archives too
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(files);
+  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(fileTree);
 
   // Only one of these should exist but why discriminate?
   const allSourcesAndDestinations = [
@@ -1516,19 +1244,13 @@ const installers: Installer[] = [
   {
     type: InstallerType.TweakXL,
     id: InstallerType.TweakXL,
-    testSupported: TestForTweakXLMod,
+    testSupported: testForTweakXLMod,
     install: installTweakXLMod,
   },
   /*
   {
     type: InstallerType.TweakDB,
     id: "cp2077-tweakdb-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  {
-    type: InstallerType.AXL,
-    id: "cp2077-axl-mod",
     testSupported: notSupportedModType,
     install: notInstallableMod,
   },
@@ -1566,10 +1288,10 @@ const installers: Installer[] = [
     install: installJsonMod,
   },
   {
-    type: InstallerType.ArchiveOnly,
-    id: InstallerType.ArchiveOnly,
-    testSupported: testForArchiveOnlyMod,
-    install: installArchiveOnlyMod,
+    type: InstallerType.Archive,
+    id: InstallerType.Archive,
+    testSupported: testForArchiveMod,
+    install: installArchiveMod,
   },
   {
     type: InstallerType.Fallback,

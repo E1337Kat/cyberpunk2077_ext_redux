@@ -9,6 +9,7 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | |-📁 pc
  * | | |-📁 mod
  * | | | |- 📄 *.archive
+ * | | | |- 📄 *.xl
  * |-📁 bin
  * | |-📁 x64
  * | | |-📄 *.ini -- Reshade mod
@@ -195,16 +196,24 @@ export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 // Archives
 
 export const enum ArchiveLayout {
+  XL = `.\\archive\\pc\\mod\\*.xl, *.archive`, // Required layout per https://github.com/psiberx/cp2077-archive-xl
   Canon = `.\\archive\\pc\\mod\\*.archive`,
   Heritage = `.\\archive\\pc\\patch\\*.archive`,
   Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
 }
+//
+// ArchiveXL Mods
+//
 
-export const MOD_FILE_EXT = ".archive";
+export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
+export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
+export const ARCHIVE_MOD_EXTENSIONS = [
+  ARCHIVE_MOD_FILE_EXTENSION,
+  ARCHIVE_MOD_XL_EXTENSION,
+];
 
-export const ARCHIVE_ONLY_CANONICAL_EXT = ".archive";
-export const ARCHIVE_ONLY_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
+export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
 
 //
 //
@@ -218,7 +227,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.CoreTweakXL,
     `
-    - \`${CoreTweakXLLayout.OnlyValid}\`
+    \`${CoreTweakXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreTweakXL} that I know of.
     `,
@@ -226,7 +235,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.CoreArchiveXL,
     `
-    - \`${CoreArchiveXLLayout.OnlyValid}\`
+    \`${CoreArchiveXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
     `,
@@ -234,7 +243,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.TweakXL,
     `
-    - \`${TweakXLLayout.Canon}\`
+    \`${TweakXLLayout.Canon}\`
     `,
   ],
   [
@@ -265,8 +274,9 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
-    InstallerType.ArchiveOnly,
+    InstallerType.Archive,
     `
+    - \`${ArchiveLayout.XL}\` (Canonical, with ArchiveXL)
     - \`${ArchiveLayout.Canon}\` (Canonical)
     - \`${ArchiveLayout.Heritage}\` (Old style, fixable to Canon)
     - \`${ArchiveLayout.Other}\`
@@ -283,6 +293,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     | - \`${Red4ExtLayout.Canon}\`
     | - \`${Red4ExtLayout.Basedir}\`
     - One of
+    | - \`${ArchiveLayout.XL}\`
     | - \`${ArchiveLayout.Canon}\`
     | - \`${ArchiveLayout.Heritage}\`
     - (No files can exist outside the above locations)

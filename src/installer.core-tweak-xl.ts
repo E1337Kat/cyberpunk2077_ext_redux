@@ -39,7 +39,7 @@ const detectCoreTweakXL = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   findCoreTweakXLFiles(fileTree).length > 0;
 
-export const TestForCoreTweakXL: VortexWrappedTestSupportedFunc = (
+export const testForCoreTweakXL: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
