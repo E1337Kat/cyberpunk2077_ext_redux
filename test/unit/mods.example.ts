@@ -1380,6 +1380,11 @@ export const ArchiveMod = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchif.archive`),
       ],
     },
+    archiveXLWithoutArchiveFilesInCanonicalDir: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [...ARCHIVE_PREFIXES, path.join(`${ARCHIVE_PREFIX}\\surprise.xl`)],
+      outInstructions: [copiedToSamePath(`${ARCHIVE_PREFIX}\\surprise.xl`)],
+    },
   }),
 );
 
@@ -1429,26 +1434,29 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
         path.join(`${ARCHIVE_PREFIX}/preemtextures.archive`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
-          destination: path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/configfile.json`),
-          destination: path.join(`${CET_PREFIX}/exmod/configfile.json`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-          destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${ARCHIVE_PREFIX}/preemtextures.archive`),
-          destination: path.join(`${ARCHIVE_PREFIX}/preemtextures.archive`),
-        },
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/UI.lua`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/configfile.json`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/preemtextures.archive`),
+      ],
+    },
+    cetWithExtraArchiveXLFilesOnlyCanonical: {
+      expectedInstallerType: InstallerType.CET,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/configfile.json`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/preemtextures.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/UI.lua`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/configfile.json`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/preemtextures.xl`),
       ],
     },
     redsWithExtraArchiveFilesCanonical: {
@@ -1464,26 +1472,28 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
         path.join(`${ARCHIVE_PREFIX}/magicgoesherebutbigger.xl`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/scriptiesyay.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/scriptiesyay.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/morescripties.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/morescripties.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-        },
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/scriptiesyay.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/morescripties.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/options.json`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\magicgoesherebutbigger.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+    },
+    redsWithExtraArchiveXLFilesOnlyCanonical: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/scriptiesyay.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/morescripties.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/options.json`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoesherebutbigger.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/scriptiesyay.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/morescripties.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/options.json`),
         copiedToSamePath(`${ARCHIVE_PREFIX}\\magicgoesherebutbigger.xl`),
       ],
     },
