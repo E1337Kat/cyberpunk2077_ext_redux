@@ -100,15 +100,15 @@ export const tweakXLAllowedInMultiInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveInstructionsToUse = tweakXLCanonLayout(api, undefined, fileTree);
+  const selectedInstructions = tweakXLCanonLayout(api, undefined, fileTree);
 
   if (
-    archiveInstructionsToUse === NoInstructions.NoMatch ||
-    archiveInstructionsToUse === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch ||
+    selectedInstructions === InvalidLayout.Conflict
   ) {
     api.log(`debug`, `${InstallerType.TweakXL}: No valid extra archives`);
     return { kind: NoLayout.Optional, instructions: [] };
   }
 
-  return archiveInstructionsToUse;
+  return selectedInstructions;
 };
