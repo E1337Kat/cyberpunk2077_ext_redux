@@ -27,7 +27,7 @@ export enum InstallerType {
   Reshade = `Reshade Mod Installer`,
   LUT = `LUT Mod Installer`,
   Json = `JSON Mod Installer`,
-  Archive = `Archive-only and ArchiveXL Mod Installer`,
+  Archive = `Archive + ArchiveXL Mod Installer`,
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,
   // Used as a marker
