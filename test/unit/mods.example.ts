@@ -9,8 +9,8 @@ import {
   REDS_MOD_CANONICAL_PATH_PREFIX,
   RED4EXT_MOD_CANONICAL_BASEDIR,
   AMM_MOD_PREFIX,
-  ARCHIVE_ONLY_CANONICAL_PREFIX,
-  ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX,
+  ARCHIVE_MOD_CANONICAL_PREFIX,
+  ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
   INI_MOD_PATH,
   RESHADE_MOD_PATH,
   RESHADE_SHADERS_PATH,
@@ -82,7 +82,7 @@ const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
 const TWEAK_XL_PATHS = pathHierarchyFor(TWEAK_XL_PATH);
 
-const ARCHIVE_PREFIX = ARCHIVE_ONLY_CANONICAL_PREFIX;
+const ARCHIVE_PREFIX = ARCHIVE_MOD_CANONICAL_PREFIX;
 const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 
 const ASI_PREFIX = ASI_MOD_PATH;
@@ -1150,10 +1150,10 @@ export const Red4ExtModShouldPromptForInstall = new Map<
   }),
 );
 
-export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
+export const ArchiveMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [...ARCHIVE_PREFIXES, `${ARCHIVE_PREFIX}/first.archive`].map(
         path.normalize,
       ),
@@ -1166,7 +1166,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithMultipleFilesCanonical: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [
         ...ARCHIVE_PREFIXES,
         `${ARCHIVE_PREFIX}/first.archive`,
@@ -1186,7 +1186,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithMultipleFilesCanonicalButInSubfolder: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [
         ...ARCHIVE_PREFIXES,
         `${ARCHIVE_PREFIX}/fold1/first.archive`,
@@ -1206,31 +1206,29 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithMultipleFilesInHeritageFolderFixable: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [
         ...ARCHIVE_PREFIXES,
-        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
-        `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+        `${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/first.archive`,
+        `${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/second.archive`,
       ].map(path.normalize),
       outInstructions: [
         {
           type: "copy",
-          source: path.normalize(
-            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/first.archive`,
-          ),
+          source: path.normalize(`${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
           type: "copy",
           source: path.normalize(
-            `${ARCHIVE_ONLY_TRADITIONAL_WRONG_PREFIX}/second.archive`,
+            `${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/second.archive`,
           ),
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
     },
     archiveWithSingleArchiveToplevel: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: ["first.archive"].map(path.normalize),
       outInstructions: [
         {
@@ -1241,7 +1239,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithMultipleArchivesTopLevel: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: ["first.archive", "second.archive"].map(path.normalize),
       outInstructions: [
         {
@@ -1257,7 +1255,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithArchivesInRandomFolder: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: ["fold1/", "fold1/first.archive", "fold1/second.archive"].map(
         path.normalize,
       ),
@@ -1275,7 +1273,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithArchivesTopLevelAndFolder: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: ["first.archive", "fold1/", "fold1/second.archive"].map(path.normalize),
       outInstructions: [
         {
@@ -1291,7 +1289,7 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
       ],
     },
     archiveWithArchivesInRandomFolderPlusRandomFiles: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [
         "fold1/",
         "fold1/first.archive",
@@ -1328,7 +1326,61 @@ export const ArchiveOnly = new Map<string, ExampleSucceedingMod>(
         },
       ],
     },
-  }), // object
+    archiveXLWithFilesWithMatchingNamesInCanonicalDir: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchive.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchive.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+      ],
+    },
+    archiveXLWithFilesWithDifferentNamesInCanonicalDir: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        path.join(`${ARCHIVE_PREFIX}\\surprise.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\surprise.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+      ],
+    },
+    archiveXLWithMultipleFilesInCanonicalDir: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchif.archive`),
+        path.join(`${ARCHIVE_PREFIX}\\surprise.xl`),
+        path.join(`${ARCHIVE_PREFIX}\\surprise2.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\surprise.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\surprise2.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchif.archive`),
+      ],
+    },
+    archiveXLWithMultipleArchivesOnlyInCanonicalDir: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\surprise.xl`),
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        path.join(`${ARCHIVE_PREFIX}\\mybigarchif.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\surprise.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchive.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\mybigarchif.archive`),
+      ],
+    },
+  }),
 );
 
 export const ArchiveOnlyModShouldPromptForInstall = new Map<
@@ -1337,7 +1389,7 @@ export const ArchiveOnlyModShouldPromptForInstall = new Map<
 >(
   Object.entries({
     archiveWithToplevelAndCanonicalFilesPromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.ArchiveOnly,
+      expectedInstallerType: InstallerType.Archive,
       inFiles: [
         ...ARCHIVE_PREFIXES,
         path.join(`outtaplace.archive`),
@@ -1357,7 +1409,7 @@ export const ArchiveOnlyModShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ArchiveOnly),
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Archive),
     },
   }),
 );
@@ -1409,6 +1461,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/options.json`),
         ...ARCHIVE_PREFIXES,
         path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        path.join(`${ARCHIVE_PREFIX}/magicgoesherebutbigger.xl`),
       ],
       outInstructions: [
         {
@@ -1431,6 +1484,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
           source: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         },
+        copiedToSamePath(`${ARCHIVE_PREFIX}\\magicgoesherebutbigger.xl`),
       ],
     },
   }),
@@ -2102,7 +2156,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     Red4ExtMod,
     JsonMod,
     IniMod,
-    ArchiveOnly,
+    ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
     ValidTypeCombinations,
     GiftwrappedModsFixable,
