@@ -129,9 +129,11 @@ const archiveCanonWithXLLayout = (
     return NoInstructions.NoMatch;
   }
 
-  // Not right
   if (allArchiveCanonFiles.length < 1) {
-    return InvalidLayout.Conflict;
+    // This might be a valid case, let's review at some point.
+    // Supported for now because it's used in the wild, e.g. in
+    // https://www.nexusmods.com/cyberpunk2077/mods/4225?tab=files
+    api.log(`info`, `${InstallerType.Archive}: found only *.xl files, installing those`);
   }
 
   const allExtraFilesInBaseDir = findExtraFilesInCanonDir(fileTree);
@@ -348,6 +350,7 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
 };
 
 const extraArchiveLayoutsAllowedInOtherModTypes = [
+  archiveCanonWithXLLayout,
   archiveCanonLayout,
   archiveHeritageLayout,
 ];
