@@ -349,11 +349,20 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
   return Promise.resolve({ instructions: chosenInstructions.instructions });
 };
 
+//
+// Including Archives with other stuff
+//
+
 const extraArchiveLayoutsAllowedInOtherModTypes = [
   archiveCanonWithXLLayout,
   archiveCanonLayout,
   archiveHeritageLayout,
 ];
+
+export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
+  detectArchiveCanonWithXLLayout(fileTree) ||
+  detectArchiveCanonLayout(fileTree) ||
+  detectArchiveHeritageLayout(fileTree);
 
 export const extraCanonArchiveInstructions = (
   api: VortexApi,
