@@ -16,6 +16,8 @@ import {
   NoInstructions,
   TweakXLLayout,
   InvalidLayout,
+  Instructions,
+  NoLayout,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import { InstallerType } from "./installers.types";
@@ -85,4 +87,28 @@ export const installTweakXLMod: VortexWrappedInstallFunc = async (
   return Promise.resolve({
     instructions: selectedInstructions.instructions,
   });
+};
+
+//
+// External use for MultiType etc.
+//
+
+export const detectAllowedTweakXLLayouts = (fileTree: FileTree): boolean =>
+  detectTweakXLCanonLayout(fileTree);
+
+export const tweakXLAllowedInMultiInstructions = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const archiveInstructionsToUse = tweakXLCanonLayout(api, undefined, fileTree);
+
+  if (
+    archiveInstructionsToUse === NoInstructions.NoMatch ||
+    archiveInstructionsToUse === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.TweakXL}: No valid extra archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return archiveInstructionsToUse;
 };
