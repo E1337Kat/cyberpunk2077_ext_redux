@@ -1,0 +1,79 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Package
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  dependencies:
+    runs-on: windows-latest
+
+    name: Build
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup Node.js 16.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+
+    - name: Install all dependencies
+      run: npm install
+
+  test:
+    runs-on: windows-latest
+
+    name: Tests
+    needs: [dependencies]
+    # steps:
+    # - uses: actions/checkout@v2
+    # - uses: actions/setup-node@v2
+    #   with:
+    #     node-version: 16.x
+    #     cache: 'npm'
+
+    # - run: npm install
+
+    - name: Run The Tests
+      run: npm run test
+  
+  package-dev:
+    if: "contains(github.event.commits[0].message, '[gonk]') && test.status == 'success'"
+    runs-on: windows-latest
+
+    name: Package
+    needs: [dependencies, test]
+    steps:
+    # - uses: actions/checkout@v2
+    # - uses: actions/setup-node@v2
+    #   with:
+    #     node-version: 16.x
+    #     cache: 'npm'
+
+    # - run: npm install
+
+    - name: package it up
+      run: npm run pack-dev
+
+  package-release:
+    if: "contains(github.event.commits[0].message, '[release]') && test.status == 'success'"
+    runs-on: windows-latest
+
+    name: Package
+    needs: [dependencies, test]
+    steps:
+    # - uses: actions/checkout@v2
+    #   uses: actions/setup-node@v2
+    #   with:
+    #     node-version: 16.x
+    #     cache: 'npm'
+
+    # - run: npm install
+
+    - name: package it up
+      run: npm run pack
