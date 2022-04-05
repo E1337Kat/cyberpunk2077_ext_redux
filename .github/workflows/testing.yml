@@ -16,7 +16,7 @@ jobs:
     if: "!contains(github.event.commits[0].message, '[skip ci]')"
     runs-on: windows-latest
 
-    name: Build
+    name: Dependencies
 
     steps:
     - uses: actions/checkout@v2
@@ -36,13 +36,12 @@ jobs:
     name: Tests
     needs: [dependencies]
     steps:
-    # - uses: actions/checkout@v2
-    #   uses: actions/setup-node@v2
-    #   with:
-    #     node-version: 16.x
-    #     cache: 'npm'
-
-    # - run: npm install
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: 16.x
+        cache: 'npm'
+    - run: npm install
 
     - name: Run The Tests
       run: npm run test
