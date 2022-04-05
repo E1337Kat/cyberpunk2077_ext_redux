@@ -93,7 +93,6 @@ import {
 import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
 import { installCoreArchiveXL, testForCoreArchiveXL } from "./installer.core-archive-xl";
 import {
-  allCanonicalArchiveOnlyFiles,
   extraCanonArchiveInstructions,
   testForArchiveMod,
   installArchiveMod,
@@ -237,7 +236,7 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
 
 // Install the CET stuff, as well as any archives we find
 export const installCetMod: VortexWrappedInstallFunc = (
-  _api: VortexApi,
+  api: VortexApi,
   log: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
@@ -251,12 +250,12 @@ export const installCetMod: VortexWrappedInstallFunc = (
     );
   }
 
-  // Let's grab anything else we might reasonably have
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(fileTree);
+  const extraArchiveInstructions = extraCanonArchiveInstructions(api, fileTree);
 
-  const allTheFiles = cetFiles.concat(archiveOnlyFiles);
-
-  const instructions = instructionsForSameSourceAndDestPaths(allTheFiles);
+  const instructions = [
+    ...instructionsForSameSourceAndDestPaths(cetFiles),
+    ...extraArchiveInstructions.instructions,
+  ];
 
   return Promise.resolve({ instructions });
 };
@@ -428,20 +427,20 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
 
   const modName = makeSyntheticName(destinationPath);
 
-  // Let's grab archives too
-  const archiveOnlyFiles = allCanonicalArchiveOnlyFiles(fileTree);
+  const extraArchiveInstructions = extraCanonArchiveInstructions(api, fileTree);
 
   // Only one of these should exist but why discriminate?
   const allSourcesAndDestinations = [
     canonReds.map(toSamePath),
     basedirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
     toplevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    archiveOnlyFiles.map(toSamePath),
   ];
 
-  const instructions = allSourcesAndDestinations.flatMap(
+  const redsInstructions = allSourcesAndDestinations.flatMap(
     instructionsForSourceToDestPairs,
   );
+
+  const instructions = [...redsInstructions, ...extraArchiveInstructions.instructions];
 
   return Promise.resolve({ instructions });
 };
