@@ -3,12 +3,13 @@
 
 name: Testing
 
+# Packaging will take care of testing on pushes to the main branch, so we don't need it in this workflow.
 on:
   push:
-    branches: 
-      - main
-      - '!version/**'
-      - '!release/**'
+    branches-ignore:
+      - 'main'
+      - 'version/**'
+      - 'release/**'
   pull_request:
     branches:
       - main
