@@ -5,11 +5,14 @@ name: Testing
 
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - '!version/**'
+      - '!release/**'
   pull_request:
-    branches-ignore: 
-      - 'version/**'
-      - 'release/**'
+    branches:
+      - main
+      - '**'
 
 jobs:
   dependencies:
