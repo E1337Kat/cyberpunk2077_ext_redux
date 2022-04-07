@@ -129,6 +129,12 @@ export const ARCHIVE_XL_CORE_FILES = [
 
 // XML
 
+export const enum XMLConfigLayout {
+  Protected = `.\\r6\\config\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
+  Canon = `.\\r6\\config\\*.xml`,
+  Toplevel = `.\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
+}
+
 export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
 
 export const CONFIG_XML_MOD_EXTENSION = `.xml`;
@@ -139,6 +145,10 @@ export const CONFIG_XML_MOD_PROTECTED_FILES = [
   path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
   path.join(`${CONFIG_XML_MOD_BASEDIR}\\uiInputActions.xml`),
 ];
+
+export const CONFIG_XML_MOD_PROTECTED_FILENAMES = CONFIG_XML_MOD_PROTECTED_FILES.map(
+  (xml) => path.basename(xml),
+);
 
 // JSON
 
@@ -286,6 +296,17 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.ConfigXML,
+    `
+    - \`${XMLConfigLayout.Protected}\` (Protected)
+    - \`${XMLConfigLayout.Canon}\` (Can be mixed with above)
+    - \`${XMLConfigLayout.Toplevel}\` (Protected, can be moved to canonical)
+
+    Some of the XML config files are protected, because they often contain modifications
+    by the user. There's a prompt before installing into those paths.
+    `,
+  ],
+  [
     InstallerType.TweakXL,
     `
     \`${TweakXLLayout.Canon}\`
@@ -364,6 +385,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | XMLConfigLayout
   | AsiLayout
   | CetLayout
   | RedscriptLayout

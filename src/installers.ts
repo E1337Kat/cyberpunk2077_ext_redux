@@ -47,6 +47,7 @@ import { testForIniMod, installIniMod } from "./installer.config.ini-reshade";
 import { testForJsonMod, installJsonMod } from "./installer.config.json";
 import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
 import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
+import { installXMLConfigMod, testForXMLConfigMod } from "./installer.xml";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -161,6 +162,12 @@ const installers: Installer[] = [
     install: installMultiTypeMod,
   },
   {
+    type: InstallerType.ConfigXML,
+    id: InstallerType.ConfigXML,
+    testSupported: testForXMLConfigMod,
+    install: installXMLConfigMod,
+  },
+  {
     type: InstallerType.CET,
     id: InstallerType.CET,
     testSupported: testForCetMod,
@@ -200,18 +207,12 @@ const installers: Installer[] = [
   },
   /*
   {
-    type: InstallerType.Config,
-    id: "cp2077-config-mod",
-    testSupported: notSupportedModType,
-    install: notInstallableMod,
-  },
-  {
     type: InstallerType.LUT,
     id: "cp2077-lut-mod",
     testSupported: notSupportedModType,
     install: notInstallableMod,
-  }, */
-
+  },
+  */
   {
     type: InstallerType.Json,
     id: InstallerType.Json,
