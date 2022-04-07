@@ -12,7 +12,7 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |- 📄 *.xl
  * |-📁 bin
  * | |-📁 x64
- * | | |-📄 *.ini -- Reshade mod
+ * | | |-📄 *.ini -- Reshade mods
  * | | |-📁 reshade-shaders
  * | | |-📁 plugins
  * | | | |- 📄 *.asi
@@ -26,21 +26,30 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📄 giweights.json
  * | | |-📁 platform
  * | | | |-📁 pc
- * | | | | |-📄 *.ini -- Typically loose files, no subdirs
+ * | | | | |-📄 *.ini
  * |-📁 r6
  * | |-📁 config
+ * | | |-📄 bumperSettings.json
+ * | | |-📄 inputContexts.xml
+ * | | |-📄 inputDeadzones.xml
+ * | | |-📄 inputUserMappings.xml
+ * | | |-📄 uiInputActions.xml
+ * | | |-📄 *.xml
  * | | |-📁 settings
  * | | | |-📄 options.json
  * | | | |-📁 platform
  * | | | | |-📁 pc
  * | | | | | |-📄 options.json
- * | | |-📄 bumperSettings.json
- * | | |-📄 *.xml (68.2 kB)
  * | |-📁 scripts
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
+ * | |-📁 tweaks
+ * | | |-📄 *.yaml
+ * | | |-📁 SomeMod
+ * | | | |-📄 *.yaml
  * |-📁 red4ext
  * | |-📁 plugins
+ * | | |-📄 *.dll
  * | | |-📁 SomeMod
  * | | | |-📄 *.dll
  */
