@@ -5,7 +5,6 @@ import path from "path";
 import { InstallChoices } from "../../src/dialogs";
 import {
   CONFIG_XML_MOD_BASEDIR,
-  CONFIG_JSON_MOD_PROTECTED_FILES,
   CONFIG_JSON_MOD_BASEDIR_SETTINGS,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
@@ -13,7 +12,6 @@ import {
   ExampleSucceedingMod,
   copiedToSamePath,
   FAKE_MOD_NAME,
-  pathHierarchyFor,
   ExamplePromptInstallableMod,
   ARCHIVE_PREFIX,
   ARCHIVE_PREFIXES,
