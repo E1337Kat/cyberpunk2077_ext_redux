@@ -24,7 +24,7 @@ import {
 import {
   configXmlAllowedInMultiInstructions,
   detectAllowedConfigXmlLayouts,
-} from "./installer.xml";
+} from "./installer.config.xml";
 import { LayoutToInstructions, NotAllowed } from "./installers.layouts";
 import { makeSyntheticName, useAllMatchingLayouts } from "./installers.shared";
 import { InstallerType } from "./installers.types";
