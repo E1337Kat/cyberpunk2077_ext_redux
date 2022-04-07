@@ -130,9 +130,17 @@ export const ARCHIVE_XL_CORE_FILES = [
 // XML
 
 export const enum ConfigXmlLayout {
-  Protected = `.\\r6\\config\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
-  Canon = `.\\r6\\config\\*.xml`,
-  Toplevel = `.\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
+  Protected = `
+              .\\r6\\config\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml
+              | - .\\r6\\config\\*.xml
+              `,
+  Canon = `
+          .\\r6\\config\\*.xml
+          `,
+  Toplevel = `
+            .\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml
+            | - .\\*.xml
+            `,
 }
 
 export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
