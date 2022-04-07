@@ -11,9 +11,9 @@ import {
   AMM_MOD_PREFIX,
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
-  INI_MOD_PATH,
-  RESHADE_MOD_PATH,
-  RESHADE_SHADERS_PATH,
+  CONFIG_INI_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_SHADER_BASEDIR,
   ASI_MOD_PATH,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
@@ -1600,7 +1600,7 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: path.normalize("myawesomeconfig.ini"),
-          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+          destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
       ],
     },
@@ -1611,12 +1611,12 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: path.normalize("myawesomeconfig.ini"),
-          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+          destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
         {
           type: "copy",
           source: path.normalize("serious.ini"),
-          destination: path.normalize(`${INI_MOD_PATH}/serious.ini`),
+          destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/serious.ini`),
         },
       ],
     },
@@ -1627,7 +1627,7 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: "superreshade.ini",
-          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+          destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
       ],
     },
@@ -1638,7 +1638,7 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: path.normalize("fold1/myawesomeconfig.ini"),
-          destination: path.normalize(`${INI_MOD_PATH}/myawesomeconfig.ini`),
+          destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
       ],
     },
@@ -1656,17 +1656,21 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: "superreshade.ini",
-          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+          destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`),
+          destination: path.normalize(
+            `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
+          ),
         },
         {
           type: "copy",
           source: path.normalize("reshade-shaders/Textures/lut.png"),
-          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Textures/lut.png`),
+          destination: path.normalize(
+            `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Textures/lut.png`,
+          ),
         },
       ],
     },
@@ -1684,17 +1688,21 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: path.normalize("fold1/superreshade.ini"),
-          destination: path.normalize(`${RESHADE_MOD_PATH}/superreshade.ini`),
+          destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
         {
           type: "copy",
           source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
-          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Shaders/fancy.fx`),
+          destination: path.normalize(
+            `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
+          ),
         },
         {
           type: "copy",
           source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
-          destination: path.normalize(`${RESHADE_SHADERS_PATH}/Textures/lut.png`),
+          destination: path.normalize(
+            `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Textures/lut.png`,
+          ),
         },
       ],
     },

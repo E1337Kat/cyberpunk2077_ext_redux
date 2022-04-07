@@ -123,6 +123,55 @@ export const ARCHIVE_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
 ];
 
+//
+// Config mods of all sorts
+//
+
+// XML
+
+export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
+
+export const CONFIG_XML_MOD_EXTENSION = `.xml`;
+
+export const CONFIG_XML_MOD_PROTECTED_FILES = [
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputContexts.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputDeadzones.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\uiInputActions.xml`),
+];
+
+// JSON
+
+export const CONFIG_JSON_MOD_EXTENSION = ".json";
+
+export const CONFIG_JSON_MOD_BASEDIR_SETTINGS = path.join(`r6\\config\\settings\\`);
+export const CONFIG_JSON_MOD_BASEDIR_PLATFORM = path.join(
+  `r6\\config\\settings\\platform\\pc\\`,
+);
+
+export const CONFIG_JSON_MOD_KNOWN_FILES = {
+  "giweights.json": path.join("engine", "config", "giweights.json"),
+  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
+};
+
+export const CONFIG_JSON_MOD_PROTECTED_FILES = [
+  ...Object.values(CONFIG_JSON_MOD_KNOWN_FILES),
+  path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\options.json`),
+  path.join(`${CONFIG_JSON_MOD_BASEDIR_PLATFORM}\\options.json`),
+];
+
+// INI (these are generally non-overriding)
+
+export const CONFIG_INI_MOD_BASEDIR = path.join("engine", "config", "platform", "pc");
+export const CONFIG_INI_MOD_EXTENSION = ".ini";
+
+export const CONFIG_RESHADE_MOD_BASEDIR = path.join("bin", "x64");
+export const CONFIG_RESHADE_MOD_SHADER_DIRNAME = "reshade-shaders";
+export const CONFIG_RESHADE_MOD_SHADER_BASEDIR = path.join(
+  CONFIG_RESHADE_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_SHADER_DIRNAME,
+);
+
 // ASI
 
 export const enum AsiLayout {
@@ -177,19 +226,6 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 ];
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
-
-export const RESHADE_MOD_PATH = path.join("bin", "x64");
-export const RESHADE_SHADERS_DIR = "reshade-shaders";
-export const RESHADE_SHADERS_PATH = path.join(RESHADE_MOD_PATH, RESHADE_SHADERS_DIR);
-
-export const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
-export const INI_MOD_EXT = ".ini";
-
-export const JSON_FILE_EXT = ".json";
-export const KNOWN_JSON_FILES = {
-  "giweights.json": path.join("engine", "config", "giweights.json"),
-  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
-};
 
 // AMM
 

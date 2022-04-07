@@ -23,7 +23,7 @@ export enum InstallerType {
   TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
   TweakXL = `TweakXL Mod Installer`,
   INI = `INI Mod Installer`,
-  Config = `Config Mod Installer`,
+  ConfigXML = `XML Config Mod Installer`,
   Reshade = `Reshade Mod Installer`,
   LUT = `LUT Mod Installer`,
   Json = `JSON Mod Installer`,

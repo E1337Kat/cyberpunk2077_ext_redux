@@ -2,13 +2,13 @@ import path from "path";
 import fs from "fs";
 import { FileTree } from "./filetree";
 import {
-  INI_MOD_EXT,
+  CONFIG_INI_MOD_EXTENSION,
   CET_MOD_CANONICAL_INIT_FILE,
   REDS_MOD_CANONICAL_EXTENSION,
   CET_GLOBAL_INI,
-  RESHADE_MOD_PATH,
-  INI_MOD_PATH,
-  RESHADE_SHADERS_DIR,
+  CONFIG_RESHADE_MOD_BASEDIR,
+  CONFIG_INI_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_SHADER_DIRNAME,
 } from "./installers.layouts";
 import {
   VortexLogFunc,
@@ -29,7 +29,7 @@ const testForReshadeFile = (
 
   const fileToExamine = path.join(
     folder,
-    files.find((file: string) => path.extname(file) === INI_MOD_EXT),
+    files.find((file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION),
   );
 
   const data = fs.readFileSync(fileToExamine, { encoding: "utf8" });
@@ -58,7 +58,7 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === INI_MOD_EXT,
+    (file: string) => path.extname(file).toLowerCase() === CONFIG_INI_MOD_EXTENSION,
   );
 
   if (filtered.length === 0) {
@@ -106,7 +106,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
   // This installer gets called for both reshade and "normal" ini mods
 
   const allIniModFiles = files.filter(
-    (file: string) => path.extname(file) === INI_MOD_EXT,
+    (file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION,
   );
 
   const reshade = testForReshadeFile(log, allIniModFiles, _destinationPath);
@@ -117,8 +117,8 @@ export const installIniMod: VortexWrappedInstallFunc = (
   const iniFileInstructions = allIniModFiles.map((file: string) => {
     const fileName = path.basename(file);
     const dest = reshade
-      ? path.join(RESHADE_MOD_PATH, path.basename(file))
-      : path.join(INI_MOD_PATH, fileName);
+      ? path.join(CONFIG_RESHADE_MOD_BASEDIR, path.basename(file))
+      : path.join(CONFIG_INI_MOD_BASEDIR, fileName);
 
     return {
       type: "copy",
@@ -128,7 +128,8 @@ export const installIniMod: VortexWrappedInstallFunc = (
   });
 
   const shaderFiles = files.filter(
-    (file: string) => file.includes(RESHADE_SHADERS_DIR) && !file.endsWith(path.sep),
+    (file: string) =>
+      file.includes(CONFIG_RESHADE_MOD_SHADER_DIRNAME) && !file.endsWith(path.sep),
   );
 
   let shaderInstructions = [];
@@ -137,9 +138,9 @@ export const installIniMod: VortexWrappedInstallFunc = (
     log("info", "Installing shader files: ", shaderFiles);
     shaderInstructions = shaderFiles.map((file: string) => {
       const regex = /.*reshade-shaders/;
-      const fileName = file.replace(regex, RESHADE_SHADERS_DIR);
+      const fileName = file.replace(regex, CONFIG_RESHADE_MOD_SHADER_DIRNAME);
       // log("info", "Shader dir Found. Processing: ", fileName);
-      const dest = path.join(RESHADE_MOD_PATH, fileName);
+      const dest = path.join(CONFIG_RESHADE_MOD_BASEDIR, fileName);
       // log("debug", "Shader file: ", dest);
       return {
         type: "copy",
