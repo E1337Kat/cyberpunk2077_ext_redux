@@ -56,6 +56,19 @@ export interface ExamplesForType {
   readonly AllExpectedPromptInstalls: ExamplePromptInstallableModCategory;
 }
 
+const mapHasAnySameKeys = <K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean =>
+  [...map1].some(([k, _]) => map2.get(k));
+
+// It's tests, it's ok to just raise. Don't do this in real code, kids
+export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
+  maps.reduce((mergedMap, map) => {
+    if (mapHasAnySameKeys(map, mergedMap)) {
+      // :goose-loose:
+      throw new Error(`Duplicate keys in example categories, fix it first!`);
+    }
+    return new Map([...mergedMap, ...map]);
+  }, new Map<K, V>());
+
 //
 // Test support functions, mocks
 //

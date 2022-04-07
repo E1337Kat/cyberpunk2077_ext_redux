@@ -14,19 +14,20 @@ export enum InstallerType {
   CoreTweakXL = `Core TweakXL Installer`,
   CoreArchiveXL = `Core ArchiveXL Installer`,
   CoreWolvenKit = `Core/WolvenKitCLI Installer`,
-  // Mods
-  ASI = `ASI Mod Installer`,
+  // MultiType
   MultiType = `MultiType Mod Installer`,
+  // Mods
+  ConfigJson = `JSON Config Mod Installer`,
+  ConfigXml = `XML Config Mod Installer`,
+  ASI = `ASI Mod Installer`,
   CET = `CET Mod Installer`,
   Redscript = `Redscript Mod Installer`,
   Red4Ext = `Red4ext Mod Installer`,
   TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
   TweakXL = `TweakXL Mod Installer`,
   INI = `INI Mod Installer`,
-  ConfigXml = `XML Config Mod Installer`,
   Reshade = `Reshade Mod Installer`,
   LUT = `LUT Mod Installer`,
-  Json = `JSON Mod Installer`,
   Archive = `Archive + ArchiveXL Mod Installer`,
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,

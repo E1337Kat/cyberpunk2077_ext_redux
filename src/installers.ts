@@ -214,8 +214,8 @@ const installers: Installer[] = [
   },
   */
   {
-    type: InstallerType.Json,
-    id: InstallerType.Json,
+    type: InstallerType.ConfigJson,
+    id: InstallerType.ConfigJson,
     testSupported: testForJsonMod,
     install: installJsonMod,
   },

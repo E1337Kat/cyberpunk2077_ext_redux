@@ -89,7 +89,7 @@ describe("Transforming modules to instructions", () => {
   AllExpectedInstallPromptables.forEach((examples, set) => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
-        test(`proceeds to produce fallback install when choosing to proceed on ${desc}`, async () => {
+        test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Proceed,
             input: undefined,
@@ -117,6 +117,7 @@ describe("Transforming modules to instructions", () => {
 
           expect(installResult.instructions).toEqual(mod.proceedOutInstructions);
         });
+
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Cancel,
