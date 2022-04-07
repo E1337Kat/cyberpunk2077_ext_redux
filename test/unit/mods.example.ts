@@ -2116,21 +2116,6 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
       ],
     },
-    "MultiType: XML + JSON Canonical v1": {
-      expectedInstallerType: InstallerType.MultiType,
-      inFiles: [
-        ...XML_PREFIXES,
-        path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputContext.xml`),
-        path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
-        ...pathHierarchyFor(CONFIG_JSON_MOD_PROTECTED_FILES[3]),
-        CONFIG_JSON_MOD_PROTECTED_FILES[3],
-      ],
-      outInstructions: [
-        copiedToSamePath(`${CONFIG_XML_MOD_BASEDIR}\\inputContext.xml`),
-        copiedToSamePath(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
-        copiedToSamePath(CONFIG_JSON_MOD_PROTECTED_FILES[3]),
-      ],
-    },
   }),
 );
 
