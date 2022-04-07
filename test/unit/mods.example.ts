@@ -117,7 +117,7 @@ const expectedUserCancelProtectedMessageFor = (installerType: InstallerType) =>
 
 const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.MultiType}: user has canceled installation for some part of this mod. Can't proceed safely, canceling entirely.`;
 
-export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
+const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreCetInstall: {
       expectedInstallerType: InstallerType.CoreCET,
@@ -192,7 +192,7 @@ export const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
+const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreRedscriptInstall: {
       expectedInstallerType: InstallerType.CoreRedscript,
@@ -228,7 +228,7 @@ export const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
+const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreTweakXLInstallCanon: {
       expectedInstallerType: InstallerType.CoreTweakXL,
@@ -252,10 +252,7 @@ export const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
-  string,
-  ExampleFailingMod
->(
+const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFailingMod>(
   Object.entries({
     coreTweakXLWithExtraFiles: {
       expectedInstallerType: InstallerType.CoreTweakXL,
@@ -292,7 +289,7 @@ export const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<
   }),
 );
 
-export const TweakXLMod = new Map<string, ExampleSucceedingMod>(
+const TweakXLMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     tweakXLWithFilesInCanonicalDir: {
       expectedInstallerType: InstallerType.TweakXL,
@@ -335,10 +332,7 @@ export const TweakXLMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const TweakXLModShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->(
+const TweakXLModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     tweakXLWithFileAtToplevelPromptsToInstallThroughFallback: {
       expectedInstallerType: InstallerType.TweakXL,
@@ -359,7 +353,7 @@ export const TweakXLModShouldPromptForInstall = new Map<
   }),
 );
 
-export const CoreArchiveXLInstall = new Map<string, ExampleSucceedingMod>(
+const CoreArchiveXLInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreArchiveXLInstallCanon: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
@@ -374,7 +368,7 @@ export const CoreArchiveXLInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
+const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
   string,
   ExampleFailingMod
 >(
@@ -394,7 +388,7 @@ export const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
   }),
 );
 
-export const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
+const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     Red4ExtCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreRed4ext,
@@ -430,7 +424,7 @@ export const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
+const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreCsvMergeCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreCSVMerge,
@@ -541,7 +535,7 @@ export const CoreCsvMergeInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreWolvenkitCliInstall = new Map<string, ExampleSucceedingMod>(
+const CoreWolvenkitCliInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     CoreWolvenKitCliCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreWolvenKit,
@@ -571,7 +565,7 @@ export const CoreWolvenkitCliInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
+const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
     CoreWolvenKitDetectedDesktop: {
       expectedInstallerType: InstallerType.NotSupported,
@@ -584,7 +578,7 @@ export const CoreWolvenKitShouldFailInTest = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const AsiMod = new Map<string, ExampleSucceedingMod>(
+const AsiMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     asiModWithCet: {
       expectedInstallerType: InstallerType.ASI,
@@ -634,7 +628,7 @@ export const AsiMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CetMod = new Map<string, ExampleSucceedingMod>(
+const CetMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithOnlyInitCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -741,7 +735,7 @@ export const CetMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
+const CetModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     cetModWithIniShouldPromptToInstall: {
       expectedInstallerType: InstallerType.Fallback,
@@ -761,7 +755,7 @@ export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
   }),
 );
 
-export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
+const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     redsWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Redscript,
@@ -855,10 +849,7 @@ export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const RedscriptModShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->(
+const RedscriptModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Redscript,
@@ -920,7 +911,7 @@ export const RedscriptModShouldPromptForInstall = new Map<
   }),
 );
 
-export const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
+const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     red4extWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Red4Ext,
@@ -1107,10 +1098,7 @@ const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
   ]),
 ]);
 
-export const Red4ExtModShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->(
+const Red4ExtModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     red4extWithMultipleSubdirsPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Red4Ext,
@@ -1162,7 +1150,7 @@ export const Red4ExtModShouldPromptForInstall = new Map<
   }),
 );
 
-export const ArchiveMod = new Map<string, ExampleSucceedingMod>(
+const ArchiveMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Archive,
@@ -1400,10 +1388,7 @@ export const ArchiveMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const ArchiveOnlyModShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->(
+const ArchiveOnlyModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     archiveWithToplevelAndCanonicalFilesPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Archive,
@@ -1431,7 +1416,7 @@ export const ArchiveOnlyModShouldPromptForInstall = new Map<
   }),
 );
 
-export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
+const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithExtraArchiveFilesCanonical: {
       expectedInstallerType: InstallerType.CET,
@@ -1512,7 +1497,7 @@ export const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const ConfigXMLMod = new Map<string, ExampleSucceedingMod>(
+const ConfigXMLMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     configXMLWithRandomNameInCanonicalBasedirWillInstall: {
       expectedInstallerType: InstallerType.ConfigXML,
@@ -1524,10 +1509,7 @@ export const ConfigXMLMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const ConfigXMLModShouldPromptToInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->([
+const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallableMod>([
   ...CONFIG_XML_MOD_PROTECTED_FILES.map(
     (xml: string): [string, ExamplePromptInstallableMod] => [
       `Protected XML file ${path.basename(xml)} in XML basedir prompts to install`,
@@ -1594,7 +1576,7 @@ export const ConfigXMLModShouldPromptToInstall = new Map<
   ],
 ]);
 
-export const JsonMod = new Map<string, ExampleSucceedingMod>(
+const JsonMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     jsonWithValidFileInRoot: {
       expectedInstallerType: InstallerType.Json,
@@ -1667,7 +1649,7 @@ export const JsonMod = new Map<string, ExampleSucceedingMod>(
 );
 
 // These errordialogs should be fixed as part o https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
-export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
+const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   Object.entries({
     jsonWithInvalidFileInRootFailsInTest: {
       expectedInstallerType: InstallerType.NotSupported,
@@ -1685,7 +1667,7 @@ export const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
   }),
 );
 
-export const IniMod = new Map<string, ExampleSucceedingMod>(
+const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
@@ -1803,7 +1785,7 @@ export const IniMod = new Map<string, ExampleSucceedingMod>(
   }), // object
 );
 
-export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
+const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
   string,
   ExamplePromptInstallableMod
 >(
@@ -1889,7 +1871,7 @@ export const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
 // The instructions will be grouped in the order that we try
 // to match things, and normally within them.
 //
-export const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
+const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
       expectedInstallerType: InstallerType.MultiType,
@@ -2152,10 +2134,7 @@ export const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-export const MultiTypeModShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
->(
+const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     "MultiType: XML Config should prompt, w/ CET, Reds, Red4ext, Archive + XL, TweakXL, JSON":
       {
@@ -2269,7 +2248,7 @@ export const MultiTypeModShouldPromptForInstall = new Map<
   }),
 );
 
-export const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
+const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     multipleModtypesWrappedAreUnwrappedFixable: {
       expectedInstallerType: InstallerType.MultiType,
@@ -2355,5 +2334,6 @@ export const AllExpectedInstallPromptables = new Map<
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
     ConfigXMLModShouldPromptToInstall,
+    CetModShouldPromptForInstall,
   }),
 );
