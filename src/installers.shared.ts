@@ -7,10 +7,12 @@ import {
   LayoutToInstructions,
   MaybeInstructions,
   NoInstructions,
+  NotAllowed,
+  PromptedMaybeInstructions,
 } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
 
-import { VortexApi, VortexInstallResult, VortexInstruction } from "./vortex-wrapper";
+import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 // Types
 
 // Vortex gives us a 'destination path', which is actually
@@ -94,17 +96,12 @@ export const useAllMatchingLayouts = (
   return someValidInstructions;
 };
 
-export const promptToUseProtectedInstructionsOrFail = async (
+export const promptBeforeContinuingWithProtectedInstructions = async (
   api: VortexApi,
   installerType: InstallerType,
   protectedPaths: string[],
   instructionsToUse: Instructions,
-): Promise<VortexInstallResult> => {
-  api.log(
-    `info`,
-    `${installerType}: Asking user to confirm installing to protected paths`,
-  );
-
+): Promise<PromptedMaybeInstructions> => {
   const destinationPaths = instructionsToUse.instructions.map((i) => i.destination);
   const affectedPaths = destinationPaths.filter((p) => protectedPaths.includes(p));
 
@@ -115,15 +112,8 @@ export const promptToUseProtectedInstructionsOrFail = async (
   );
 
   if (installDecision === InstallDecision.UserWantsToCancel) {
-    const cancelMessage = `${installerType}: user chose to cancel installing to protected paths:`;
-
-    api.log(`info`, cancelMessage, destinationPaths);
-
-    return Promise.reject(new Error(cancelMessage));
+    return NotAllowed.CanceledByUser;
   }
 
-  api.log(`info`, `${installerType}: User confirmed installing to protected paths`);
-  return Promise.resolve({
-    instructions: instructionsToUse.instructions,
-  });
+  return instructionsToUse;
 };

@@ -129,7 +129,7 @@ export const ARCHIVE_XL_CORE_FILES = [
 
 // XML
 
-export const enum XMLConfigLayout {
+export const enum ConfigXmlLayout {
   Protected = `.\\r6\\config\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
   Canon = `.\\r6\\config\\*.xml`,
   Toplevel = `.\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml`,
@@ -296,11 +296,11 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
-    InstallerType.ConfigXML,
+    InstallerType.ConfigXml,
     `
-    - \`${XMLConfigLayout.Protected}\` (Protected)
-    - \`${XMLConfigLayout.Canon}\` (Can be mixed with above)
-    - \`${XMLConfigLayout.Toplevel}\` (Protected, can be moved to canonical)
+    - \`${ConfigXmlLayout.Protected}\` (Protected)
+    - \`${ConfigXmlLayout.Canon}\` (Can be mixed with above)
+    - \`${ConfigXmlLayout.Toplevel}\` (Protected, can be moved to canonical)
 
     Some of the XML config files are protected, because they often contain modifications
     by the user. There's a prompt before installing into those paths.
@@ -385,7 +385,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
-  | XMLConfigLayout
+  | ConfigXmlLayout
   | AsiLayout
   | CetLayout
   | RedscriptLayout
@@ -400,8 +400,13 @@ export const enum NoInstructions {
   NoMatch = "attempted layout didn't match",
 }
 
+// Should really refactor these into NoInstructions
 export const enum InvalidLayout {
   Conflict = "can't determine what the intended layout is, conflicting files",
+}
+
+export const enum NotAllowed {
+  CanceledByUser = `user didn't permit using these instructions when prompted`,
 }
 
 export type Instructions = {
@@ -410,6 +415,7 @@ export type Instructions = {
 };
 
 export type MaybeInstructions = Instructions | NoInstructions | InvalidLayout;
+export type PromptedMaybeInstructions = Instructions | NotAllowed;
 
 export type LayoutToInstructions = (
   api: VortexApi,

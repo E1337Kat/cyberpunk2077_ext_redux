@@ -1497,10 +1497,10 @@ const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const ConfigXMLMod = new Map<string, ExampleSucceedingMod>(
+const ConfigXmlMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    configXMLWithRandomNameInCanonicalBasedirWillInstall: {
-      expectedInstallerType: InstallerType.ConfigXML,
+    configXmlWithRandomNameInCanonicalBasedirWillInstall: {
+      expectedInstallerType: InstallerType.ConfigXml,
       inFiles: [path.join(`${CONFIG_XML_MOD_BASEDIR}\\dunnowhythisishere.xml`)],
       outInstructions: [
         copiedToSamePath(path.join(`${CONFIG_XML_MOD_BASEDIR}\\dunnowhythisishere.xml`)),
@@ -1509,18 +1509,18 @@ const ConfigXMLMod = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallableMod>([
+const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallableMod>([
   ...CONFIG_XML_MOD_PROTECTED_FILES.map(
     (xml: string): [string, ExamplePromptInstallableMod] => [
       `Protected XML file ${path.basename(xml)} in XML basedir prompts to install`,
       {
-        expectedInstallerType: InstallerType.ConfigXML,
+        expectedInstallerType: InstallerType.ConfigXml,
         inFiles: [path.join(xml)],
         proceedLabel: InstallChoices.Proceed,
         proceedOutInstructions: [copiedToSamePath(xml)],
         cancelLabel: InstallChoices.Cancel,
         cancelErrorMessage: expectedUserCancelProtectedMessageFor(
-          InstallerType.ConfigXML,
+          InstallerType.ConfigXml,
         ),
       },
     ],
@@ -1529,7 +1529,7 @@ const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
     (xmlname: string): [string, ExamplePromptInstallableMod] => [
       `Protected XML file ${xmlname} in toplevel prompts to install into XML basedir`,
       {
-        expectedInstallerType: InstallerType.ConfigXML,
+        expectedInstallerType: InstallerType.ConfigXml,
         inFiles: [path.join(xmlname)],
         proceedLabel: InstallChoices.Proceed,
         proceedOutInstructions: [
@@ -1541,7 +1541,7 @@ const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
         ],
         cancelLabel: InstallChoices.Cancel,
         cancelErrorMessage: expectedUserCancelProtectedMessageFor(
-          InstallerType.ConfigXML,
+          InstallerType.ConfigXml,
         ),
       },
     ],
@@ -1549,7 +1549,7 @@ const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
   [
     `Config XML files when there's a combination of protected and non-protected canonical prompts to install`,
     {
-      expectedInstallerType: InstallerType.ConfigXML,
+      expectedInstallerType: InstallerType.ConfigXml,
       inFiles: [
         CONFIG_XML_MOD_PROTECTED_FILES[0],
         path.join(`${CONFIG_XML_MOD_BASEDIR}\\weeblewobble.xml`),
@@ -1560,13 +1560,13 @@ const ConfigXMLModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
         copiedToSamePath(`${CONFIG_XML_MOD_BASEDIR}\\weeblewobble.xml`),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelProtectedMessageFor(InstallerType.ConfigXML),
+      cancelErrorMessage: expectedUserCancelProtectedMessageFor(InstallerType.ConfigXml),
     },
   ],
   [
     `Config XML files with random XML file in toplevel prompts to install via Fallback`,
     {
-      expectedInstallerType: InstallerType.ConfigXML,
+      expectedInstallerType: InstallerType.ConfigXml,
       inFiles: [path.join(`myfancy.xml`)],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [copiedToSamePath(path.join(`myfancy.xml`))],
@@ -2302,7 +2302,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CetMod,
     RedscriptMod,
     Red4ExtMod,
-    ConfigXMLMod,
+    ConfigXmlMod,
     JsonMod,
     IniMod,
     ArchiveOnly: ArchiveMod,
@@ -2333,7 +2333,7 @@ export const AllExpectedInstallPromptables = new Map<
     TweakXLModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
-    ConfigXMLModShouldPromptToInstall,
+    ConfigXmlModShouldPromptToInstall,
     CetModShouldPromptForInstall,
   }),
 );

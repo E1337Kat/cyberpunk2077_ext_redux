@@ -47,7 +47,7 @@ import { testForIniMod, installIniMod } from "./installer.config.ini-reshade";
 import { testForJsonMod, installJsonMod } from "./installer.config.json";
 import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
 import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
-import { installXMLConfigMod, testForXMLConfigMod } from "./installer.xml";
+import { installConfigXmlMod, testForConfigXmlMod } from "./installer.xml";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -162,10 +162,10 @@ const installers: Installer[] = [
     install: installMultiTypeMod,
   },
   {
-    type: InstallerType.ConfigXML,
-    id: InstallerType.ConfigXML,
-    testSupported: testForXMLConfigMod,
-    install: installXMLConfigMod,
+    type: InstallerType.ConfigXml,
+    id: InstallerType.ConfigXml,
+    testSupported: testForConfigXmlMod,
+    install: installConfigXmlMod,
   },
   {
     type: InstallerType.CET,

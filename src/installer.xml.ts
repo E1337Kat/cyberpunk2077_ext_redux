@@ -13,19 +13,20 @@ import {
   MaybeInstructions,
   NoInstructions,
   InvalidLayout,
-  Instructions,
   NoLayout,
   CONFIG_XML_MOD_EXTENSION,
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_XML_MOD_PROTECTED_FILENAMES,
-  XMLConfigLayout,
+  ConfigXmlLayout,
   CONFIG_XML_MOD_PROTECTED_FILES,
+  PromptedMaybeInstructions,
+  NotAllowed,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
   moveFromTo,
-  promptToUseProtectedInstructionsOrFail,
+  promptBeforeContinuingWithProtectedInstructions,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
@@ -33,102 +34,102 @@ import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback
 
 // Recognizers
 
-const matchConfigXML = (filePath: string): boolean =>
+const matchConfigXml = (filePath: string): boolean =>
   CONFIG_XML_MOD_EXTENSION === path.extname(filePath);
 
-export const findXMLConfigProtectedFiles = (fileTree: FileTree): string[] =>
-  filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXML, fileTree).filter((xml) =>
+export const findConfigXmlProtectedFiles = (fileTree: FileTree): string[] =>
+  filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXml, fileTree).filter((xml) =>
     CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)),
   );
 
-export const findXMLConfigCanonFiles = (fileTree: FileTree): string[] =>
-  filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXML, fileTree).filter(
+export const findConfigXmlCanonFiles = (fileTree: FileTree): string[] =>
+  filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXml, fileTree).filter(
     (xmlPath) => !CONFIG_XML_MOD_PROTECTED_FILES.includes(xmlPath),
   );
 
-export const findXMLConfigToplevelFiles = (fileTree: FileTree): string[] =>
-  filesIn(FILETREE_ROOT, matchConfigXML, fileTree).filter((xml) =>
+export const findConfigXmlToplevelFiles = (fileTree: FileTree): string[] =>
+  filesIn(FILETREE_ROOT, matchConfigXml, fileTree).filter((xml) =>
     CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)),
   );
 
-export const detectXMLConfigProtectedLayout = (fileTree: FileTree): boolean =>
-  findXMLConfigProtectedFiles(fileTree).length > 0;
+export const detectConfigXmlProtectedLayout = (fileTree: FileTree): boolean =>
+  findConfigXmlProtectedFiles(fileTree).length > 0;
 
-export const detectXMLConfigCanonLayout = (fileTree: FileTree): boolean =>
-  findXMLConfigCanonFiles(fileTree).length > 0;
+export const detectConfigXmlCanonLayout = (fileTree: FileTree): boolean =>
+  findConfigXmlCanonFiles(fileTree).length > 0;
 
-export const detectXMLConfigToplevelLayout = (fileTree: FileTree): boolean =>
-  findXMLConfigToplevelFiles(fileTree).length > 0;
+export const detectConfigXmlToplevelLayout = (fileTree: FileTree): boolean =>
+  findConfigXmlToplevelFiles(fileTree).length > 0;
 
 // Layouts
 
-const xmlConfigProtectedLayout = (
+const configXmlProtectedLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const allProtectedXMLConfigFiles = findXMLConfigProtectedFiles(fileTree);
+  const allProtectedConfigXmlFiles = findConfigXmlProtectedFiles(fileTree);
 
-  if (allProtectedXMLConfigFiles.length < 1) {
+  if (allProtectedConfigXmlFiles.length < 1) {
     return NoInstructions.NoMatch;
   }
 
-  const allCanonXMLConfigFiles = findXMLConfigCanonFiles(fileTree);
+  const allCanonConfigXmlFiles = findConfigXmlCanonFiles(fileTree);
 
   const allInstructions = instructionsForSameSourceAndDestPaths([
-    ...allProtectedXMLConfigFiles,
-    ...allCanonXMLConfigFiles,
+    ...allProtectedConfigXmlFiles,
+    ...allCanonConfigXmlFiles,
   ]);
 
   return {
-    kind: XMLConfigLayout.Protected,
+    kind: ConfigXmlLayout.Protected,
     instructions: allInstructions,
   };
 };
 
-const xmlConfigCanonLayout = (
+const configXmlCanonLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const allCanonXMLConfigFiles = findXMLConfigCanonFiles(fileTree);
+  const allCanonConfigXmlFiles = findConfigXmlCanonFiles(fileTree);
 
-  if (allCanonXMLConfigFiles.length < 1) {
+  if (allCanonConfigXmlFiles.length < 1) {
     return NoInstructions.NoMatch;
   }
 
   return {
-    kind: XMLConfigLayout.Canon,
-    instructions: instructionsForSameSourceAndDestPaths(allCanonXMLConfigFiles),
+    kind: ConfigXmlLayout.Canon,
+    instructions: instructionsForSameSourceAndDestPaths(allCanonConfigXmlFiles),
   };
 };
 
-const xmlConfigToplevelLayout = (
+const configXmlTopevelLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const allToplevelXMLConfigFiles = findXMLConfigToplevelFiles(fileTree);
+  const allToplevelConfigXmlFiles = findConfigXmlToplevelFiles(fileTree);
 
-  if (allToplevelXMLConfigFiles.length < 1) {
+  if (allToplevelConfigXmlFiles.length < 1) {
     return NoInstructions.NoMatch;
   }
 
-  const toplevelXMLsToBasedir = allToplevelXMLConfigFiles.map(
+  const toplevelXMLsToBasedir = allToplevelConfigXmlFiles.map(
     moveFromTo(FILETREE_ROOT, CONFIG_XML_MOD_BASEDIR),
   );
 
   const movingInstructions = instructionsForSourceToDestPairs(toplevelXMLsToBasedir);
 
   return {
-    kind: XMLConfigLayout.Toplevel,
+    kind: ConfigXmlLayout.Toplevel,
     instructions: movingInstructions,
   };
 };
 
 // testSupport
 
-export const testForXMLConfigMod: VortexWrappedTestSupportedFunc = (
+export const testForConfigXmlMod: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -136,15 +137,15 @@ export const testForXMLConfigMod: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({
     supported:
-      detectXMLConfigProtectedLayout(fileTree) ||
-      detectXMLConfigCanonLayout(fileTree) ||
-      detectXMLConfigToplevelLayout(fileTree),
+      detectConfigXmlProtectedLayout(fileTree) ||
+      detectConfigXmlCanonLayout(fileTree) ||
+      detectConfigXmlToplevelLayout(fileTree),
     requiredFiles: [],
   });
 
 // install
 
-export const installXMLConfigMod: VortexWrappedInstallFunc = async (
+export const installConfigXmlMod: VortexWrappedInstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -152,16 +153,16 @@ export const installXMLConfigMod: VortexWrappedInstallFunc = async (
   _destinationPath: string,
   _progressDelegate: VortexProgressDelegate,
 ): Promise<VortexInstallResult> => {
-  const allPossibleXMLConfigLayouts = [
-    xmlConfigProtectedLayout,
-    xmlConfigCanonLayout,
-    xmlConfigToplevelLayout,
+  const allPossibleConfigXmlLayouts = [
+    configXmlProtectedLayout,
+    configXmlCanonLayout,
+    configXmlTopevelLayout,
   ];
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
     api,
     undefined,
     fileTree,
-    allPossibleXMLConfigLayouts,
+    allPossibleConfigXmlLayouts,
   );
 
   if (
@@ -170,26 +171,41 @@ export const installXMLConfigMod: VortexWrappedInstallFunc = async (
   ) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
-      InstallerType.ConfigXML,
+      InstallerType.ConfigXml,
       fileTree,
     );
   }
 
   const userNeedsToBePrompted =
-    selectedInstructions.kind === XMLConfigLayout.Protected ||
-    selectedInstructions.kind === XMLConfigLayout.Toplevel;
+    selectedInstructions.kind === ConfigXmlLayout.Protected ||
+    selectedInstructions.kind === ConfigXmlLayout.Toplevel;
 
-  if (userNeedsToBePrompted) {
-    return promptToUseProtectedInstructionsOrFail(
-      api,
-      InstallerType.ConfigXML,
-      CONFIG_XML_MOD_PROTECTED_FILES,
-      selectedInstructions,
-    );
+  if (!userNeedsToBePrompted) {
+    return Promise.resolve({
+      instructions: selectedInstructions.instructions,
+    });
   }
 
+  const confirmedInstructions = await promptBeforeContinuingWithProtectedInstructions(
+    api,
+    InstallerType.ConfigXml,
+    CONFIG_XML_MOD_PROTECTED_FILES,
+    selectedInstructions,
+  );
+
+  if (confirmedInstructions === NotAllowed.CanceledByUser) {
+    const cancelMessage = `${InstallerType.ConfigXml}: user chose to cancel installing to protected paths`;
+
+    api.log(`warn`, cancelMessage);
+    return Promise.reject(new Error(cancelMessage));
+  }
+
+  api.log(
+    `info`,
+    `${InstallerType.ConfigXml}: User confirmed installing to protected paths`,
+  );
   return Promise.resolve({
-    instructions: selectedInstructions.instructions,
+    instructions: confirmedInstructions.instructions,
   });
 };
 
@@ -197,26 +213,50 @@ export const installXMLConfigMod: VortexWrappedInstallFunc = async (
 // External use for MultiType etc.
 //
 
-export const detectAllowedXMLConfigLayouts = (fileTree: FileTree): boolean =>
-  detectXMLConfigProtectedLayout(fileTree) || detectXMLConfigCanonLayout(fileTree);
+const layoutsAllowedInMultiAndOtherTypes = [
+  configXmlProtectedLayout,
+  configXmlCanonLayout,
+];
+export const detectAllowedConfigXmlLayouts = (fileTree: FileTree): boolean =>
+  detectConfigXmlProtectedLayout(fileTree) || detectConfigXmlCanonLayout(fileTree);
 
-export const xmlConfigAllowedInMultiInstructions = (
-  _api: VortexApi,
-  _fileTree: FileTree,
-): Instructions => ({ kind: NoLayout.Optional, instructions: [] });
-/*
-  const selectedInstructions = xmlConfigCanonLayout(api, undefined, fileTree);
+export const configXmlAllowedInMultiInstructions = async (
+  api: VortexApi,
+  fileTree: FileTree,
+): Promise<PromptedMaybeInstructions> => {
+  const me = InstallerType.ConfigXml;
+
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    layoutsAllowedInMultiAndOtherTypes,
+  );
 
   if (
     selectedInstructions === NoInstructions.NoMatch ||
     selectedInstructions === InvalidLayout.Conflict
   ) {
-    api.log(
-      `debug`,
-      `${InstallerType.ConfigXML}: No valid XML config files found, this is ok`,
-    );
+    api.log(`debug`, `${me}: No valid XML config files found, this is ok`);
     return { kind: NoLayout.Optional, instructions: [] };
   }
 
-  return selectedInstructions;
-  */
+  if (selectedInstructions.kind !== ConfigXmlLayout.Protected) {
+    return selectedInstructions;
+  }
+
+  const confirmedInstructions = await promptBeforeContinuingWithProtectedInstructions(
+    api,
+    InstallerType.ConfigXml,
+    CONFIG_XML_MOD_PROTECTED_FILES,
+    selectedInstructions,
+  );
+
+  if (confirmedInstructions === NotAllowed.CanceledByUser) {
+    api.log(`warn`, `${me}: user did not allow installing to protected paths`);
+
+    return confirmedInstructions;
+  }
+
+  return confirmedInstructions;
+};
