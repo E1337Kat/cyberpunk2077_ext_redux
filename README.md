@@ -1,3 +1,5 @@
+[![Testing](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/testing.yml/badge.svg)](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/testing.yml)  [![Package](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/packaging.yml/badge.svg)](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/packaging.yml)
+
 # Cyberpunk 2077 Support for Vortex Mod Manager
 
 - [Cyberpunk 2077 Vortex Support on Nexus](https://www.nexusmods.com/site/mods/196)
