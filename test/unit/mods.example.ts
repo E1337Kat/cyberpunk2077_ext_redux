@@ -882,13 +882,13 @@ export const RedscriptModShouldPromptForInstall = new Map<
       proceedOutInstructions: [
         {
           type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/patch.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/rexmod/patch.reds`),
+          source: path.join(`script.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
         },
         {
           type: "copy",
-          source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
+          source: path.join(`${REDS_PREFIX}/rexmod/patch.reds`),
+          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/rexmod/patch.reds`),
         },
       ],
       cancelLabel: InstallChoices.Cancel,
