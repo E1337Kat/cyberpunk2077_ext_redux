@@ -97,6 +97,22 @@ export const redscriptToplevelLayout = (
     return NoInstructions.NoMatch;
   }
 
+  // This is maybe slightly annoying to check, but makes
+  // logic elsewhere cleaner. I suppose we can decide that
+  // layouts need to be robust enough in themselves if they
+  // would otherwise depend on some external check that isn't
+  // always present.
+  //
+  // Generally, shouldn't get here.
+  //
+  const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
+
+  if (hasBasedirReds) {
+    // Errors need to be handled downstream if it's relevant there
+    api.log("debug", "No instructions from canon: basedir overrides");
+    return NoInstructions.NoMatch;
+  }
+
   const modnamedDir = path.join(REDS_MOD_CANONICAL_PATH_PREFIX, modName);
 
   const allToBasedirWithSubdirAsModname = toplevelReds.map(
