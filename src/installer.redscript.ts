@@ -75,6 +75,8 @@ export const redscriptBasedirLayout = (
 };
 
 export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
+!detectRedscriptBasedirLayout(fileTree) &&
+  !detectRedscriptCanonOnlyLayout(fileTree) &&
   dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
 
 export const redscriptToplevelLayout = (
