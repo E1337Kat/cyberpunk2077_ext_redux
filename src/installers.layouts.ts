@@ -136,6 +136,7 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 export const enum RedscriptLayout {
   Canon = `.\\r6\\scripts\\[modname]\\*.reds + [any files + subdirs]`,
   Basedir = `.\\r6\\scripts\\*.reds + [any files + subdirs]`,
+  Toplevel = `.\\*.reds + [any files + subdirs]`,
 }
 
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";

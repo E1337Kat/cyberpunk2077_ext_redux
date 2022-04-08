@@ -95,7 +95,7 @@ export const promptToFallbackOrFailOnUnresolvableLayout = async (
   const installDecision = await promptUserOnUnresolvableLayout(
     api,
     installerType,
-    sourcePaths(fileTree),
+    filesUnder(FILETREE_ROOT, Glob.Any, fileTree),
   );
 
   return useFallbackOrFail(api, installerType, fileTree, installDecision);
@@ -123,7 +123,7 @@ export const installFallback: VortexWrappedInstallFunc = async (
 ): Promise<VortexInstallResult> => {
   const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
     api,
-    sourcePaths(fileTree),
+    filesUnder(FILETREE_ROOT, Glob.Any, fileTree),
   );
 
   return useFallbackOrFail(api, InstallerType.Fallback, fileTree, installDecision);

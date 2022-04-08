@@ -751,6 +751,28 @@ export const CetModShouldFail = new Map<string, ExamplePromptInstallableMod>(
 
 export const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
+    
+    redsWithBasedirAndCanonicalFilesInstallsToSubdir: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/yay.reds`),
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+      ],
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\yay.reds`),
+          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\yay.reds`),
+        },
+        {
+          type: "copy",
+          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
+          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\rexmod\\script.reds`),
+        },
+      ],
+    },
     redsWithSingleFileCanonical: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [
@@ -848,30 +870,6 @@ export const RedscriptModShouldPromptForInstall = new Map<
   ExamplePromptInstallableMod
 >(
   Object.entries({
-    redsWithBasedirAndCanonicalFilesPromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/yay.reds`),
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\yay.reds`),
-          destination: path.join(`${REDS_PREFIX}\\yay.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
-          destination: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
-    },
     redsWithRedsInToplevelSubdirPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`rexmod/script.reds`)],

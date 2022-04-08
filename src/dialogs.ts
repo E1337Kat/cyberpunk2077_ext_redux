@@ -35,8 +35,8 @@ const INSTRUCTIONS_TO_REPORT_ISSUE = `
     Please let the team know if this looks like a valid mod. You can
     reach us at:
 
-    - ${EXTENSION_URL_NEXUS} (or just search for ${EXTENSION_NAME_NEXUS})
-    - ${EXTENSION_URL_GITHUB}
+    - [${EXTENSION_URL_NEXUS}](${EXTENSION_URL_NEXUS}) (or just search for ${EXTENSION_NAME_NEXUS})
+    - [${EXTENSION_URL_GITHUB}](${EXTENSION_URL_GITHUB})
     `;
 
 // This'll be converted to a reject down the line somewhere
