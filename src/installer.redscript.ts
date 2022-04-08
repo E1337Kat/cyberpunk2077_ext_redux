@@ -74,6 +74,39 @@ export const redscriptBasedirLayout = (
   };
 };
 
+export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
+  dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+
+export const redscriptToplevelLayout = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  // .\*.reds
+  // eslint-disable-next-line no-underscore-dangle
+  const hasToplevelReds = detectRedscriptToplevelLayout(fileTree);
+
+  const toplevelReds = hasToplevelReds
+    ? filesUnder(FILETREE_ROOT, Glob.Any, fileTree)
+    : [];
+
+  if (!hasToplevelReds) {
+    api.log("debug", "No toplevel Redscript files found");
+    return NoInstructions.NoMatch;
+  }
+
+  const modnamedDir = path.join(REDS_MOD_CANONICAL_PATH_PREFIX, modName);
+
+  const allToBasedirWithSubdirAsModname = toplevelReds.map(
+    moveFromTo(FILETREE_ROOT, modnamedDir),
+  );
+
+  return {
+    kind: RedscriptLayout.Toplevel,
+    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+  };
+};
+
 const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
   findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
@@ -157,6 +190,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   const modName = makeSyntheticName(destinationPath);
 
   const allInstructionSets: LayoutToInstructions[] = [
+    redscriptToplevelLayout,
     redscriptBasedirLayout,
     redscriptCanonLayout,
   ];
