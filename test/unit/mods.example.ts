@@ -870,30 +870,6 @@ export const RedscriptModShouldPromptForInstall = new Map<
   ExamplePromptInstallableMod
 >(
   Object.entries({
-    redsWithRedsInToplevelAndCannonPromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        path.join(`script.reds`),
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/patch.reds`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/patch.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/rexmod/patch.reds`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
-    },
     redsWithRedsInToplevelSubdirPromptsOnConflictForFallback: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`rexmod/script.reds`)],
