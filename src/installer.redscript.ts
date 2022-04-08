@@ -6,6 +6,7 @@ import {
   Glob,
   findDirectSubdirsWithSome,
   FILETREE_ROOT,
+  fileCount,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -15,14 +16,14 @@ import {
   NoInstructions,
   RedscriptLayout,
   REDS_MOD_CANONICAL_EXTENSION,
+  LayoutToInstructions,
 } from "./installers.layouts";
 import {
   moveFromTo,
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
   makeSyntheticName,
-  toSamePath,
-  toDirInPath,
+  useAllMatchingLayouts,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
 import { trueish } from "./installers.utils";
@@ -145,45 +146,41 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
 // Install the Redscript stuff, as well as any archives we find
 export const installRedscriptMod: VortexWrappedInstallFunc = async (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
+  _log: VortexLogFunc,
+  _files: string[],
   fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
   // We could get a lot fancier here, but for now we don't accept
   // subdirectories anywhere other than in a canonical location.
 
-  // .\*.reds
-  // eslint-disable-next-line no-underscore-dangle
-  const hasToplevelReds = dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
-  const toplevelReds = hasToplevelReds
-    ? filesUnder(FILETREE_ROOT, Glob.Any, fileTree)
-    : [];
+  const modName = makeSyntheticName(destinationPath);
 
-  // .\r6\scripts\*.reds
-  // eslint-disable-next-line no-underscore-dangle
-  const hasBasedirReds = dirWithSomeIn(
-    REDS_MOD_CANONICAL_PATH_PREFIX,
-    matchRedscript,
+  const allInstructionSets: LayoutToInstructions[] = [
+    redscriptBasedirLayout,
+    redscriptCanonLayout,
+  ];
+
+  const allInstructionsPerLayout = useAllMatchingLayouts(
+    api,
+    modName,
     fileTree,
+    allInstructionSets,
   );
-  const basedirReds = hasBasedirReds
-    ? filesUnder(REDS_MOD_CANONICAL_PATH_PREFIX, Glob.Any, fileTree)
-    : [];
 
-  const canonSubdirs = findDirectSubdirsWithSome(
-    REDS_MOD_CANONICAL_PATH_PREFIX,
-    matchRedscript,
-    fileTree,
+  const allInstructionsWeProduced = allInstructionsPerLayout.flatMap(
+    (i) => i.instructions,
   );
-  const hasCanonReds = canonSubdirs.length > 0;
-  const canonReds = hasCanonReds
-    ? canonSubdirs.flatMap((dir) => filesUnder(dir, Glob.Any, fileTree))
-    : [];
 
-  const installable = [hasToplevelReds, hasBasedirReds, hasCanonReds].filter(trueish);
+  const allInstructions = [
+    ...allInstructionsWeProduced,
+    ...extraCanonArchiveInstructions(api, fileTree).instructions,
+  ];
 
-  if (installable.length !== 1) {
+  const haveFilesOutsideSelectedInstructions =
+    allInstructions.length !== fileCount(fileTree);
+
+  if (allInstructions.length < 1 || haveFilesOutsideSelectedInstructions) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.Redscript,
@@ -191,22 +188,8 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
     );
   }
 
-  const modName = makeSyntheticName(destinationPath);
+  api.log(`info`, `${InstallerType.Redscript}: installing`);
+  api.log(`debug`, `${InstallerType.Redscript}: instructions:`, allInstructions);
 
-  const extraArchiveInstructions = extraCanonArchiveInstructions(api, fileTree);
-
-  // Only one of these should exist but why discriminate?
-  const allSourcesAndDestinations = [
-    canonReds.map(toSamePath),
-    basedirReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-    toplevelReds.map(toDirInPath(REDS_MOD_CANONICAL_PATH_PREFIX, modName)),
-  ];
-
-  const redsInstructions = allSourcesAndDestinations.flatMap(
-    instructionsForSourceToDestPairs,
-  );
-
-  const instructions = [...redsInstructions, ...extraArchiveInstructions.instructions];
-
-  return Promise.resolve({ instructions });
+  return Promise.resolve({ instructions: allInstructions });
 };
