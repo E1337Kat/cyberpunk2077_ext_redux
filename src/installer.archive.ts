@@ -109,7 +109,7 @@ const warnUserIfArchivesMightNeedManualReview = (
       warnAboutSubdirs,
       warnAboutToplevel,
       warnAboutXLs,
-      destinationPaths,
+      filesUnder(FILETREE_ROOT, Glob.Any, newTree),
     );
   }
 };
