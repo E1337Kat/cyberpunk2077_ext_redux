@@ -4,13 +4,14 @@ import { InstallChoices } from "../../src/dialogs";
 import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
 import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
+
+import { FAKE_STAGING_PATH, getMockVortexLog } from "./utils.helper";
+
 import {
   AllExpectedDirectFailures,
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
-  FAKE_STAGING_PATH,
 } from "./mods.example";
-import { getMockVortexLog } from "./utils.helper";
 
 // Should switch this to compute the path in case changed, but eh..
 /*

@@ -45,9 +45,9 @@ import { testForAsiMod, installAsiMod } from "./installer.asi";
 import { testForCetMod, installCetMod } from "./installer.cet";
 import { testForIniMod, installIniMod } from "./installer.config.ini-reshade";
 import { testForJsonMod, installJsonMod } from "./installer.config.json";
+import { installConfigXmlMod, testForConfigXmlMod } from "./installer.config.xml";
 import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
 import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
-import { installConfigXmlMod, testForConfigXmlMod } from "./installer.xml";
 
 // Ensure we're using win32 conventions
 const path = win32;
