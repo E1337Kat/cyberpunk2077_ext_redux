@@ -1,9 +1,9 @@
 import path from "path";
 import { FileTree } from "./filetree";
 import {
-  JSON_FILE_EXT,
+  CONFIG_JSON_MOD_EXTENSION,
   CET_MOD_CANONICAL_PATH_PREFIX,
-  KNOWN_JSON_FILES,
+  CONFIG_JSON_MOD_KNOWN_FILES,
 } from "./installers.layouts";
 import {
   VortexWrappedTestSupportedFunc,
@@ -21,7 +21,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === JSON_FILE_EXT,
+    (file: string) => path.extname(file).toLowerCase() === CONFIG_JSON_MOD_EXTENSION,
   );
   if (filtered.length === 0) {
     return Promise.resolve({
@@ -62,7 +62,9 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = (
       return Promise.reject(new Error(message));
     }
   } else if (
-    filtered.some((file: string) => KNOWN_JSON_FILES[path.basename(file)] === undefined)
+    filtered.some(
+      (file: string) => CONFIG_JSON_MOD_KNOWN_FILES[path.basename(file)] === undefined,
+    )
   ) {
     log("error", "Found JSON files that aren't part of the game.");
     return Promise.reject(new Error("Found JSON files that aren't part of the game."));
@@ -98,8 +100,8 @@ export const installJsonMod: VortexWrappedInstallFunc = (
 
     let instPath = file;
 
-    if (KNOWN_JSON_FILES[fileName] !== undefined) {
-      instPath = KNOWN_JSON_FILES[fileName];
+    if (CONFIG_JSON_MOD_KNOWN_FILES[fileName] !== undefined) {
+      instPath = CONFIG_JSON_MOD_KNOWN_FILES[fileName];
 
       log("debug", "instPath set as ", instPath);
       movedJson = movedJson || file !== instPath;

@@ -1,4 +1,5 @@
 import path from "path";
+import { promptUserOnProtectedPaths } from "./dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
@@ -6,7 +7,10 @@ import {
   LayoutToInstructions,
   MaybeInstructions,
   NoInstructions,
+  NotAllowed,
+  PromptedMaybeInstructions,
 } from "./installers.layouts";
+import { InstallDecision, InstallerType } from "./installers.types";
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 // Types
@@ -90,4 +94,26 @@ export const useAllMatchingLayouts = (
   );
 
   return someValidInstructions;
+};
+
+export const promptBeforeContinuingWithProtectedInstructions = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  protectedPaths: string[],
+  instructionsToUse: Instructions,
+): Promise<PromptedMaybeInstructions> => {
+  const destinationPaths = instructionsToUse.instructions.map((i) => i.destination);
+  const affectedPaths = destinationPaths.filter((p) => protectedPaths.includes(p));
+
+  const installDecision = await promptUserOnProtectedPaths(
+    api,
+    installerType,
+    affectedPaths,
+  );
+
+  if (installDecision === InstallDecision.UserWantsToCancel) {
+    return NotAllowed.CanceledByUser;
+  }
+
+  return instructionsToUse;
 };

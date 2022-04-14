@@ -77,6 +77,38 @@ export const promptUserToInstallOrCancel = async (
   return installDecision;
 };
 
+export const promptUserOnProtectedPaths = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  protectedPaths: string[],
+): Promise<InstallDecision> => {
+  const explanationForUser = `
+    This mod contains some paths that I consider protected! They might be
+    either critical game files, or for example configuration files that
+    you may have customized or that other mods might also have modified.
+
+    **This does not mean there's a problem with the mod, just that I
+    want to make sure you're ready to proceed.**
+
+    Review the files below to make sure it's okay to install these and
+    that you've backed up your config files etc. before you enable the mod :)
+
+    (Just installing this mod won't overwrite the files yet, that's only
+    when you enable the mod - if you use the auto-enable setting, you
+    should make your backups before proceeding, otherwise you can do it later.)
+
+    These are the protected paths this mod will write to:
+    \`\`\`
+    ${protectedPaths.join(`\n`)}
+    \`\`\``;
+
+  return promptUserToInstallOrCancel(
+    api,
+    `Mod Contains Protected Paths`,
+    explanationForUser,
+  );
+};
+
 export const promptUserOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,

@@ -12,7 +12,7 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |- 📄 *.xl
  * |-📁 bin
  * | |-📁 x64
- * | | |-📄 *.ini -- Reshade mod
+ * | | |-📄 *.ini -- Reshade mods
  * | | |-📁 reshade-shaders
  * | | |-📁 plugins
  * | | | |- 📄 *.asi
@@ -26,21 +26,30 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📄 giweights.json
  * | | |-📁 platform
  * | | | |-📁 pc
- * | | | | |-📄 *.ini -- Typically loose files, no subdirs
+ * | | | | |-📄 *.ini
  * |-📁 r6
  * | |-📁 config
+ * | | |-📄 bumperSettings.json
+ * | | |-📄 inputContexts.xml
+ * | | |-📄 inputDeadzones.xml
+ * | | |-📄 inputUserMappings.xml
+ * | | |-📄 uiInputActions.xml
+ * | | |-📄 *.xml
  * | | |-📁 settings
  * | | | |-📄 options.json
  * | | | |-📁 platform
  * | | | | |-📁 pc
  * | | | | | |-📄 options.json
- * | | |-📄 bumperSettings.json
- * | | |-📄 *.xml (68.2 kB)
  * | |-📁 scripts
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
+ * | |-📁 tweaks
+ * | | |-📄 *.yaml
+ * | | |-📁 SomeMod
+ * | | | |-📄 *.yaml
  * |-📁 red4ext
  * | |-📁 plugins
+ * | | |-📄 *.dll
  * | | |-📁 SomeMod
  * | | | |-📄 *.dll
  */
@@ -114,6 +123,73 @@ export const ARCHIVE_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
 ];
 
+//
+// Config mods of all sorts
+//
+
+// XML
+
+export const enum ConfigXmlLayout {
+  Protected = `
+              .\\r6\\config\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml
+              | - .\\r6\\config\\*.xml
+              `,
+  Canon = `
+          .\\r6\\config\\*.xml
+          `,
+  Toplevel = `
+            .\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml
+            | - .\\*.xml
+            `,
+}
+
+export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
+
+export const CONFIG_XML_MOD_EXTENSION = `.xml`;
+
+export const CONFIG_XML_MOD_PROTECTED_FILES = [
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputContexts.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputDeadzones.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
+  path.join(`${CONFIG_XML_MOD_BASEDIR}\\uiInputActions.xml`),
+];
+
+export const CONFIG_XML_MOD_PROTECTED_FILENAMES = CONFIG_XML_MOD_PROTECTED_FILES.map(
+  (xml) => path.basename(xml),
+);
+
+// JSON
+
+export const CONFIG_JSON_MOD_EXTENSION = ".json";
+
+export const CONFIG_JSON_MOD_BASEDIR_SETTINGS = path.join(`r6\\config\\settings\\`);
+export const CONFIG_JSON_MOD_BASEDIR_PLATFORM = path.join(
+  `r6\\config\\settings\\platform\\pc\\`,
+);
+
+export const CONFIG_JSON_MOD_KNOWN_FILES = {
+  "giweights.json": path.join("engine", "config", "giweights.json"),
+  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
+};
+
+export const CONFIG_JSON_MOD_PROTECTED_FILES = [
+  ...Object.values(CONFIG_JSON_MOD_KNOWN_FILES),
+  path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\options.json`),
+  path.join(`${CONFIG_JSON_MOD_BASEDIR_PLATFORM}\\options.json`),
+];
+
+// INI (these are generally non-overriding)
+
+export const CONFIG_INI_MOD_BASEDIR = path.join("engine", "config", "platform", "pc");
+export const CONFIG_INI_MOD_EXTENSION = ".ini";
+
+export const CONFIG_RESHADE_MOD_BASEDIR = path.join("bin", "x64");
+export const CONFIG_RESHADE_MOD_SHADER_DIRNAME = "reshade-shaders";
+export const CONFIG_RESHADE_MOD_SHADER_BASEDIR = path.join(
+  CONFIG_RESHADE_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_SHADER_DIRNAME,
+);
+
 // ASI
 
 export const enum AsiLayout {
@@ -169,19 +245,6 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 ];
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
-
-export const RESHADE_MOD_PATH = path.join("bin", "x64");
-export const RESHADE_SHADERS_DIR = "reshade-shaders";
-export const RESHADE_SHADERS_PATH = path.join(RESHADE_MOD_PATH, RESHADE_SHADERS_DIR);
-
-export const INI_MOD_PATH = path.join("engine", "config", "platform", "pc");
-export const INI_MOD_EXT = ".ini";
-
-export const JSON_FILE_EXT = ".json";
-export const KNOWN_JSON_FILES = {
-  "giweights.json": path.join("engine", "config", "giweights.json"),
-  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
-};
 
 // AMM
 
@@ -239,6 +302,17 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     \`${CoreArchiveXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.ConfigXml,
+    `
+    - \`${ConfigXmlLayout.Protected}\` (Protected)
+    - \`${ConfigXmlLayout.Canon}\` (Can be mixed with above)
+    - \`${ConfigXmlLayout.Toplevel}\` (Protected, can be moved to canonical)
+
+    Some of the XML config files are protected, because they often contain modifications
+    by the user. There's a prompt before installing into those paths.
     `,
   ],
   [
@@ -320,6 +394,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | ConfigXmlLayout
   | AsiLayout
   | CetLayout
   | RedscriptLayout
@@ -334,8 +409,13 @@ export const enum NoInstructions {
   NoMatch = "attempted layout didn't match",
 }
 
+// Should really refactor these into NoInstructions
 export const enum InvalidLayout {
   Conflict = "can't determine what the intended layout is, conflicting files",
+}
+
+export const enum NotAllowed {
+  CanceledByUser = `user didn't permit using these instructions when prompted`,
 }
 
 export type Instructions = {
@@ -344,6 +424,7 @@ export type Instructions = {
 };
 
 export type MaybeInstructions = Instructions | NoInstructions | InvalidLayout;
+export type PromptedMaybeInstructions = Instructions | NotAllowed;
 
 export type LayoutToInstructions = (
   api: VortexApi,
