@@ -162,13 +162,13 @@ export const CONFIG_XML_MOD_PROTECTED_FILENAMES = CONFIG_XML_MOD_PROTECTED_FILES
 
 export const enum ConfigJsonLayout {
   Protected = `
-              .\\engine\\config\\giweights.json
-              .\\r6\\config\\bumperSettings.json
-              .\\r6\\config\\settings\\options.json
-              .\\r6\\config\\settings\\platform\\pc\\options.json
+              - .\\engine\\config\\giweights.json
+              - .\\r6\\config\\bumpersSettings.json
+              - .\\r6\\config\\settings\\options.json
+              - .\\r6\\config\\settings\\platform\\pc\\options.json
               `,
   Toplevel = `
-            .\\[any of the protected JSON filenames] (moved to canonical path)
+            - .\\[any of the protected JSON filenames] (moved to canonical path)
             `,
 }
 
@@ -183,8 +183,11 @@ export const CONFIG_JSON_MOD_BASEDIR_PLATFORM = path.join(
 
 export const CONFIG_JSON_MOD_KNOWN_FILES = {
   "giweights.json": path.join(CONFIG_JSON_MOD_ENGINE_BASEDIR, `giweights.json`),
-  "bumpersSettings.json": path.join(CONFIG_JSON_MOD_BASEDIR, `bumperSettings.json`),
+  "bumpersSettings.json": path.join(CONFIG_JSON_MOD_BASEDIR, `bumpersSettings.json`),
 };
+
+export const CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS = CONFIG_JSON_MOD_KNOWN_FILES;
+export const CONFIG_JSON_MOD_UNFIXABLE_FILENAMES = [`options.json`];
 
 export const CONFIG_JSON_MOD_PROTECTED_DIRS = [
   CONFIG_JSON_MOD_ENGINE_BASEDIR,
@@ -330,6 +333,17 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.ConfigJson,
+    `
+    ${ConfigJsonLayout.Protected}
+    ${ConfigJsonLayout.Toplevel}
+
+    These JSON files are the only known working and valid ones, and they are protected
+    because they may contain multiple modifications. There's a prompt before installing
+    any of these files.
+    `,
+  ],
+  [
     InstallerType.ConfigXml,
     `
     - \`${ConfigXmlLayout.Protected}\` (Protected)
@@ -424,6 +438,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout
   | CetLayout
