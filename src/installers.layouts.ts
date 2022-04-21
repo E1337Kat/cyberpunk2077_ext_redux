@@ -469,7 +469,7 @@ export type Instructions = {
 };
 
 export type MaybeInstructions = Instructions | NoInstructions | InvalidLayout;
-export type PromptedMaybeInstructions = Instructions | NotAllowed;
+export type PromptedOptionalInstructions = Instructions | NotAllowed;
 
 export type LayoutToInstructions = (
   api: VortexApi,

@@ -8,7 +8,7 @@ import {
   MaybeInstructions,
   NoInstructions,
   NotAllowed,
-  PromptedMaybeInstructions,
+  PromptedOptionalInstructions,
 } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
 
@@ -101,7 +101,7 @@ export const promptBeforeContinuingWithProtectedInstructions = async (
   installerType: InstallerType,
   protectedPaths: string[],
   instructionsToUse: Instructions,
-): Promise<PromptedMaybeInstructions> => {
+): Promise<PromptedOptionalInstructions> => {
   const destinationPaths = instructionsToUse.instructions.map((i) => i.destination);
   const affectedPaths = destinationPaths.filter((p) => protectedPaths.includes(p));
 

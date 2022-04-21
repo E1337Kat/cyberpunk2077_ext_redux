@@ -19,7 +19,7 @@ import {
   CONFIG_XML_MOD_PROTECTED_FILENAMES,
   ConfigXmlLayout,
   CONFIG_XML_MOD_PROTECTED_FILES,
-  PromptedMaybeInstructions,
+  PromptedOptionalInstructions,
   NotAllowed,
 } from "./installers.layouts";
 import {
@@ -223,7 +223,7 @@ export const detectAllowedConfigXmlLayouts = (fileTree: FileTree): boolean =>
 export const configXmlAllowedInMultiInstructions = async (
   api: VortexApi,
   fileTree: FileTree,
-): Promise<PromptedMaybeInstructions> => {
+): Promise<PromptedOptionalInstructions> => {
   const me = InstallerType.ConfigXml;
 
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
