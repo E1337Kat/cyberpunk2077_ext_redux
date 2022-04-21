@@ -255,7 +255,7 @@ export const configXmlAllowedInMultiInstructions = async (
   if (confirmedInstructions === NotAllowed.CanceledByUser) {
     api.log(`warn`, `${me}: user did not allow installing to protected paths`);
 
-    return confirmedInstructions;
+    return NotAllowed.CanceledByUser;
   }
 
   return confirmedInstructions;

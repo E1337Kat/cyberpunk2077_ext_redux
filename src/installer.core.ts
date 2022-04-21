@@ -37,7 +37,6 @@ export const testForCetCore: VortexWrappedTestSupportedFunc = (
   files: string[],
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting CET Core matcher, input files: ", files);
   const containsAllNecessaryCetFiles = CET_CORE_IDENTIFIERS.every((cetPath) =>
     files.includes(cetPath),
   );
@@ -130,8 +129,6 @@ export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
   files: string[],
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting CSV Core matcher, input files: ", files);
-
   if (!files.includes(CSVMERGE_UNIQUE_FILE)) {
     return Promise.resolve({
       supported: false,
@@ -165,8 +162,6 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
   files: string[],
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  log("debug", "Starting WolvenKit CLI matcher, input files: ", files);
-
   if (files.some((file: string) => file.toLowerCase().startsWith("wolvenkit desktop"))) {
     const message = "WolvenKit Desktop is not able to be installed with Vortex.";
     wolvenKitDesktopFoundErrorDialog(api, log, message, files, []);

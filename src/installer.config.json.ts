@@ -14,6 +14,8 @@ import {
   CONFIG_JSON_MOD_PROTECTED_FILENAMES,
   CONFIG_JSON_MOD_UNFIXABLE_FILENAMES,
   CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS,
+  PromptedOptionalInstructions,
+  NoLayout,
 } from "./installers.layouts";
 import {
   useFirstMatchingLayoutForInstructions,
@@ -198,4 +200,42 @@ export const installJsonMod: VortexWrappedInstallFunc = async (
   return Promise.resolve({
     instructions: confirmedInstructions.instructions,
   });
+};
+
+//
+// External use for MultiType etc.
+//
+
+export const detectAllowedConfigJsonLayouts = detectConfigJsonProtectedLayout;
+
+export const configJsonAllowedInMultiInstructions = async (
+  api: VortexApi,
+  fileTree: FileTree,
+): Promise<PromptedOptionalInstructions> => {
+  const me = InstallerType.ConfigJson;
+
+  const maybeInstructions = configJsonProtectedLayout(api, undefined, fileTree);
+
+  if (
+    maybeInstructions === NoInstructions.NoMatch ||
+    maybeInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${me}: No valid JSON config files found, this is ok`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  const confirmedInstructions = await promptBeforeContinuingWithProtectedInstructions(
+    api,
+    InstallerType.ConfigJson,
+    CONFIG_JSON_MOD_PROTECTED_FILES,
+    maybeInstructions,
+  );
+
+  if (confirmedInstructions === NotAllowed.CanceledByUser) {
+    api.log(`warn`, `${me}: user did not allow installing to protected paths`);
+
+    return NotAllowed.CanceledByUser;
+  }
+
+  return confirmedInstructions;
 };
