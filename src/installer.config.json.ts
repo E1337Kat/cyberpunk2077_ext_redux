@@ -1,10 +1,29 @@
 import path from "path";
-import { FileTree } from "./filetree";
+import { filesIn, filesUnder, FileTree, FILETREE_ROOT, pathInTree } from "./filetree";
+import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   CONFIG_JSON_MOD_EXTENSION,
-  CET_MOD_CANONICAL_PATH_PREFIX,
-  CONFIG_JSON_MOD_KNOWN_FILES,
+  CONFIG_JSON_MOD_PROTECTED_DIRS,
+  ConfigJsonLayout,
+  InvalidLayout,
+  NoInstructions,
+  NotAllowed,
+  CONFIG_JSON_MOD_PROTECTED_FILES,
+  LayoutToInstructions,
+  MaybeInstructions,
+  CONFIG_JSON_MOD_PROTECTED_FILENAMES,
+  CONFIG_JSON_MOD_UNFIXABLE_FILENAMES,
+  CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS,
+  PromptedOptionalInstructions,
+  NoLayout,
 } from "./installers.layouts";
+import {
+  useFirstMatchingLayoutForInstructions,
+  promptBeforeContinuingWithProtectedInstructions,
+  instructionsForSameSourceAndDestPaths,
+  instructionsForSourceToDestPairs,
+} from "./installers.shared";
+import { InstallerType } from "./installers.types";
 import {
   VortexWrappedTestSupportedFunc,
   VortexApi,
@@ -14,113 +33,209 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 
-export const testForJsonMod: VortexWrappedTestSupportedFunc = (
+const matchConfigJson = (filePath: string): boolean =>
+  path.extname(filePath) === CONFIG_JSON_MOD_EXTENSION;
+
+const findConfigJsonProtectedFiles = (fileTree: FileTree): string[] =>
+  CONFIG_JSON_MOD_PROTECTED_FILES.filter((protectedPath) =>
+    pathInTree(protectedPath, fileTree),
+  );
+
+const detectConfigJsonProtectedLayout = (fileTree: FileTree): boolean =>
+  findConfigJsonProtectedFiles(fileTree).length > 0;
+
+const findConfigJsonToplevelFiles = (fileTree: FileTree): string[] =>
+  filesIn(FILETREE_ROOT, matchConfigJson, fileTree).filter((json) =>
+    CONFIG_JSON_MOD_PROTECTED_FILENAMES.includes(path.basename(json)),
+  );
+
+const detectConfigJsonToplevelLayout = (fileTree: FileTree): boolean =>
+  findConfigJsonToplevelFiles(fileTree).length > 0;
+
+const findJsonFilesInProtectedDirs = (fileTree: FileTree): string[] =>
+  CONFIG_JSON_MOD_PROTECTED_DIRS.flatMap((dir) =>
+    filesUnder(dir, matchConfigJson, fileTree),
+  );
+
+const detectJsonFilesInProtectedDirs = (fileTree: FileTree): boolean =>
+  findJsonFilesInProtectedDirs(fileTree).length > 0;
+
+//
+// Layouts
+//
+
+const configJsonProtectedLayout: LayoutToInstructions = (
+  api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allProtectedConfigJsonFiles = findConfigJsonProtectedFiles(fileTree);
+
+  if (allProtectedConfigJsonFiles.length < 1) {
+    // Shouldn't get here?
+    return NoInstructions.NoMatch;
+  }
+
+  const protectedJsonInstructions = instructionsForSameSourceAndDestPaths(
+    allProtectedConfigJsonFiles,
+  );
+
+  return {
+    kind: ConfigJsonLayout.Protected,
+    instructions: protectedJsonInstructions,
+  };
+};
+
+const configJsonTopevelLayout: LayoutToInstructions = (
   _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allToplevelProtectedConfigJsonFilenames = findConfigJsonToplevelFiles(
+    fileTree,
+  ).map((protectedPath) => path.basename(protectedPath));
+
+  if (allToplevelProtectedConfigJsonFilenames.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  const unresolvableJsonNames = allToplevelProtectedConfigJsonFilenames.some(
+    (protectedName) => CONFIG_JSON_MOD_UNFIXABLE_FILENAMES.includes(protectedName),
+  );
+
+  if (unresolvableJsonNames) {
+    return InvalidLayout.Conflict;
+  }
+
+  const toplevelConfigJsonsWithFixedPaths = allToplevelProtectedConfigJsonFilenames.map(
+    (protectedName) => [
+      protectedName,
+      CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS[protectedName],
+    ],
+  );
+
+  const toplevelToCanonInstructions = instructionsForSourceToDestPairs(
+    toplevelConfigJsonsWithFixedPaths,
+  );
+
+  return {
+    kind: ConfigJsonLayout.Toplevel,
+    instructions: toplevelToCanonInstructions,
+  };
+};
+
+//
+// testSupport
+//
+
+export const testForJsonMod: VortexWrappedTestSupportedFunc = async (
+  _api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === CONFIG_JSON_MOD_EXTENSION,
-  );
-  if (filtered.length === 0) {
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
+  const foundJsonToHandle =
+    detectConfigJsonProtectedLayout(fileTree) ||
+    detectConfigJsonToplevelLayout(fileTree) ||
+    detectJsonFilesInProtectedDirs(fileTree);
 
-  // This little change should allow properly constructed AMM addons to install in the fallback
-  const cetModJson = files.filter((file: string) =>
-    path.normalize(file).toLowerCase().startsWith(CET_MOD_CANONICAL_PATH_PREFIX),
-  );
-  if (cetModJson.length !== 0) {
-    log("error", "We somehow got a CET mod in the JSON check");
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  // This should probably be moved or made prompting:
-  // https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
-
-  let proper = true;
-  // check for options.json in the file list
-  const options = filtered.some((file: string) => path.basename(file) === "options.json");
-  if (options) {
-    log("debug", "Options.json files found: ", options);
-    proper = filtered.some((f: string) =>
-      path.dirname(f).toLowerCase().startsWith(path.normalize("r6/config/settings")),
-    );
-
-    if (!proper) {
-      const message =
-        "Improperly located options.json file found.  We don't know where it belongs.";
-
-      log("info", message);
-      return Promise.reject(new Error(message));
-    }
-  } else if (
-    filtered.some(
-      (file: string) => CONFIG_JSON_MOD_KNOWN_FILES[path.basename(file)] === undefined,
-    )
-  ) {
-    log("error", "Found JSON files that aren't part of the game.");
-    return Promise.reject(new Error("Found JSON files that aren't part of the game."));
-  }
-
-  log("debug", "We got through it all and it is a JSON mod");
-  return Promise.resolve({
-    supported: true,
+  return {
+    supported: foundJsonToHandle,
     requiredFiles: [],
+  };
+};
+
+//
+// install
+//
+
+export const installJsonMod: VortexWrappedInstallFunc = async (
+  api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  const me = InstallerType.ConfigJson;
+
+  const allPossibleConfigJsonLayouts = [
+    configJsonProtectedLayout,
+    configJsonTopevelLayout,
+  ];
+
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    allPossibleConfigJsonLayouts,
+  );
+
+  if (
+    selectedInstructions === NoInstructions.NoMatch ||
+    selectedInstructions === InvalidLayout.Conflict
+    // Also gets here if detectJsonFilesInProtectedDirs matched in test
+  ) {
+    return promptToFallbackOrFailOnUnresolvableLayout(
+      api,
+      InstallerType.ConfigJson,
+      fileTree,
+    );
+  }
+
+  const confirmedInstructions = await promptBeforeContinuingWithProtectedInstructions(
+    api,
+    InstallerType.ConfigJson,
+    CONFIG_JSON_MOD_PROTECTED_FILES,
+    selectedInstructions,
+  );
+
+  if (confirmedInstructions === NotAllowed.CanceledByUser) {
+    const cancelMessage = `${me}: user chose to cancel installing to protected paths`;
+
+    api.log(`warn`, cancelMessage);
+    return Promise.reject(new Error(cancelMessage));
+  }
+
+  api.log(`info`, `${me}: User confirmed installing to protected paths`);
+  return Promise.resolve({
+    instructions: confirmedInstructions.instructions,
   });
 };
 
-export const installJsonMod: VortexWrappedInstallFunc = (
+//
+// External use for MultiType etc.
+//
+
+export const detectAllowedConfigJsonLayouts = detectConfigJsonProtectedLayout;
+
+export const configJsonAllowedInMultiInstructions = async (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const jsonFiles: string[] = files.filter(
-    (file: string) => path.extname(file) === ".json",
-  );
-  const otherAllowedFiles = files.filter(
-    (file: string) => path.extname(file) === ".txt" || path.extname(file) === ".md",
-  );
+  fileTree: FileTree,
+): Promise<PromptedOptionalInstructions> => {
+  const me = InstallerType.ConfigJson;
 
-  const filtered = jsonFiles.concat(otherAllowedFiles);
+  const maybeInstructions = configJsonProtectedLayout(api, undefined, fileTree);
 
-  let movedJson = false;
-
-  const jsonFileInstructions = filtered.map((file: string) => {
-    const fileName = path.basename(file);
-
-    let instPath = file;
-
-    if (CONFIG_JSON_MOD_KNOWN_FILES[fileName] !== undefined) {
-      instPath = CONFIG_JSON_MOD_KNOWN_FILES[fileName];
-
-      log("debug", "instPath set as ", instPath);
-      movedJson = movedJson || file !== instPath;
-    }
-
-    return {
-      type: "copy",
-      source: file,
-      destination: instPath,
-    };
-  });
-
-  if (movedJson) {
-    log("info", "JSON files were found outside their canonical locations: Fixed");
+  if (
+    maybeInstructions === NoInstructions.NoMatch ||
+    maybeInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${me}: No valid JSON config files found, this is ok`);
+    return { kind: NoLayout.Optional, instructions: [] };
   }
 
-  log("debug", "Installing JSON files with: ", jsonFileInstructions);
+  const confirmedInstructions = await promptBeforeContinuingWithProtectedInstructions(
+    api,
+    InstallerType.ConfigJson,
+    CONFIG_JSON_MOD_PROTECTED_FILES,
+    maybeInstructions,
+  );
 
-  const instructions = [].concat(jsonFileInstructions);
+  if (confirmedInstructions === NotAllowed.CanceledByUser) {
+    api.log(`warn`, `${me}: user did not allow installing to protected paths`);
 
-  return Promise.resolve({ instructions });
+    return NotAllowed.CanceledByUser;
+  }
+
+  return confirmedInstructions;
 };

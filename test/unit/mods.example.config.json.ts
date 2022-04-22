@@ -1,107 +1,159 @@
 import path from "path";
+import { InstallChoices } from "../../src/dialogs";
+import {
+  CONFIG_JSON_MOD_BASEDIR_PLATFORM,
+  CONFIG_JSON_MOD_BASEDIR_SETTINGS,
+  CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS,
+  CONFIG_JSON_MOD_PROTECTED_DIRS,
+  CONFIG_JSON_MOD_PROTECTED_FILES,
+  CONFIG_JSON_MOD_UNFIXABLE_FILENAMES,
+} from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
   ExampleFailingMod,
   ExamplesForType,
   ExamplePromptInstallableMod,
+  expectedUserCancelMessageFor,
+  copiedToSamePath,
+  mergeOrFailOnConflict,
+  expectedUserCancelProtectedMessageFor,
 } from "./utils.helper";
 
-const JsonMod = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    jsonWithValidFileInRoot: {
-      expectedInstallerType: InstallerType.Json,
-      inFiles: ["giweights.json"].map(path.normalize),
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.normalize("giweights.json"),
-          destination: path.normalize("engine/config/giweights.json"),
-        },
-      ],
+const JsonModShouldPromptOnProtected = new Map<string, ExamplePromptInstallableMod>(
+  CONFIG_JSON_MOD_PROTECTED_FILES.map((protectedPath) => [
+    `JSON prompts to install protected file ${protectedPath}`,
+    {
+      expectedInstallerType: InstallerType.ConfigJson,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [protectedPath],
+      proceedOutInstructions: [copiedToSamePath(protectedPath)],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelProtectedMessageFor(InstallerType.ConfigJson),
     },
-    jsonInRandomFolder: {
-      expectedInstallerType: InstallerType.Json,
-      inFiles: ["fold1/", "fold1/giweights.json", "fold1/bumpersSettings.json"].map(
-        path.normalize,
-      ),
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.normalize("fold1/giweights.json"),
-          destination: path.normalize("engine/config/giweights.json"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("fold1/bumpersSettings.json"),
-          destination: path.normalize("r6/config/bumpersSettings.json"),
-        },
-      ],
-    },
-    jsonWithFilesInCorrectFolder: {
-      expectedInstallerType: InstallerType.Json,
-      inFiles: [
-        "engine/",
-        "engine/config/",
-        "engine/config/giweights.json",
-        "r6/",
-        "r6/config",
-        "r6/config/bumpersSettings.json",
-        "r6/config/settings/",
-        "r6/config/settings/options.json",
-        "r6/config/settings/platform/",
-        "r6/config/settings/platform/pc/",
-        "r6/config/settings/platform/pc/options.json",
-      ].map(path.normalize),
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.normalize("engine/config/giweights.json"),
-          destination: path.normalize("engine/config/giweights.json"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("r6/config/bumpersSettings.json"),
-          destination: path.normalize("r6/config/bumpersSettings.json"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("r6/config/settings/options.json"),
-          destination: path.normalize("r6/config/settings/options.json"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("r6/config/settings/platform/pc/options.json"),
-          destination: path.normalize("r6/config/settings/platform/pc/options.json"),
-        },
-      ],
-    },
-  }), // object
+  ]),
 );
 
-// These errordialogs should be fixed as part o https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113
-const JsonModShouldFailInTest = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    jsonWithInvalidFileInRootFailsInTest: {
-      expectedInstallerType: InstallerType.NotSupported,
-      inFiles: ["giweights.json", "options.json"].map(path.normalize),
-      failure:
-        "Improperly located options.json file found.  We don't know where it belongs.",
-      errorDialogTitle: undefined,
+const JsonModShouldPromptOnProtectedFilenameToplevelFixables = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.keys(CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS).map((protectedName) => [
+    `JSON prompts to install protected filename to correct dir when ${protectedName}`,
+    {
+      expectedInstallerType: InstallerType.ConfigJson,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [path.join(protectedName)],
+      proceedOutInstructions: [
+        {
+          type: `copy`,
+          source: path.join(protectedName),
+          destination: path.join(
+            CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS[protectedName],
+          ),
+        },
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelProtectedMessageFor(InstallerType.ConfigJson),
     },
-    jsonWithUnknownFileFailsInTest: {
-      expectedInstallerType: InstallerType.NotSupported,
-      inFiles: ["My app", "My app/Cool.exe", "My app/config.json"].map(path.normalize),
-      failure: "Found JSON files that aren't part of the game.",
-      errorDialogTitle: undefined,
+  ]),
+);
+
+// A bit silly these are separate but -.-
+const JsonModShouldPromptOnProtectedFilenameToplevelUnfixables = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  CONFIG_JSON_MOD_UNFIXABLE_FILENAMES.map((protectedName) => [
+    `JSON prompts to install unfixable protected filename as is because we don't know where to put it ${protectedName}`,
+    {
+      expectedInstallerType: InstallerType.ConfigJson,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [path.join(protectedName)],
+      proceedOutInstructions: [copiedToSamePath(path.join(protectedName))],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ConfigJson),
+    },
+  ]),
+);
+
+const JsonModShouldPromptOnUnknownJsonInConfigDirs = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  CONFIG_JSON_MOD_PROTECTED_DIRS.map((protectedDir) => [
+    `JSON prompts to install any unknown JSON in protected dir ${protectedDir}`,
+    {
+      expectedInstallerType: InstallerType.ConfigJson,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [path.join(protectedDir, `some.json`)],
+      proceedOutInstructions: [copiedToSamePath(path.join(protectedDir, `some.json`))],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ConfigJson),
+    },
+  ]),
+);
+
+const JsonModGoesToFallbackPromptWhenUnknownsCombinedWithProtected = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    "JSON will go to conflict fallback prompt with protected and unknown files in basedir":
+      {
+        expectedInstallerType: InstallerType.ConfigJson,
+        proceedLabel: InstallChoices.Proceed,
+        inFiles: [
+          path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\options.json`),
+          path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\some.json`),
+        ],
+        proceedOutInstructions: [
+          copiedToSamePath(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\options.json`),
+          copiedToSamePath(path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\some.json`)),
+        ],
+        cancelLabel: InstallChoices.Cancel,
+        cancelErrorMessage: expectedUserCancelProtectedMessageFor(
+          InstallerType.ConfigJson,
+        ),
+      },
+  }),
+);
+
+const JsonModGoesToFallbackPromptOnOtherUnknownJsons = new Map<
+  string,
+  ExamplePromptInstallableMod
+>(
+  Object.entries({
+    "JSON will go to no-match fallback prompt when only unknown files in basedir": {
+      expectedInstallerType: InstallerType.ConfigJson,
+      proceedLabel: InstallChoices.Proceed,
+      inFiles: [
+        path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\some.json`),
+        path.join(`${CONFIG_JSON_MOD_BASEDIR_PLATFORM}\\someother.json`),
+      ],
+      proceedOutInstructions: [
+        copiedToSamePath(path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\some.json`)),
+        copiedToSamePath(
+          path.join(`${CONFIG_JSON_MOD_BASEDIR_PLATFORM}\\someother.json`),
+        ),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ConfigJson),
     },
   }),
 );
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: JsonMod,
-  AllExpectedDirectFailures: JsonModShouldFailInTest,
-  AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
+  AllExpectedSuccesses: new Map<string, ExampleSucceedingMod>(),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
+  AllExpectedPromptInstalls: mergeOrFailOnConflict(
+    JsonModShouldPromptOnProtected,
+    JsonModShouldPromptOnProtectedFilenameToplevelFixables,
+    JsonModShouldPromptOnProtectedFilenameToplevelUnfixables,
+    JsonModShouldPromptOnUnknownJsonInConfigDirs,
+    JsonModGoesToFallbackPromptWhenUnknownsCombinedWithProtected,
+    JsonModGoesToFallbackPromptOnOtherUnknownJsons,
+  ),
 };
 
 export default examples;

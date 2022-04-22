@@ -160,23 +160,51 @@ export const CONFIG_XML_MOD_PROTECTED_FILENAMES = CONFIG_XML_MOD_PROTECTED_FILES
 
 // JSON
 
+export const enum ConfigJsonLayout {
+  Protected = `
+              - .\\engine\\config\\giweights.json
+              - .\\r6\\config\\bumpersSettings.json
+              - .\\r6\\config\\settings\\options.json
+              - .\\r6\\config\\settings\\platform\\pc\\options.json
+              `,
+  Toplevel = `
+            - .\\[any of the protected JSON filenames] (moved to canonical path)
+            `,
+}
+
 export const CONFIG_JSON_MOD_EXTENSION = ".json";
 
+export const CONFIG_JSON_MOD_ENGINE_BASEDIR = path.join(`engine\\config\\`);
+export const CONFIG_JSON_MOD_BASEDIR = path.join(`r6\\config\\`);
 export const CONFIG_JSON_MOD_BASEDIR_SETTINGS = path.join(`r6\\config\\settings\\`);
 export const CONFIG_JSON_MOD_BASEDIR_PLATFORM = path.join(
   `r6\\config\\settings\\platform\\pc\\`,
 );
 
 export const CONFIG_JSON_MOD_KNOWN_FILES = {
-  "giweights.json": path.join("engine", "config", "giweights.json"),
-  "bumpersSettings.json": path.join("r6", "config", "bumpersSettings.json"),
+  "giweights.json": path.join(CONFIG_JSON_MOD_ENGINE_BASEDIR, `giweights.json`),
+  "bumpersSettings.json": path.join(CONFIG_JSON_MOD_BASEDIR, `bumpersSettings.json`),
 };
+
+export const CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS = CONFIG_JSON_MOD_KNOWN_FILES;
+export const CONFIG_JSON_MOD_UNFIXABLE_FILENAMES = [`options.json`];
+
+export const CONFIG_JSON_MOD_PROTECTED_DIRS = [
+  CONFIG_JSON_MOD_ENGINE_BASEDIR,
+  CONFIG_JSON_MOD_BASEDIR,
+  CONFIG_JSON_MOD_BASEDIR_SETTINGS,
+  CONFIG_JSON_MOD_BASEDIR_PLATFORM,
+];
 
 export const CONFIG_JSON_MOD_PROTECTED_FILES = [
   ...Object.values(CONFIG_JSON_MOD_KNOWN_FILES),
   path.join(`${CONFIG_JSON_MOD_BASEDIR_SETTINGS}\\options.json`),
   path.join(`${CONFIG_JSON_MOD_BASEDIR_PLATFORM}\\options.json`),
 ];
+
+export const CONFIG_JSON_MOD_PROTECTED_FILENAMES = CONFIG_JSON_MOD_PROTECTED_FILES.map(
+  (protectedPath) => path.basename(protectedPath),
+);
 
 // INI (these are generally non-overriding)
 
@@ -305,6 +333,17 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.ConfigJson,
+    `
+    ${ConfigJsonLayout.Protected}
+    ${ConfigJsonLayout.Toplevel}
+
+    These JSON files are the only known working and valid ones, and they are protected
+    because they may contain multiple modifications. There's a prompt before installing
+    any of these files.
+    `,
+  ],
+  [
     InstallerType.ConfigXml,
     `
     - \`${ConfigXmlLayout.Protected}\` (Protected)
@@ -360,6 +399,10 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.MultiType,
     `
+    - \`${ConfigJsonLayout.Protected}\`
+    - One of
+    | - \`${ConfigXmlLayout.Protected}\`
+    | - \`${ConfigXmlLayout.Canon}\`
     - \`${CetLayout.Canon}\`
     - One of
     | - \`${RedscriptLayout.Canon}\`
@@ -371,6 +414,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     | - \`${ArchiveLayout.XL}\`
     | - \`${ArchiveLayout.Canon}\`
     | - \`${ArchiveLayout.Heritage}\`
+
     - (No files can exist outside the above locations)
 
     For separate mod types I can make better guesses and support
@@ -394,6 +438,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout
   | CetLayout
@@ -424,7 +469,7 @@ export type Instructions = {
 };
 
 export type MaybeInstructions = Instructions | NoInstructions | InvalidLayout;
-export type PromptedMaybeInstructions = Instructions | NotAllowed;
+export type PromptedOptionalInstructions = Instructions | NotAllowed;
 
 export type LayoutToInstructions = (
   api: VortexApi,

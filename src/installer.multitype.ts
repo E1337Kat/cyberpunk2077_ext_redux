@@ -37,6 +37,10 @@ import {
   VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
+import {
+  configJsonAllowedInMultiInstructions,
+  detectAllowedConfigJsonLayouts,
+} from "./installer.config.json";
 
 export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
@@ -50,6 +54,7 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
+  const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
   const hasAllowedTweakXL = detectAllowedTweakXLLayouts(fileTree);
 
@@ -60,6 +65,7 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   // additional checks.
   const hasAtLeastTwoTypes =
     [
+      hasAllowedConfigJson,
       hasAllowedConfigXml,
       hasCanonCet,
       hasCanonRedscript,
@@ -102,16 +108,32 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
   // break the usual linear execution by handling this
   // case first since it 1) it's much easier to handle
   // and 2) it's waste to process the rest if this fails.
-  const xmlInstructions = await configXmlAllowedInMultiInstructions(api, fileTree);
+  const promptableLayouts = [
+    configJsonAllowedInMultiInstructions,
+    configXmlAllowedInMultiInstructions,
+  ];
 
-  if (xmlInstructions === NotAllowed.CanceledByUser) {
-    const cancelMessage = `${me}: user has canceled installation for some part of this mod. Can't proceed safely, canceling entirely.`;
+  let promptedInstructionsPerLayout = [];
 
-    api.log(`error`, cancelMessage);
-    return Promise.reject(new Error(cancelMessage));
+  // eslint-disable-next-line no-restricted-syntax
+  for (const layoutToTry of promptableLayouts) {
+    const maybeInstructions = await layoutToTry(api, fileTree); // eslint-disable-line no-await-in-loop
+
+    if (maybeInstructions === NotAllowed.CanceledByUser) {
+      const cancelMessage = `${me}: user has canceled installation for some part of this mod. Can't proceed safely, canceling entirely.`;
+
+      api.log(`error`, cancelMessage);
+      return Promise.reject(new Error(cancelMessage));
+    }
+
+    promptedInstructionsPerLayout = [...promptedInstructionsPerLayout, maybeInstructions];
   }
 
-  // Should extract this to wrapper..
+  // Stupid no async array functions..
+  const allPromptedInstructions = promptedInstructionsPerLayout.flatMap(
+    (result) => result.instructions,
+  );
+
   const modName = makeSyntheticName(destinationPath);
 
   // This should be made more robust, and much clearer.
@@ -145,16 +167,12 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
     (result) => result.instructions,
   );
 
-  // Handling multiple async/await is just horrible in JS/TS
-  // so we simply don't do that. Sure, it'd be more 'elegant'
-  // but this is /better/.
   const archiveInstructions = extraCanonArchiveInstructions(api, fileTree);
-
   const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
 
   const allInstructions = [
+    ...allPromptedInstructions,
     ...allInstructionsDirectedByUs,
-    ...xmlInstructions.instructions,
     ...archiveInstructions.instructions,
     ...tweakXLInstructions.instructions,
   ];
