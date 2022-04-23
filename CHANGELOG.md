@@ -1,3 +1,47 @@
+# CP2077 Vortex Support 0.5.0 "T-Bug" Is Here!
+
+You can update it directly in Vortex, or get the release on the Nexus page (or Github for that matter):
+https://www.nexusmods.com/site/mods/196?tab=files
+
+No time for chit-chat, laser-sharp focus on _\*checks shard\*_ config mod support. That’s right, just pop this in and Vortex will
+pick up the skills to handle JSON and XML in a few milliseconds! We’re also putting some ICE around your most valuable assets and
+protect some files from _accidental_ overwrites.
+
+Why use a mod manager? In addition to quality-of-life improvements like automatically fixing many common types of mod structure
+problems that you'd have to do by, clear (?) instructions on any possile additional steps for any given mod or problem
+encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily,
+update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod. And
+you can of course install mods from any source - even the mod showcase channel!
+
+As always, any feedback and such is appreciated so we can ensure that no bugs or oversights have slipped through our testing - and
+other feedback and ideas are more than welcome! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+* ✨ Config XML support by @effs in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/134
+* ✨ Config JSON support in MultiType by @effs in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/137
+
+* These two come with the concept and feature of "protected paths": you may for example already have changes in your input mapping
+  file, so we’ll warn you about it so that you can back it up and/or merge the two (…actual merge functionality not included in
+  this release).
+
+## Fixer Gigs
+- 🐛 Fixed MultiType installation bug that affected \(Vehicle Combat\) [\#118](https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/118)
+- ✨ JSON Should Prompt, Maybe — and now it does, instead of blocking the install [\#113](https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/113)
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+* ♻️ Start Splitting Tests by @effs in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/136
+* ♻️ Improved prompting 
+
+**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.4.1...v0.5.0-gonk
+
+## Holo at us
+Discord: https://discord.gg/  7NUQJ2b4ZN  (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+
+
+
 # CP2077 Vortex Support 0.4.1 or _The Sandra Release_ is here!
 
 You can update it directly in Vortex, or get the release on the Nexus page (or Github for that matter):
