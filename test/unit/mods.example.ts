@@ -1349,6 +1349,24 @@ const ArchiveOnlyModShouldPromptForInstall = new Map<string, ExamplePromptInstal
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Archive),
     },
+
+    archiveWithCanonAndXlPromptsOnConflictForFallbackWhenExtraToplevels: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`outtaplace.archive`),
+        path.join(`${ARCHIVE_PREFIX}/innaspot.archive.xl`),
+        path.join(`${ARCHIVE_PREFIX}/innaspot.archive`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        copiedToSamePath(`outtaplace.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/innaspot.archive.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/innaspot.archive`),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Archive),
+    },
   }),
 );
 
