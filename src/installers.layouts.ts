@@ -55,13 +55,33 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  */
 
 //
+// Common stuff
+
+export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`];
+
+// The order approximates some likelihood of a match
+export const MODS_EXTRA_FILETYPES_ALLOWED_IN_ANY_MOD = [
+  `.md`,
+  `.txt`,
+  `.pdf`,
+  `.png`,
+  `.jpg`,
+  `.webp`,
+  `.gif`,
+  `.svg`,
+  `.odt`,
+  `.rtf`,
+  `.doc`,
+];
+
+export const MODS_EXTRA_BASEDIR = path.join(`.\\mods-extra`);
+
+//
 // Giftwrapped
 
 export const enum GiftwrapLayout {
   ExtraToplevelDir = `.\\**\\[any dir that should be toplevel: archive, bin, engine, r6, red4ext]`,
 }
-
-export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`];
 
 //
 // Fallback

@@ -56,6 +56,8 @@ import { InstallerType } from "../../src/installers.types";
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
 
+import ExtraFiles from "./mods.example.special.extrafiles";
+
 const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreCetInstall: {
@@ -1792,6 +1794,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
     GiftwrappedModsFixable,
+    ExtraFiles: ExtraFiles.AllExpectedSuccesses,
   }),
 );
 
