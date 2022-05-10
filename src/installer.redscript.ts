@@ -26,7 +26,6 @@ import {
   useAllMatchingLayouts,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
-import { trueish } from "./installers.utils";
 import {
   VortexApi,
   VortexWrappedTestSupportedFunc,
@@ -41,8 +40,24 @@ const matchRedscript = (file: string) =>
 
 const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
+const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
+  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+
 export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+
+export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
+  !detectRedscriptBasedirLayout(fileTree) &&
+  findCanonicalRedscriptDirs(fileTree).length > 0;
+
+export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
+  !detectRedscriptBasedirLayout(fileTree) &&
+  !detectRedscriptCanonOnlyLayout(fileTree) &&
+  dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+
+//
+// Layouts
+//
 
 export const redscriptBasedirLayout = (
   api: VortexApi,
@@ -73,11 +88,6 @@ export const redscriptBasedirLayout = (
     instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
   };
 };
-
-export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
-!detectRedscriptBasedirLayout(fileTree) &&
-  !detectRedscriptCanonOnlyLayout(fileTree) &&
-  dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
 
 export const redscriptToplevelLayout = (
   api: VortexApi,
@@ -124,13 +134,6 @@ export const redscriptToplevelLayout = (
     instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
   };
 };
-
-const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
-  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
-
-export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
-  !detectRedscriptBasedirLayout(fileTree) &&
-  findCanonicalRedscriptDirs(fileTree).length > 0;
 
 export const redscriptCanonLayout = (
   api: VortexApi,
