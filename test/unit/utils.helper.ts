@@ -114,6 +114,12 @@ export const copiedToSamePath = (...args: string[]): VortexInstruction => ({
   destination: path.join(...args),
 });
 
+export const movedFromTo = (from: string, to: string): VortexInstruction => ({
+  type: `copy`,
+  source: path.normalize(from),
+  destination: path.normalize(to),
+});
+
 export const createdDirectory = (...args: string[]): VortexInstruction => ({
   type: `mkdir`,
   destination: path.join(...args),
