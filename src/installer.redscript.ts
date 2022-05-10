@@ -6,7 +6,6 @@ import {
   Glob,
   findDirectSubdirsWithSome,
   FILETREE_ROOT,
-  fileCount,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -232,10 +231,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
     ...extraCanonArchiveInstructions(api, fileTree).instructions,
   ];
 
-  const haveFilesOutsideSelectedInstructions =
-    allInstructions.length !== fileCount(fileTree);
-
-  if (allInstructions.length < 1 || haveFilesOutsideSelectedInstructions) {
+  if (allInstructions.length < 1) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.Redscript,
