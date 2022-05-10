@@ -28,6 +28,8 @@ interface ExampleMod {
 }
 export interface ExampleSucceedingMod extends ExampleMod {
   outInstructions: VortexInstruction[];
+  infoDialogTitle?: string;
+  infoNotification?: string;
 }
 
 export interface ExampleFailingMod extends ExampleMod {

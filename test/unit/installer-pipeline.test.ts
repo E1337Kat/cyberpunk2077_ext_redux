@@ -63,9 +63,14 @@ describe("Transforming modules to instructions", () => {
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
-          mockVortexExtensionContext.api.showDialog
-            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
-            .mockReturnValue(Promise.resolve(true));
+          const dialogMock = mockVortexExtensionContext.api.showDialog.calledWith(
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+          );
+
+          dialogMock.mockResolvedValue(true);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
@@ -81,6 +86,14 @@ describe("Transforming modules to instructions", () => {
           );
 
           expect(installResult.instructions).toEqual(mod.outInstructions);
+
+          if (mod.infoDialogTitle) {
+            const actualCalls = dialogMock.mock.calls;
+
+            expect(actualCalls.length).toBe(1);
+            expect(actualCalls[0][0]).toBe(`info`);
+            expect(actualCalls[0][1]).toBe(mod.infoDialogTitle);
+          }
         });
       });
     });
