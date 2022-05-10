@@ -120,6 +120,10 @@ export const createdDirectory = (...args: string[]): VortexInstruction => ({
 export const expectedUserCancelMessageFor = (installerType: InstallerType) =>
   `${installerType}: user chose to cancel installation`;
 
+export const expectedUserCancelMessageForHittingFallback = expectedUserCancelMessageFor(
+  InstallerType.Fallback,
+);
+
 export const expectedUserCancelProtectedMessageFor = (installerType: InstallerType) =>
   `${installerType}: user chose to cancel installing to protected paths`;
 
