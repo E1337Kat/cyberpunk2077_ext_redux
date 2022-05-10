@@ -25,10 +25,10 @@ import {
   TWEAK_XL_PATH,
   TWEAK_XL_PATHS,
   XML_PREFIXES,
-  expectedUserCancelMessageFor,
   expectedUserCancelProtectedMessageInMultiType,
   ExamplesForType,
   ExampleFailingMod,
+  expectedUserCancelMessageForHittingFallback,
 } from "./utils.helper";
 
 //
@@ -399,7 +399,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
         copiedToSamePath(`magicgoeselsewhere.archive`),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.MultiType),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
     multitypeWithCanonAndToplevelRedsPromptsOnConflict: {
       expectedInstallerType: InstallerType.MultiType,
@@ -433,7 +433,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
         copiedToSamePath(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.MultiType),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
   }),
 );
