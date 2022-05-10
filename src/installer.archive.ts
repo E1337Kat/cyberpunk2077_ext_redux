@@ -10,7 +10,6 @@ import {
   fileTreeFromPaths,
   subdirsIn,
   filesIn,
-  fileCount,
 } from "./filetree";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
@@ -66,6 +65,9 @@ const findArchiveHeritageFiles = (fileTree: FileTree): string[] =>
 
 const findExtraFilesInCanonDir = (fileTree: FileTree): string[] =>
   filesIn(ARCHIVE_MOD_CANONICAL_PREFIX, matchNonArchive, fileTree);
+
+const findAllArchiveFiles = (fileTree: FileTree): string[] =>
+  filesUnder(FILETREE_ROOT, matchArchiveOrXL, fileTree);
 
 const detectArchiveCanonWithXLLayout = (fileTree: FileTree): boolean =>
   findArchiveXLFiles(fileTree).length > 0;
@@ -144,6 +146,13 @@ const archiveCanonWithXLLayout = (
     ...instructionsForSameSourceAndDestPaths(allExtraFilesInBaseDir),
   ];
 
+  const hasArchivesOutsideDirsAllowedHere =
+    findAllArchiveFiles(fileTree).length !== allInstructions.length;
+
+  if (hasArchivesOutsideDirsAllowedHere) {
+    return InvalidLayout.Conflict;
+  }
+
   return {
     kind: ArchiveLayout.XL,
     instructions: allInstructions,
@@ -162,11 +171,18 @@ export const archiveCanonLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const allCanonFiles = filesUnder(ARCHIVE_MOD_CANONICAL_PREFIX, Glob.Any, fileTree);
+  const allFilesInCanonDir = filesUnder(ARCHIVE_MOD_CANONICAL_PREFIX, Glob.Any, fileTree);
+
+  const hasArchivesOutsideCanon =
+    findAllArchiveFiles(fileTree).length !== findArchiveCanonFiles(fileTree).length;
+
+  if (hasArchivesOutsideCanon) {
+    return InvalidLayout.Conflict;
+  }
 
   return {
     kind: ArchiveLayout.Canon,
-    instructions: instructionsForSameSourceAndDestPaths(allCanonFiles),
+    instructions: instructionsForSameSourceAndDestPaths(allFilesInCanonDir),
   };
 };
 
@@ -321,22 +337,15 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
     possibleLayoutsToTryInOrder,
   );
 
-  // Should probably prompt here.
-  //
-  // Defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/123
-  if (
-    chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.Conflict
-  ) {
+  if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `${InstallerType.Archive} installer failed to generate any instructions!`;
     log("error", message, files);
     return Promise.reject(new Error(message));
   }
 
-  const haveFilesOutsideSelectedInstructions =
-    chosenInstructions.instructions.length !== fileCount(fileTree);
+  if (chosenInstructions === InvalidLayout.Conflict) {
+    log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
 
-  if (haveFilesOutsideSelectedInstructions) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.Archive,
