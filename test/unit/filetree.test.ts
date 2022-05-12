@@ -12,6 +12,7 @@ import {
   filesIn,
   pathInTree,
   fileCount,
+  prunedTreeFrom,
 } from "../../src/filetree";
 
 const paths = [
@@ -202,5 +203,24 @@ describe("FileTree", () => {
       path.normalize("sub1/sub12"),
       path.normalize("sub2"),
     ]);
+  });
+
+  test(`prunedTreeFrom returns a new tree based on excluding predicate`, () => {
+    const fileTree = fileTreeFromPaths(paths);
+
+    const matchSub1ToExclude = (filePath) => filePath.split(path.sep)[0] === `sub1`;
+
+    const treeWithoutSub1 = prunedTreeFrom(matchSub1ToExclude, fileTree);
+
+    expect(fileCount(fileTree) - fileCount(treeWithoutSub1)).toEqual(2);
+
+    expect(pathInTree(path.normalize("sub1/sub12/f12.seek"), fileTree)).toBe(true);
+    expect(pathInTree(path.normalize("sub1/sub12/f12.notseek"), fileTree)).toBe(true);
+    expect(pathInTree(path.normalize("sub1/sub12/f12.seek"), treeWithoutSub1)).toBe(
+      false,
+    );
+    expect(pathInTree(path.normalize("sub1/sub12/f12.notseek"), treeWithoutSub1)).toBe(
+      false,
+    );
   });
 });
