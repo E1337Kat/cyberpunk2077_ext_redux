@@ -1,5 +1,6 @@
 import path from "path";
 import { FileTree } from "./filetree";
+import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
@@ -59,6 +60,9 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`];
 
+export const isKnownToplevelDir = (filePath: string): boolean =>
+  KNOWN_TOPLEVEL_DIRS.includes(filePath.split(path.sep)[0]);
+
 // The order approximates some likelihood of a match
 export const MODS_EXTRA_FILETYPES_ALLOWED_IN_ANY_MOD = [
   `.md`,
@@ -74,7 +78,20 @@ export const MODS_EXTRA_FILETYPES_ALLOWED_IN_ANY_MOD = [
   `.doc`,
 ];
 
-export const MODS_EXTRA_BASEDIR = path.join(`.\\mods-extra`);
+const MODS_EXTRA_FILETYPES_AS_STRING = MODS_EXTRA_FILETYPES_ALLOWED_IN_ANY_MOD.map(
+  (extension) => `*.${extension}`,
+).join(`, `);
+
+export const MODS_EXTRA_BASEDIR = path.join(
+  `.\\${EXTENSION_NAME_INTERNAL}\\mod-extra-files\\`,
+);
+
+export const enum ExtraFilesLayout {
+  Toplevel = `
+              - .\\[any allowed extra filetype]
+              - .\\[any non-reserved subdir]\\[any allowed extra filetype]
+              `,
+}
 
 //
 // Giftwrapped
@@ -442,6 +459,21 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.SpecialExtraFiles,
+    `
+    - \`${ExtraFilesLayout.Toplevel}\`
+
+    Some mods may contain extra files, usually documentation or pictures. If
+    the files aren't located in a place where the appropriate mod type installer
+    can handle them, I'll move them to \`.\\${MODS_EXTRA_BASEDIR}\\[mod name]\\\`
+    so they're easy to find and don't clutter up the game dir.
+
+    The allowed extra file extensions are:
+
+    ${MODS_EXTRA_FILETYPES_AS_STRING}
+    `,
+  ],
+  [
     InstallerType.Fallback,
     `
     - \`${FallbackLayout.Unvalidated}\`
@@ -468,6 +500,7 @@ export type Layout =
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout
+  | ExtraFilesLayout
   | NoLayout;
 
 export const enum NoInstructions {
