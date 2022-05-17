@@ -494,5 +494,8 @@ export type PromptedOptionalInstructions = Instructions | NotAllowed;
 export type LayoutToInstructions = (
   api: VortexApi,
   modName: string,
-  f: FileTree,
+  fileTree: FileTree,
 ) => MaybeInstructions;
+
+export type LayoutDetectFunc = (fileTree: FileTree) => boolean;
+export type LayoutFindFilesFunc = (fileTree: FileTree) => string[];
