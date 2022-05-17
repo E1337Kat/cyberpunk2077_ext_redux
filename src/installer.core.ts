@@ -9,7 +9,7 @@ import {
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import { FileTree } from "./filetree";
-import { wolvenKitDesktopFoundErrorDialog } from "./dialogs";
+import { wolvenKitDesktopFoundErrorDialog } from "./ui.dialogs";
 
 const path = win32;
 

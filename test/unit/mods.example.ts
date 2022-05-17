@@ -50,7 +50,7 @@ import {
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_XML_MOD_PROTECTED_FILENAMES,
 } from "../../src/installers.layouts";
-import { InstallChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
 
 import MultiTypeMod from "./mods.example.multitype";

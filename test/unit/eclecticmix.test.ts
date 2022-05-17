@@ -1,4 +1,4 @@
-import { heredoc } from "../../src/dialogs";
+import { heredoc } from "../../src/ui.dialogs";
 
 describe(`heredoc formatting`, () => {
   test(`converts whitespace-preserving | to single space`, () => {

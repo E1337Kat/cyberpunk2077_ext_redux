@@ -1,5 +1,5 @@
 import path from "path";
-import { promptUserOnProtectedPaths } from "./dialogs";
+import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {

@@ -1,5 +1,5 @@
 import path from "path";
-import { showRed4ExtReservedDllErrorDialog } from "./dialogs";
+import { showRed4ExtReservedDllErrorDialog } from "./ui.dialogs";
 import {
   FileTree,
   filesUnder,

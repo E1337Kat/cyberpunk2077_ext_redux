@@ -1,6 +1,6 @@
 import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
-import { InstallChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/ui.dialogs";
 import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
 import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";

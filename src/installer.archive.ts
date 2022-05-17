@@ -1,5 +1,5 @@
 import path from "path";
-import { showArchiveInstallWarning } from "./dialogs";
+import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
   FileTree,

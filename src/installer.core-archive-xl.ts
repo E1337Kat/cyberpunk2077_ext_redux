@@ -9,7 +9,7 @@ import {
 } from "./vortex-wrapper";
 import { FileTree, fileCount, pathInTree, sourcePaths } from "./filetree";
 import { InstallerType } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./dialogs";
+import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
 
 const coreArchiveXLInstructions: VortexInstruction[] = [
