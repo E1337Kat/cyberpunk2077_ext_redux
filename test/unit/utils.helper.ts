@@ -15,6 +15,7 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ASI_MOD_PATH,
 } from "../../src/installers.layouts";
+import { InfoNotification } from "../../src/ui.notifications";
 
 //
 // Types
@@ -26,10 +27,11 @@ interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
 }
+
 export interface ExampleSucceedingMod extends ExampleMod {
   outInstructions: VortexInstruction[];
   infoDialogTitle?: string;
-  infoNotification?: string;
+  infoNotificationId?: InfoNotification;
 }
 
 export interface ExampleFailingMod extends ExampleMod {

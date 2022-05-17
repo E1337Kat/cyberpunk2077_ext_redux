@@ -4,6 +4,7 @@ import {
   MODS_EXTRA_FILETYPES_ALLOWED_IN_ANY_MOD,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
+import { InfoNotification } from "../../src/ui.notifications";
 import {
   ExamplesForType,
   ExampleSucceedingMod,
@@ -39,6 +40,7 @@ const ModWithAllowedExtraFileTypes = new Map<string, ExampleSucceedingMod>(
           `${MODS_EXTRA_BASEDIR}\\${FAKE_MOD_NAME}\\someotherfile${extension}`,
         ),
       ],
+      infoNotificationId: InfoNotification.InstallerExtraFilesMoved,
     },
   ]),
 );

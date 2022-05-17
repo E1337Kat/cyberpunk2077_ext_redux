@@ -72,6 +72,11 @@ describe("Transforming modules to instructions", () => {
 
           dialogMock.mockResolvedValue(true);
 
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
+
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
@@ -93,6 +98,13 @@ describe("Transforming modules to instructions", () => {
             expect(actualCalls.length).toBe(1);
             expect(actualCalls[0][0]).toBe(`info`);
             expect(actualCalls[0][1]).toBe(mod.infoDialogTitle);
+          }
+
+          if (mod.infoNotificationId) {
+            const actualCalls = notificationMock.mock.calls;
+
+            expect(actualCalls.length).toBe(1);
+            expect(actualCalls[0][0].id).toBe(mod.infoNotificationId);
           }
         });
       });
