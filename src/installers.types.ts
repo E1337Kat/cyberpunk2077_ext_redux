@@ -6,6 +6,8 @@ import {
 export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself
   Pipeline = `V2077 Installer Pipeline`,
+  // Some special handling cases, not in the pipeline
+  SpecialExtraFiles = `(Special) Extra Files Installer`,
   // 'Core' installers for the mod type enablers themselves
   CoreCET = `Core/CET Installer`,
   CoreRedscript = `Core/Redscript Installer`,

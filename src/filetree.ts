@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import nodejsPath from "path";
 import KeyTree from "key-tree";
+import { negate } from "./installers.utils";
 
 /*
 export type FileTree = {
@@ -222,4 +223,16 @@ export const subtreeFrom = (dir: string, fileTree: FileTree): FileTree => {
   );
 
   return fileTreeFromPaths(subtreeFiles);
+};
+
+// Filtered tree creation
+
+export const prunedTreeFrom = (
+  matchToPrune: PathFilter,
+  fileTree: FileTree,
+): FileTree => {
+  const excludeMatched = (filePath) => negate(matchToPrune(filePath));
+  const remainingPaths = filesUnder(FILETREE_ROOT, excludeMatched, fileTree);
+
+  return fileTreeFromPaths(remainingPaths);
 };

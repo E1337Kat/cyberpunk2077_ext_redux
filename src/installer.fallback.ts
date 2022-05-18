@@ -1,7 +1,7 @@
 import {
   promptUserOnUnresolvableLayout,
   promptUserToInstallOrCancelOnReachingFallback,
-} from "./dialogs";
+} from "./ui.dialogs";
 import { filesUnder, FileTree, FILETREE_ROOT, Glob, sourcePaths } from "./filetree";
 import {
   FallbackLayout,

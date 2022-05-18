@@ -1,6 +1,6 @@
 import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
-import { InstallChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/ui.dialogs";
 import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
 import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
@@ -63,9 +63,19 @@ describe("Transforming modules to instructions", () => {
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
-          mockVortexExtensionContext.api.showDialog
-            .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
-            .mockReturnValue(Promise.resolve(true));
+          const dialogMock = mockVortexExtensionContext.api.showDialog.calledWith(
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+            notEmpty(),
+          );
+
+          dialogMock.mockResolvedValue(true);
+
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
@@ -81,6 +91,21 @@ describe("Transforming modules to instructions", () => {
           );
 
           expect(installResult.instructions).toEqual(mod.outInstructions);
+
+          if (mod.infoDialogTitle) {
+            const actualCalls = dialogMock.mock.calls;
+
+            expect(actualCalls.length).toBe(1);
+            expect(actualCalls[0][0]).toBe(`info`);
+            expect(actualCalls[0][1]).toBe(mod.infoDialogTitle);
+          }
+
+          if (mod.infoNotificationId) {
+            const actualCalls = notificationMock.mock.calls;
+
+            expect(actualCalls.length).toBe(1);
+            expect(actualCalls[0][0].id).toBe(mod.infoNotificationId);
+          }
         });
       });
     });

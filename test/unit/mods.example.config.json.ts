@@ -1,5 +1,5 @@
 import path from "path";
-import { InstallChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/ui.dialogs";
 import {
   CONFIG_JSON_MOD_BASEDIR_PLATFORM,
   CONFIG_JSON_MOD_BASEDIR_SETTINGS,

@@ -1,4 +1,4 @@
-import { FileTree, fileCount } from "./filetree";
+import { FileTree } from "./filetree";
 import {
   detectExtraArchiveLayouts,
   extraCanonArchiveInstructions,
@@ -177,12 +177,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
     ...tweakXLInstructions.instructions,
   ];
 
-  // Need to handle docs and images and whatnot here maybe?
-  // Defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/133
-  const haveFilesOutsideSelectedInstructions =
-    allInstructions.length !== fileCount(fileTree);
-
-  if (allInstructions.length < 1 || haveFilesOutsideSelectedInstructions) {
+  if (allInstructions.length < 1) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.MultiType,

@@ -1,5 +1,5 @@
 import path from "path";
-import { showRed4ExtReservedDllErrorDialog } from "./dialogs";
+import { showRed4ExtReservedDllErrorDialog } from "./ui.dialogs";
 import {
   FileTree,
   filesUnder,
@@ -10,7 +10,6 @@ import {
   FILETREE_ROOT,
   findAllSubdirsWithSome,
   pathInTree,
-  fileCount,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -275,17 +274,6 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
         ...extraCanonArchiveInstructions(api, fileTree).instructions,
       ]
     : chosenInstructions.instructions;
-
-  const haveFilesOutsideSelectedInstructions =
-    allInstructions.length !== fileCount(fileTree);
-
-  if (haveFilesOutsideSelectedInstructions) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
-      api,
-      InstallerType.Red4Ext,
-      fileTree,
-    );
-  }
 
   log("info", "Red4Ext installer installing files.");
   log("debug", "Red4Ext instructions: ", allInstructions);

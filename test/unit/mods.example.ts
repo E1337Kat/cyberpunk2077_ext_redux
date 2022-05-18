@@ -20,6 +20,7 @@ import {
   ExamplePromptInstallableModCategory,
   ExampleSucceedingMod,
   expectedUserCancelMessageFor,
+  expectedUserCancelMessageForHittingFallback,
   expectedUserCancelProtectedMessageFor,
   FAKE_MOD_NAME,
   FAKE_STAGING_PATH,
@@ -49,11 +50,13 @@ import {
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_XML_MOD_PROTECTED_FILENAMES,
 } from "../../src/installers.layouts";
-import { InstallChoices } from "../../src/dialogs";
+import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
 
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
+
+import ExtraFiles from "./mods.example.special.extrafiles";
 
 const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -278,7 +281,7 @@ const TweakXLModShouldPromptForInstall = new Map<string, ExamplePromptInstallabl
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [copiedToSamePath(`mytweak.yaml`)],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
     tweakXLWithIncorrectFileExtensionPromptsToInstallDirectly: {
       expectedInstallerType: InstallerType.TweakXL,
@@ -695,7 +698,6 @@ const CetModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod
 
 const RedscriptMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    
     redsWithBasedirAndCanonicalFilesInstallsToSubdir: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [
@@ -1081,7 +1083,7 @@ const Red4ExtModShouldPromptForInstall = new Map<string, ExamplePromptInstallabl
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Red4Ext),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
   }),
 );
@@ -1349,6 +1351,24 @@ const ArchiveOnlyModShouldPromptForInstall = new Map<string, ExamplePromptInstal
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Archive),
     },
+
+    archiveWithCanonAndXlPromptsOnConflictForFallbackWhenExtraToplevels: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`outtaplace.archive`),
+        path.join(`${ARCHIVE_PREFIX}/innaspot.archive.xl`),
+        path.join(`${ARCHIVE_PREFIX}/innaspot.archive`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        copiedToSamePath(`outtaplace.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/innaspot.archive.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/innaspot.archive`),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Archive),
+    },
   }),
 );
 
@@ -1507,7 +1527,7 @@ const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [copiedToSamePath(path.join(`myfancy.xml`))],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
   ],
 ]);
@@ -1647,7 +1667,7 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
     invalidModContainingRandomFiles: {
       expectedInstallerType: InstallerType.Fallback,
@@ -1666,7 +1686,7 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
     invalidModWithDeepInvalidPath: {
       expectedInstallerType: InstallerType.Fallback,
@@ -1683,7 +1703,7 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         },
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
     // Fallback for mods containing JSON that will later be handled by AMM
     validAmmModUsingFallback: {
@@ -1708,7 +1728,7 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
         copiedToSamePath(path.join(AMM_MOD_PREFIX, "User/Decor/Cyber Noir Flat.json")),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Fallback),
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
   }), // object
 );
@@ -1774,6 +1794,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
     GiftwrappedModsFixable,
+    ExtraFiles: ExtraFiles.AllExpectedSuccesses,
   }),
 );
 

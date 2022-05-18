@@ -15,6 +15,7 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ASI_MOD_PATH,
 } from "../../src/installers.layouts";
+import { InfoNotification } from "../../src/ui.notifications";
 
 //
 // Types
@@ -26,8 +27,11 @@ interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
 }
+
 export interface ExampleSucceedingMod extends ExampleMod {
   outInstructions: VortexInstruction[];
+  infoDialogTitle?: string;
+  infoNotificationId?: InfoNotification;
 }
 
 export interface ExampleFailingMod extends ExampleMod {
@@ -112,6 +116,12 @@ export const copiedToSamePath = (...args: string[]): VortexInstruction => ({
   destination: path.join(...args),
 });
 
+export const movedFromTo = (from: string, to: string): VortexInstruction => ({
+  type: `copy`,
+  source: path.normalize(from),
+  destination: path.normalize(to),
+});
+
 export const createdDirectory = (...args: string[]): VortexInstruction => ({
   type: `mkdir`,
   destination: path.join(...args),
@@ -119,6 +129,10 @@ export const createdDirectory = (...args: string[]): VortexInstruction => ({
 
 export const expectedUserCancelMessageFor = (installerType: InstallerType) =>
   `${installerType}: user chose to cancel installation`;
+
+export const expectedUserCancelMessageForHittingFallback = expectedUserCancelMessageFor(
+  InstallerType.Fallback,
+);
 
 export const expectedUserCancelProtectedMessageFor = (installerType: InstallerType) =>
   `${installerType}: user chose to cancel installing to protected paths`;
