@@ -355,7 +355,49 @@ export const AMM_CORE_REQUIRED_PATHS = [
 
 export const AMM_MOD_BASEDIR_PATH = AMM_BASEDIR_PATH;
 
+//
+// AMM Mods
+//
+
+export const enum AmmLayout {
+  Canon = `
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Locations\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\*.json + [any files or subdirs]
+    `,
+}
+
+export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\Collabs`);
+export const AMM_MOD_USERMOD_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\User`);
+
+export const AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Appearances`,
+);
+
+export const AMM_MOD_CUSTOM_ENTITIES_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Entities`,
+);
+
+export const AMM_MOD_CUSTOM_PROPS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Props`,
+);
+
+export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Decor`);
+export const AMM_MOD_LOCATIONS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Locations`,
+);
+export const AMM_MOD_SCRIPTS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Scripts`,
+);
+export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Themes`);
+
+//
 // Redscript
+//
 
 export const enum RedscriptLayout {
   Canon = `.\\r6\\scripts\\[modname]\\*.reds + [any files + subdirs]`,
@@ -366,7 +408,9 @@ export const enum RedscriptLayout {
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
 
+//
 // Red4Ext
+//
 
 export const enum Red4ExtLayout {
   Canon = `.\\red4ext\\plugins\\[modname]\\[*.dll, any files or subdirs]`,
@@ -553,9 +597,11 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | CoreAmmLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout
+  | AmmLayout
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout

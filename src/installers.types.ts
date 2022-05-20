@@ -23,6 +23,7 @@ export enum InstallerType {
   ConfigJson = `JSON Config Mod Installer`,
   ConfigXml = `XML Config Mod Installer`,
   ASI = `ASI Mod Installer`,
+  AMM = `AMM Mod Installer`,
   CET = `CET Mod Installer`,
   Redscript = `Redscript Mod Installer`,
   Red4Ext = `Red4ext Mod Installer`,

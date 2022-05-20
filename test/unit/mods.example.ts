@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 import path from "path";
 import {
   ARCHIVE_GIFTWRAPS,
@@ -1747,6 +1748,7 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
 //
 
 import AmmCore from "./mods.example.core.amm";
+import AmmMod from "./mods.example.amm";
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
 
@@ -1767,6 +1769,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     TweakXLMod,
     CoreArchiveXLInstall,
     AsiMod,
+    AmmModInstallShouldSucceed: AmmMod.AllExpectedSuccesses,
     CetMod,
     RedscriptMod,
     Red4ExtMod,
@@ -1787,6 +1790,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,
     ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
+    AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
   }),
 );
 
@@ -1799,6 +1803,7 @@ export const AllExpectedInstallPromptables = new Map<
     MultiTypeModShouldPromptForInstall: MultiTypeMod.AllExpectedPromptInstalls,
     ConfigXmlModShouldPromptToInstall,
     ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
+    AmmModShouldPromptForInstall: AmmMod.AllExpectedPromptInstalls,
     CetModShouldPromptForInstall,
     RedscriptModShouldPromptForInstall,
     Red4ExtModShouldPromptForInstall,
