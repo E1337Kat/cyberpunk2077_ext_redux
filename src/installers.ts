@@ -52,6 +52,7 @@ import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript"
 import { makeSyntheticName } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
 import { InfoNotification, showInfoNotification } from "./ui.notifications";
+import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -152,6 +153,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreArchiveXL,
     testSupported: testForCoreArchiveXL,
     install: installCoreArchiveXL,
+  },
+  {
+    type: InstallerType.CoreAmm,
+    id: InstallerType.CoreAmm,
+    testSupported: testForCoreAmm,
+    install: installCoreAmm,
   },
   {
     type: InstallerType.ASI,

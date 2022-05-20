@@ -108,6 +108,29 @@ export const enum FallbackLayout {
   Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
 }
 
+// Archives
+
+export const enum ArchiveLayout {
+  XL = `.\\archive\\pc\\mod\\*.xl, *.archive`, // Required layout per https://github.com/psiberx/cp2077-archive-xl
+  Canon = `.\\archive\\pc\\mod\\*.archive`,
+  Heritage = `.\\archive\\pc\\patch\\*.archive`,
+  Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
+}
+
+//
+// ArchiveXL Mods
+//
+
+export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
+export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
+export const ARCHIVE_MOD_EXTENSIONS = [
+  ARCHIVE_MOD_FILE_EXTENSION,
+  ARCHIVE_MOD_XL_EXTENSION,
+];
+
+export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
+
 //
 // Core installers
 //
@@ -276,10 +299,34 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 
 export const AMM_BASEDIR_PATH = path.join(
   CET_MOD_CANONICAL_PATH_PREFIX,
-  `AppearanceModMenu`,
+  `AppearanceMenuMod`,
 );
 
 export const AMM_CORE_PLACEHOLDER_FILENAME = `vortex_needs_this.txt`;
+
+export const enum CoreAmmLayout {
+  OnlyValid = `
+              CET:
+
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\init.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\db.sqlite3
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\API.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Themes\\Default.json
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\Backup\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Locations\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\[placeholder]
+
+              Archives:
+
+              - .\\archive\\pc\\mod\\basegame_AMM_Props.archive
+              - .\\archive\\pc\\mod\\basegame_AMM_requirement.archive
+              `,
+}
 
 // Let's keep this very simple? Alternative would be to require
 // a specific layout including the submod dirs, but… that seems
@@ -290,7 +337,21 @@ export const AMM_CORE_PLACEHOLDER_FILENAME = `vortex_needs_this.txt`;
 // it's probably better to just leave that to AMM itself and
 // focus maybe only on protected paths etc.
 //
-export const AMM_CORE_REQUIRED_PATHS = [path.join(`${AMM_BASEDIR_PATH}/init.lua`)];
+export const AMM_CORE_REQUIRED_CET_PATHS = [
+  path.join(`${AMM_BASEDIR_PATH}/init.lua`),
+  path.join(`${AMM_BASEDIR_PATH}/db.sqlite3`),
+  path.join(`${AMM_BASEDIR_PATH}/Collabs/API.lua`),
+];
+
+export const AMM_CORE_REQUIRED_ARCHIVE_PATHS = [
+  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_Props.archive`),
+  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_requirement.archive`),
+];
+
+export const AMM_CORE_REQUIRED_PATHS = [
+  ...AMM_CORE_REQUIRED_CET_PATHS,
+  ...AMM_CORE_REQUIRED_ARCHIVE_PATHS,
+];
 
 export const AMM_MOD_BASEDIR_PATH = AMM_BASEDIR_PATH;
 
@@ -338,28 +399,6 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 export const ASI_MOD_EXT = ".asi";
 export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 
-// Archives
-
-export const enum ArchiveLayout {
-  XL = `.\\archive\\pc\\mod\\*.xl, *.archive`, // Required layout per https://github.com/psiberx/cp2077-archive-xl
-  Canon = `.\\archive\\pc\\mod\\*.archive`,
-  Heritage = `.\\archive\\pc\\patch\\*.archive`,
-  Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
-}
-//
-// ArchiveXL Mods
-//
-
-export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
-export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
-export const ARCHIVE_MOD_EXTENSIONS = [
-  ARCHIVE_MOD_FILE_EXTENSION,
-  ARCHIVE_MOD_XL_EXTENSION,
-];
-
-export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
-
 //
 //
 // Full descriptions
@@ -383,6 +422,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     \`${CoreArchiveXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.CoreAmm,
+    `
+    ${CoreAmmLayout.OnlyValid}
+
+    This is the only possible valid layout for ${InstallerType.CoreAmm} that I know of.
     `,
   ],
   [
