@@ -261,6 +261,7 @@ export const enum AsiLayout {
   Canon = `.\\bin\\x64\\plugins\\*.asi + [any files + subdirs]`,
 }
 
+
 // CET
 
 export const enum CetLayout {
@@ -271,6 +272,30 @@ export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
 export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
+
+// AMM is a special case of CET
+
+export const AMM_BASEDIR_PATH = path.join(
+  CET_MOD_CANONICAL_PATH_PREFIX, `AppearanceModMenu`
+);
+
+export const AMM_CORE_PLACEHOLDER_FILENAME = `vortex_needs_this.txt`;
+
+// Let's keep this very simple? Alternative would be to require
+// a specific layout including the submod dirs, but… that seems
+// not super future proof. It would at least have to be versioned.
+//
+// The upside of speccing more tightly would be that we could
+// maybe control and validate the install better. But I think
+// it's probably better to just leave that to AMM itself and
+// focus maybe only on protected paths etc.
+//
+export const AMM_CORE_REQUIRED_PATHS = [
+  path.join(`${AMM_BASEDIR_PATH}/init.lua`),
+];
+
+export const AMM_MOD_BASEDIR_PATH = AMM_BASEDIR_PATH;
+
 
 // Redscript
 
@@ -310,12 +335,6 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 ];
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
-
-// AMM
-
-export const AMM_MOD_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/",
-);
 
 // ASI
 
