@@ -166,12 +166,6 @@ const installers: Installer[] = [
     install: installMultiTypeMod,
   },
   {
-    type: InstallerType.ConfigXml,
-    id: InstallerType.ConfigXml,
-    testSupported: testForConfigXmlMod,
-    install: installConfigXmlMod,
-  },
-  {
     type: InstallerType.CET,
     id: InstallerType.CET,
     testSupported: testForCetMod,
@@ -222,6 +216,12 @@ const installers: Installer[] = [
     id: InstallerType.ConfigJson,
     testSupported: testForJsonMod,
     install: installJsonMod,
+  },
+  {
+    type: InstallerType.ConfigXml,
+    id: InstallerType.ConfigXml,
+    testSupported: testForConfigXmlMod,
+    install: installConfigXmlMod,
   },
   {
     type: InstallerType.Archive,
