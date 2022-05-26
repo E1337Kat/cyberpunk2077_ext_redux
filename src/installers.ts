@@ -53,6 +53,7 @@ import { makeSyntheticName } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
 import { InfoNotification, showInfoNotification } from "./ui.notifications";
 import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
+import { installAmmMod, testForAmmMod } from "./installer.amm";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -171,6 +172,12 @@ const installers: Installer[] = [
     id: InstallerType.MultiType,
     testSupported: testForMultiTypeMod,
     install: installMultiTypeMod,
+  },
+  {
+    type: InstallerType.AMM,
+    id: InstallerType.AMM,
+    testSupported: testForAmmMod,
+    install: installAmmMod,
   },
   {
     type: InstallerType.CET,

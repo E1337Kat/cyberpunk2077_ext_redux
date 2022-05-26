@@ -477,6 +477,28 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.AMM,
+    `
+    Any combination of the below canonical layouts (including any canonical Archives)
+
+    ${AmmLayout.Canon}
+    ${ArchiveLayout.Canon}
+
+    Alternatively, any combination of the below toplevel layouts (including toplevel Archives)
+
+    ${ArchiveLayout.Other}
+    `,
+  ],
+  /*
+    ${AmmLayout.CustomAppearancesToplevel}
+    ${AmmLayout.CustomEntitiesToplevel}
+    ${AmmLayout.CustomPropsToplevel}
+    ${AmmLayout.DecorToplevel}
+    ${AmmLayout.LocationsToplevel}
+    ${AmmLayout.ScriptsToplevel}
+    ${AmmLayout.ThemesToplevel}
+    */
+  [
     InstallerType.ConfigJson,
     `
     ${ConfigJsonLayout.Protected}
