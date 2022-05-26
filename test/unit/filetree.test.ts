@@ -13,6 +13,7 @@ import {
   pathInTree,
   fileCount,
   prunedTreeFrom,
+  dirInTree,
 } from "../../src/filetree";
 
 const paths = [
@@ -105,6 +106,27 @@ describe("FileTree", () => {
     expect(pathInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
   });
 
+  test("dirInTree looks for path assuming it's a tree, trailing \\ skipped", () => {
+    const fileTree = fileTreeFromPaths(paths);
+
+    nonEmptyDirPaths.forEach((d) => {
+      expect(dirInTree(d, fileTree)).toBeTruthy();
+    });
+
+    nonEmptyDirPaths
+      .map((d) => path.normalize(`${d}\\`))
+      .forEach((d) => {
+        expect(pathInTree(d, fileTree)).toBeTruthy();
+      });
+
+    emptyDirPaths.forEach((d) => {
+      expect(dirInTree(d, fileTree)).toBeFalsy();
+    });
+
+    expect(dirInTree(path.normalize("foo"), fileTree)).toBeFalsy();
+    expect(dirInTree(path.normalize("topf1"), fileTree)).toBeFalsy();
+    expect(dirInTree(path.normalize("sub2/nonesuch/"), fileTree)).toBeFalsy();
+  });
   test("path lookup", () => {
     const fileTree = fileTreeFromPaths(paths);
 
