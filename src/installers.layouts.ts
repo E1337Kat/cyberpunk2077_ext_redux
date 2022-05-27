@@ -108,6 +108,29 @@ export const enum FallbackLayout {
   Unvalidated = `.\\**\\* - everything in this mod, but nothing has been validated`,
 }
 
+// Archives
+
+export const enum ArchiveLayout {
+  XL = `.\\archive\\pc\\mod\\*.xl, *.archive`, // Required layout per https://github.com/psiberx/cp2077-archive-xl
+  Canon = `.\\archive\\pc\\mod\\*.archive`,
+  Heritage = `.\\archive\\pc\\patch\\*.archive`,
+  Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
+}
+
+//
+// ArchiveXL Mods
+//
+
+export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
+export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
+export const ARCHIVE_MOD_EXTENSIONS = [
+  ARCHIVE_MOD_FILE_EXTENSION,
+  ARCHIVE_MOD_XL_EXTENSION,
+];
+
+export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
+export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
+
 //
 // Core installers
 //
@@ -272,7 +295,109 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
 
+// AMM is a special case of CET
+
+export const AMM_BASEDIR_PATH = path.join(
+  CET_MOD_CANONICAL_PATH_PREFIX,
+  `AppearanceMenuMod`,
+);
+
+export const AMM_CORE_PLACEHOLDER_FILENAME = `vortex_needs_this.txt`;
+
+export const enum CoreAmmLayout {
+  OnlyValid = `
+              CET:
+
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\init.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\db.sqlite3
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\API.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Themes\\Default.json
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\Backup\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Locations\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\[placeholder]
+
+              Archives:
+
+              - .\\archive\\pc\\mod\\basegame_AMM_Props.archive
+              - .\\archive\\pc\\mod\\basegame_AMM_requirement.archive
+              `,
+}
+
+// Let's keep this very simple? Alternative would be to require
+// a specific layout including the submod dirs, but… that seems
+// not super future proof. It would at least have to be versioned.
+//
+// The upside of speccing more tightly would be that we could
+// maybe control and validate the install better. But I think
+// it's probably better to just leave that to AMM itself and
+// focus maybe only on protected paths etc.
+//
+export const AMM_CORE_REQUIRED_CET_PATHS = [
+  path.join(`${AMM_BASEDIR_PATH}/init.lua`),
+  path.join(`${AMM_BASEDIR_PATH}/db.sqlite3`),
+  path.join(`${AMM_BASEDIR_PATH}/Collabs/API.lua`),
+];
+
+export const AMM_CORE_REQUIRED_ARCHIVE_PATHS = [
+  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_Props.archive`),
+  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_requirement.archive`),
+];
+
+export const AMM_CORE_REQUIRED_PATHS = [
+  ...AMM_CORE_REQUIRED_CET_PATHS,
+  ...AMM_CORE_REQUIRED_ARCHIVE_PATHS,
+];
+
+export const AMM_MOD_BASEDIR_PATH = AMM_BASEDIR_PATH;
+
+//
+// AMM Mods
+//
+
+export const enum AmmLayout {
+  Canon = `
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Locations\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\*.json + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\*.json + [any files or subdirs]
+    `,
+}
+
+export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\Collabs`);
+export const AMM_MOD_USERMOD_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\User`);
+
+export const AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Appearances`,
+);
+
+export const AMM_MOD_CUSTOM_ENTITIES_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Entities`,
+);
+
+export const AMM_MOD_CUSTOM_PROPS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Props`,
+);
+
+export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Decor`);
+export const AMM_MOD_LOCATIONS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Locations`,
+);
+export const AMM_MOD_SCRIPTS_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Scripts`,
+);
+export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Themes`);
+
+//
 // Redscript
+//
 
 export const enum RedscriptLayout {
   Canon = `.\\r6\\scripts\\[modname]\\*.reds + [any files + subdirs]`,
@@ -283,7 +408,9 @@ export const enum RedscriptLayout {
 export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
 
+//
 // Red4Ext
+//
 
 export const enum Red4ExtLayout {
   Canon = `.\\red4ext\\plugins\\[modname]\\[*.dll, any files or subdirs]`,
@@ -311,38 +438,10 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
-// AMM
-
-export const AMM_MOD_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods/AppearanceModMenu/",
-);
-
 // ASI
 
 export const ASI_MOD_EXT = ".asi";
 export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
-
-// Archives
-
-export const enum ArchiveLayout {
-  XL = `.\\archive\\pc\\mod\\*.xl, *.archive`, // Required layout per https://github.com/psiberx/cp2077-archive-xl
-  Canon = `.\\archive\\pc\\mod\\*.archive`,
-  Heritage = `.\\archive\\pc\\patch\\*.archive`,
-  Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
-}
-//
-// ArchiveXL Mods
-//
-
-export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
-export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
-export const ARCHIVE_MOD_EXTENSIONS = [
-  ARCHIVE_MOD_FILE_EXTENSION,
-  ARCHIVE_MOD_XL_EXTENSION,
-];
-
-export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
 
 //
 //
@@ -369,6 +468,36 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
     `,
   ],
+  [
+    InstallerType.CoreAmm,
+    `
+    ${CoreAmmLayout.OnlyValid}
+
+    This is the only possible valid layout for ${InstallerType.CoreAmm} that I know of.
+    `,
+  ],
+  [
+    InstallerType.AMM,
+    `
+    Any combination of the below canonical layouts (including any canonical Archives)
+
+    ${AmmLayout.Canon}
+    ${ArchiveLayout.Canon}
+
+    Alternatively, any combination of the below toplevel layouts (including toplevel Archives)
+
+    ${ArchiveLayout.Other}
+    `,
+  ],
+  /*
+    ${AmmLayout.CustomAppearancesToplevel}
+    ${AmmLayout.CustomEntitiesToplevel}
+    ${AmmLayout.CustomPropsToplevel}
+    ${AmmLayout.DecorToplevel}
+    ${AmmLayout.LocationsToplevel}
+    ${AmmLayout.ScriptsToplevel}
+    ${AmmLayout.ThemesToplevel}
+    */
   [
     InstallerType.ConfigJson,
     `
@@ -490,9 +619,11 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | CoreAmmLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout
+  | AmmLayout
   | CetLayout
   | RedscriptLayout
   | Red4ExtLayout

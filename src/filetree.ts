@@ -149,10 +149,13 @@ export const subdirNamesIn = (dir: string, tree: FileTree): string[] => {
 export const subdirsIn = (dir: string, tree: FileTree): string[] =>
   subdirNamesIn(dir, tree).map((subdir) => nodejsPath.join(dir, subdir));
 
+export const dirInTree = (dir: string, tree: FileTree): boolean =>
+  tree._kt._getNode(stripTrailingSeparator(dir)) !== null;
+
 export const pathInTree = (path: string, tree: FileTree): boolean =>
   // We _could_ just keep track of the paths but since it's possible to mutate..
   path.endsWith(nodejsPath.sep)
-    ? tree._kt._getNode(stripTrailingSeparator(path)) !== null
+    ? dirInTree(path, tree)
     : tree._kt.get(stripTrailingSeparator(nodejsPath.dirname(path))).includes(path);
 
 // Should really implement globbing here, make it much cleaner
@@ -177,15 +180,21 @@ export const filesUnder = (
 
 export const dirWithSomeIn = (
   dir: string,
-  predicate: PathFilter,
+  predicate: PathFilter | Glob,
   tree: FileTree,
-): boolean => tree._kt.get(normalizeDir(dir)).some(predicate);
+): boolean =>
+  predicate !== Glob.Any
+    ? tree._kt.get(normalizeDir(dir)).some(predicate)
+    : tree._kt.get(normalizeDir(dir));
 
 export const dirWithSomeUnder = (
   dir: string,
-  predicate: PathFilter,
+  predicate: PathFilter | Glob,
   tree: FileTree,
-): boolean => tree._kt.getSub(stripTrailingSeparator(dir)).some(predicate);
+): boolean =>
+  predicate !== Glob.Any
+    ? tree._kt.getSub(stripTrailingSeparator(dir)).some(predicate)
+    : tree._kt.getSub(stripTrailingSeparator(dir));
 
 export const findAllFiles = (predicate: PathFilter, tree: FileTree): string[] =>
   findFilesRecursive(predicate, tree._kt.$);

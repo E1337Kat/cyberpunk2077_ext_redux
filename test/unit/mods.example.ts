@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 import path from "path";
 import {
   ARCHIVE_GIFTWRAPS,
@@ -39,7 +40,6 @@ import {
 
 import {
   CET_MOD_CANONICAL_PATH_PREFIX,
-  AMM_MOD_PREFIX,
   ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
   CONFIG_INI_MOD_BASEDIR,
   CONFIG_RESHADE_MOD_BASEDIR,
@@ -52,11 +52,6 @@ import {
 } from "../../src/installers.layouts";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
-
-import MultiTypeMod from "./mods.example.multitype";
-import JsonMod from "./mods.example.config.json";
-
-import ExtraFiles from "./mods.example.special.extrafiles";
 
 const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -1705,31 +1700,6 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
-    // Fallback for mods containing JSON that will later be handled by AMM
-    validAmmModUsingFallback: {
-      expectedInstallerType: InstallerType.Fallback,
-      inFiles: [
-        ...ARCHIVE_PREFIXES,
-        path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive"),
-        ...pathHierarchyFor(AMM_MOD_PREFIX),
-        path.join(AMM_MOD_PREFIX, "Collabs/"),
-        path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/"),
-        path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/proximas_propshop_v4.lua"),
-        path.join(AMM_MOD_PREFIX, "User/"),
-        path.join(AMM_MOD_PREFIX, "User/Decor/"),
-        path.join(AMM_MOD_PREFIX, "User/Decor/Cyber Noir Flat.json"),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        copiedToSamePath(path.join(ARCHIVE_PREFIX, "proximas_propshop_v4.archive")),
-        copiedToSamePath(
-          path.join(AMM_MOD_PREFIX, "Collabs/Custom Props/proximas_propshop_v4.lua"),
-        ),
-        copiedToSamePath(path.join(AMM_MOD_PREFIX, "User/Decor/Cyber Noir Flat.json")),
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
-    },
   }), // object
 );
 
@@ -1773,8 +1743,20 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
+//
+// And then the already-split-up types
+//
+
+import AmmCore from "./mods.example.core.amm";
+import AmmMod from "./mods.example.amm";
+import MultiTypeMod from "./mods.example.multitype";
+import JsonMod from "./mods.example.config.json";
+
+import ExtraFiles from "./mods.example.special.extrafiles";
+
 export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
   Object.entries({
+    CoreAmmInstallShouldSucceed: AmmCore.AllExpectedSuccesses,
     CoreCetInstall,
     CoreRedscriptInstall,
     CoreRed4ExtInstall,
@@ -1787,6 +1769,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     TweakXLMod,
     CoreArchiveXLInstall,
     AsiMod,
+    AmmModInstallShouldSucceed: AmmMod.AllExpectedSuccesses,
     CetMod,
     RedscriptMod,
     Red4ExtMod,
@@ -1800,12 +1783,14 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
 
 export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
+    CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
     CoreWolvenKitShouldFailInTest,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
     MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,
     ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
+    AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
   }),
 );
 
@@ -1814,9 +1799,11 @@ export const AllExpectedInstallPromptables = new Map<
   ExamplePromptInstallableModCategory
 >(
   Object.entries({
+    CoreAmmModShouldPromptForInstall: AmmCore.AllExpectedPromptInstalls,
     MultiTypeModShouldPromptForInstall: MultiTypeMod.AllExpectedPromptInstalls,
     ConfigXmlModShouldPromptToInstall,
     ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
+    AmmModShouldPromptForInstall: AmmMod.AllExpectedPromptInstalls,
     CetModShouldPromptForInstall,
     RedscriptModShouldPromptForInstall,
     Red4ExtModShouldPromptForInstall,

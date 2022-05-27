@@ -10,6 +10,7 @@ export enum InstallerType {
   SpecialExtraFiles = `(Special) Extra Files Installer`,
   // 'Core' installers for the mod type enablers themselves
   CoreCET = `Core/CET Installer`,
+  CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
   CoreRedscript = `Core/Redscript Installer`,
   CoreRed4ext = `Core/Red4ext Installer`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
@@ -22,6 +23,7 @@ export enum InstallerType {
   ConfigJson = `JSON Config Mod Installer`,
   ConfigXml = `XML Config Mod Installer`,
   ASI = `ASI Mod Installer`,
+  AMM = `AMM Mod Installer`,
   CET = `CET Mod Installer`,
   Redscript = `Redscript Mod Installer`,
   Red4Ext = `Red4ext Mod Installer`,

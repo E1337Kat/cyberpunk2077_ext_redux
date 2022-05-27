@@ -52,6 +52,8 @@ import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript"
 import { makeSyntheticName } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
 import { InfoNotification, showInfoNotification } from "./ui.notifications";
+import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
+import { installAmmMod, testForAmmMod } from "./installer.amm";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -154,6 +156,12 @@ const installers: Installer[] = [
     install: installCoreArchiveXL,
   },
   {
+    type: InstallerType.CoreAmm,
+    id: InstallerType.CoreAmm,
+    testSupported: testForCoreAmm,
+    install: installCoreAmm,
+  },
+  {
     type: InstallerType.ASI,
     id: InstallerType.ASI,
     testSupported: testForAsiMod,
@@ -166,10 +174,10 @@ const installers: Installer[] = [
     install: installMultiTypeMod,
   },
   {
-    type: InstallerType.ConfigXml,
-    id: InstallerType.ConfigXml,
-    testSupported: testForConfigXmlMod,
-    install: installConfigXmlMod,
+    type: InstallerType.AMM,
+    id: InstallerType.AMM,
+    testSupported: testForAmmMod,
+    install: installAmmMod,
   },
   {
     type: InstallerType.CET,
@@ -222,6 +230,12 @@ const installers: Installer[] = [
     id: InstallerType.ConfigJson,
     testSupported: testForJsonMod,
     install: installJsonMod,
+  },
+  {
+    type: InstallerType.ConfigXml,
+    id: InstallerType.ConfigXml,
+    testSupported: testForConfigXmlMod,
+    install: installConfigXmlMod,
   },
   {
     type: InstallerType.Archive,
