@@ -95,7 +95,7 @@ export const promptToFallbackOrFailOnUnresolvableLayout = async (
   const installDecision = await promptUserOnUnresolvableLayout(
     api,
     installerType,
-    filesUnder(FILETREE_ROOT, Glob.Any, fileTree),
+    fileTree,
   );
 
   return useFallbackOrFail(api, installerType, fileTree, installDecision);

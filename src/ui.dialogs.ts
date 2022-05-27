@@ -1,4 +1,5 @@
 /* eslint-disable prefer-template */
+import { FileTree, sourcePaths } from "./filetree";
 import {
   EXTENSION_NAME_NEXUS,
   EXTENSION_URL_GITHUB,
@@ -20,15 +21,26 @@ export const heredoc = (str: string) =>
     .replace(/\n{3,}/g, "\n\n"); // And squash extra empty lines into one empty max
 
 const INSTRUCTIONS_TO_FIX_IN_STAGING = `
+    So, this doesn't necessarily mean there's anything wrong with the mod,
+    but you need to look at the mod yourself because this is beyond my current
+    ability!
+
+    You need to decide if you want to proceed or cancel the installation.
+
     If you want to proceed, I'll install *EVERYTHING* in the mod
     into the Staging folder. You will need to check and possibly
     fix the mod manually before you enable it. (The Staging folder
     is where all installed mods live - they only go into the game
     mod folder when you \`enable\` the mod.)
 
-    To do so, once the mod is installed, click on the File Manager
+    Make sure you read the mod's installation instructions!
+
+    Once the mod is installed, click on the File Manager
     option in the action menu (arrow down next to Remove on the right
-    in the mod listing.) Make your changes and just close the Manager.
+    in the mod listing.) Make any necessary changes to the mod layout
+    and just close the manager - no separate saving is necessary.
+
+    Now you can enable the mod and see if it works!
     `;
 
 const INSTRUCTIONS_TO_REPORT_ISSUE = `
@@ -112,8 +124,11 @@ export const promptUserOnProtectedPaths = async (
 export const promptUserOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
-  files: string[],
+  fileTree: FileTree,
+  conflictingFiles: string[] = [],
 ): Promise<InstallDecision> => {
+  const files = sourcePaths(fileTree);
+
   api.log(
     `error`,
     `${installerType}: unresolvable layout, can't install automatically`,
@@ -123,12 +138,26 @@ export const promptUserOnUnresolvableLayout = async (
 
   const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
 
+  const fileListToShow =
+    conflictingFiles.length > 0
+      ? `
+      These files seem to be the problem:
+
+      \`\`\`
+      ${conflictingFiles.join(`\n`)}
+      \`\`\`
+      `
+      : `
+      These are the files I found in the mod:
+
+      \`\`\`
+      ${files.join(`\n`)}
+      \`\`\``;
+
   const explanationForUser = `
     This looked like the ${installerType} kind of mod to me, but I can't figure
     out what the intended layout here is. It's also possible I've misidentified
     the mod, or that this is a valid layout I just don't understand (yet)!
-
-    You need to decide if you want to proceed or not.
 
     ${INSTRUCTIONS_TO_FIX_IN_STAGING}
 
@@ -138,11 +167,8 @@ export const promptUserOnUnresolvableLayout = async (
 
     ${INSTRUCTIONS_TO_REPORT_ISSUE}
 
-    These are the files I found in the mod:
-
-    \`\`\`
-    ${files.join(`\n`)}
-    \`\`\``;
+    ${fileListToShow}
+    `;
 
   return promptUserToInstallOrCancel(
     api,
