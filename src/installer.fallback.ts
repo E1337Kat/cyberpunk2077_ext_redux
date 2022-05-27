@@ -2,7 +2,14 @@ import {
   promptUserOnUnresolvableLayout,
   promptUserToInstallOrCancelOnReachingFallback,
 } from "./ui.dialogs";
-import { filesUnder, FileTree, FILETREE_ROOT, Glob, sourcePaths } from "./filetree";
+import {
+  filesUnder,
+  FileTree,
+  FILETREE_ROOT,
+  Glob,
+  pathInTree,
+  sourcePaths,
+} from "./filetree";
 import {
   FallbackLayout,
   InvalidLayout,
@@ -16,6 +23,7 @@ import { exhaustiveMatchFailure } from "./installers.utils";
 import {
   VortexApi,
   VortexInstallResult,
+  VortexInstruction,
   VortexLogFunc,
   VortexTestResult,
   VortexWrappedInstallFunc,
@@ -87,7 +95,7 @@ export const useFallbackOrFail = (
   }
 };
 
-export const promptToFallbackOrFailOnUnresolvableLayout = async (
+export const fallbackToPromptOrFailOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
   fileTree: FileTree,
@@ -95,11 +103,34 @@ export const promptToFallbackOrFailOnUnresolvableLayout = async (
   const installDecision = await promptUserOnUnresolvableLayout(
     api,
     installerType,
-    filesUnder(FILETREE_ROOT, Glob.Any, fileTree),
+    fileTree,
   );
 
   return useFallbackOrFail(api, installerType, fileTree, installDecision);
 };
+
+export const fallbackToPromptOrFailOnUnaccountedForFiles = async (
+  api: VortexApi,
+  installerType: InstallerType,
+  fileTree: FileTree,
+  sourceFiles: string[],
+): Promise<VortexInstruction[]> => {
+  const pathDiff = sourceFiles.filter((sourcePath) => !pathInTree(sourcePath, fileTree));
+
+  const installDecision = await promptUserOnUnresolvableLayout(
+    api,
+    installerType,
+    fileTree,
+    pathDiff,
+  );
+
+  return (await useFallbackOrFail(api, installerType, fileTree, installDecision))
+    .instructions;
+};
+
+//
+// Installer API
+//
 
 export const testForFallback: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
