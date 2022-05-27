@@ -1,6 +1,6 @@
 import path from "path";
 import { filesIn, filesUnder, FileTree, FILETREE_ROOT, pathInTree } from "./filetree";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   CONFIG_JSON_MOD_EXTENSION,
   CONFIG_JSON_MOD_PROTECTED_DIRS,
@@ -175,7 +175,7 @@ export const installJsonMod: VortexWrappedInstallFunc = async (
     selectedInstructions === InvalidLayout.Conflict
     // Also gets here if detectJsonFilesInProtectedDirs matched in test
   ) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.ConfigJson,
       fileTree,

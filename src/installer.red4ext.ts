@@ -12,7 +12,7 @@ import {
   pathInTree,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
@@ -259,7 +259,7 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   }
 
   if (chosenInstructions === InvalidLayout.Conflict) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.Red4Ext,
       fileTree,

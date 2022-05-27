@@ -21,7 +21,7 @@ import {
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import { InstallerType } from "./installers.types";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 const matchTweakYaml = (filePath: string): boolean =>
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS.includes(path.extname(filePath));
@@ -77,7 +77,7 @@ export const installTweakXLMod: VortexWrappedInstallFunc = async (
     selectedInstructions === NoInstructions.NoMatch ||
     selectedInstructions === InvalidLayout.Conflict
   ) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.TweakXL,
       fileTree,

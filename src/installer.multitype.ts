@@ -4,7 +4,7 @@ import {
   extraCanonArchiveInstructions,
 } from "./installer.archive";
 import { detectCetCanonLayout, cetCanonLayout } from "./installer.cet";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   detectRed4ExtCanonOnlyLayout,
   detectRed4ExtBasedirLayout,
@@ -178,7 +178,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
   ];
 
   if (allInstructions.length < 1) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.MultiType,
       fileTree,

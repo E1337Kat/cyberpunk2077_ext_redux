@@ -30,7 +30,7 @@ import {
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 // Recognizers
 
@@ -169,7 +169,7 @@ export const installConfigXmlMod: VortexWrappedInstallFunc = async (
     selectedInstructions === NoInstructions.NoMatch ||
     selectedInstructions === InvalidLayout.Conflict
   ) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.ConfigXml,
       fileTree,

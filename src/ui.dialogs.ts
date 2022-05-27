@@ -1,4 +1,5 @@
 /* eslint-disable prefer-template */
+import { workerData } from "worker_threads";
 import { FileTree, sourcePaths } from "./filetree";
 import {
   EXTENSION_NAME_NEXUS,
@@ -125,7 +126,6 @@ export const promptUserOnUnresolvableLayout = async (
   api: VortexApi,
   installerType: InstallerType,
   fileTree: FileTree,
-  conflictingFiles: string[] = [],
 ): Promise<InstallDecision> => {
   const files = sourcePaths(fileTree);
 
@@ -136,39 +136,30 @@ export const promptUserOnUnresolvableLayout = async (
   );
   api.log(`info`, `Asking user to proceed/cancel installation`);
 
-  const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
+  const supportedLayoutsDescription = `
+        These are the supported layouts for ${installerType} mods:
 
-  const fileListToShow =
-    conflictingFiles.length > 0
-      ? `
-      These files seem to be the problem:
-
-      \`\`\`
-      ${conflictingFiles.join(`\n`)}
-      \`\`\`
-      `
-      : `
-      These are the files I found in the mod:
-
-      \`\`\`
-      ${files.join(`\n`)}
-      \`\`\``;
+        ${getLayoutDescriptionOrThrow(api, installerType)}
+        `;
 
   const explanationForUser = `
     This looked like the ${installerType} kind of mod to me, but I can't figure
     out what the intended layout here is. It's also possible I've misidentified
     the mod, or that this is a valid layout I just don't understand (yet)!
 
+    ${specificFilesToHighlight}
+
     ${INSTRUCTIONS_TO_FIX_IN_STAGING}
-
-    These are the supported layouts for ${installerType} mods:
-
-    ${supportedLayoutsDescription}
 
     ${INSTRUCTIONS_TO_REPORT_ISSUE}
 
-    ${fileListToShow}
-    `;
+    ${supportedLayoutsDescription}
+
+    These are all the files I found in the mod:
+
+    \`\`\`
+    ${files.join(`\n`)}
+    \`\`\``;
 
   return promptUserToInstallOrCancel(
     api,
@@ -180,10 +171,22 @@ export const promptUserOnUnresolvableLayout = async (
 export const promptUserToInstallOrCancelOnReachingFallback = (
   api: VortexApi,
   files: string[],
+  highlightFiles: string[] = [],
 ) => {
   api.log("info", `Fallback installer reached, prompting to proceed/cancel`, files);
 
   const fallbackTitle = `You Have Reached The Fallback Installer!`;
+
+  const specificFilesToHighlight =
+    highlightFiles.length > 0
+      ? `
+        These files seem to be the problem:
+
+        \`\`\`
+        ${highlightFiles.join(`\n`)}
+        \`\`\`
+        `
+      : `\n`;
 
   const fallbackExplanation = `
     I wasn't able to figure out what kind of mod this is, so you have

@@ -8,7 +8,7 @@ import {
   FILETREE_ROOT,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   REDS_MOD_CANONICAL_PATH_PREFIX,
   MaybeInstructions,
@@ -232,7 +232,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   ];
 
   if (allInstructions.length < 1) {
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.Redscript,
       fileTree,

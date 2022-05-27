@@ -11,7 +11,7 @@ import {
   subdirsIn,
   filesIn,
 } from "./filetree";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { fallbackToPromptOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   ARCHIVE_MOD_FILE_EXTENSION,
   ARCHIVE_MOD_CANONICAL_PREFIX,
@@ -346,7 +346,7 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
   if (chosenInstructions === InvalidLayout.Conflict) {
     log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
 
-    return promptToFallbackOrFailOnUnresolvableLayout(
+    return fallbackToPromptOrFailOnUnresolvableLayout(
       api,
       InstallerType.Archive,
       fileTree,
