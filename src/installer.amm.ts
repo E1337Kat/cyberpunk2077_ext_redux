@@ -16,6 +16,7 @@ import {
   dirInTree,
   fileCount,
   subtreeFrom,
+  PathFilter,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -34,32 +35,31 @@ import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback
 import { extraCanonArchiveInstructions } from "./installer.archive";
 
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
-
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
 
-const findAmmCanonCustomsFiles = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree).flatMap(
-    (dir) => filesUnder(dir, Glob.Any, fileTree),
-  );
-
-const findAmmCanonUsermodFiles = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree).flatMap(
-    (dir) => filesUnder(dir, Glob.Any, fileTree),
+const findAmmFiles = (
+  ammDir: string,
+  kindMatcher: PathFilter,
+  fileTree: FileTree,
+): string[] =>
+  findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
+    filesUnder(dir, Glob.Any, fileTree),
   );
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
-  ...findAmmCanonCustomsFiles(fileTree),
-  ...findAmmCanonUsermodFiles(fileTree),
+  ...findAmmFiles(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree),
+  ...findAmmFiles(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree),
 ];
 
-const detectAmmCanonCustomLayouts = (fileTree: FileTree): boolean =>
-  findDirectSubdirsWithSome(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree).length > 0;
-
-const detectAmmCanonUsermodLayouts = (fileTree: FileTree): boolean =>
-  findDirectSubdirsWithSome(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree).length > 0;
+const detectAmmLayout = (
+  ammDir: string,
+  kindMatcher: PathFilter,
+  fileTree: FileTree,
+): boolean => findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).length > 0;
 
 const detectAmmCanonLayout = (fileTree: FileTree): boolean =>
-  detectAmmCanonCustomLayouts(fileTree) || detectAmmCanonUsermodLayouts(fileTree);
+  detectAmmLayout(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree) ||
+  detectAmmLayout(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree);
 
 //
 // Layouts
