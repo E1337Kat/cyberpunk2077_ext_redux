@@ -42,7 +42,7 @@ jobs:
       run: npm run test
   
   package-dev:
-    if: "contains(github.event.commits[0].message, '[gonk]')"
+    if: "contains(github.event.commits[0].message, '[gonk]') || (contains(github.event.commits[0].message, 'release/') && contains(github.event.commits[0].message, '/gonk'))"
     runs-on: windows-latest
 
     name: Package Dev Build
@@ -65,7 +65,7 @@ jobs:
         path: 'cyberpunk2077-dev-*.7z'
 
   package-release:
-    if: "contains(github.event.commits[0].message, '[release]')"
+    if: "contains(github.event.commits[0].message, '[release]') || (contains(github.event.commits[0].message, 'release/') && !contains(github.event.commits[0].message, '/gonk'))"
     runs-on: windows-latest
 
     name: Package
