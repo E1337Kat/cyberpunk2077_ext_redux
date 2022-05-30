@@ -375,10 +375,34 @@ export const enum AmmLayout {
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\*.json + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\*.json + [any files or subdirs]
     `,
+  ToplevelCanonSubdir = `
+    - .\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
+    - .\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
+    - .\\User\\Decor\\*.json + [any files or subdirs]
+    - .\\User\\Locations\\*.json + [any files or subdirs]
+    - .\\User\\Scripts\\*.json + [any files or subdirs]
+    - .\\User\\Themes\\*.json + [any files or subdirs]
+  `,
+  Toplevel = `
+    - .\\[*.json or *.lua files that can be validated to be AMM format]
+  `,
 }
 
-export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\Collabs`);
-export const AMM_MOD_USERMOD_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\User`);
+export const AMM_MOD_COLLAB_LUA_EXTENSION = `.lua`;
+export const AMM_MOD_USERMOD_JSON_EXTENSION = `.json`;
+
+export const AMM_MOD_CUSTOMS_DIRNAME = `Collabs`;
+export const AMM_MOD_USERMOD_DIRNAME = `User`;
+
+export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(
+  AMM_BASEDIR_PATH,
+  AMM_MOD_CUSTOMS_DIRNAME,
+);
+export const AMM_MOD_USERMOD_CANON_DIR = path.join(
+  AMM_BASEDIR_PATH,
+  AMM_MOD_USERMOD_DIRNAME,
+);
 
 export const AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Appearances`,
