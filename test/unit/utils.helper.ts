@@ -22,10 +22,15 @@ import { InfoNotification } from "../../src/ui.notifications";
 //
 
 export type InFiles = string[];
+// Should replace this with the real mock-fs type
+export interface MockFsDirItems {
+  [dir: string]: string | Buffer | MockFsDirItems;
+}
 
 interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
+  fsMocked?: MockFsDirItems;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {

@@ -27,6 +27,7 @@ import {
   FAKE_STAGING_PATH,
   GAME_DIR,
   GIFTWRAP_PREFIX,
+  MockFsDirItems,
   pathHierarchyFor,
   RED4EXT_GIFTWRAPS,
   RED4EXT_PREFIX,
@@ -52,6 +53,10 @@ import {
 } from "../../src/installers.layouts";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
+
+//
+// Mods
+//
 
 const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -1527,11 +1532,41 @@ const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
   ],
 ]);
 
+const iniFsMock: MockFsDirItems = {
+  unno: {
+    why: {
+      this: {
+        "vortexusesthezipfileasdir-3429 4": {
+          "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+          "serious.ini": "[super serious]\nWings=false",
+          "superreshade.ini":
+            "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+          fold1: {
+            "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+            "serious.ini": "[super serious]\nWings=false",
+            "superreshade.ini":
+              "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+            "reshade-shaders": {
+              Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+              Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+            },
+          },
+          "reshade-shaders": {
+            Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+            Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+          },
+        },
+      },
+    },
+  },
+};
+
 const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",
@@ -1543,6 +1578,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     iniWithMultipleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",
@@ -1559,6 +1595,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     iniWithReshadeIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["superreshade.ini"].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",
@@ -1570,6 +1607,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     iniWithSingleIniInRandomFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",
@@ -1588,6 +1626,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
         "reshade-shaders/Textures/",
         "reshade-shaders/Textures/lut.png",
       ].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",
@@ -1620,6 +1659,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
         "fold1/reshade-shaders/Textures/",
         "fold1/reshade-shaders/Textures/lut.png",
       ].map(path.normalize),
+      fsMocked: iniFsMock,
       outInstructions: [
         {
           type: "copy",

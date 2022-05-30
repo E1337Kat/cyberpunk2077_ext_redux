@@ -22,43 +22,16 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 */
 
 describe("Transforming modules to instructions", () => {
-  beforeEach(() => {
-    mockFs({
-      unno: {
-        why: {
-          this: {
-            "vortexusesthezipfileasdir-3429 4": {
-              "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-              "serious.ini": "[super serious]\nWings=false",
-              "superreshade.ini":
-                "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-              fold1: {
-                "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-                "serious.ini": "[super serious]\nWings=false",
-                "superreshade.ini":
-                  "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-                "reshade-shaders": {
-                  Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                  Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                },
-              },
-              "reshade-shaders": {
-                Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
   afterEach(() => mockFs.restore());
 
   AllExpectedSuccesses.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
           //
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
@@ -118,6 +91,11 @@ describe("Transforming modules to instructions", () => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Proceed,
             input: undefined,
@@ -157,6 +135,11 @@ describe("Transforming modules to instructions", () => {
         });
 
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Cancel,
             input: undefined,
@@ -194,6 +177,11 @@ describe("Transforming modules to instructions", () => {
     describe(`mods that installers reject without prompt, ${set}`, () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           //
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
