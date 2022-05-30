@@ -189,3 +189,13 @@ export const RED4EXT_GIFTWRAPS = pathHierarchyFor(
 export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
   `${GIFTWRAP_PREFIX}\\${ARCHIVE_PREFIX}`,
 );
+
+//
+// Actual test helpers
+//
+
+export const compareByDestination = (a: VortexInstruction, b: VortexInstruction) =>
+  a.destination.localeCompare(b.destination);
+
+export const sortByDestination = (instructions: VortexInstruction[]) =>
+  instructions.sort(compareByDestination);

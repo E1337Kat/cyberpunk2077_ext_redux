@@ -5,7 +5,7 @@ import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
 import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
 
-import { FAKE_STAGING_PATH, getMockVortexLog } from "./utils.helper";
+import { FAKE_STAGING_PATH, getMockVortexLog, sortByDestination } from "./utils.helper";
 
 import {
   AllExpectedDirectFailures,
@@ -90,7 +90,10 @@ describe("Transforming modules to instructions", () => {
             null,
           );
 
-          expect(installResult.instructions).toEqual(mod.outInstructions);
+          const gotInstructionsSorted = sortByDestination(installResult.instructions);
+          const expectedInstructionsSorted = sortByDestination(mod.outInstructions);
+
+          expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
 
           if (mod.infoDialogTitle) {
             const actualCalls = dialogMock.mock.calls;
@@ -127,6 +130,11 @@ describe("Transforming modules to instructions", () => {
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
 
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
+
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
@@ -140,7 +148,12 @@ describe("Transforming modules to instructions", () => {
             null,
           );
 
-          expect(installResult.instructions).toEqual(mod.proceedOutInstructions);
+          const gotInstructionsSorted = sortByDestination(installResult.instructions);
+          const expectedInstructionsSorted = sortByDestination(
+            mod.proceedOutInstructions,
+          );
+
+          expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
         });
 
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
@@ -155,6 +168,11 @@ describe("Transforming modules to instructions", () => {
           mockVortexExtensionContext.api.showDialog
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
+
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
