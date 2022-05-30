@@ -117,6 +117,12 @@ export const enum ArchiveLayout {
   Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
 }
 
+export const enum ExtraArchiveLayout {
+  Toplevel = `
+    .\\*.xl, *.archive
+  `,
+}
+
 //
 // ArchiveXL Mods
 //
@@ -631,6 +637,7 @@ export type Layout =
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout
+  | ExtraArchiveLayout
   | ExtraFilesLayout
   | NoLayout;
 
