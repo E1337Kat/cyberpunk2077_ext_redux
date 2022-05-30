@@ -17,6 +17,7 @@ import {
   fileCount,
   subtreeFrom,
   PathFilter,
+  FILETREE_ROOT,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -28,11 +29,21 @@ import {
   AMM_MOD_CUSTOMS_CANON_DIR,
   AMM_MOD_USERMOD_CANON_DIR,
   AMM_BASEDIR_PATH,
+  AMM_MOD_CUSTOMS_DIRNAME,
+  AMM_MOD_USERMOD_DIRNAME,
 } from "./installers.layouts";
-import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
+import {
+  instructionsForSameSourceAndDestPaths,
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+  useFirstMatchingLayoutForInstructions,
+} from "./installers.shared";
 import { InstallerType } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { extraCanonArchiveInstructions } from "./installer.archive";
+import {
+  extraCanonArchiveInstructions,
+  extraToplevelArchiveInstructions,
+} from "./installer.archive";
 
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
@@ -51,6 +62,11 @@ const findAmmCanonFiles = (fileTree: FileTree): string[] => [
   ...findAmmFiles(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree),
 ];
 
+const findAmmToplevelCanonSubdirFiles = (fileTree: FileTree): string[] => [
+  ...findAmmFiles(AMM_MOD_CUSTOMS_DIRNAME, matchAmmLua, fileTree),
+  ...findAmmFiles(AMM_MOD_USERMOD_DIRNAME, matchAmmJson, fileTree),
+];
+
 const detectAmmLayout = (
   ammDir: string,
   kindMatcher: PathFilter,
@@ -60,6 +76,10 @@ const detectAmmLayout = (
 const detectAmmCanonLayout = (fileTree: FileTree): boolean =>
   detectAmmLayout(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree) ||
   detectAmmLayout(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree);
+
+const detectAmmToplevelCanonSubdirLayout = (fileTree: FileTree): boolean =>
+  detectAmmLayout(AMM_MOD_CUSTOMS_DIRNAME, matchAmmLua, fileTree) ||
+  detectAmmLayout(AMM_MOD_USERMOD_DIRNAME, matchAmmJson, fileTree);
 
 //
 // Layouts
@@ -98,6 +118,34 @@ const ammCanonLayout = (
   };
 };
 
+const ammToplevelCanonSubdirLayout = (
+  api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allToplevelCanonSubdirAmmFiles = findAmmToplevelCanonSubdirFiles(fileTree);
+
+  if (allToplevelCanonSubdirAmmFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  const ammToplevelCanonSubdirInstructions = instructionsForSourceToDestPairs(
+    allToplevelCanonSubdirAmmFiles.map(moveFromTo(FILETREE_ROOT, AMM_BASEDIR_PATH)),
+  );
+
+  const allowedArchiveInstructionsIfAny = extraToplevelArchiveInstructions(api, fileTree);
+
+  const allInstructions = [
+    ...ammToplevelCanonSubdirInstructions,
+    ...allowedArchiveInstructionsIfAny.instructions,
+  ];
+
+  return {
+    kind: AmmLayout.ToplevelCanonSubdir,
+    instructions: allInstructions,
+  };
+};
+
 // testSupport
 
 export const testForAmmMod: VortexWrappedTestSupportedFunc = (
@@ -106,9 +154,11 @@ export const testForAmmMod: VortexWrappedTestSupportedFunc = (
   _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  const looksLikeCanonAmmMod = dirInTree(`${AMM_BASEDIR_PATH}\\`, fileTree);
+  const looksLikeAmm = dirInTree(AMM_BASEDIR_PATH, fileTree);
 
-  if (looksLikeCanonAmmMod) {
+  const hasToplevelCanonSubdirAmm = detectAmmToplevelCanonSubdirLayout(fileTree);
+
+  if (looksLikeAmm || hasToplevelCanonSubdirAmm) {
     return Promise.resolve({
       supported: true,
       requiredFiles: [],
@@ -128,7 +178,12 @@ export const installAmmMod: VortexWrappedInstallFunc = async (
   _destinationPath: string,
   _progressDelegate: VortexProgressDelegate,
 ): Promise<VortexInstallResult> => {
-  const selectedInstructions = ammCanonLayout(api, undefined, fileTree);
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    [ammCanonLayout, ammToplevelCanonSubdirLayout],
+  );
 
   if (
     selectedInstructions === NoInstructions.NoMatch ||
@@ -159,7 +214,10 @@ export const ammAllowedInMultiInstructions = (
     selectedInstructions === NoInstructions.NoMatch ||
     selectedInstructions === InvalidLayout.Conflict
   ) {
-    api.log(`debug`, `${InstallerType.AMM}: No valid extra archives`);
+    api.log(
+      `debug`,
+      `${InstallerType.AMM}: No valid extra AMM layout found (this is ok)`,
+    );
     return { kind: NoLayout.Optional, instructions: [] };
   }
 
