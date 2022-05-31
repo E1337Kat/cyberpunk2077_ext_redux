@@ -25,6 +25,7 @@ import {
   expectedUserCancelProtectedMessageFor,
   FAKE_MOD_NAME,
   FAKE_STAGING_PATH,
+  mockedFsLayout,
   GAME_DIR,
   GIFTWRAP_PREFIX,
   MockFsDirItems,
@@ -1532,34 +1533,26 @@ const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
   ],
 ]);
 
-const iniFsMock: MockFsDirItems = {
-  unno: {
-    why: {
-      this: {
-        "vortexusesthezipfileasdir-3429 4": {
-          "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-          "serious.ini": "[super serious]\nWings=false",
-          "superreshade.ini":
-            "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-          fold1: {
-            "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-            "serious.ini": "[super serious]\nWings=false",
-            "superreshade.ini":
-              "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-            "reshade-shaders": {
-              Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-              Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-            },
-          },
-          "reshade-shaders": {
-            Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-            Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-          },
-        },
-      },
+const iniFsMock: MockFsDirItems = mockedFsLayout({
+  "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+  "serious.ini": "[super serious]\nWings=false",
+  "superreshade.ini":
+    "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+  fold1: {
+    "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
+    "serious.ini": "[super serious]\nWings=false",
+    "superreshade.ini":
+      "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+    "reshade-shaders": {
+      Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+      Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
     },
   },
-};
+  "reshade-shaders": {
+    Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+    Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
+  },
+});
 
 const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
