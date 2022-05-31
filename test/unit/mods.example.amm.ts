@@ -1,6 +1,13 @@
 import path from "path";
 import {
   AMM_BASEDIR_PATH,
+  AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR,
+  AMM_MOD_CUSTOM_ENTITIES_CANON_DIR,
+  AMM_MOD_CUSTOM_PROPS_CANON_DIR,
+  AMM_MOD_DECOR_CANON_DIR,
+  AMM_MOD_LOCATIONS_CANON_DIR,
+  AMM_MOD_SCRIPTS_CANON_DIR,
+  AMM_MOD_THEMES_CANON_DIR,
   ARCHIVE_MOD_CANONICAL_PREFIX,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
@@ -16,6 +23,7 @@ import {
   expectedUserCancelMessageFor,
   movedFromTo,
   copiedToSamePath,
+  mockedFsLayout,
 } from "./utils.helper";
 
 const AMM_BASE_PREFIXES = pathHierarchyFor(AMM_BASEDIR_PATH);
@@ -391,48 +399,221 @@ const AmmModNonConformingCanonDirOnlyLayoutsPromptToInstall = new Map<
   ],
 ]);
 
-/*
+const minimalCustomAppearanceLua = `
+return {
+  modder = "DC",
+  unique_identifier = "ClarkKent",
+  entity_id = "0xDEADBEEF, 99",
+  appearances = {
+    "glassesitsliterallyjustglasses"
+  },
+}
+`;
+
+const minimalCustomEntityLua = `
+return {
+  modder = "ray",
+  unique_identifier = "itsactuallyanapparition",
+  entity_info = { dunno something goes here probably }
+}`;
+
+const minimalCustomPropLua = `
+return {
+  modder = "cessna",
+  unique_identifier = "piper",
+  props = {...this shouldn't really matter....}
+}`;
+
+const minimalDecorJson = JSON.stringify({
+  name: "custdecor",
+  props: [],
+  lights: [],
+  customIncluded: false,
+});
+const minimalLocationJson = JSON.stringify({
+  x: 1,
+  y: 2,
+  z: 3,
+});
+const minimalScriptJson = JSON.stringify({
+  title: `somescripttitle`,
+  actors: [],
+});
+const minimalThemeJson = JSON.stringify({
+  Text: [],
+  Border: [],
+});
+
 const AmmModToplevelsMatchingSchemaInstallSucceeds = new Map<
   string,
   ExampleSucceedingMod
 >([
   [
-    `customs and user stuffs identified in canonical location for type (plus archives)`,
+    `top-level custom appearance recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custapp.lua`)],
+      fsMocked: mockedFsLayout({ "custapp.lua": minimalCustomAppearanceLua }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custapp.lua`),
+          path.join(`${AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR}\\custapp.lua`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level custom entity recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custent.lua`)],
+      fsMocked: mockedFsLayout({ "custent.lua": minimalCustomEntityLua }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custent.lua`),
+          path.join(`${AMM_MOD_CUSTOM_ENTITIES_CANON_DIR}\\custent.lua`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level custom prop recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custprop.lua`)],
+      fsMocked: mockedFsLayout({ "custprop.lua": minimalCustomPropLua }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custprop.lua`),
+          path.join(`${AMM_MOD_CUSTOM_PROPS_CANON_DIR}\\custprop.lua`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level decor json recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custdec.json`)],
+      fsMocked: mockedFsLayout({ "custdec.json": minimalDecorJson }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custdec.json`),
+          path.join(`${AMM_MOD_DECOR_CANON_DIR}\\custdec.json`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level location json recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custloc.json`)],
+      fsMocked: mockedFsLayout({ "custloc.json": minimalLocationJson }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custloc.json`),
+          path.join(`${AMM_MOD_LOCATIONS_CANON_DIR}\\custloc.json`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level script json recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custscript.json`)],
+      fsMocked: mockedFsLayout({ "custscript.json": minimalScriptJson }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custscript.json`),
+          path.join(`${AMM_MOD_SCRIPTS_CANON_DIR}\\custscript.json`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level theme json recognized and moved to canonical dir`,
+    {
+      expectedInstallerType: InstallerType.AMM,
+      inFiles: [path.join(`.\\custtheme.json`)],
+      fsMocked: mockedFsLayout({ "custtheme.json": minimalThemeJson }),
+      outInstructions: [
+        movedFromTo(
+          path.join(`.\\custtheme.json`),
+          path.join(`${AMM_MOD_THEMES_CANON_DIR}\\custtheme.json`),
+        ),
+      ],
+    },
+  ],
+  [
+    `top-level combinations recognized and all moved to correct canonical dirs, including archives`,
     {
       expectedInstallerType: InstallerType.AMM,
       inFiles: [
-        ...AMM_BASE_PREFIXES,
-        path.join(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Appearances\\custapp.lua`),
-        path.join(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Props\\custprop.lua`),
-        path.join(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Entities\\custent.lua`),
-        path.join(`${AMM_BASEDIR_PATH}\\User\\Locations\\loc.json`),
-        path.join(`${AMM_BASEDIR_PATH}\\User\\Decor\\custdecor.json`),
-        path.join(`${AMM_BASEDIR_PATH}\\User\\Themes\\mytheme.json`),
-        path.join(`${AMM_BASEDIR_PATH}\\User\\Scripts\\weeflekit.json`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\custent.archive`),
+        path.join(`.\\custdec.json`),
+        path.join(`.\\custloc.json`),
+        path.join(`.\\custtheme.json`),
+        path.join(`.\\custscript.json`),
+        path.join(`.\\custprop.lua`),
+        path.join(`.\\custent.lua`),
+        path.join(`.\\custapp.lua`),
+        path.join(`.\\some.archive`),
       ],
+      fsMocked: mockedFsLayout({
+        "custdec.json": minimalDecorJson,
+        "custloc.json": minimalLocationJson,
+        "custtheme.json": minimalThemeJson,
+        "custscript.json": minimalScriptJson,
+        "custprop.lua": minimalCustomPropLua,
+        "custent.lua": minimalCustomEntityLua,
+        "custapp.lua": minimalCustomAppearanceLua,
+        // No archive required here
+      }),
       outInstructions: [
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Appearances\\custapp.lua`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Props\\custprop.lua`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\Collabs\\Custom Entities\\custent.lua`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\User\\Locations\\loc.json`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\User\\Decor\\custdecor.json`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\User\\Themes\\mytheme.json`),
-        copiedToSamePath(`${AMM_BASEDIR_PATH}\\User\\Scripts\\weeflekit.json`),
-
-        copiedToSamePath(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\custent.archive`),
+        movedFromTo(
+          path.join(`.\\custdec.json`),
+          path.join(`${AMM_MOD_DECOR_CANON_DIR}\\custdec.json`),
+        ),
+        movedFromTo(
+          path.join(`.\\custloc.json`),
+          path.join(`${AMM_MOD_LOCATIONS_CANON_DIR}\\custloc.json`),
+        ),
+        movedFromTo(
+          path.join(`.\\custtheme.json`),
+          path.join(`${AMM_MOD_THEMES_CANON_DIR}\\custtheme.json`),
+        ),
+        movedFromTo(
+          path.join(`.\\custscript.json`),
+          path.join(`${AMM_MOD_SCRIPTS_CANON_DIR}\\custscript.json`),
+        ),
+        movedFromTo(
+          path.join(`.\\custprop.lua`),
+          path.join(`${AMM_MOD_CUSTOM_PROPS_CANON_DIR}\\custprop.lua`),
+        ),
+        movedFromTo(
+          path.join(`.\\custent.lua`),
+          path.join(`${AMM_MOD_CUSTOM_ENTITIES_CANON_DIR}\\custent.lua`),
+        ),
+        movedFromTo(
+          path.join(`.\\custapp.lua`),
+          path.join(`${AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR}\\custapp.lua`),
+        ),
+        movedFromTo(
+          path.join(`.\\some.archive`),
+          path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\some.archive`),
+        ),
       ],
     },
   ],
 ]);
-*/
 
 const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(
     AmmModCanonicalCollabsInstallSucceeds,
     AmmModCanonicalUserStuffModsInstallSucceeds,
     AmmModCanonicalCombinationsInstallSucceeds,
+    AmmModToplevelsMatchingSchemaInstallSucceeds,
   ),
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: mergeOrFailOnConflict(
