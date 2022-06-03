@@ -408,22 +408,52 @@ export const AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Appearances`,
 );
 
+export const AMM_MOD_APPEARANCES_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /entity_id\s*=/,
+  /appearances\s*=/,
+];
+
 export const AMM_MOD_CUSTOM_ENTITIES_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Entities`,
 );
+
+export const AMM_MOD_ENTITIES_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /entity_info\s*=/,
+];
 
 export const AMM_MOD_CUSTOM_PROPS_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Props`,
 );
 
-export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Decor`);
+export const AMM_MOD_PROPS_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /props\s*=/,
+];
+
+export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_USERMOD_CANON_DIR}\\Decor`);
+
+export const AMM_MOD_DECOR_REQUIRED_KEYS = [`name`, `props`, `lights`];
+
 export const AMM_MOD_LOCATIONS_CANON_DIR = path.join(
-  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Locations`,
+  `${AMM_MOD_USERMOD_CANON_DIR}\\Locations`,
 );
+
+export const AMM_MOD_LOCATION_REQUIRED_KEYS = [`x`, `y`, `z`];
+
 export const AMM_MOD_SCRIPTS_CANON_DIR = path.join(
-  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Scripts`,
+  `${AMM_MOD_USERMOD_CANON_DIR}\\Scripts`,
 );
-export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Themes`);
+
+export const AMM_MOD_SCRIPT_REQUIRED_KEYS = [`title`, `actors`];
+
+export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_USERMOD_CANON_DIR}\\Themes`);
+
+export const AMM_MOD_THEME_REQUIRED_KEYS = [`Text`, `Border`];
 
 //
 // Redscript

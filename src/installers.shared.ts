@@ -1,4 +1,9 @@
+import fs from "fs/promises";
 import path from "path";
+
+import { Task } from "fp-ts/lib/Task";
+import * as T from "fp-ts/Task";
+
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
