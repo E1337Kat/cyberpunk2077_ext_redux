@@ -3,8 +3,8 @@ import {
   FileTree,
   dirWithSomeIn,
   filesUnder,
+  findTopmostSubdirsWithSome,
   Glob,
-  findDirectSubdirsWithSome,
   FILETREE_ROOT,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
@@ -40,7 +40,7 @@ const matchRedscript = (file: string) =>
 const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
 const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
-  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+  findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
 export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
