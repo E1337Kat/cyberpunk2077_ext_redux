@@ -134,42 +134,6 @@ const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    coreRedscriptInstall: {
-      expectedInstallerType: InstallerType.CoreRedscript,
-      inFiles: [
-        path.join("engine/"),
-        path.join("engine/config/"),
-        path.join("engine/config/base/"),
-        path.join("engine/config/base/scripts.ini"),
-        path.join("engine/tools/"),
-        path.join("engine/tools/scc.exe"),
-        path.join("r6/"),
-        path.join("r6/scripts/"),
-        path.join("r6/scripts/redscript.toml"),
-      ].map(path.normalize),
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join("engine/config/base/scripts.ini"),
-          destination: path.join("engine/config/base/scripts.ini"),
-        },
-        {
-          type: "copy",
-          source: path.join("engine/tools/scc.exe"),
-          destination: path.join("engine/tools/scc.exe"),
-        },
-        {
-          type: "copy",
-          source: path.join("r6/scripts/redscript.toml"),
-          destination: path.join("r6/scripts/redscript.toml"),
-        },
-      ],
-    },
-  }),
-);
-
 const CoreTweakXLInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     coreTweakXLInstallCanon: {
@@ -693,159 +657,6 @@ const CetModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod
       ],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: `Fallback Installer: user chose to cancel installation`,
-    },
-  }),
-);
-
-const RedscriptMod = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    redsWithBasedirAndCanonicalFilesInstallsToSubdir: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/yay.reds`),
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\yay.reds`),
-          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\yay.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
-          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\rexmod\\script.reds`),
-        },
-      ],
-    },
-    redsWithSingleFileCanonical: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-      ],
-    },
-    redsWithMultipleFilesCanonical: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-        },
-      ],
-    },
-    redsIncludingNonRedsFilesCanonical: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        path.join(`${REDS_PREFIX}/rexmod/options.json`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-        },
-      ],
-    },
-    redsSingleScriptTopLevel: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [path.join(`script.reds`)],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
-        },
-      ],
-    },
-    redsWithMultipleFilesInRedsBaseDir: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/`),
-        path.join(`${REDS_PREFIX}/script.reds`),
-        path.join(`${REDS_PREFIX}/notascript.reds`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/notascript.reds`),
-        },
-      ],
-    },
-  }),
-);
-
-const RedscriptModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
-  Object.entries({
-    redsWithRedsInToplevelSubdirPromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [path.join(`rexmod/script.reds`)],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`rexmod/script.reds`),
-          destination: path.join(`rexmod/script.reds`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
-    },
-    redsPatchWithoutCanonical: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/dirname/`),
-        path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
   }),
 );
@@ -1781,9 +1592,11 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
 //
 
 import AmmCore from "./mods.example.core.amm";
-import AmmMod from "./mods.example.amm";
+import RedscriptCore from "./mods.example.core.redscript";
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
+import AmmMod from "./mods.example.amm";
+import RedscriptMod from "./mods.example.redscript";
 
 import ExtraFiles from "./mods.example.special.extrafiles";
 
@@ -1791,7 +1604,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreAmmInstallShouldSucceed: AmmCore.AllExpectedSuccesses,
     CoreCetInstall,
-    CoreRedscriptInstall,
+    CoreRedscriptInstallShouldSucceed: RedscriptCore.AllExpectedSuccesses,
     CoreRed4ExtInstall,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
@@ -1804,7 +1617,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     AsiMod,
     AmmModInstallShouldSucceed: AmmMod.AllExpectedSuccesses,
     CetMod,
-    RedscriptMod,
+    RedscriptModInstallShouldSucceed: RedscriptMod.AllExpectedSuccesses,
     Red4ExtMod,
     IniMod,
     ArchiveOnly: ArchiveMod,
@@ -1838,7 +1651,7 @@ export const AllExpectedInstallPromptables = new Map<
     ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
     AmmModShouldPromptForInstall: AmmMod.AllExpectedPromptInstalls,
     CetModShouldPromptForInstall,
-    RedscriptModShouldPromptForInstall,
+    RedscriptModShouldPromptForInstall: RedscriptMod.AllExpectedPromptInstalls,
     Red4ExtModShouldPromptForInstall,
     TweakXLModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,

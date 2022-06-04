@@ -3,8 +3,8 @@ import {
   FileTree,
   dirWithSomeIn,
   filesUnder,
+  findTopmostSubdirsWithSome,
   Glob,
-  findDirectSubdirsWithSome,
   FILETREE_ROOT,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
@@ -15,14 +15,14 @@ import {
   NoInstructions,
   RedscriptLayout,
   REDS_MOD_CANONICAL_EXTENSION,
-  LayoutToInstructions,
+  InvalidLayout,
 } from "./installers.layouts";
 import {
   moveFromTo,
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
   makeSyntheticName,
-  useAllMatchingLayouts,
+  useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
 import {
@@ -40,7 +40,7 @@ const matchRedscript = (file: string) =>
 const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
 const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
-  findDirectSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+  findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
 export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
@@ -94,7 +94,6 @@ export const redscriptToplevelLayout = (
   fileTree: FileTree,
 ): MaybeInstructions => {
   // .\*.reds
-  // eslint-disable-next-line no-underscore-dangle
   const hasToplevelReds = detectRedscriptToplevelLayout(fileTree);
 
   const toplevelReds = hasToplevelReds
@@ -102,23 +101,6 @@ export const redscriptToplevelLayout = (
     : [];
 
   if (!hasToplevelReds) {
-    api.log("debug", "No toplevel Redscript files found");
-    return NoInstructions.NoMatch;
-  }
-
-  // This is maybe slightly annoying to check, but makes
-  // logic elsewhere cleaner. I suppose we can decide that
-  // layouts need to be robust enough in themselves if they
-  // would otherwise depend on some external check that isn't
-  // always present.
-  //
-  // Generally, shouldn't get here.
-  //
-  const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
-
-  if (hasBasedirReds) {
-    // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "No instructions from canon: basedir overrides");
     return NoInstructions.NoMatch;
   }
 
@@ -144,23 +126,6 @@ export const redscriptCanonLayout = (
   );
 
   if (allCanonRedscriptFiles.length < 1) {
-    api.log("error", "No canonical Redscript files found.");
-    return NoInstructions.NoMatch;
-  }
-
-  // This is maybe slightly annoying to check, but makes
-  // logic elsewhere cleaner. I suppose we can decide that
-  // layouts need to be robust enough in themselves if they
-  // would otherwise depend on some external check that isn't
-  // always present.
-  //
-  // Generally, shouldn't get here.
-  //
-  const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
-
-  if (hasBasedirReds) {
-    // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "No instructions from canon: basedir overrides");
     return NoInstructions.NoMatch;
   }
 
@@ -170,7 +135,15 @@ export const redscriptCanonLayout = (
   };
 };
 
-export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
+//
+// API
+//
+
+//
+// testSupport
+//
+
+export const testForRedscriptMod: VortexWrappedTestSupportedFunc = async (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -178,25 +151,17 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> => {
   const redscriptFiles = allRedscriptFiles(files);
 
-  log("debug", "redscriptFiles: ", { redscriptFiles });
-
-  // We could do more detection here but the
-  // installer will already need to duplicate
-  // all that. Maybe just check whether there
-  // are any counterindications?
-  if (redscriptFiles.length === 0) {
-    log("debug", "No Redscripts");
-    return Promise.resolve({ supported: false, requiredFiles: [] });
+  if (redscriptFiles.length < 1) {
+    return { supported: false, requiredFiles: [] };
   }
 
-  log("info", "Matched to Redscript");
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
+  return { supported: true, requiredFiles: [] };
 };
 
-// Install the Redscript stuff, as well as any archives we find
+//
+// install
+//
+
 export const installRedscriptMod: VortexWrappedInstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
@@ -204,34 +169,19 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   fileTree: FileTree,
   destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // We could get a lot fancier here, but for now we don't accept
-  // subdirectories anywhere other than in a canonical location.
-
   const modName = makeSyntheticName(destinationPath);
 
-  const allInstructionSets: LayoutToInstructions[] = [
-    redscriptToplevelLayout,
-    redscriptBasedirLayout,
-    redscriptCanonLayout,
-  ];
-
-  const allInstructionsPerLayout = useAllMatchingLayouts(
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
     api,
     modName,
     fileTree,
-    allInstructionSets,
+    [redscriptBasedirLayout, redscriptCanonLayout, redscriptToplevelLayout],
   );
 
-  const allInstructionsWeProduced = allInstructionsPerLayout.flatMap(
-    (i) => i.instructions,
-  );
-
-  const allInstructions = [
-    ...allInstructionsWeProduced,
-    ...extraCanonArchiveInstructions(api, fileTree).instructions,
-  ];
-
-  if (allInstructions.length < 1) {
+  if (
+    selectedInstructions === NoInstructions.NoMatch ||
+    selectedInstructions === InvalidLayout.Conflict
+  ) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
       InstallerType.Redscript,
@@ -239,8 +189,10 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
     );
   }
 
-  api.log(`info`, `${InstallerType.Redscript}: installing`);
-  api.log(`debug`, `${InstallerType.Redscript}: instructions:`, allInstructions);
+  const allInstructions = [
+    ...selectedInstructions.instructions,
+    ...extraCanonArchiveInstructions(api, fileTree).instructions,
+  ];
 
   return Promise.resolve({ instructions: allInstructions });
 };

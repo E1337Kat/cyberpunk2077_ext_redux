@@ -460,7 +460,7 @@ export const AMM_MOD_THEME_REQUIRED_KEYS = [`Text`, `Border`];
 //
 
 export const enum RedscriptLayout {
-  Canon = `.\\r6\\scripts\\[modname]\\*.reds + [any files + subdirs]`,
+  Canon = `.\\r6\\scripts\\[modname]\\[*.reds, any files + subdirs]`,
   Basedir = `.\\r6\\scripts\\*.reds + [any files + subdirs]`,
   Toplevel = `.\\*.reds + [any files + subdirs]`,
 }
