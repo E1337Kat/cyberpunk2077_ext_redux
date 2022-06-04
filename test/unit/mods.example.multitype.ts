@@ -84,6 +84,30 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
     },
+    cetWithRedsInDeepCanonSubdirOnly: {
+      // Mod example: Simple Gameplay Fixes
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/`),
+        path.join(`${REDS_PREFIX}/canonical/`),
+        path.join(`${REDS_PREFIX}/canonical/butweallowdeeper/`),
+        path.join(`${REDS_PREFIX}/canonical/butweallowdeeper/yay.reds`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        copiedToSamePath(`${REDS_PREFIX}/canonical/butweallowdeeper/yay.reds`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+    },
     multiTypeCetRedscriptRed4ExtCanonical: {
       // Mod example: Furigana
       expectedInstallerType: InstallerType.MultiType,
