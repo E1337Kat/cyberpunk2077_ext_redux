@@ -10,6 +10,7 @@ import {
   expectedUserCancelMessageFor,
   ExamplesForType,
   ExampleFailingMod,
+  copiedToSamePath,
 } from "./utils.helper";
 
 const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
@@ -124,6 +125,19 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         },
       ],
     },
+    redsWithFirstRedsFilesInDeepSubdir: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/dirname/`),
+        path.join(`${REDS_PREFIX}/rexmod/dirname/anotherdirname/`),
+        path.join(`${REDS_PREFIX}/rexmod/dirname/anotherdirname/patch.reds`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/dirname/anotherdirname/patch.reds`),
+      ],
+    },
   }),
 );
 
@@ -138,25 +152,6 @@ const RedscriptModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
           type: "copy",
           source: path.join(`rexmod/script.reds`),
           destination: path.join(`rexmod/script.reds`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
-    },
-    redsPatchWithoutCanonical: {
-      expectedInstallerType: InstallerType.Redscript,
-      inFiles: [
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/`),
-        path.join(`${REDS_PREFIX}/rexmod/dirname/`),
-        path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/dirname/patch.reds`),
         },
       ],
       cancelLabel: InstallChoices.Cancel,
