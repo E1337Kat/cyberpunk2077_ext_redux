@@ -387,6 +387,7 @@ export const wrapTestSupported =
 
     const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
 
+    // Unlike in `install`, Vortex doesn't supply us the mod's disk path
     return installer.testSupported(
       vortexApi,
       vortexLog,
@@ -431,7 +432,14 @@ export const wrapInstall =
     const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
     const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-    const modName = makeSyntheticName(destinationPath);
+    const stagingDirPathForMod = path.join(
+      path.dirname(destinationPath),
+      path.basename(destinationPath, ".installing"),
+    );
+
+    const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
+
+    const modName = makeSyntheticName(stagingDirPathForMod);
 
     const instructionsFromInstaller = await installer.install(
       vortexApi,
@@ -440,6 +448,9 @@ export const wrapInstall =
       treeForInstallers.fileTree,
       destinationPath,
       progressDelegate,
+      sourceDirPathForMod,
+      stagingDirPathForMod,
+      modName,
       choices,
       unattended,
     );
@@ -492,6 +503,9 @@ export const wrapInstall =
             treeForInstallers.fileTree,
             destinationPath,
             progressDelegate,
+            sourceDirPathForMod,
+            stagingDirPathForMod,
+            modName,
             choices,
             unattended,
           )
@@ -539,16 +553,17 @@ const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
 const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
   vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
-  files: string[],
+  _files: string[],
   fileTree: FileTree,
   destinationPath: string,
   progressDelegate: VortexProgressDelegate,
+  sourceDirPathForMod: string,
+  stagingDirPathForMod: string,
+  modName: string,
   choices?: unknown,
   unattended?: boolean,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
-
-  // I want to rewrite this using a `Result<T, E>` so bad.
 
   // Technically I guess we could use Layouts here, one wrapped and
   // one unwrapped.. dunno if that'd make it much cleaner, maybe worth it
@@ -565,6 +580,10 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
       vortexLog,
       sourcePaths(fileTree),
       fileTree,
+      destinationPath,
+      sourceDirPathForMod,
+      stagingDirPathForMod,
+      modName,
     );
 
     if (testResult.supported === true) {
@@ -587,8 +606,11 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
     vortexLog,
     sourcePaths(fileTree),
     fileTree,
-    destinationPath,
+    sourceDirPathForMod,
     progressDelegate,
+    sourceDirPathForMod,
+    stagingDirPathForMod,
+    modName,
     choices,
     unattended,
   );

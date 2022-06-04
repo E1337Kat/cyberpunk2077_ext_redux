@@ -5,7 +5,7 @@ import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
 import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
 
-import { FAKE_STAGING_PATH, getMockVortexLog } from "./utils.helper";
+import { FAKE_STAGING_PATH, getMockVortexLog, sortByDestination } from "./utils.helper";
 
 import {
   AllExpectedDirectFailures,
@@ -22,43 +22,16 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 */
 
 describe("Transforming modules to instructions", () => {
-  beforeEach(() => {
-    mockFs({
-      unno: {
-        why: {
-          this: {
-            "vortexusesthezipfileasdir-3429 4": {
-              "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-              "serious.ini": "[super serious]\nWings=false",
-              "superreshade.ini":
-                "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-              fold1: {
-                "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-                "serious.ini": "[super serious]\nWings=false",
-                "superreshade.ini":
-                  "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
-                "reshade-shaders": {
-                  Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                  Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                },
-              },
-              "reshade-shaders": {
-                Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-                Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
   afterEach(() => mockFs.restore());
 
   AllExpectedSuccesses.forEach((examples, set) => {
     describe(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
           //
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
@@ -90,7 +63,10 @@ describe("Transforming modules to instructions", () => {
             null,
           );
 
-          expect(installResult.instructions).toEqual(mod.outInstructions);
+          const gotInstructionsSorted = sortByDestination(installResult.instructions);
+          const expectedInstructionsSorted = sortByDestination(mod.outInstructions);
+
+          expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
 
           if (mod.infoDialogTitle) {
             const actualCalls = dialogMock.mock.calls;
@@ -115,6 +91,11 @@ describe("Transforming modules to instructions", () => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Proceed,
             input: undefined,
@@ -126,6 +107,11 @@ describe("Transforming modules to instructions", () => {
           mockVortexExtensionContext.api.showDialog
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
+
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
@@ -140,10 +126,20 @@ describe("Transforming modules to instructions", () => {
             null,
           );
 
-          expect(installResult.instructions).toEqual(mod.proceedOutInstructions);
+          const gotInstructionsSorted = sortByDestination(installResult.instructions);
+          const expectedInstructionsSorted = sortByDestination(
+            mod.proceedOutInstructions,
+          );
+
+          expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
         });
 
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           const mockResult: VortexDialogResult = {
             action: InstallChoices.Cancel,
             input: undefined,
@@ -155,6 +151,11 @@ describe("Transforming modules to instructions", () => {
           mockVortexExtensionContext.api.showDialog
             .calledWith(notEmpty(), notEmpty(), notEmpty(), notEmpty())
             .mockReturnValue(Promise.resolve<VortexDialogResult>(mockResult));
+
+          const notificationMock =
+            mockVortexExtensionContext.api.sendNotification.calledWith(notEmpty());
+
+          notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
@@ -176,6 +177,11 @@ describe("Transforming modules to instructions", () => {
     describe(`mods that installers reject without prompt, ${set}`, () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
+          if (mod.fsMocked) {
+            mockFs.restore();
+            mockFs(mod.fsMocked);
+          }
+
           //
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();

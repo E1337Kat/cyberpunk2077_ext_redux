@@ -35,6 +35,10 @@ export type VortexWrappedTestSupportedFunc = (
   vortexLog: VortexLogFunc,
   files: string[],
   fileTree: FileTree,
+  destinationPath?: string,
+  sourceDirPathForMod?: string,
+  stagingDirPathForMod?: string,
+  modName?: string,
 ) => Promise<VortexTestResult>;
 
 export type VortexInstallFunc = Vortex.InstallFunc;
@@ -49,6 +53,9 @@ export type VortexWrappedInstallFunc = (
   fileTree: FileTree,
   destinationPath: string,
   progressDelegate: VortexProgressDelegate,
+  sourceDirPathForMod: string,
+  stagingDirPathForMod: string,
+  modName: string,
   choices?: unknown,
   unattended?: boolean,
 ) => Promise<VortexInstallResult>;

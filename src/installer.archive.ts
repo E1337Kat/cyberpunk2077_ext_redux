@@ -25,10 +25,12 @@ import {
   NoLayout,
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
+  ExtraArchiveLayout,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
+  moveFromTo,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
@@ -63,7 +65,10 @@ const findArchiveCanonFiles = (fileTree: FileTree): string[] =>
 const findArchiveHeritageFiles = (fileTree: FileTree): string[] =>
   filesIn(ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX, matchArchive, fileTree);
 
-const findExtraFilesInCanonDir = (fileTree: FileTree): string[] =>
+const findToplevelArchiveOrXLFiles = (fileTree: FileTree): string[] =>
+  filesIn(FILETREE_ROOT, matchArchiveOrXL, fileTree);
+
+const findUnknownFilesInCanonDir = (fileTree: FileTree): string[] =>
   filesIn(ARCHIVE_MOD_CANONICAL_PREFIX, matchNonArchive, fileTree);
 
 const findAllArchiveFiles = (fileTree: FileTree): string[] =>
@@ -138,7 +143,7 @@ const archiveCanonWithXLLayout = (
     api.log(`info`, `${InstallerType.Archive}: found only *.xl files, installing those`);
   }
 
-  const allExtraFilesInBaseDir = findExtraFilesInCanonDir(fileTree);
+  const allExtraFilesInBaseDir = findUnknownFilesInCanonDir(fileTree);
 
   const allInstructions = [
     ...instructionsForSameSourceAndDestPaths(allArchiveXLFiles),
@@ -246,6 +251,35 @@ const archiveOtherDirsToCanonLayout = (
   };
 };
 
+const archiveExtraToplevelLayout = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allToplevelArchiveOrXlFiles = findToplevelArchiveOrXLFiles(fileTree);
+
+  if (allToplevelArchiveOrXlFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allToplevelToCanonMap = allToplevelArchiveOrXlFiles.map(
+    moveFromTo(FILETREE_ROOT, ARCHIVE_MOD_CANONICAL_PREFIX),
+  );
+
+  return {
+    kind: ExtraArchiveLayout.Toplevel,
+    instructions: instructionsForSourceToDestPairs(allToplevelToCanonMap),
+  };
+};
+
+//
+// Vortex API
+//
+
+//
+// testSupport
+//
+
 export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
@@ -313,7 +347,9 @@ export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
+//
 // install
+//
 
 export const installArchiveMod: VortexWrappedInstallFunc = (
   api: VortexApi,
@@ -362,7 +398,7 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
 // Including Archives with other stuff
 //
 
-const extraArchiveLayoutsAllowedInOtherModTypes = [
+const extraCanonArchiveLayoutsAllowedInOtherModTypes = [
   archiveCanonWithXLLayout,
   archiveCanonLayout,
   archiveHeritageLayout,
@@ -381,14 +417,40 @@ export const extraCanonArchiveInstructions = (
     api,
     undefined,
     fileTree,
-    extraArchiveLayoutsAllowedInOtherModTypes,
+    extraCanonArchiveLayoutsAllowedInOtherModTypes,
   );
 
   if (
     archiveInstructionsToUse === NoInstructions.NoMatch ||
     archiveInstructionsToUse === InvalidLayout.Conflict
   ) {
-    api.log(`debug`, `${InstallerType.Archive}: No valid extra archives`);
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  // We should handle the potentially-conflicting archives case here,
+  // but it requires some extra logic (which we should do, just not now)
+  // and most likely most real mods do the right thing here and this won't
+  // be much of a problem in practice. But we should still fix it because
+  // it'll be a better design in addition to the robustness.
+  //
+  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
+  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
+
+  return archiveInstructionsToUse;
+};
+
+export const extraToplevelArchiveInstructions = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const archiveInstructionsToUse = archiveExtraToplevelLayout(api, undefined, fileTree);
+
+  if (
+    archiveInstructionsToUse === NoInstructions.NoMatch ||
+    archiveInstructionsToUse === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
     return { kind: NoLayout.Optional, instructions: [] };
   }
 

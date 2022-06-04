@@ -18,7 +18,10 @@ import {
   copiedToSamePath,
   mergeOrFailOnConflict,
   expectedUserCancelProtectedMessageFor,
+  mockedFsLayout,
 } from "./utils.helper";
+
+const RANDOM_FAKE_JSON = JSON.stringify({ empty: true });
 
 const JsonModShouldPromptOnProtected = new Map<string, ExamplePromptInstallableMod>(
   CONFIG_JSON_MOD_PROTECTED_FILES.map((protectedPath) => [
@@ -44,6 +47,8 @@ const JsonModShouldPromptOnProtectedFilenameToplevelFixables = new Map<
       expectedInstallerType: InstallerType.ConfigJson,
       proceedLabel: InstallChoices.Proceed,
       inFiles: [path.join(protectedName)],
+      // AMM also looks at these
+      fsMocked: mockedFsLayout(Object.fromEntries([[protectedName, RANDOM_FAKE_JSON]])),
       proceedOutInstructions: [
         {
           type: `copy`,
@@ -70,6 +75,8 @@ const JsonModShouldPromptOnProtectedFilenameToplevelUnfixables = new Map<
       expectedInstallerType: InstallerType.ConfigJson,
       proceedLabel: InstallChoices.Proceed,
       inFiles: [path.join(protectedName)],
+      // AMM also looks at these
+      fsMocked: mockedFsLayout(Object.fromEntries([[protectedName, RANDOM_FAKE_JSON]])),
       proceedOutInstructions: [copiedToSamePath(path.join(protectedName))],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.ConfigJson),

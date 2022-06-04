@@ -117,6 +117,12 @@ export const enum ArchiveLayout {
   Other = `.\\**\\*.archive + [any files + subdirs] (NOTE! These may not work without manual selection)`,
 }
 
+export const enum ExtraArchiveLayout {
+  Toplevel = `
+    .\\*.xl, *.archive
+  `,
+}
+
 //
 // ArchiveXL Mods
 //
@@ -369,31 +375,85 @@ export const enum AmmLayout {
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Scripts\\*.json + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Themes\\*.json + [any files or subdirs]
     `,
+  ToplevelCanonSubdir = `
+    - .\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
+    - .\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
+    - .\\User\\Decor\\*.json + [any files or subdirs]
+    - .\\User\\Locations\\*.json + [any files or subdirs]
+    - .\\User\\Scripts\\*.json + [any files or subdirs]
+    - .\\User\\Themes\\*.json + [any files or subdirs]
+  `,
+  Toplevel = `
+    - .\\[*.json or *.lua files that can be validated to be AMM format]
+  `,
 }
 
-export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\Collabs`);
-export const AMM_MOD_USERMOD_CANON_DIR = path.join(`${AMM_BASEDIR_PATH}\\User`);
+export const AMM_MOD_COLLAB_LUA_EXTENSION = `.lua`;
+export const AMM_MOD_USERMOD_JSON_EXTENSION = `.json`;
+
+export const AMM_MOD_CUSTOMS_DIRNAME = `Collabs`;
+export const AMM_MOD_USERMOD_DIRNAME = `User`;
+
+export const AMM_MOD_CUSTOMS_CANON_DIR = path.join(
+  AMM_BASEDIR_PATH,
+  AMM_MOD_CUSTOMS_DIRNAME,
+);
+export const AMM_MOD_USERMOD_CANON_DIR = path.join(
+  AMM_BASEDIR_PATH,
+  AMM_MOD_USERMOD_DIRNAME,
+);
 
 export const AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Appearances`,
 );
 
+export const AMM_MOD_APPEARANCES_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /entity_id\s*=/,
+  /appearances\s*=/,
+];
+
 export const AMM_MOD_CUSTOM_ENTITIES_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Entities`,
 );
+
+export const AMM_MOD_ENTITIES_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /entity_info\s*=/,
+];
 
 export const AMM_MOD_CUSTOM_PROPS_CANON_DIR = path.join(
   `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Props`,
 );
 
-export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Decor`);
+export const AMM_MOD_PROPS_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /unique_identifier\s*=/,
+  /props\s*=/,
+];
+
+export const AMM_MOD_DECOR_CANON_DIR = path.join(`${AMM_MOD_USERMOD_CANON_DIR}\\Decor`);
+
+export const AMM_MOD_DECOR_REQUIRED_KEYS = [`name`, `props`, `lights`];
+
 export const AMM_MOD_LOCATIONS_CANON_DIR = path.join(
-  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Locations`,
+  `${AMM_MOD_USERMOD_CANON_DIR}\\Locations`,
 );
+
+export const AMM_MOD_LOCATION_REQUIRED_KEYS = [`x`, `y`, `z`];
+
 export const AMM_MOD_SCRIPTS_CANON_DIR = path.join(
-  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Scripts`,
+  `${AMM_MOD_USERMOD_CANON_DIR}\\Scripts`,
 );
-export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_CUSTOMS_CANON_DIR}\\Themes`);
+
+export const AMM_MOD_SCRIPT_REQUIRED_KEYS = [`title`, `actors`];
+
+export const AMM_MOD_THEMES_CANON_DIR = path.join(`${AMM_MOD_USERMOD_CANON_DIR}\\Themes`);
+
+export const AMM_MOD_THEME_REQUIRED_KEYS = [`Text`, `Border`];
 
 //
 // Redscript
@@ -486,18 +546,11 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
 
     Alternatively, any combination of the below toplevel layouts (including toplevel Archives)
 
+    ${AmmLayout.ToplevelCanonSubdir}
+    ${AmmLayout.Toplevel}
     ${ArchiveLayout.Other}
     `,
   ],
-  /*
-    ${AmmLayout.CustomAppearancesToplevel}
-    ${AmmLayout.CustomEntitiesToplevel}
-    ${AmmLayout.CustomPropsToplevel}
-    ${AmmLayout.DecorToplevel}
-    ${AmmLayout.LocationsToplevel}
-    ${AmmLayout.ScriptsToplevel}
-    ${AmmLayout.ThemesToplevel}
-    */
   [
     InstallerType.ConfigJson,
     `
@@ -631,6 +684,7 @@ export type Layout =
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout
+  | ExtraArchiveLayout
   | ExtraFilesLayout
   | NoLayout;
 

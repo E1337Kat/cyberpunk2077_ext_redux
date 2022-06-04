@@ -1,4 +1,8 @@
 import path from "path";
+import * as A from "fp-ts/Array";
+import { Option, some, none } from "fp-ts/Option";
+import * as T from "fp-ts/Task";
+import { pipe } from "fp-ts/lib/function";
 import {
   VortexApi,
   VortexLogFunc,
@@ -7,6 +11,7 @@ import {
   VortexWrappedTestSupportedFunc,
   VortexProgressDelegate,
   VortexInstallResult,
+  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   FileTree,
@@ -16,50 +21,130 @@ import {
   dirInTree,
   fileCount,
   subtreeFrom,
+  PathFilter,
+  FILETREE_ROOT,
+  filesIn,
 } from "./filetree";
 import {
   MaybeInstructions,
   NoInstructions,
   AmmLayout,
   InvalidLayout,
-  Instructions,
-  NoLayout,
   AMM_MOD_CUSTOMS_CANON_DIR,
   AMM_MOD_USERMOD_CANON_DIR,
   AMM_BASEDIR_PATH,
+  AMM_MOD_CUSTOMS_DIRNAME,
+  AMM_MOD_USERMOD_DIRNAME,
+  AMM_MOD_DECOR_CANON_DIR,
+  AMM_MOD_LOCATIONS_CANON_DIR,
+  AMM_MOD_SCRIPTS_CANON_DIR,
+  AMM_MOD_THEMES_CANON_DIR,
+  AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR,
+  AMM_MOD_APPEARANCES_REQUIRED_MATCHES,
+  AMM_MOD_CUSTOM_ENTITIES_CANON_DIR,
+  AMM_MOD_CUSTOM_PROPS_CANON_DIR,
+  AMM_MOD_DECOR_REQUIRED_KEYS,
+  AMM_MOD_ENTITIES_REQUIRED_MATCHES,
+  AMM_MOD_LOCATION_REQUIRED_KEYS,
+  AMM_MOD_PROPS_REQUIRED_MATCHES,
+  AMM_MOD_SCRIPT_REQUIRED_KEYS,
+  AMM_MOD_THEME_REQUIRED_KEYS,
 } from "./installers.layouts";
-import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
+import {
+  File,
+  fileFromDisk,
+  FileMove,
+  fileMove,
+  fileToInstruction,
+  instructionsForSameSourceAndDestPaths,
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+  useFirstMatchingLayoutForInstructions,
+} from "./installers.shared";
 import { InstallerType } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { extraCanonArchiveInstructions } from "./installer.archive";
+import {
+  extraCanonArchiveInstructions,
+  extraToplevelArchiveInstructions,
+} from "./installer.archive";
 
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
-
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
+const matchAmmExt = (filePath: string): boolean =>
+  [".json", ".lua"].includes(path.extname(filePath));
 
-const findAmmCanonCustomsFiles = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree).flatMap(
-    (dir) => filesUnder(dir, Glob.Any, fileTree),
-  );
-
-const findAmmCanonUsermodFiles = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree).flatMap(
-    (dir) => filesUnder(dir, Glob.Any, fileTree),
+const findAmmFiles = (
+  ammDir: string,
+  kindMatcher: PathFilter,
+  fileTree: FileTree,
+): string[] =>
+  findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
+    filesUnder(dir, Glob.Any, fileTree),
   );
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
-  ...findAmmCanonCustomsFiles(fileTree),
-  ...findAmmCanonUsermodFiles(fileTree),
+  ...findAmmFiles(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree),
+  ...findAmmFiles(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree),
 ];
 
-const detectAmmCanonCustomLayouts = (fileTree: FileTree): boolean =>
-  findDirectSubdirsWithSome(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree).length > 0;
+const findAmmToplevelCanonSubdirFiles = (fileTree: FileTree): string[] => [
+  ...findAmmFiles(AMM_MOD_CUSTOMS_DIRNAME, matchAmmLua, fileTree),
+  ...findAmmFiles(AMM_MOD_USERMOD_DIRNAME, matchAmmJson, fileTree),
+];
 
-const detectAmmCanonUsermodLayouts = (fileTree: FileTree): boolean =>
-  findDirectSubdirsWithSome(AMM_MOD_USERMOD_CANON_DIR, matchAmmJson, fileTree).length > 0;
+const detectAmmLayout = (
+  ammDir: string,
+  kindMatcher: PathFilter,
+  fileTree: FileTree,
+): boolean => findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).length > 0;
 
-const detectAmmCanonLayout = (fileTree: FileTree): boolean =>
-  detectAmmCanonCustomLayouts(fileTree) || detectAmmCanonUsermodLayouts(fileTree);
+const detectAmmToplevelCanonSubdirLayout = (fileTree: FileTree): boolean =>
+  detectAmmLayout(AMM_MOD_CUSTOMS_DIRNAME, matchAmmLua, fileTree) ||
+  detectAmmLayout(AMM_MOD_USERMOD_DIRNAME, matchAmmJson, fileTree);
+
+const ammLuaContentToPath: [RegExp[], string][] = [
+  [AMM_MOD_APPEARANCES_REQUIRED_MATCHES, AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR],
+  [AMM_MOD_ENTITIES_REQUIRED_MATCHES, AMM_MOD_CUSTOM_ENTITIES_CANON_DIR],
+  [AMM_MOD_PROPS_REQUIRED_MATCHES, AMM_MOD_CUSTOM_PROPS_CANON_DIR],
+];
+
+const ammJsonContentToPath: [string[], string][] = [
+  [AMM_MOD_DECOR_REQUIRED_KEYS, AMM_MOD_DECOR_CANON_DIR],
+  [AMM_MOD_LOCATION_REQUIRED_KEYS, AMM_MOD_LOCATIONS_CANON_DIR],
+  [AMM_MOD_SCRIPT_REQUIRED_KEYS, AMM_MOD_SCRIPTS_CANON_DIR],
+  [AMM_MOD_THEME_REQUIRED_KEYS, AMM_MOD_THEMES_CANON_DIR],
+];
+
+const canonPrefixedPathByTypeIfActualAmmMod = (file: File): Option<FileMove> => {
+  const kind = path.extname(file.pathOnDisk);
+
+  if (kind === `.json`) {
+    const keysInData = Object.keys(JSON.parse(file.content));
+
+    const jsonKeyMatcher = A.findFirstMap<[string[], string], FileMove>(
+      ([requiredKeys, canonDirForType]) =>
+        keysInData.length >= requiredKeys.length &&
+        requiredKeys.every((key) => keysInData.includes(key))
+          ? some(fileMove(canonDirForType, file))
+          : none,
+    );
+
+    return jsonKeyMatcher(ammJsonContentToPath);
+  }
+
+  if (kind === `.lua`) {
+    const luaContentMatcher = A.findFirstMap<[RegExp[], string], FileMove>(
+      ([requiredMatches, canonDirForType]) =>
+        requiredMatches.every((required) => file.content.match(required))
+          ? some(fileMove(canonDirForType, file))
+          : none,
+    );
+
+    return luaContentMatcher(ammLuaContentToPath);
+  }
+
+  return none;
+};
 
 //
 // Layouts
@@ -98,24 +183,125 @@ const ammCanonLayout = (
   };
 };
 
+const ammToplevelCanonSubdirLayout = (
+  api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allToplevelCanonSubdirAmmFiles = findAmmToplevelCanonSubdirFiles(fileTree);
+
+  if (allToplevelCanonSubdirAmmFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  const ammToplevelCanonSubdirInstructions = instructionsForSourceToDestPairs(
+    allToplevelCanonSubdirAmmFiles.map(moveFromTo(FILETREE_ROOT, AMM_BASEDIR_PATH)),
+  );
+
+  const allowedArchiveInstructionsIfAny = extraToplevelArchiveInstructions(api, fileTree);
+
+  const allInstructions = [
+    ...ammToplevelCanonSubdirInstructions,
+    ...allowedArchiveInstructionsIfAny.instructions,
+  ];
+
+  return {
+    kind: AmmLayout.ToplevelCanonSubdir,
+    instructions: allInstructions,
+  };
+};
+
+const ammToplevelLayout = async (
+  api: VortexApi,
+  sourceDirPathForMod: string,
+  _modName: string,
+  fileTree: FileTree,
+): Promise<MaybeInstructions> => {
+  const allToplevelCandidates: File[] = await pipe(
+    filesIn(FILETREE_ROOT, matchAmmExt, fileTree),
+    A.traverse(T.ApplicativePar)((filePath) =>
+      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
+    ),
+  )();
+
+  const toplevelAmmInstructions: VortexInstruction[] = pipe(
+    allToplevelCandidates,
+    A.filterMap(canonPrefixedPathByTypeIfActualAmmMod),
+    A.map(fileToInstruction),
+  );
+
+  if (toplevelAmmInstructions.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  if (toplevelAmmInstructions.length !== allToplevelCandidates.length) {
+    return InvalidLayout.Conflict;
+  }
+
+  const allowedArchiveInstructionsIfAny = extraToplevelArchiveInstructions(api, fileTree);
+
+  const allInstructions = [
+    ...toplevelAmmInstructions,
+    ...allowedArchiveInstructionsIfAny.instructions,
+  ];
+
+  return {
+    kind: AmmLayout.Toplevel,
+    instructions: allInstructions,
+  };
+};
+
 // testSupport
 
-export const testForAmmMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
+export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
+  api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
+  _destinationPath: string,
+  sourceDirPathForMod: string,
+  _stagingDirPathForMod: string,
+  _modName: string,
 ): Promise<VortexTestResult> => {
-  const looksLikeCanonAmmMod = dirInTree(`${AMM_BASEDIR_PATH}\\`, fileTree);
+  const looksLikeAmm = dirInTree(AMM_BASEDIR_PATH, fileTree);
 
-  if (looksLikeCanonAmmMod) {
+  const hasToplevelCanonSubdirAmm = detectAmmToplevelCanonSubdirLayout(fileTree);
+
+  if (looksLikeAmm || hasToplevelCanonSubdirAmm) {
     return Promise.resolve({
       supported: true,
       requiredFiles: [],
     });
   }
 
-  return Promise.resolve({ supported: false, requiredFiles: [] });
+  const hasToplevelCandidates = filesIn(FILETREE_ROOT, matchAmmExt, fileTree).length > 0;
+
+  if (!hasToplevelCandidates) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
+  // Here we actually have to check the contents in testSupport
+  // because there are other possible .lua and .json files that
+  // could appear toplevel. And then we duplicate this in install..
+  const maybeToplevelAmmInstructions = await ammToplevelLayout(
+    api,
+    sourceDirPathForMod,
+    undefined,
+    fileTree,
+  );
+
+  const hasToplevelAmmFiles =
+    maybeToplevelAmmInstructions !== NoInstructions.NoMatch &&
+    maybeToplevelAmmInstructions !== InvalidLayout.Conflict;
+
+  if (hasToplevelAmmFiles) {
+    return {
+      supported: true,
+      requiredFiles: [],
+    };
+  }
+
+  return { supported: false, requiredFiles: [] };
 };
 
 // install
@@ -125,10 +311,21 @@ export const installAmmMod: VortexWrappedInstallFunc = async (
   _log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  stagingDirPath: string,
   _progressDelegate: VortexProgressDelegate,
 ): Promise<VortexInstallResult> => {
-  const selectedInstructions = ammCanonLayout(api, undefined, fileTree);
+  const pathBasedMatchInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    [ammCanonLayout, ammToplevelCanonSubdirLayout],
+  );
+
+  const selectedInstructions =
+    pathBasedMatchInstructions === NoInstructions.NoMatch ||
+    pathBasedMatchInstructions === InvalidLayout.Conflict
+      ? await ammToplevelLayout(api, stagingDirPath, undefined, fileTree)
+      : pathBasedMatchInstructions;
 
   if (
     selectedInstructions === NoInstructions.NoMatch ||
@@ -142,26 +339,7 @@ export const installAmmMod: VortexWrappedInstallFunc = async (
   });
 };
 
-//
-// External use for MultiType etc.
-//
-
-export const detectAllowedAmmLayouts = (fileTree: FileTree): boolean =>
-  detectAmmCanonLayout(fileTree);
-
-export const ammAllowedInMultiInstructions = (
-  api: VortexApi,
-  fileTree: FileTree,
-): Instructions => {
-  const selectedInstructions = ammCanonLayout(api, undefined, fileTree);
-
-  if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
-  ) {
-    api.log(`debug`, `${InstallerType.AMM}: No valid extra archives`);
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
-
-  return selectedInstructions;
-};
+// For right now, at least, we'll let CET handle AMM mods in MultiType.
+// There shouldn't be a pressing reason to have to distinguish them there
+// since the layout will be canonical and any special handling applies
+// to the entire mod anyway.

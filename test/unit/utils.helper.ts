@@ -22,10 +22,15 @@ import { InfoNotification } from "../../src/ui.notifications";
 //
 
 export type InFiles = string[];
+// Should replace this with the real mock-fs type
+export interface MockFsDirItems {
+  [dir: string]: string | Buffer | MockFsDirItems;
+}
 
 interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
+  fsMocked?: MockFsDirItems;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {
@@ -73,10 +78,6 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
     return new Map([...mergedMap, ...map]);
   }, new Map<K, V>());
 
-//
-// Test support functions, mocks
-//
-
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
 // `console`...
@@ -97,6 +98,32 @@ export const getMockVortexLog = () => {
 
   return mockLog;
 };
+
+//
+// Mod path stuff
+//
+
+const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileandmodidasdir-7536");
+const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_ZIPFILE];
+
+export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
+// This will be derived from the staging path
+export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
+
+//
+// Test support functions, mocks
+//
+
+// Should actually maybe just use this outright for everything based on `inFiles`
+// because it's possible we're looking at the fs - as we do for INIs and AMM. But
+// that'll require adding a default before/afterEach to clear them out.
+//
+// Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/158
+export const mockedFsLayout = (layout: MockFsDirItems = {}): MockFsDirItems =>
+  FAKE_STAGING_DIRS.reduceRight(
+    (inner, dir) => Object.fromEntries([[dir, inner]]),
+    layout,
+  );
 
 export const pathHierarchyFor = (entirePath: string): string[] => {
   const pathSegments = path.normalize(entirePath).split(path.sep);
@@ -143,16 +170,6 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 // Path helpers etc.
 //
 
-export const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileasdir-3429 4");
-export const FAKE_STAGING_PATH = path.join(
-  "unno",
-  "why",
-  "this",
-  FAKE_STAGING_ZIPFILE,
-  path.sep,
-);
-export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
-
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
 );
@@ -189,3 +206,13 @@ export const RED4EXT_GIFTWRAPS = pathHierarchyFor(
 export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
   `${GIFTWRAP_PREFIX}\\${ARCHIVE_PREFIX}`,
 );
+
+//
+// Actual test helpers
+//
+
+export const compareByDestination = (a: VortexInstruction, b: VortexInstruction) =>
+  a.destination.localeCompare(b.destination);
+
+export const sortByDestination = (instructions: VortexInstruction[]) =>
+  instructions.sort(compareByDestination);

@@ -1,4 +1,9 @@
+import fs from "fs/promises";
 import path from "path";
+
+import { Task } from "fp-ts/lib/Task";
+import * as T from "fp-ts/Task";
+
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
@@ -13,16 +18,45 @@ import {
 import { InstallDecision, InstallerType } from "./installers.types";
 
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
+
 // Types
+export interface File {
+  readonly relativePath: string;
+  readonly pathOnDisk: string;
+  readonly content: string;
+}
 
-// Vortex gives us a 'destination path', which is actually
-// the tempdir in which the archive is expanded into for
-// the duration of the installation.
-export const makeSyntheticName = (vortexDestinationPath: string) =>
-  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexDestinationPath, ".installing")}`;
+export interface FileMove extends File {
+  readonly originalRelativePath: string;
+}
 
+export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
+  T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
+    fs.readFile(pathOnDisk, `utf8`),
+  );
+
+export const fileMove = (to: string, file: File): FileMove => ({
+  relativePath: path.join(to, path.basename(file.relativePath)),
+  pathOnDisk: file.pathOnDisk,
+  originalRelativePath: file.relativePath,
+  content: file.content,
+});
+
+export const fileToInstruction = (movedFile: FileMove): VortexInstruction => ({
+  type: `copy`,
+  source: movedFile.originalRelativePath,
+  destination: movedFile.relativePath,
+});
+
+// For a synthetic mod name
+export const makeSyntheticName = (vortexStagingDirPath: string) =>
+  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath)}`;
+
+//
 // Source to dest path mapping helpers
+
 export const toSamePath = (f: string) => [f, f];
+
 export const toDirInPath = (prefixPath: string, dir: string) => (f: string) =>
   [f, path.join(prefixPath, dir, path.basename(f))];
 
@@ -38,6 +72,9 @@ export const moveFromTo =
         .replace(path.normalize(fromPrefix), path.normalize(toPrefix)),
     ];
   };
+
+//
+// Instruction construction - DEPRECATE ME: use File/FileMove
 
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
