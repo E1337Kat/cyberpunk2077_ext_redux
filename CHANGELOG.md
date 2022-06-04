@@ -1,3 +1,52 @@
+# Cyberpunk2077 Vortex Support 0.6.0 "Evelyn"
+
+_It's all about appearances. Press of a button, a touch of a brush, a new identity, new location, new outfit, new decor. Fit in
+anywhere. Don't just survive, *belong*. And keep your eyes open for those shards and datapads. People are so trusting, especially
+when they're.. distracted. Appearances get you the information. Forget the iron, information is what makes legends. I wouldn't come
+to just anyone with this, but you were highly recommended, and I can see why..._
+
+Update directly in Vortex, or get the release on the Nexus page (or Github for that matter): https://www.nexusmods.com/site/mods/196?tab=files
+
+Why use a mod manager? In addition to quality-of-life improvements like automatically fixing many common types of mod structure
+problems that you'd have to do by, clear (?) instructions on any possile additional steps for any given mod or problem
+encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily,
+update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod. And
+you can of course install mods from any source - even the mod showcase channel!
+
+As always, any feedback and such is appreciated so we can ensure that no bugs or oversights have slipped through our testing - and
+other feedback and ideas are more than welcome! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+- ✨ Appearance Menu Mod, AMM to chooms, gets dedicated support! There's a ton of AMM mods and we want to make sure that we can support them
+     beyond what just generic CET support provides where needed. [\#149 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/149)
+- ✨ ...And one of the first things is that we can tell AMM mods apart - you can for example drop a plain location file into Vortex and we'll
+      put it in the right place for you! Or any other Collab or User mod, or several kinds at once! [\#156 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/156)
+- ✨ Extra text and image files will no longer confuse the poor extension - they're probably documentation or other relevant detes, so we'll make sure
+     to install them with the mod. To avoid littering everywhere, we put them all in a special directory in your game dir so that they're
+     conveniently accessible in one place. [\#148 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/148)
+
+## Fixer Gigs
+- 🐛 Redscript won't complain even if it has to go two or more subdirectories down to find the first `.reds` file, which should help
+  ensure modders can create layouts that make sense for their redscript mod - thanks for the bug report and being all nice about it :) [\#159 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/159)
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+- GH build improvements [\#154 by @E1337Kat](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/154)
+- Tests check that dialogs and notifications are shown where expected
+- Bunch of big and small refactors and QoL stuff for development
+
+**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.5.0...v0.6.0
+
+No new Netrunners for this release, but lots of helpful feedback, thank you!
+
+## Holo at us
+Discord: https://discord.gg/7NUQJ2b4ZN  (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+
+
+----
+
 # CP2077 Vortex Support 0.5.0 "T-Bug" Is Here!
 
 You can update it directly in Vortex, or get the release on the Nexus page (or Github for that matter):
