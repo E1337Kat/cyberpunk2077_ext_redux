@@ -11,6 +11,7 @@ import {
   ExamplesForType,
   ExampleFailingMod,
   copiedToSamePath,
+  movedFromTo,
 } from "./utils.helper";
 
 const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
@@ -24,16 +25,14 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/script.reds`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\yay.reds`),
-          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\yay.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}\\rexmod\\script.reds`),
-          destination: path.join(`${REDS_PREFIX}\\${FAKE_MOD_NAME}\\rexmod\\script.reds`),
-        },
+        movedFromTo(
+          `${REDS_PREFIX}/yay.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/yay.reds`,
+        ),
+        movedFromTo(
+          `${REDS_PREFIX}/rexmod/script.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/rexmod/script.reds`,
+        ),
       ],
     },
     redsWithSingleFileCanonical: {
@@ -43,13 +42,7 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/`),
         path.join(`${REDS_PREFIX}/rexmod/script.reds`),
       ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-      ],
+      outInstructions: [copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`)],
     },
     redsWithMultipleFilesCanonical: {
       expectedInstallerType: InstallerType.Redscript,
@@ -60,16 +53,8 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/notascript.reds`),
-        },
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/notascript.reds`),
       ],
     },
     redsIncludingNonRedsFilesCanonical: {
@@ -81,27 +66,15 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/options.json`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-          destination: path.join(`${REDS_PREFIX}/rexmod/options.json`),
-        },
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/options.json`),
       ],
     },
     redsSingleScriptTopLevel: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`script.reds`)],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
-        },
+        movedFromTo(`script.reds`, `${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
       ],
     },
     redsWithMultipleFilesInRedsBaseDir: {
@@ -113,16 +86,14 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/notascript.reds`),
       ],
       outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/script.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${REDS_PREFIX}/notascript.reds`),
-          destination: path.join(`${REDS_PREFIX}/${FAKE_MOD_NAME}/notascript.reds`),
-        },
+        movedFromTo(
+          `${REDS_PREFIX}/script.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`,
+        ),
+        movedFromTo(
+          `${REDS_PREFIX}/notascript.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/notascript.reds`,
+        ),
       ],
     },
     redsWithFirstRedsFilesInDeepSubdir: {
@@ -147,13 +118,7 @@ const RedscriptModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [path.join(`rexmod/script.reds`)],
       proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`rexmod/script.reds`),
-          destination: path.join(`rexmod/script.reds`),
-        },
-      ],
+      proceedOutInstructions: [copiedToSamePath(`rexmod/script.reds`)],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Redscript),
     },
