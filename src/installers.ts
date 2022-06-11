@@ -27,6 +27,8 @@ import {
   installCetCore,
   testForRedscriptCore,
   installRedscriptCore,
+  testForCyberCatCore,
+  installCoreCyberCat,
   testRed4ExtCore,
   installRed4ExtCore,
   testCoreCsvMerge,
@@ -160,6 +162,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreAmm,
     testSupported: testForCoreAmm,
     install: installCoreAmm,
+  },
+  {
+    type: InstallerType.CoreCyberCat,
+    id: InstallerType.CoreCyberCat,
+    testSupported: testForCyberCatCore,
+    install: installCoreCyberCat,
   },
   {
     type: InstallerType.ASI,

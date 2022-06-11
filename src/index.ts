@@ -18,6 +18,14 @@ const moddingTools = [
     shell: true,
     relative: true,
   },
+  {
+    id: "CyberCAT",
+    name: "CyberCAT GUI",
+    executable: () => path.join("CyberCAT", "CP2077SaveEditor.exe"),
+    requiredFiles: [path.join("CyberCAT", "CP2077SaveEditor.exe")],
+    shell: false,
+    relative: true,
+  },
 ];
 
 export const findGame = () =>

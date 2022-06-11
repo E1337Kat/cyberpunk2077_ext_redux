@@ -503,6 +503,10 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 export const ASI_MOD_EXT = ".asi";
 export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 
+// CyberCAT
+
+export const CYBERCAT_CORE_BASEDIR = path.join("CyberCAT");
+
 //
 //
 // Full descriptions

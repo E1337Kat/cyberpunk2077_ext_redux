@@ -7,9 +7,14 @@ import {
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { FileTree } from "./filetree";
+import {
+  instructionsForSameSourceAndDestPaths,
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+} from "./installers.shared";
+import { FileTree, FILETREE_ROOT } from "./filetree";
 import { wolvenKitDesktopFoundErrorDialog } from "./ui.dialogs";
+import { CYBERCAT_CORE_BASEDIR } from "./installers.layouts";
 
 const path = win32;
 
@@ -30,6 +35,11 @@ const RED4EXT_CORE_IDENTIFIERS = [
 const CSVMERGE_UNIQUE_FILE = path.normalize("csvmerge/CSVMerge.cmd");
 
 const WOLVENKIT_UNIQUE_FILE = path.normalize("WolvenKit CLI/WolvenKit.CLI.exe");
+
+const CYBERCAT_CORE_IDENTIFIERS = [
+  path.normalize("CP2077SaveEditor.exe"),
+  path.normalize("licenses/CyberCAT.Core.LICENSE.txt"),
+];
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
@@ -206,4 +216,36 @@ export const installCoreWolvenkit: VortexWrappedInstallFunc = (
   const instructions = [].concat(wolvenKitInstructions);
 
   return Promise.resolve({ instructions });
+};
+
+export const testForCyberCatCore: VortexWrappedTestSupportedFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+): Promise<VortexTestResult> => {
+  const containsAllNecessaryCyberCatFiles = CYBERCAT_CORE_IDENTIFIERS.every(
+    (cyberCatPath) => files.includes(cyberCatPath),
+  );
+
+  return Promise.resolve({
+    supported: containsAllNecessaryCyberCatFiles,
+    requiredFiles: [],
+  });
+};
+
+export const installCoreCyberCat: VortexWrappedInstallFunc = (
+  api: VortexApi,
+  log: VortexLogFunc,
+  files: string[],
+  _fileTree: FileTree,
+  _destinationPath: string,
+): Promise<VortexInstallResult> => {
+  log("info", "Using CyberCAT installer");
+
+  const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
+
+  const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
+
+  return Promise.resolve({ instructions: movingInstructions });
 };
