@@ -15,6 +15,7 @@ import {
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { wolvenKitDesktopFoundErrorDialog } from "./ui.dialogs";
 import { CYBERCAT_CORE_BASEDIR } from "./installers.layouts";
+import { showInfoNotification, InfoNotification } from "./ui.notifications";
 
 const path = win32;
 
@@ -246,6 +247,8 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
   const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
 
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
+
+  showInfoNotification(api, InfoNotification.CyberCatRestartRequired);
 
   return Promise.resolve({ instructions: movingInstructions });
 };
