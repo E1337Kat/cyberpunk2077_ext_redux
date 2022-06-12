@@ -6,6 +6,7 @@ import {
   ExampleFailingMod,
   ExamplePromptInstallableMod,
 } from "./utils.helper";
+import { CYBERCAT_CORE_BASEDIR } from "../../src/installers.layouts";
 
 const CoreCyberCatInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
@@ -23,17 +24,20 @@ const CoreCyberCatInstall = new Map<string, ExampleSucceedingMod>(
         {
           type: "copy",
           source: path.join("CP2077SaveEditor.exe"),
-          destination: path.join("CyberCAT", "CP2077SaveEditor.exe"),
+          destination: path.join(CYBERCAT_CORE_BASEDIR, "CP2077SaveEditor.exe"),
         },
         {
           type: "copy",
           source: path.join("licenses/CyberCAT.Core.LICENSE.txt"),
-          destination: path.join("CyberCAT", "licenses/CyberCAT.Core.LICENSE.txt"),
+          destination: path.join(
+            CYBERCAT_CORE_BASEDIR,
+            "licenses/CyberCAT.Core.LICENSE.txt",
+          ),
         },
         {
           type: "copy",
           source: path.join("previews/BodyGender/00.jpg"),
-          destination: path.join("CyberCAT", "previews/BodyGender/00.jpg"),
+          destination: path.join(CYBERCAT_CORE_BASEDIR, "previews/BodyGender/00.jpg"),
         },
       ],
     },
