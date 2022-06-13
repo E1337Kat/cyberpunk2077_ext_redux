@@ -8,6 +8,20 @@ import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
 
 const moddingTools = [
   {
+    id: "CyberCat",
+    name: "CyberCAT Save Editor",
+    shortName: "CyberCAT",
+    logo: "SaveEditor.png",
+    executable: () => path.join("CyberCAT", "CP2077SaveEditor.exe"),
+    requiredFiles: [
+      path.join("CyberCAT", "CP2077SaveEditor.exe"),
+      path.join("CyberCAT", "licenses", "CyberCAT.Core.LICENSE.txt"),
+    ],
+    defaultPrimary: true,
+    shell: false,
+    relative: true,
+  },
+  {
     id: "CSVMerge",
     name: "CSVMerge",
     executable: () => path.join("csvmerge", "CSVMerge.cmd"),
@@ -16,14 +30,6 @@ const moddingTools = [
       path.join("csvmerge", "wolvenkitcli", "WolvenKit.CLI.exe"),
     ],
     shell: true,
-    relative: true,
-  },
-  {
-    id: "CyberCAT",
-    name: "CyberCAT GUI",
-    executable: () => path.join("CyberCAT", "CP2077SaveEditor.exe"),
-    requiredFiles: [path.join("CyberCAT", "CP2077SaveEditor.exe")],
-    shell: false,
     relative: true,
   },
 ];

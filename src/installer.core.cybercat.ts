@@ -11,6 +11,7 @@ import { FileTree, FILETREE_ROOT } from "./filetree";
 import { CYBERCAT_CORE_BASEDIR } from "./installers.layouts";
 import { showInfoNotification, InfoNotification } from "./ui.notifications";
 import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
+import { GAME_ID } from "./index.metadata";
 
 const path = win32;
 
@@ -49,6 +50,7 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
 
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
 
+  api.emitAndAwait("discover-tools", GAME_ID);
   showInfoNotification(api, InfoNotification.CyberCatRestartRequired);
 
   return Promise.resolve({ instructions: movingInstructions });
