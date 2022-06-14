@@ -33,6 +33,7 @@ export enum InstallerType {
   INI = `INI Mod Installer`,
   Reshade = `Reshade Mod Installer`,
   LUT = `LUT Mod Installer`,
+  Preset = `Character Preset Installer`,
   Archive = `Archive + ArchiveXL Mod Installer`,
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,

@@ -533,6 +533,62 @@ export const enum CyberCatLayout {
 }
 
 //
+// Presets (characters)
+//
+
+export const enum PresetLayout {
+  Unlocker = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\*.preset`,
+  CyberCAT = `.\\V2077\\presets\\cybercat\\*.preset`,
+  Toplevel = `.\\*.preset`,
+}
+
+export const PRESET_MOD_EXTENSION = `.preset`;
+
+export const PRESET_MOD_CYBERCAT_BASEDIR = path.normalize(
+  `${EXTENSION_NAME_INTERNAL}\\presets\\cybercat\\`,
+);
+
+// Switch to io-ts at some point for this and AMM...
+
+// This is not exact, just a minimal set for our tests
+interface PresetModCyberCatJsonSection {
+  AppearanceSections: unknown[];
+}
+
+interface PresetModCyberCatJsonStringTriple {
+  FirstString: string;
+  SecondString: string;
+  ThirdString: string;
+}
+
+export interface PresetModCyberCatJson {
+  DataExists: boolean;
+  Unknown1: number;
+  UnknownFirstBytes: string;
+  FirstSection: PresetModCyberCatJsonSection;
+  SecondSection: PresetModCyberCatJsonSection;
+  ThirdSection: PresetModCyberCatJsonSection;
+  StringTriples: PresetModCyberCatJsonStringTriple[];
+}
+
+// Specified in https://github.com/WolvenKit/CyberCAT/blob/e9f328eb021de4ed744f020c1a8b6f1865efc3fe/CyberCAT.Core/Classes/Parsers/CharacterCustomizationAppearancesParser.cs#L72
+export const PRESET_MOD_CYBERCAT_REQUIRED_KEYS: (keyof PresetModCyberCatJson)[] = [
+  `DataExists`,
+  `Unknown1`,
+  `UnknownFirstBytes`,
+  `FirstSection`,
+  `SecondSection`,
+  `ThirdSection`,
+  `StringTriples`,
+];
+
+export const PRESET_MOD_UNLOCKER_BASEDIR = path.normalize(
+  `${CET_MOD_CANONICAL_PATH_PREFIX}\\AppearanceChangeUnlocker\\character-presets`,
+);
+
+export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES = [/LocKey#\d+:\d+/];
+
+//
 //
 // Full descriptions
 //
@@ -654,6 +710,26 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.Preset,
+    `
+    Appearance Change Unlocker presets:
+
+    \`${PresetLayout.Unlocker}\`
+
+    CyberCAT presets:
+
+    \`${PresetLayout.CyberCAT}\`
+
+    Either kind of preset at toplevel:
+
+    \`${PresetLayout.Toplevel}\`
+
+    Please note that you can put CyberCAT presets anywhere you like!
+    I just install them in ${PRESET_MOD_CYBERCAT_BASEDIR} but CyberCAT
+    can load from any other dir too.
+    `,
+  ],
+  [
     InstallerType.MultiType,
     `
     - \`${ConfigJsonLayout.Protected}\`
@@ -719,6 +795,7 @@ export type Layout =
   | RedscriptLayout
   | Red4ExtLayout
   | TweakXLLayout
+  | PresetLayout
   | ArchiveLayout
   | FallbackLayout
   | GiftwrapLayout
