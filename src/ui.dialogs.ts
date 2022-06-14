@@ -6,7 +6,7 @@ import {
 } from "./index.metadata";
 import { ARCHIVE_MOD_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
-import { VortexApi, VortexDialogResult, VortexLogFunc } from "./vortex-wrapper";
+import { VortexApi, VortexDialogResult } from "./vortex-wrapper";
 
 export const enum InstallChoices {
   Proceed = "Yes, Install To Staging Anyway",
@@ -248,29 +248,19 @@ export const showArchiveInstallWarning = (
   );
 };
 
-export const wolvenKitDesktopFoundErrorDialog = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  message: string,
-  files: string[],
-  _installable: string[],
-) => {
-  log("error", `CoreWolvenKit installer: ${message}`, files);
-
+export const wolvenKitDesktopFoundErrorDialog = (api: VortexApi, message: string) => {
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
   api.showDialog(
     `error`,
     message,
     {
-      md:
-        "I think you accidentally grabbed the wrong file. This installer can " +
-        "help you install WolvenKit Console which is an Optional file on the " +
-        "[Nexus download page](https://www.nexusmods.com/cyberpunk2077/mods/2201?tab=files) " +
-        "The file you tried to install is WolvenKit Desktop which cannot be " +
-        "installed through Vortex",
+      md: heredoc(`
+        This is an unsupported mod tool. The file you tried to install
+        is WolvenKit Desktop which cannot be installed through Vortex
+      `),
     },
-    [{ label: "Ok, I'll get WolvenKit.Console" }],
+    [{ label: "Understood!" }],
   );
 };
 
@@ -339,6 +329,32 @@ export const showWarningForUnrecoverableStructureError = (
         \`\`\`
         ${filesToList.join("\n")}
         \`\`\``),
+    },
+    [{ label: "Understood!" }],
+  );
+};
+
+export const showErrorForDeprecatedModTool = (
+  api: VortexApi,
+  installerType: InstallerType,
+  warningTitle: string,
+): void => {
+  api.showDialog(
+    "error",
+    warningTitle,
+    {
+      md: heredoc(`
+        Installation cancelled!
+
+        It looks like you were trying to install ${installerType}. 
+
+        Unfortunately CSVMerge is deprecated and the authors no longer support it. The 
+        authors encourage you to look into the new [ArchiveXL tool](https://www.nexusmods.com/cyberpunk2077/mods/4198).
+
+        If you were attempting to install WolvenKit.Console (aka WolvenKit.CLI), this
+        tool was only supported as a dependency of CSVMerge and also is no longer
+        supported for installation to the game directory. Please consider installing
+        this tool manually.`),
     },
     [{ label: "Understood!" }],
   );
