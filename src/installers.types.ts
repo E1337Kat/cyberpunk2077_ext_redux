@@ -13,10 +13,12 @@ export enum InstallerType {
   CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
   CoreRedscript = `Core/Redscript Installer`,
   CoreRed4ext = `Core/Red4ext Installer`,
+  CoreInputLoader = `Core Input Loader Installer`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
   CoreArchiveXL = `Core ArchiveXL Installer`,
   CoreWolvenKit = `Core/WolvenKitCLI Installer`,
+
   // MultiType
   MultiType = `MultiType Mod Installer`,
   // Mods

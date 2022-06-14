@@ -142,6 +142,21 @@ export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/p
 //
 
 //
+// Core Input_Loader
+
+export const enum CoreInputLoaderayout {
+  OnlyValid = `
+              - .\\engine\\config\\platform\\pc\\input_loader.ini.reds
+              - .\\r6\\input\\                       (note, empty directory is an exception)
+              - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
+              `,
+}
+
+export const INPUT_LOADER_CORE_FILES = [
+  path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
+];
+
+//
 // Core TweakXL
 
 export const enum CoreTweakXLLayout {
@@ -210,6 +225,7 @@ export const enum ConfigXmlLayout {
 }
 
 export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
+export const CONFIG_XML_MOD_MERGEABLE_BASEDIR = path.join(`r6\\input\\`);
 
 export const CONFIG_XML_MOD_EXTENSION = `.xml`;
 
@@ -526,6 +542,13 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     \`${CoreArchiveXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.CoreInputLoader,
+    `\`${CoreInputLoaderayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreInputLoader} that I know of.
     `,
   ],
   [
