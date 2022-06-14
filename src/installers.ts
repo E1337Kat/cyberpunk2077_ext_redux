@@ -29,10 +29,6 @@ import {
   installRedscriptCore,
   testRed4ExtCore,
   installRed4ExtCore,
-  testCoreCsvMerge,
-  installCoreCsvMerge,
-  testCoreWolvenKitCli,
-  installCoreWolvenkit,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
@@ -55,6 +51,7 @@ import { InfoNotification, showInfoNotification } from "./ui.notifications";
 import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
 import { installAmmMod, testForAmmMod } from "./installer.amm";
+import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.core.deprecated";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -136,13 +133,13 @@ const installers: Installer[] = [
     type: InstallerType.CoreCSVMerge,
     id: InstallerType.CoreCSVMerge,
     testSupported: testCoreCsvMerge,
-    install: installCoreCsvMerge,
+    install: notInstallableMod,
   },
   {
     type: InstallerType.CoreWolvenKit,
     id: InstallerType.CoreWolvenKit,
     testSupported: testCoreWolvenKitCli,
-    install: installCoreWolvenkit,
+    install: notInstallableMod,
   },
   {
     type: InstallerType.CoreTweakXL,
