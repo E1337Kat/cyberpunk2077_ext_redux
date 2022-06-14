@@ -44,8 +44,6 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
   _fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  log("info", "Using CyberCAT installer");
-
   const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
 
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
