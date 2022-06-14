@@ -157,16 +157,16 @@ const installers: Installer[] = [
     install: installCoreArchiveXL,
   },
   {
-    type: InstallerType.CoreAmm,
-    id: InstallerType.CoreAmm,
-    testSupported: testForCoreAmm,
-    install: installCoreAmm,
-  },
-  {
     type: InstallerType.CoreCyberCat,
     id: InstallerType.CoreCyberCat,
     testSupported: testForCyberCatCore,
     install: installCoreCyberCat,
+  },
+  {
+    type: InstallerType.CoreAmm,
+    id: InstallerType.CoreAmm,
+    testSupported: testForCoreAmm,
+    install: installCoreAmm,
   },
   {
     type: InstallerType.ASI,

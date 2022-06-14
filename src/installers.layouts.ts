@@ -506,6 +506,14 @@ export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 // CyberCAT
 
 export const CYBERCAT_CORE_BASEDIR = path.join("CyberCAT");
+export const enum CyberCatLayout {
+  OnlyValid = `
+    - .\\CyberCAT\\config.json
+    - .\\CyberCAT\\CP2077SaveEditor.exe
+    - .\\CyberCAT\\*.dll
+    - .\\CyberCAT\\licenses\\*.txt
+    - .\\CyberCAT\\previews\\[category]\\*.jpg`,
+}
 
 //
 //
@@ -530,6 +538,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     \`${CoreArchiveXLLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
+    `,
+  ],
+  [
+    InstallerType.CoreCyberCat,
+    `
+    \`${CyberCatLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreCyberCat} that I know of.
     `,
   ],
   [
