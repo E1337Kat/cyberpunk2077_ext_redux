@@ -211,8 +211,13 @@ export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
 // Actual test helpers
 //
 
-export const compareByDestination = (a: VortexInstruction, b: VortexInstruction) =>
-  a.destination.localeCompare(b.destination);
+export const compareByDestination = (a: VortexInstruction, b: VortexInstruction) => {
+  if (!a?.destination || !b?.destination) {
+    throw new Error(`null destination, shouldn't happen: ${{ a, b }}`);
+  } else {
+    return a.destination.localeCompare(b.destination);
+  }
+};
 
 export const sortByDestination = (instructions: VortexInstruction[]) =>
   instructions.sort(compareByDestination);
