@@ -1553,6 +1553,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
     MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,
     ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
+    ConfigXmlShouldFailDirectly: XmlMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
     AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
   }),

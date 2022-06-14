@@ -3,6 +3,7 @@ import {
   CONFIG_XML_MOD_PROTECTED_FILES,
   CONFIG_XML_MOD_PROTECTED_FILENAMES,
   CONFIG_XML_MOD_BASEDIR,
+  CONFIG_XML_MOD_MERGEABLE_BASEDIR,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import { InstallChoices } from "../../src/ui.dialogs";
@@ -28,6 +29,21 @@ const ConfigXmlModSucceeds = new Map<string, ExampleSucceedingMod>(
     },
   }),
 );
+
+const ConfigXmlModMergeableXmlFilesSucceeds = new Map<string, ExampleSucceedingMod>([
+  [
+    `Any XML file in ${CONFIG_XML_MOD_MERGEABLE_BASEDIR} is installable, we don't check the contents`,
+    {
+      expectedInstallerType: InstallerType.ConfigXml,
+      inFiles: [path.join(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}\\dunnowhythisishere.xml`)],
+      outInstructions: [
+        copiedToSamePath(
+          path.join(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}\\dunnowhythisishere.xml`),
+        ),
+      ],
+    },
+  ],
+]);
 
 const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallableMod>([
   ...CONFIG_XML_MOD_PROTECTED_FILES.map(
@@ -94,10 +110,24 @@ const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallab
       cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
     },
   ],
+  [
+    `random files in mergeable ConfigXml dir prompt to install via Fallback`,
+    {
+      expectedInstallerType: InstallerType.ConfigXml,
+      inFiles: [path.join(`myfancy.xml`)],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [copiedToSamePath(path.join(`myfancy.xml`))],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
+    },
+  ],
 ]);
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: ConfigXmlModSucceeds,
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    ConfigXmlModSucceeds,
+    ConfigXmlModMergeableXmlFilesSucceeds,
+  ),
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: mergeOrFailOnConflict(ConfigXmlModShouldPromptToInstall),
 };

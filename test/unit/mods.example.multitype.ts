@@ -6,6 +6,7 @@ import { InstallChoices } from "../../src/ui.dialogs";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_JSON_MOD_BASEDIR_SETTINGS,
+  CONFIG_XML_MOD_MERGEABLE_BASEDIR,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
@@ -258,6 +259,39 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
       ],
     },
+    "MultiType: CET, Redscript, TweakXL, ArchiveXL only Canonical, ConfigXml Mergeable + Basedir Red4Ext":
+      {
+        expectedInstallerType: InstallerType.MultiType,
+        inFiles: [
+          ...CET_PREFIXES,
+          path.join(`${CET_PREFIX}/exmod/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          ...REDS_PREFIXES,
+          path.join(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}/someyay.xml`),
+          path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+          ...TWEAK_XL_PATHS,
+          path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+          ...RED4EXT_PREFIXES,
+          path.join(`${RED4EXT_PREFIX}/script.dll`),
+          ...ARCHIVE_PREFIXES,
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+        ],
+        outInstructions: [
+          copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          copiedToSamePath(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}/someyay.xml`),
+          copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+          {
+            type: `copy`,
+            source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+            destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+          },
+          copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+          copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        ],
+      },
     "MultiType: TweakXL + Archive Canonical": {
       expectedInstallerType: InstallerType.MultiType,
       inFiles: [
@@ -350,7 +384,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
         cancelErrorMessage: expectedUserCancelProtectedMessageInMultiType,
       },
     // Yes, this is the same one as the xml - but at some point impl might differ, be safe
-    "MultiType: JSON Config should prompt, w/ CET, Reds, Red4ext, Archive + XL, TweakXL, XML":
+    "MultiType: JSON Config should prompt, w/ CET, Reds, Red4ext, Archive + XL, TweakXL, XML, Mergeable Xml":
       {
         expectedInstallerType: InstallerType.MultiType,
         proceedLabel: InstallChoices.Proceed,
@@ -361,6 +395,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
           path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
           path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
           ...REDS_PREFIXES,
+          path.join(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}/someyay.xml`),
           path.join(`${REDS_PREFIX}/rexmod/script.reds`),
           ...XML_PREFIXES,
           path.join(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
@@ -382,6 +417,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
           copiedToSamePath(`${CONFIG_XML_MOD_BASEDIR}\\inputUserMappings.xml`),
           copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
           copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          copiedToSamePath(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}/someyay.xml`),
           copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
           copiedToSamePath(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
           copiedToSamePath(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
