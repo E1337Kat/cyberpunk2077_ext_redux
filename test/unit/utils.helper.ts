@@ -154,6 +154,11 @@ export const createdDirectory = (...args: string[]): VortexInstruction => ({
   destination: path.join(...args),
 });
 
+export const createdFile = (...args: string[]): VortexInstruction => ({
+  type: `generatefile`,
+  destination: path.join(...args),
+});
+
 export const expectedUserCancelMessageFor = (installerType: InstallerType) =>
   `${installerType}: user chose to cancel installation`;
 

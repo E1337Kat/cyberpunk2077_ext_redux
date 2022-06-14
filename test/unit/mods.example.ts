@@ -1597,6 +1597,7 @@ import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
 import AmmMod from "./mods.example.amm";
 import RedscriptMod from "./mods.example.redscript";
+import InputLoaderCore from "./mods.example.core.inputloader";
 import CyberCatCore from "./mods.example.core.cybercat";
 
 import ExtraFiles from "./mods.example.special.extrafiles";
@@ -1607,6 +1608,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreCetInstall,
     CoreRedscriptInstallShouldSucceed: RedscriptCore.AllExpectedSuccesses,
     CoreRed4ExtInstall,
+    CoreInputLoaderShouldSucceed: InputLoaderCore.AllExpectedSuccesses,
     CoreCsvMergeInstall,
     CoreWolvenkitCliInstall,
     CoreCyberCatInstall: CyberCatCore.AllExpectedSuccesses,
