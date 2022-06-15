@@ -1,4 +1,3 @@
-import { string } from "fp-ts";
 import path from "path";
 import {
   CONFIG_INI_MOD_BASEDIR,
@@ -27,7 +26,7 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
       ],
       outInstructions: [
-        createdFile(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
+        createdFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
         copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
       ],
