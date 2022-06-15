@@ -9,10 +9,11 @@ import {
   pathHierarchyFor,
 } from "./utils.helper";
 
-export const DeprecatedInstallShouldFailInTest = new Map<string, ExampleFailingMod>(
-  Object.entries({
-    CoreCsvMergeCoreFailTest: {
-      expectedInstallerType: InstallerType.CoreCSVMerge,
+export const DeprecatedInstallShouldFailInTest = new Map<string, ExampleFailingMod>([
+  [
+    `Core CSVMerge has been deprecated.  Fail Directly.`,
+    {
+      expectedInstallerType: InstallerType.NotSupported,
       inFiles: [
         ...pathHierarchyFor(`${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/`),
         `${CET_MOD_CANONICAL_PATH_PREFIX}/CSVMerge_Code/Cron.lua`,
@@ -37,7 +38,10 @@ export const DeprecatedInstallShouldFailInTest = new Map<string, ExampleFailingM
       failure: "CSVMerge has been deprecated.",
       errorDialogTitle: "CSVMerge has been deprecated.",
     },
-    CoreWolvenKitDetectedDesktop: {
+  ],
+  [
+    `WolvenKit Desktop fails in test`,
+    {
       expectedInstallerType: InstallerType.NotSupported,
       inFiles: ["WolvenKit Desktop/", "WolvenKit Desktop/WolvenKit.exe"].map(
         path.normalize,
@@ -45,8 +49,11 @@ export const DeprecatedInstallShouldFailInTest = new Map<string, ExampleFailingM
       failure: "WolvenKit Desktop is not able to be installed with Vortex.",
       errorDialogTitle: `WolvenKit Desktop is not able to be installed with Vortex.`,
     },
-    CoreWolvenKitCliCoreInstallTest: {
-      expectedInstallerType: InstallerType.CoreWolvenKit,
+  ],
+  [
+    `Core/Wolvekit CLI is deprecated.  Fails in Install`,
+    {
+      expectedInstallerType: InstallerType.NotSupported,
       inFiles: [
         "WolvenKit CLI/AsyncEnumerable.dll",
         "WolvenKit CLI/Microsoft.Data.Sqlite.dll",
@@ -55,8 +62,8 @@ export const DeprecatedInstallShouldFailInTest = new Map<string, ExampleFailingM
       failure: "WolvenKit installation has been deprecated.",
       errorDialogTitle: `WolvenKit installation has been deprecated.`,
     },
-  }),
-);
+  ],
+]);
 
 const examples: ExamplesForType = {
   AllExpectedSuccesses: new Map<string, ExampleSucceedingMod>(),
