@@ -18,11 +18,11 @@ import {
 const CoreInputLoaderInstructions: VortexInstruction[] = [
   {
     type: `generatefile`,
+    data: `[Player/Input]\n`,
     destination: `engine\\config\\platform\\pc\\input_loader.ini`,
   },
   {
     type: `mkdir`,
-    data: `[Player/Input]\n`,
     destination: CONFIG_XML_MOD_MERGEABLE_BASEDIR,
   },
   {
