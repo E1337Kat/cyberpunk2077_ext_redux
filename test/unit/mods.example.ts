@@ -1634,6 +1634,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
 export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
+    CoreInputLoaderShouldFailDirectly: InputLoaderCore.AllExpectedDirectFailures,
     CoreWolvenKitShouldFailInTest,
     CoreCyberCatShouldFailDirectly: CyberCatCore.AllExpectedDirectFailures,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,

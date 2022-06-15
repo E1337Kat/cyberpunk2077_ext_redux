@@ -1,3 +1,4 @@
+import { string } from "fp-ts";
 import path from "path";
 import {
   CONFIG_INI_MOD_BASEDIR,
@@ -22,24 +23,38 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
     {
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
-        ...pathHierarchyFor(CONFIG_INI_MOD_BASEDIR),
-        path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
-        ...pathHierarchyFor(CONFIG_XML_MOD_MERGEABLE_BASEDIR),
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
         path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
       ],
       outInstructions: [
         createdFile(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
-        copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input.dll`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
       ],
+    },
+  ],
+]);
+
+const CoreInputLoaderInstallFails = new Map<string, ExampleFailingMod>([
+  [
+    `Core Input Loader fails without prompting when extra files are present`,
+    {
+      expectedInstallerType: InstallerType.CoreInputLoader,
+      inFiles: [
+        ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
+        path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+        ...pathHierarchyFor(`${CONFIG_INI_MOD_BASEDIR}`),
+        path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
+      ],
+      failure: `Didn't Find Expected Input Loader Installation!`,
+      errorDialogTitle: `Didn't Find Expected Input Loader Installation!`,
     },
   ],
 ]);
 
 const examples: ExamplesForType = {
   AllExpectedSuccesses: CoreInputLoaderInstallSucceeds,
-  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
+  AllExpectedDirectFailures: CoreInputLoaderInstallFails,
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 
