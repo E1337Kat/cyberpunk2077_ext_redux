@@ -1,4 +1,3 @@
-import { win32 } from "path";
 import {
   VortexApi,
   VortexLogFunc,
@@ -7,43 +6,52 @@ import {
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { FileTree, FILETREE_ROOT } from "./filetree";
-import { CYBERCAT_CORE_BASEDIR } from "./installers.layouts";
+import { FileTree, FILETREE_ROOT, pathInTree, sourcePaths } from "./filetree";
+import { CYBERCAT_CORE_BASEDIR, CYBERCAT_CORE_REQUIRED_FILES } from "./installers.layouts";
 import { showInfoNotification, InfoNotification } from "./ui.notifications";
 import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
 import { GAME_ID } from "./index.metadata";
+import { InstallerType } from "./installers.types";
+import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
-const path = win32;
+const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
+  CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
 
-const CYBERCAT_CORE_IDENTIFIERS = [
-  path.normalize("CP2077SaveEditor.exe"),
-  path.normalize("licenses/CyberCAT.Core.LICENSE.txt"),
-  path.normalize("previews/BodyGender/00.jpg"),
-];
+const detectCoreCyberCat = (fileTree: FileTree): boolean =>
+  // We just need to know this looks right, not that it is
+  CYBERCAT_CORE_REQUIRED_FILES.some((requiredFile) => pathInTree(requiredFile, fileTree));
 
 export const testForCyberCatCore: VortexWrappedTestSupportedFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  const containsAllNecessaryCyberCatFiles = CYBERCAT_CORE_IDENTIFIERS.every(
-    (cyberCatPath) => files.includes(cyberCatPath),
-  );
-
-  return Promise.resolve({
-    supported: containsAllNecessaryCyberCatFiles,
-    requiredFiles: [],
-  });
-};
+  _api: VortexApi,
+  _log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+): Promise<VortexTestResult> => 
+  Promise.resolve({ supported: detectCoreCyberCat(fileTree), requiredFiles: [] });
 
 export const installCoreCyberCat: VortexWrappedInstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
+
+  const missingRequiredCoreCyberCatFiles = findRequiredCoreCyberCatFiles(fileTree).length !== CYBERCAT_CORE_REQUIRED_FILES.length;
+
+  if (missingRequiredCoreCyberCatFiles) {
+    const errorMessage = `CyberCAT archive seems to be missing required files!`;
+    api.log(`error`, `${InstallerType.CoreCyberCat}: ${errorMessage}`, sourcePaths(fileTree));
+    
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.CoreCyberCat,
+      errorMessage,
+      sourcePaths(fileTree),
+    );
+
+    return Promise.reject(new Error(errorMessage));
+  }
   const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
 
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);

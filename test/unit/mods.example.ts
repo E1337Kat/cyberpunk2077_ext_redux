@@ -1633,6 +1633,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
   Object.entries({
     CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
     CoreWolvenKitShouldFailInTest,
+    CoreCyberCatShouldFailDirectly: CyberCatCore.AllExpectedDirectFailures,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
     MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,

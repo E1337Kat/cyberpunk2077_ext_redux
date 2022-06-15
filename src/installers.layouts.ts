@@ -506,6 +506,17 @@ export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
 // CyberCAT
 
 export const CYBERCAT_CORE_BASEDIR = path.join("CyberCAT");
+export const CYBERCAT_CORE_REQUIRED_FILES = [
+  path.join("CP2077SaveEditor.exe"),
+  path.join("D3DCompiler_47_cor3.dll"),
+  path.join("e_sqlite3.dll"),
+  path.join("kraken.dll"),
+  path.join("PenImc_cor3.dll"),
+  path.join("PresentationNative_cor3.dll"),
+  path.join("vcruntime140_cor3.dll"),
+  path.join("wpfgfx_cor3.dll"),
+];
+
 export const enum CyberCatLayout {
   OnlyValid = `
     - .\\CyberCAT\\config.json
