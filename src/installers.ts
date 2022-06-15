@@ -54,6 +54,10 @@ import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.specia
 import { InfoNotification, showInfoNotification } from "./ui.notifications";
 import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 import { installAmmMod, testForAmmMod } from "./installer.amm";
+import {
+  installCoreInputLoader,
+  testForCoreInputLoader,
+} from "./installer.core.inputloader";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -154,6 +158,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreArchiveXL,
     testSupported: testForCoreArchiveXL,
     install: installCoreArchiveXL,
+  },
+  {
+    type: InstallerType.CoreInputLoader,
+    id: InstallerType.CoreInputLoader,
+    testSupported: testForCoreInputLoader,
+    install: installCoreInputLoader,
   },
   {
     type: InstallerType.CoreAmm,

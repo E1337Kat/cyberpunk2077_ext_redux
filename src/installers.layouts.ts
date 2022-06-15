@@ -146,7 +146,7 @@ export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/p
 
 export const enum CoreInputLoaderayout {
   OnlyValid = `
-              - .\\engine\\config\\platform\\pc\\input_loader.ini.reds
+              - .\\engine\\config\\platform\\pc\\input_loader.ini
               - .\\r6\\input\\                       (note, empty directory is an exception)
               - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
               `,
