@@ -22,6 +22,7 @@ const CoreInputLoaderInstructions: VortexInstruction[] = [
   },
   {
     type: `mkdir`,
+    data: `[Player/Input]\n`,
     destination: CONFIG_XML_MOD_MERGEABLE_BASEDIR,
   },
   {
