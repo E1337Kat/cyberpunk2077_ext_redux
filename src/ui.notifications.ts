@@ -17,6 +17,7 @@ export const enum NotificationStatus {
 
 export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
+  CyberCatRestartRequired = "V2077-notify-info-restart-required",
 }
 
 //
@@ -31,6 +32,15 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       type: `info`,
       title: `Extra Files Moved To .\\${MODS_EXTRA_BASEDIR}`,
       message: `There were some extra files (usually text documentation or images) in this mod. You can find them in .\\${MODS_EXTRA_BASEDIR}`,
+    },
+  ],
+  [
+    InfoNotification.CyberCatRestartRequired,
+    {
+      id: InfoNotification.CyberCatRestartRequired,
+      type: `info`,
+      title: `Vortex restart required`,
+      message: `If this was your first time installing CyberCAT GUI through Vortex, you may need to restart Vortex before the button works`,
     },
   ],
 ]);

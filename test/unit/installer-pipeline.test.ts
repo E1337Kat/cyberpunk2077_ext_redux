@@ -56,6 +56,12 @@ describe("Transforming modules to instructions", () => {
             internalPipelineInstaller,
           );
 
+          const emitAndAwaitMock = mockVortexExtensionContext.api.emitAndAwait.calledWith(
+            notEmpty(),
+            notEmpty(),
+          );
+          emitAndAwaitMock.mockResolvedValue("Irrelevant");
+
           const installResult = await wrappedInstall(
             mod.inFiles,
             FAKE_STAGING_PATH,

@@ -14,6 +14,7 @@ export enum InstallerType {
   CoreRedscript = `Core/Redscript Installer`,
   CoreRed4ext = `Core/Red4ext Installer`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
+  CoreCyberCat = `CyberCAT Save Editor Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
   CoreArchiveXL = `Core ArchiveXL Installer`,
   CoreWolvenKit = `Core/WolvenKitCLI Installer`,
