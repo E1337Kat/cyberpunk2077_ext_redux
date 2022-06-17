@@ -51,6 +51,7 @@ import { InfoNotification, showInfoNotification } from "./ui.notifications";
 import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
 import { installAmmMod, testForAmmMod } from "./installer.amm";
+import { installPresetMod, testForPresetMod } from "./installer.preset";
 import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.core.deprecated";
 import {
   installCoreInputLoader,
@@ -250,6 +251,12 @@ const installers: Installer[] = [
     id: InstallerType.ConfigXml,
     testSupported: testForConfigXmlMod,
     install: installConfigXmlMod,
+  },
+  {
+    type: InstallerType.Preset,
+    id: InstallerType.Preset,
+    testSupported: testForPresetMod,
+    install: installPresetMod,
   },
   {
     type: InstallerType.Archive,

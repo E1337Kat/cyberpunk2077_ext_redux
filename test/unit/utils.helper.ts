@@ -119,8 +119,11 @@ export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}
 // that'll require adding a default before/afterEach to clear them out.
 //
 // Improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/158
-export const mockedFsLayout = (layout: MockFsDirItems = {}): MockFsDirItems =>
-  FAKE_STAGING_DIRS.reduceRight(
+export const mockedFsLayout = (
+  layout: MockFsDirItems = {},
+  extraPathPrefixes: string[] = [],
+): MockFsDirItems =>
+  [...FAKE_STAGING_DIRS, ...extraPathPrefixes].reduceRight(
     (inner, dir) => Object.fromEntries([[dir, inner]]),
     layout,
   );

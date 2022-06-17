@@ -1361,6 +1361,7 @@ import XmlMod from "./mods.example.config.xml";
 import AmmMod from "./mods.example.amm";
 import RedscriptMod from "./mods.example.redscript";
 import CyberCatCore from "./mods.example.core.cybercat";
+import PresetMod from "./mods.example.preset";
 import InputLoaderCore from "./mods.example.core.inputloader";
 import DeprecatedTools from "./mods.example.deprecated";
 import ExtraFiles from "./mods.example.special.extrafiles";
@@ -1385,6 +1386,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     RedscriptModInstallShouldSucceed: RedscriptMod.AllExpectedSuccesses,
     Red4ExtMod,
     IniMod,
+    PresetMod: PresetMod.AllExpectedSuccesses,
     ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
     GiftwrappedModsFixable,
@@ -1403,6 +1405,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
     ConfigXmlShouldFailDirectly: XmlMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
+    PresetModShouldFailDirectly: PresetMod.AllExpectedDirectFailures,
     AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
     DeprecatedToolsShouldFailDirectly: DeprecatedTools.AllExpectedDirectFailures,
   }),
@@ -1422,6 +1425,7 @@ export const AllExpectedInstallPromptables = new Map<
     RedscriptModShouldPromptForInstall: RedscriptMod.AllExpectedPromptInstalls,
     Red4ExtModShouldPromptForInstall,
     TweakXLModShouldPromptForInstall,
+    PresetModShouldPromptForInstall: PresetMod.AllExpectedPromptInstalls,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),
