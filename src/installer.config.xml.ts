@@ -21,6 +21,7 @@ import {
   CONFIG_XML_MOD_PROTECTED_FILES,
   PromptedOptionalInstructions,
   NotAllowed,
+  CONFIG_XML_MOD_MERGEABLE_BASEDIR,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -47,6 +48,9 @@ export const findConfigXmlCanonFiles = (fileTree: FileTree): string[] =>
     (xmlPath) => !CONFIG_XML_MOD_PROTECTED_FILES.includes(xmlPath),
   );
 
+export const findConfigXmlMergeableFiles = (fileTree: FileTree): string[] =>
+  filesIn(CONFIG_XML_MOD_MERGEABLE_BASEDIR, matchConfigXml, fileTree);
+
 export const findConfigXmlToplevelFiles = (fileTree: FileTree): string[] =>
   filesIn(FILETREE_ROOT, matchConfigXml, fileTree).filter((xml) =>
     CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)),
@@ -58,10 +62,15 @@ export const detectConfigXmlProtectedLayout = (fileTree: FileTree): boolean =>
 export const detectConfigXmlCanonLayout = (fileTree: FileTree): boolean =>
   findConfigXmlCanonFiles(fileTree).length > 0;
 
+export const detectConfigXmlMergeableLayout = (fileTree: FileTree): boolean =>
+  findConfigXmlMergeableFiles(fileTree).length > 0;
+
 export const detectConfigXmlToplevelLayout = (fileTree: FileTree): boolean =>
   findConfigXmlToplevelFiles(fileTree).length > 0;
 
+//
 // Layouts
+//
 
 const configXmlProtectedLayout = (
   _api: VortexApi,
@@ -104,6 +113,23 @@ const configXmlCanonLayout = (
   };
 };
 
+const confixXmlMergeableLayout = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allMergeableConfigXmlFiles = findConfigXmlMergeableFiles(fileTree);
+
+  if (allMergeableConfigXmlFiles.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  return {
+    kind: ConfigXmlLayout.Mergeable,
+    instructions: instructionsForSameSourceAndDestPaths(allMergeableConfigXmlFiles),
+  };
+};
+
 const configXmlTopevelLayout = (
   _api: VortexApi,
   _modName: string,
@@ -139,6 +165,7 @@ export const testForConfigXmlMod: VortexWrappedTestSupportedFunc = (
     supported:
       detectConfigXmlProtectedLayout(fileTree) ||
       detectConfigXmlCanonLayout(fileTree) ||
+      detectConfigXmlMergeableLayout(fileTree) ||
       detectConfigXmlToplevelLayout(fileTree),
     requiredFiles: [],
   });
@@ -156,6 +183,7 @@ export const installConfigXmlMod: VortexWrappedInstallFunc = async (
   const allPossibleConfigXmlLayouts = [
     configXmlProtectedLayout,
     configXmlCanonLayout,
+    confixXmlMergeableLayout,
     configXmlTopevelLayout,
   ];
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
@@ -216,9 +244,12 @@ export const installConfigXmlMod: VortexWrappedInstallFunc = async (
 const layoutsAllowedInMultiAndOtherTypes = [
   configXmlProtectedLayout,
   configXmlCanonLayout,
+  confixXmlMergeableLayout,
 ];
 export const detectAllowedConfigXmlLayouts = (fileTree: FileTree): boolean =>
-  detectConfigXmlProtectedLayout(fileTree) || detectConfigXmlCanonLayout(fileTree);
+  detectConfigXmlProtectedLayout(fileTree) ||
+  detectConfigXmlCanonLayout(fileTree) ||
+  detectConfigXmlMergeableLayout(fileTree);
 
 export const configXmlAllowedInMultiInstructions = async (
   api: VortexApi,

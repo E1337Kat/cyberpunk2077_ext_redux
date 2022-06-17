@@ -41,6 +41,8 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | | |-📁 platform
  * | | | | |-📁 pc
  * | | | | | |-📄 options.json
+ * | |-📁 input
+ * | | |-📄 *.xml
  * | |-📁 scripts
  * | | |-📁 SomeMod
  * | | | |-📄 *.reds
@@ -203,6 +205,9 @@ export const enum ConfigXmlLayout {
   Canon = `
           .\\r6\\config\\*.xml
           `,
+  Mergeable = `
+              .\\r6\\input\\*.xml
+              `,
   Toplevel = `
             .\\{inputContexts,inputDeadzones,inputUserMappings,uiInputActions}.xml
             | - .\\*.xml
@@ -210,6 +215,7 @@ export const enum ConfigXmlLayout {
 }
 
 export const CONFIG_XML_MOD_BASEDIR = path.join(`r6\\config\\`);
+export const CONFIG_XML_MOD_MERGEABLE_BASEDIR = path.join(`r6\\input\\`);
 
 export const CONFIG_XML_MOD_EXTENSION = `.xml`;
 
@@ -598,6 +604,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `
     - \`${ConfigXmlLayout.Protected}\` (Protected)
     - \`${ConfigXmlLayout.Canon}\` (Can be mixed with above)
+    - \`${ConfigXmlLayout.Mergeable}\` (These files can be merged by CoreInputLoader)
     - \`${ConfigXmlLayout.Toplevel}\` (Protected, can be moved to canonical)
 
     Some of the XML config files are protected, because they often contain modifications

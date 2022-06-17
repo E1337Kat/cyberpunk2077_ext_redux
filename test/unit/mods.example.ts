@@ -22,7 +22,6 @@ import {
   ExampleSucceedingMod,
   expectedUserCancelMessageFor,
   expectedUserCancelMessageForHittingFallback,
-  expectedUserCancelProtectedMessageFor,
   FAKE_MOD_NAME,
   FAKE_STAGING_PATH,
   mockedFsLayout,
@@ -48,9 +47,6 @@ import {
   CONFIG_RESHADE_MOD_SHADER_BASEDIR,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
-  CONFIG_XML_MOD_PROTECTED_FILES,
-  CONFIG_XML_MOD_BASEDIR,
-  CONFIG_XML_MOD_PROTECTED_FILENAMES,
 } from "../../src/installers.layouts";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
@@ -1265,85 +1261,6 @@ const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const ConfigXmlMod = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    configXmlWithRandomNameInCanonicalBasedirWillInstall: {
-      expectedInstallerType: InstallerType.ConfigXml,
-      inFiles: [path.join(`${CONFIG_XML_MOD_BASEDIR}\\dunnowhythisishere.xml`)],
-      outInstructions: [
-        copiedToSamePath(path.join(`${CONFIG_XML_MOD_BASEDIR}\\dunnowhythisishere.xml`)),
-      ],
-    },
-  }),
-);
-
-const ConfigXmlModShouldPromptToInstall = new Map<string, ExamplePromptInstallableMod>([
-  ...CONFIG_XML_MOD_PROTECTED_FILES.map(
-    (xml: string): [string, ExamplePromptInstallableMod] => [
-      `Protected XML file ${path.basename(xml)} in XML basedir prompts to install`,
-      {
-        expectedInstallerType: InstallerType.ConfigXml,
-        inFiles: [path.join(xml)],
-        proceedLabel: InstallChoices.Proceed,
-        proceedOutInstructions: [copiedToSamePath(xml)],
-        cancelLabel: InstallChoices.Cancel,
-        cancelErrorMessage: expectedUserCancelProtectedMessageFor(
-          InstallerType.ConfigXml,
-        ),
-      },
-    ],
-  ),
-  ...CONFIG_XML_MOD_PROTECTED_FILENAMES.map(
-    (xmlname: string): [string, ExamplePromptInstallableMod] => [
-      `Protected XML file ${xmlname} in toplevel prompts to install into XML basedir`,
-      {
-        expectedInstallerType: InstallerType.ConfigXml,
-        inFiles: [path.join(xmlname)],
-        proceedLabel: InstallChoices.Proceed,
-        proceedOutInstructions: [
-          {
-            type: `copy`,
-            source: path.join(xmlname),
-            destination: path.join(`${CONFIG_XML_MOD_BASEDIR}\\${xmlname}`),
-          },
-        ],
-        cancelLabel: InstallChoices.Cancel,
-        cancelErrorMessage: expectedUserCancelProtectedMessageFor(
-          InstallerType.ConfigXml,
-        ),
-      },
-    ],
-  ),
-  [
-    `Config XML files when there's a combination of protected and non-protected canonical prompts to install`,
-    {
-      expectedInstallerType: InstallerType.ConfigXml,
-      inFiles: [
-        CONFIG_XML_MOD_PROTECTED_FILES[0],
-        path.join(`${CONFIG_XML_MOD_BASEDIR}\\weeblewobble.xml`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        copiedToSamePath(CONFIG_XML_MOD_PROTECTED_FILES[0]),
-        copiedToSamePath(`${CONFIG_XML_MOD_BASEDIR}\\weeblewobble.xml`),
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelProtectedMessageFor(InstallerType.ConfigXml),
-    },
-  ],
-  [
-    `Config XML files with random XML file in toplevel prompts to install via Fallback`,
-    {
-      expectedInstallerType: InstallerType.ConfigXml,
-      inFiles: [path.join(`myfancy.xml`)],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [copiedToSamePath(path.join(`myfancy.xml`))],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
-    },
-  ],
-]);
-
 const iniFsMock: MockFsDirItems = mockedFsLayout({
   "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
   "serious.ini": "[super serious]\nWings=false",
@@ -1595,6 +1512,7 @@ import AmmCore from "./mods.example.core.amm";
 import RedscriptCore from "./mods.example.core.redscript";
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
+import XmlMod from "./mods.example.config.xml";
 import AmmMod from "./mods.example.amm";
 import RedscriptMod from "./mods.example.redscript";
 import CyberCatCore from "./mods.example.core.cybercat";
@@ -1612,8 +1530,8 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreCyberCatInstall: CyberCatCore.AllExpectedSuccesses,
     CoreTweakXLInstall,
     MultiTypeInstallShouldSucceed: MultiTypeMod.AllExpectedSuccesses,
-    ConfigXmlMod,
     ConfigJsonModInstallShouldSucceed: JsonMod.AllExpectedSuccesses,
+    ConfigXmlInstallShouldSucceed: XmlMod.AllExpectedSuccesses,
     TweakXLMod,
     CoreArchiveXLInstall,
     AsiMod,
@@ -1638,6 +1556,7 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
     MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,
     ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
+    ConfigXmlShouldFailDirectly: XmlMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
     AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
   }),
@@ -1650,8 +1569,8 @@ export const AllExpectedInstallPromptables = new Map<
   Object.entries({
     CoreAmmModShouldPromptForInstall: AmmCore.AllExpectedPromptInstalls,
     MultiTypeModShouldPromptForInstall: MultiTypeMod.AllExpectedPromptInstalls,
-    ConfigXmlModShouldPromptToInstall,
     ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
+    ConfigXmlModShouldPromptToInstall: XmlMod.AllExpectedPromptInstalls,
     AmmModShouldPromptForInstall: AmmMod.AllExpectedPromptInstalls,
     CetModShouldPromptForInstall,
     RedscriptModShouldPromptForInstall: RedscriptMod.AllExpectedPromptInstalls,
