@@ -39,8 +39,10 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     {
       id: InfoNotification.CyberCatRestartRequired,
       type: `info`,
-      title: `Vortex restart required`,
-      message: `If this was your first time installing CyberCAT GUI through Vortex, you may need to restart Vortex before the button works`,
+      title: `Vortex restart required after deployment`,
+      message:
+        `If this was your first time installing CyberCAT GUI through Vortex, ` +
+        `you may need to deploy mods and restart Vortex before the button works`,
     },
   ],
 ]);

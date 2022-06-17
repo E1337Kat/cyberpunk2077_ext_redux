@@ -70,6 +70,20 @@ const main = (vortex: VortexExtensionContext) => {
     wrapInstall(vortex, vortexApi, internalPipelineInstaller),
   );
 
+  vortex.once(() => {
+    vortex.api.onAsync(`did-deploy`, (profileId) => {
+      const state = vortex.api.store.getState();
+      const profile = vortexApi.selectors.profileById(state, profileId);
+
+      if (GAME_ID !== profile?.gameId) {
+        return Promise.resolve();
+      }
+
+      vortex.api.emitAndAwait(`discover-tools`, GAME_ID);
+      return Promise.resolve();
+    });
+  });
+
   return true;
 };
 
