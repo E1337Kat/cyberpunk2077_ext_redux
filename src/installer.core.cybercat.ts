@@ -7,15 +7,19 @@ import {
   VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 import { FileTree, FILETREE_ROOT, pathInTree, sourcePaths } from "./filetree";
-import { CYBERCAT_CORE_BASEDIR, CYBERCAT_CORE_REQUIRED_FILES } from "./installers.layouts";
+import {
+  CYBERCAT_CORE_BASEDIR,
+  CYBERCAT_CORE_REQUIRED_FILES,
+} from "./installers.layouts";
 import { showInfoNotification, InfoNotification } from "./ui.notifications";
 import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
-import { GAME_ID } from "./index.metadata";
 import { InstallerType } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
-  CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
+  CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) =>
+    pathInTree(requiredFile, fileTree),
+  );
 
 const detectCoreCyberCat = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
@@ -26,7 +30,7 @@ export const testForCyberCatCore: VortexWrappedTestSupportedFunc = (
   _log: VortexLogFunc,
   _files: string[],
   fileTree: FileTree,
-): Promise<VortexTestResult> => 
+): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreCyberCat(fileTree), requiredFiles: [] });
 
 export const installCoreCyberCat: VortexWrappedInstallFunc = (
@@ -36,13 +40,18 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
   fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-
-  const missingRequiredCoreCyberCatFiles = findRequiredCoreCyberCatFiles(fileTree).length !== CYBERCAT_CORE_REQUIRED_FILES.length;
+  const missingRequiredCoreCyberCatFiles =
+    findRequiredCoreCyberCatFiles(fileTree).length !==
+    CYBERCAT_CORE_REQUIRED_FILES.length;
 
   if (missingRequiredCoreCyberCatFiles) {
     const errorMessage = `CyberCAT archive seems to be missing required files!`;
-    api.log(`error`, `${InstallerType.CoreCyberCat}: ${errorMessage}`, sourcePaths(fileTree));
-    
+    api.log(
+      `error`,
+      `${InstallerType.CoreCyberCat}: ${errorMessage}`,
+      sourcePaths(fileTree),
+    );
+
     showWarningForUnrecoverableStructureError(
       api,
       InstallerType.CoreCyberCat,
@@ -56,7 +65,6 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
 
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
 
-  api.emitAndAwait("discover-tools", GAME_ID);
   showInfoNotification(api, InfoNotification.CyberCatRestartRequired);
 
   return Promise.resolve({ instructions: movingInstructions });

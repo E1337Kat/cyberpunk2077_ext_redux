@@ -21,17 +21,6 @@ const moddingTools = [
     shell: false,
     relative: true,
   },
-  {
-    id: "CSVMerge",
-    name: "CSVMerge",
-    executable: () => path.join("csvmerge", "CSVMerge.cmd"),
-    requiredFiles: [
-      path.join("csvmerge", "CSVMerge.cmd"),
-      path.join("csvmerge", "wolvenkitcli", "WolvenKit.CLI.exe"),
-    ],
-    shell: true,
-    relative: true,
-  },
 ];
 
 export const findGame = () =>
@@ -80,6 +69,20 @@ const main = (vortex: VortexExtensionContext) => {
     wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
     wrapInstall(vortex, vortexApi, internalPipelineInstaller),
   );
+
+  vortex.once(() => {
+    vortex.api.onAsync(`did-deploy`, (profileId) => {
+      const state = vortex.api.store.getState();
+      const profile = vortexApi.selectors.profileById(state, profileId);
+
+      if (GAME_ID !== profile?.gameId) {
+        return Promise.resolve();
+      }
+
+      vortex.api.emitAndAwait(`discover-tools`, GAME_ID);
+      return Promise.resolve();
+    });
+  });
 
   return true;
 };
