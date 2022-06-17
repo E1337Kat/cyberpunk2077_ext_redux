@@ -1361,6 +1361,7 @@ import XmlMod from "./mods.example.config.xml";
 import AmmMod from "./mods.example.amm";
 import RedscriptMod from "./mods.example.redscript";
 import CyberCatCore from "./mods.example.core.cybercat";
+import InputLoaderCore from "./mods.example.core.inputloader";
 import DeprecatedTools from "./mods.example.deprecated";
 import ExtraFiles from "./mods.example.special.extrafiles";
 
@@ -1371,6 +1372,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
     CoreRedscriptInstallShouldSucceed: RedscriptCore.AllExpectedSuccesses,
     CoreRed4ExtInstall,
     CoreCyberCatInstall: CyberCatCore.AllExpectedSuccesses,
+    CoreInputLoaderShouldSucceed: InputLoaderCore.AllExpectedSuccesses,
     CoreTweakXLInstall,
     MultiTypeInstallShouldSucceed: MultiTypeMod.AllExpectedSuccesses,
     ConfigJsonModInstallShouldSucceed: JsonMod.AllExpectedSuccesses,
@@ -1393,6 +1395,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
 export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
+    CoreInputLoaderShouldFailDirectly: InputLoaderCore.AllExpectedDirectFailures,
     CoreCyberCatShouldFailDirectly: CyberCatCore.AllExpectedDirectFailures,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
