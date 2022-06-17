@@ -13,6 +13,7 @@ export enum InstallerType {
   CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
   CoreRedscript = `Core/Redscript Installer`,
   CoreRed4ext = `Core/Red4ext Installer`,
+  CoreInputLoader = `Core Input Loader Installer (special case of Red4Ext)`,
   CoreCSVMerge = `Core/CSVMerge Installer`,
   CoreCyberCat = `CyberCAT Save Editor Installer`,
   CoreTweakXL = `Core TweakXL Installer`,

@@ -52,6 +52,10 @@ import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
 import { installAmmMod, testForAmmMod } from "./installer.amm";
 import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.core.deprecated";
+import {
+  installCoreInputLoader,
+  testForCoreInputLoader,
+} from "./installer.core.inputloader";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -158,6 +162,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreCyberCat,
     testSupported: testForCyberCatCore,
     install: installCoreCyberCat,
+  },
+  {
+    type: InstallerType.CoreInputLoader,
+    id: InstallerType.CoreInputLoader,
+    testSupported: testForCoreInputLoader,
+    install: installCoreInputLoader,
   },
   {
     type: InstallerType.CoreAmm,
