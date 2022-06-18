@@ -1,5 +1,6 @@
 import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
 import mockFs from "mock-fs";
+import { IState } from "vortex-api/lib/types/IState";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { GAME_ID } from "../../src/index.metadata";
 import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
@@ -36,6 +37,14 @@ describe("Transforming modules to instructions", () => {
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
+          const stateMock = mockVortexExtensionContext.api.getState.calledWith();
+
+          const mockState: DeepMockProxy<IState> = mockDeep<IState>({
+            settings: { automation: { enable: true, deploy: true } },
+          });
+
+          stateMock.mockReturnValue(mockState);
+
           const dialogMock = mockVortexExtensionContext.api.showDialog.calledWith(
             notEmpty(),
             notEmpty(),
@@ -50,17 +59,17 @@ describe("Transforming modules to instructions", () => {
 
           notificationMock.mockReturnValue(`this doesn't actually matter, the call does`);
 
-          const wrappedInstall = wrapInstall(
-            mockVortexExtensionContext,
-            { log: getMockVortexLog() },
-            internalPipelineInstaller,
-          );
-
           const emitAndAwaitMock = mockVortexExtensionContext.api.emitAndAwait.calledWith(
             notEmpty(),
             notEmpty(),
           );
           emitAndAwaitMock.mockResolvedValue("Irrelevant");
+
+          const wrappedInstall = wrapInstall(
+            mockVortexExtensionContext,
+            { log: getMockVortexLog() },
+            internalPipelineInstaller,
+          );
 
           const installResult = await wrappedInstall(
             mod.inFiles,

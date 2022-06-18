@@ -14,7 +14,10 @@ import {
 import { showInfoNotification, InfoNotification } from "./ui.notifications";
 import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
 import { InstallerType } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import {
+  showManualStepRequiredForToolInfo,
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
 
 const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
   CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) =>
@@ -61,11 +64,19 @@ export const installCoreCyberCat: VortexWrappedInstallFunc = (
 
     return Promise.reject(new Error(errorMessage));
   }
-  const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
 
+  const topleveltoCyberCat = files.map(moveFromTo(FILETREE_ROOT, CYBERCAT_CORE_BASEDIR));
   const movingInstructions = instructionsForSourceToDestPairs(topleveltoCyberCat);
 
-  showInfoNotification(api, InfoNotification.CyberCatRestartRequired);
+  const isAutoEnableOnInstall =
+    api.getState().settings.automation.enable &&
+    api.getState().settings.automation.deploy;
+
+  if (isAutoEnableOnInstall) {
+    showInfoNotification(api, InfoNotification.CyberCatRestartRequired);
+  } else {
+    showManualStepRequiredForToolInfo(api, `CyberCAT`);
+  }
 
   return Promise.resolve({ instructions: movingInstructions });
 };
