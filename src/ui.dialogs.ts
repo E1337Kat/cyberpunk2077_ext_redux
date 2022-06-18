@@ -359,3 +359,24 @@ export const showErrorForDeprecatedModTool = (
     [{ label: "Understood!" }],
   );
 };
+
+export const showManualStepRequiredForToolInfo = (
+  api: VortexApi,
+  toolName: string,
+): void => {
+  api.showDialog(
+    `info`,
+    `Manual Step Required For ${toolName}`,
+    {
+      md: heredoc(`
+        To finish installing ${toolName}, you need to first \`enable\` the mod,
+        and then restart Vortex once the deployment is complete. Until you do this,
+        the Tool will remain grayed out (which isn't a problem, you just can't use it!)
+
+        Once you've restarted Vortex, you'll be able to use ${toolName} either directly
+        through Vortex, or as you normally would.
+      `),
+    },
+    [{ label: "Understood!" }],
+  );
+};
