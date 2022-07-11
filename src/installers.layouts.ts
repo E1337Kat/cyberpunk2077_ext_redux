@@ -4,7 +4,12 @@ import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
-/** Correct Directory structure:
+/**
+ * Correct Directory structure is something like this,
+ * but this is NOT a complete representation. See the
+ * mod type layouts further down this file for the details,
+ * or go read the example mod definitions for tests.
+ *
  * root_folder
  * |-📁 archive
  * | |-📁 pc
