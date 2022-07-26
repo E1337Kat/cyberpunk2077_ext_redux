@@ -557,7 +557,8 @@ export const enum CyberCatLayout {
 //
 
 export const enum PresetLayout {
-  Unlocker = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\*.preset`,
+  Unlocker = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\[female, male]\\*.preset`,
+  ACLegacy = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\*.preset`,
   CyberCAT = `.\\V2077\\presets\\cybercat\\*.preset`,
   Toplevel = `.\\*.preset`,
 }
@@ -606,7 +607,17 @@ export const PRESET_MOD_UNLOCKER_BASEDIR = path.normalize(
   `${CET_MOD_CANONICAL_PATH_PREFIX}\\AppearanceChangeUnlocker\\character-presets`,
 );
 
-export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES = [/LocKey#\d+:\d+/];
+export const PRESET_MOD_UNLOCKER_FEMDIR = path.join(
+  PRESET_MOD_UNLOCKER_BASEDIR,
+  `female`,
+);
+
+export const PRESET_MOD_UNLOCKER_MASCDIR = path.join(PRESET_MOD_UNLOCKER_BASEDIR, `male`);
+
+export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST = [
+  /LocKey#14444638123505366956:\d+/,
+];
+export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 
 //
 //
