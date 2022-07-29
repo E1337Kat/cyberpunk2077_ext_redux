@@ -869,5 +869,14 @@ export type LayoutToInstructions = (
   fileTree: FileTree,
 ) => MaybeInstructions;
 
+export type LayoutToInstructionsAsync = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+  sourceDirPathForMod: string,
+) => Promise<MaybeInstructions>;
+
+export type LayoutToInstructionsAny = LayoutToInstructions | LayoutToInstructionsAsync;
+
 export type LayoutDetectFunc = (fileTree: FileTree) => boolean;
 export type LayoutFindFilesFunc = (fileTree: FileTree) => string[];
