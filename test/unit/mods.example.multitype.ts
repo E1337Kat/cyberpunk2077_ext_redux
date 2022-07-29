@@ -30,6 +30,7 @@ import {
   ExamplesForType,
   ExampleFailingMod,
   expectedUserCancelMessageForHittingFallback,
+  movedFromTo,
 } from "./utils.helper";
 
 //
@@ -109,6 +110,38 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
     },
+    // Regression
+    "Reds in basedir installs correctly, not doubled as canonical subdir (with CET + Archive for the ride)":
+      {
+        expectedInstallerType: InstallerType.MultiType,
+        inFiles: [
+          ...CET_PREFIXES,
+          path.join(`${CET_PREFIX}/exmod/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/`),
+          path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          ...REDS_PREFIXES,
+          path.join(`${REDS_PREFIX}/`),
+          path.join(`${REDS_PREFIX}/sneaky.reds`),
+          path.join(`${REDS_PREFIX}/notactuallycanonical/`),
+          path.join(`${REDS_PREFIX}/notactuallycanonical/yay.reds`),
+          ...ARCHIVE_PREFIXES,
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        ],
+        outInstructions: [
+          copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+          copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+          movedFromTo(
+            `${REDS_PREFIX}/sneaky.reds`,
+            `${REDS_PREFIX}/${FAKE_MOD_NAME}/sneaky.reds`,
+          ),
+          movedFromTo(
+            `${REDS_PREFIX}/notactuallycanonical/yay.reds`,
+            `${REDS_PREFIX}/${FAKE_MOD_NAME}/notactuallycanonical/yay.reds`,
+          ),
+          copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        ],
+      },
     multiTypeCetRedscriptRed4ExtCanonical: {
       // Mod example: Furigana
       expectedInstallerType: InstallerType.MultiType,

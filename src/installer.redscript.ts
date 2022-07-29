@@ -16,6 +16,8 @@ import {
   RedscriptLayout,
   REDS_MOD_CANONICAL_EXTENSION,
   InvalidLayout,
+  Instructions,
+  NoLayout,
 } from "./installers.layouts";
 import {
   moveFromTo,
@@ -175,6 +177,7 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
     api,
     modName,
     fileTree,
+    // Order is significant here.
     [redscriptBasedirLayout, redscriptCanonLayout, redscriptToplevelLayout],
   );
 
@@ -195,4 +198,38 @@ export const installRedscriptMod: VortexWrappedInstallFunc = async (
   ];
 
   return Promise.resolve({ instructions: allInstructions });
+};
+
+//
+// External use for MultiType etc.
+//
+
+export const detectAllowedRedscriptLayouts = (fileTree: FileTree): boolean =>
+  detectRedscriptBasedirLayout(fileTree) || detectRedscriptCanonOnlyLayout(fileTree);
+
+export const redscriptAllowedInMultiInstructions = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): Instructions => {
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    modName,
+    fileTree,
+    // Order is significant here.
+    [redscriptBasedirLayout, redscriptCanonLayout],
+  );
+
+  if (
+    selectedInstructions === NoInstructions.NoMatch ||
+    selectedInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(
+      `debug`,
+      `${InstallerType.Redscript}: No allowed Redscript layouts found (this is ok)`,
+    );
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return selectedInstructions;
 };
