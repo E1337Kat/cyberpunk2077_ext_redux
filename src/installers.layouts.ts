@@ -557,10 +557,13 @@ export const enum CyberCatLayout {
 //
 
 export const enum PresetLayout {
-  Unlocker = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\*.preset`,
+  Unlocker = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\[female, male]\\*.preset`,
+  ACLegacy = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceChangeUnlocker\\character-presets\\*.preset`,
   CyberCAT = `.\\V2077\\presets\\cybercat\\*.preset`,
   Toplevel = `.\\*.preset`,
 }
+
+const PRESET_MOD_UNLOCKER_MAGIC_HASH_FOR_BOOBIES = `14444638123505366956`;
 
 export const PRESET_MOD_EXTENSION = `.preset`;
 
@@ -606,7 +609,17 @@ export const PRESET_MOD_UNLOCKER_BASEDIR = path.normalize(
   `${CET_MOD_CANONICAL_PATH_PREFIX}\\AppearanceChangeUnlocker\\character-presets`,
 );
 
-export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES = [/LocKey#\d+:\d+/];
+export const PRESET_MOD_UNLOCKER_FEMDIR = path.join(
+  PRESET_MOD_UNLOCKER_BASEDIR,
+  `female`,
+);
+export const PRESET_MOD_UNLOCKER_MASCDIR = path.join(PRESET_MOD_UNLOCKER_BASEDIR, `male`);
+
+export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST = [
+  new RegExp(`LocKey#${PRESET_MOD_UNLOCKER_MAGIC_HASH_FOR_BOOBIES}:\\d+`),
+];
+
+export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 
 //
 //
@@ -857,6 +870,15 @@ export type LayoutToInstructions = (
   modName: string,
   fileTree: FileTree,
 ) => MaybeInstructions;
+
+export type LayoutToInstructionsAsync = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+  sourceDirPathForMod: string,
+) => Promise<MaybeInstructions>;
+
+export type LayoutToInstructionsAny = LayoutToInstructions | LayoutToInstructionsAsync;
 
 export type LayoutDetectFunc = (fileTree: FileTree) => boolean;
 export type LayoutFindFilesFunc = (fileTree: FileTree) => string[];

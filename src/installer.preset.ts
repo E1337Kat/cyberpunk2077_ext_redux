@@ -1,7 +1,8 @@
 import path from "path";
 import * as A from "fp-ts/Array";
-import * as Either from "fp-ts/Either";
+import * as E from "fp-ts/Either";
 import * as J from "fp-ts/Json";
+import * as O from "fp-ts/Option";
 import { Option, some, none } from "fp-ts/Option";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/function";
@@ -25,7 +26,10 @@ import {
   PRESET_MOD_CYBERCAT_BASEDIR,
   PRESET_MOD_UNLOCKER_BASEDIR,
   PRESET_MOD_CYBERCAT_REQUIRED_KEYS,
-  PRESET_MOD_UNLOCKER_REQUIRED_MATCHES,
+  PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST,
+  PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC,
+  PRESET_MOD_UNLOCKER_FEMDIR,
+  PRESET_MOD_UNLOCKER_MASCDIR,
 } from "./installers.layouts";
 import {
   File,
@@ -34,7 +38,7 @@ import {
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
-  useFirstMatchingLayoutForInstructions,
+  useFirstMatchingLayoutForInstructionsAsync,
 } from "./installers.shared";
 import { InstallerType } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -45,11 +49,13 @@ const matchPresetExt = (filePath: string): boolean =>
 const findPresetCanonCyberCatFiles = (fileTree: FileTree): string[] =>
   filesIn(PRESET_MOD_CYBERCAT_BASEDIR, matchPresetExt, fileTree);
 
-const findPresetCanonUnlockerFiles = (fileTree: FileTree): string[] =>
-  filesIn(PRESET_MOD_UNLOCKER_BASEDIR, matchPresetExt, fileTree);
+const findPresetCanonUnlockerFiles = (fileTree: FileTree): string[] => [
+  ...filesIn(PRESET_MOD_UNLOCKER_FEMDIR, matchPresetExt, fileTree),
+  ...filesIn(PRESET_MOD_UNLOCKER_MASCDIR, matchPresetExt, fileTree),
+];
 
-const findPresetToplevelFiles = (fileTree: FileTree): string[] =>
-  filesIn(FILETREE_ROOT, matchPresetExt, fileTree);
+const findPresetFilesIn = (dir: string, fileTree: FileTree): string[] =>
+  filesIn(dir, matchPresetExt, fileTree);
 
 const detectPresetLayout = (fileTree: FileTree): boolean =>
   dirWithSomeUnder(FILETREE_ROOT, matchPresetExt, fileTree);
@@ -65,19 +71,62 @@ const canonPrefixedPathByTypeIfActualPresetMod = (file: File): Option<FileMove> 
       ? some(fileMove(PRESET_MOD_CYBERCAT_BASEDIR, file))
       : none;
 
-  const unlockerStringContentMatcher = () =>
-    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES.every((required) => file.content.match(required))
-      ? some(fileMove(PRESET_MOD_UNLOCKER_BASEDIR, file))
+  const unlockerStringContentMatcherFem = (): Option<FileMove> =>
+    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST.every((required) =>
+      file.content.match(required),
+    )
+      ? some(fileMove(PRESET_MOD_UNLOCKER_FEMDIR, file))
+      : none;
+
+  const unlockerStringContentMatcherMasc = (): Option<FileMove> =>
+    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC.every((required) =>
+      file.content.match(required),
+    )
+      ? some(fileMove(PRESET_MOD_UNLOCKER_MASCDIR, file))
       : none;
 
   const maybeRealPreset = pipe(
     J.parse(file.content),
-    Either.map(Object.keys),
-    Either.map(cyberCatJsonMatcher),
-    Either.getOrElse(unlockerStringContentMatcher),
+    E.map(Object.keys),
+    E.map(cyberCatJsonMatcher),
+    E.getOrElse(unlockerStringContentMatcherFem),
+    O.alt(unlockerStringContentMatcherMasc),
   );
 
   return maybeRealPreset;
+};
+
+const presetInstructionsFromDecodingUnknownPresets = async (
+  layoutTypeIfMatch: PresetLayout,
+  sourceDirPathForMod: string,
+  dir: string,
+  fileTree: FileTree,
+): Promise<MaybeInstructions> => {
+  const allCandidates: File[] = await pipe(
+    findPresetFilesIn(dir, fileTree),
+    A.traverse(T.ApplicativePar)((filePath) =>
+      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
+    ),
+  )();
+
+  const presetInstructions: VortexInstruction[] = pipe(
+    allCandidates,
+    A.filterMap(canonPrefixedPathByTypeIfActualPresetMod),
+    A.map(fileToInstruction),
+  );
+
+  if (presetInstructions.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  if (presetInstructions.length !== allCandidates.length) {
+    return InvalidLayout.Conflict;
+  }
+
+  return {
+    kind: layoutTypeIfMatch,
+    instructions: presetInstructions,
+  };
 };
 
 //
@@ -126,38 +175,31 @@ const presetCanonUnlockerLayout = (
   };
 };
 
-const presetToplevelLayout = async (
+const presetLegacyUnlockerLayout = async (
   api: VortexApi,
-  sourceDirPathForMod: string,
   _modName: string,
   fileTree: FileTree,
-): Promise<MaybeInstructions> => {
-  const allToplevelCandidates: File[] = await pipe(
-    findPresetToplevelFiles(fileTree),
-    A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
-    ),
-  )();
-
-  const toplevelPresetInstructions: VortexInstruction[] = pipe(
-    allToplevelCandidates,
-    A.filterMap(canonPrefixedPathByTypeIfActualPresetMod),
-    A.map(fileToInstruction),
+  sourceDirPathForMod: string,
+): Promise<MaybeInstructions> =>
+  presetInstructionsFromDecodingUnknownPresets(
+    PresetLayout.ACLegacy,
+    sourceDirPathForMod,
+    PRESET_MOD_UNLOCKER_BASEDIR,
+    fileTree,
   );
 
-  if (toplevelPresetInstructions.length < 1) {
-    return NoInstructions.NoMatch;
-  }
-
-  if (toplevelPresetInstructions.length !== allToplevelCandidates.length) {
-    return InvalidLayout.Conflict;
-  }
-
-  return {
-    kind: PresetLayout.Toplevel,
-    instructions: toplevelPresetInstructions,
-  };
-};
+const presetToplevelLayout = async (
+  api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+  sourceDirPathForMod: string,
+): Promise<MaybeInstructions> =>
+  presetInstructionsFromDecodingUnknownPresets(
+    PresetLayout.Toplevel,
+    sourceDirPathForMod,
+    FILETREE_ROOT,
+    fileTree,
+  );
 
 // testSupport
 
@@ -185,18 +227,18 @@ export const installPresetMod: VortexWrappedInstallFunc = async (
   stagingDirPath: string,
   _progressDelegate: VortexProgressDelegate,
 ): Promise<VortexInstallResult> => {
-  const pathBasedMatchInstructions = useFirstMatchingLayoutForInstructions(
+  const selectedInstructions = await useFirstMatchingLayoutForInstructionsAsync(
     api,
     undefined,
     fileTree,
-    [presetCanonCyberCatLayout, presetCanonUnlockerLayout],
+    stagingDirPath,
+    [
+      presetCanonCyberCatLayout,
+      presetCanonUnlockerLayout,
+      presetLegacyUnlockerLayout,
+      presetToplevelLayout,
+    ],
   );
-
-  const selectedInstructions =
-    pathBasedMatchInstructions === NoInstructions.NoMatch ||
-    pathBasedMatchInstructions === InvalidLayout.Conflict
-      ? await presetToplevelLayout(api, stagingDirPath, undefined, fileTree)
-      : pathBasedMatchInstructions;
 
   if (
     selectedInstructions === NoInstructions.NoMatch ||

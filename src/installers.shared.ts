@@ -10,6 +10,7 @@ import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
   Instructions,
   LayoutToInstructions,
+  LayoutToInstructionsAny,
   MaybeInstructions,
   NoInstructions,
   NotAllowed,
@@ -115,6 +116,26 @@ export const useFirstMatchingLayoutForInstructions = (
       found === NoInstructions.NoMatch ? tryLayout(api, modName, fileTree) : found,
     NoInstructions.NoMatch,
   );
+
+export const useFirstMatchingLayoutForInstructionsAsync = async (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+  sourceDirPathForMod: string,
+  possibleLayouts: LayoutToInstructionsAny[],
+): Promise<MaybeInstructions> => {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const tryLayout of possibleLayouts) {
+    // eslint-disable-next-line no-await-in-loop
+    const instructions = await tryLayout(api, modName, fileTree, sourceDirPathForMod);
+
+    if (instructions !== NoInstructions.NoMatch) {
+      return instructions;
+    }
+  }
+
+  return NoInstructions.NoMatch;
+};
 
 export const useAllMatchingLayouts = (
   api: VortexApi,
