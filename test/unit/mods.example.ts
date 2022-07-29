@@ -1363,7 +1363,7 @@ import RedscriptMod from "./mods.example.redscript";
 import CyberCatCore from "./mods.example.core.cybercat";
 import PresetMod from "./mods.example.preset";
 import InputLoaderCore from "./mods.example.core.inputloader";
-import DeprecatedTools from "./mods.example.deprecated";
+import DeprecatedTools from "./mods.example.special.deprecated";
 import ExtraFiles from "./mods.example.special.extrafiles";
 
 export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(

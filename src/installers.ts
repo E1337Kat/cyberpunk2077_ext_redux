@@ -52,7 +52,7 @@ import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
 import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
 import { installAmmMod, testForAmmMod } from "./installer.amm";
 import { installPresetMod, testForPresetMod } from "./installer.preset";
-import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.core.deprecated";
+import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.special.deprecated";
 import {
   installCoreInputLoader,
   testForCoreInputLoader,
