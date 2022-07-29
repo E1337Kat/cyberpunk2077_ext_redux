@@ -563,6 +563,8 @@ export const enum PresetLayout {
   Toplevel = `.\\*.preset`,
 }
 
+const PRESET_MOD_UNLOCKER_MAGIC_HASH_FOR_BOOBIES = `14444638123505366956`;
+
 export const PRESET_MOD_EXTENSION = `.preset`;
 
 export const PRESET_MOD_CYBERCAT_BASEDIR = path.normalize(
@@ -611,12 +613,12 @@ export const PRESET_MOD_UNLOCKER_FEMDIR = path.join(
   PRESET_MOD_UNLOCKER_BASEDIR,
   `female`,
 );
-
 export const PRESET_MOD_UNLOCKER_MASCDIR = path.join(PRESET_MOD_UNLOCKER_BASEDIR, `male`);
 
 export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST = [
-  /LocKey#14444638123505366956:\d+/,
+  new RegExp(`LocKey#${PRESET_MOD_UNLOCKER_MAGIC_HASH_FOR_BOOBIES}:\\d+`),
 ];
+
 export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 
 //
