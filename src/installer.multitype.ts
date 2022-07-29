@@ -12,10 +12,8 @@ import {
   red4extCanonLayout,
 } from "./installer.red4ext";
 import {
-  detectRedscriptCanonOnlyLayout,
-  detectRedscriptBasedirLayout,
-  redscriptBasedirLayout,
-  redscriptCanonLayout,
+  detectAllowedRedscriptLayouts,
+  redscriptAllowedInMultiInstructions,
 } from "./installer.redscript";
 import {
   detectAllowedTweakXLLayouts,
@@ -49,11 +47,10 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
-  const hasCanonRedscript = detectRedscriptCanonOnlyLayout(fileTree);
-  const hasBasedirRedscript = detectRedscriptBasedirLayout(fileTree);
   const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
+  const hasAllowedRedscript = detectAllowedRedscriptLayouts(fileTree);
   const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
   const hasAllowedTweakXL = detectAllowedTweakXLLayouts(fileTree);
@@ -68,8 +65,7 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
       hasAllowedConfigJson,
       hasAllowedConfigXml,
       hasCanonCet,
-      hasCanonRedscript,
-      hasBasedirRedscript,
+      hasAllowedRedscript,
       hasCanonRed4Ext,
       hasBasedirRed4Ext,
       hasAllowedTweakXL,
@@ -150,8 +146,6 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
   // Defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/96
   const allInstructionSets: LayoutToInstructions[] = [
     cetCanonLayout,
-    redscriptBasedirLayout,
-    redscriptCanonLayout,
     red4extBasedirLayout,
     red4extCanonLayout,
   ];
@@ -170,11 +164,18 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
   const archiveInstructions = extraCanonArchiveInstructions(api, fileTree);
   const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
 
+  const redscriptInstructions = redscriptAllowedInMultiInstructions(
+    api,
+    modName,
+    fileTree,
+  );
+
   const allInstructions = [
     ...allPromptedInstructions,
     ...allInstructionsDirectedByUs,
     ...archiveInstructions.instructions,
     ...tweakXLInstructions.instructions,
+    ...redscriptInstructions.instructions,
   ];
 
   if (allInstructions.length < 1) {
