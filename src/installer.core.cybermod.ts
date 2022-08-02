@@ -56,8 +56,8 @@ export const installCoreCyberMod: VortexWrappedInstallFunc = (
 
   if (missingRequiredCoreCyberModFiles || filesOutsideKnownDirs) {
     const errorMessage = missingRequiredCoreCyberModFiles
-      ? `Didn't find all required CyberMod files!`
-      : `Found files outside known CyberMod directories!`;
+      ? `Didn't find all required CyberScript files!`
+      : `Found files outside known CyberScript directories!`;
 
     api.log(
       `error`,

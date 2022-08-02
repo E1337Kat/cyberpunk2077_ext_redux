@@ -186,8 +186,8 @@ const CyberModCoreFailsDirectly = new Map<string, ExampleFailingMod>([
     {
       expectedInstallerType: InstallerType.CoreCyberMod,
       inFiles: [...CYBERMOD_PREFIXES, ...CYBERMOD_EXAMPLE_CONTENTS_WITHOUT_ALL_REQUIRED],
-      failure: `Didn't find all required CyberMod files!`,
-      errorDialogTitle: `Didn't find all required CyberMod files!`,
+      failure: `Didn't find all required CyberScript files!`,
+      errorDialogTitle: `Didn't find all required CyberScript files!`,
     },
   ],
   [
@@ -199,8 +199,8 @@ const CyberModCoreFailsDirectly = new Map<string, ExampleFailingMod>([
         ...CYBERMOD_EXAMPLE_CONTENTS_WITH_REQUIRED,
         `${CET_MOD_CANONICAL_PATH_PREFIX}\\someothermod\\init.lua`,
       ],
-      failure: `Found files outside known CyberMod directories!`,
-      errorDialogTitle: `Found files outside known CyberMod directories!`,
+      failure: `Found files outside known CyberScript directories!`,
+      errorDialogTitle: `Found files outside known CyberScript directories!`,
     },
   ],
 ]);
