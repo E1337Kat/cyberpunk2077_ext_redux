@@ -11,7 +11,7 @@ export enum InstallerType {
   // 'Core' installers for the mod type enablers themselves
   CoreCET = `Core CET Installer`,
   CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
-  CoreCyberMod = `Core CyberMod Installer`,
+  CoreCyberMod = `Core CyberScript Installer`,
   CoreRedscript = `Core Redscript Installer`,
   CoreRed4ext = `Core Red4ext Installer`,
   CoreInputLoader = `Core Input Loader Installer (special case of Red4Ext)`,
