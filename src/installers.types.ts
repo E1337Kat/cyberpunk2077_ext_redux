@@ -9,16 +9,17 @@ export enum InstallerType {
   // Some special handling cases, not in the pipeline
   SpecialExtraFiles = `(Special) Extra Files Installer`,
   // 'Core' installers for the mod type enablers themselves
-  CoreCET = `Core/CET Installer`,
+  CoreCET = `Core CET Installer`,
   CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
-  CoreRedscript = `Core/Redscript Installer`,
-  CoreRed4ext = `Core/Red4ext Installer`,
+  CoreCyberMod = `Core CyberScript Installer`,
+  CoreRedscript = `Core Redscript Installer`,
+  CoreRed4ext = `Core Red4ext Installer`,
   CoreInputLoader = `Core Input Loader Installer (special case of Red4Ext)`,
-  CoreCSVMerge = `Core/CSVMerge Installer`,
+  CoreCSVMerge = `(DEPRECATED - use TweakXL/ArchiveXL) Core CSVMerge Installer`,
   CoreCyberCat = `CyberCAT Save Editor Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
   CoreArchiveXL = `Core ArchiveXL Installer`,
-  CoreWolvenKit = `Core/WolvenKitCLI Installer`,
+  CoreWolvenKit = `Core WolvenKitCLI Installer`,
   // MultiType
   MultiType = `MultiType Mod Installer`,
   // Mods

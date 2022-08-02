@@ -327,6 +327,42 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
   "bin/x64/plugins/cyber_engine_tweaks/mods",
 );
 
+//
+// CyberMod
+//
+
+// CyberMod is a special case of both ASI and CET
+
+export const enum CoreCyberModLayout {
+  OnlyValid = `
+              - .\\bin\\x64\\plugins\\ImmersiveRoleplayFramework.asi
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\quest_mod\\init.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\quest_mod\\[any files + subdirs]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\CPStyling\\[any files + subdirs]  (plugin only)
+              `,
+}
+
+export const CYBERMOD_CORE_BASEDIR = path.normalize(`bin\\x64\\plugins`);
+export const CYBERMOD_CORE_CETBASEDIR = path.normalize(
+  `${CET_MOD_CANONICAL_PATH_PREFIX}\\quest_mod`,
+);
+export const CYBERMOD_CORE_CPSTYLING_PLUGINDIR = path.normalize(
+  `${CET_MOD_CANONICAL_PATH_PREFIX}\\CPStyling`,
+);
+
+export const CYBERMOD_CORE_ASI = path.normalize(
+  `${CYBERMOD_CORE_BASEDIR}\\ImmersiveRoleplayFramework.asi`,
+);
+
+export const CYBERMOD_CORE_REQUIRED_FILES = [
+  CYBERMOD_CORE_ASI,
+  path.normalize(`${CYBERMOD_CORE_CETBASEDIR}\\init.lua`),
+];
+
+//
+// AMM
+//
+
 // AMM is a special case of CET
 
 export const AMM_BASEDIR_PATH = path.join(
@@ -671,6 +707,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.CoreCyberMod,
+    `
+    ${CoreCyberModLayout.OnlyValid}
+
+    This is the only possible valid layout for ${InstallerType.CoreCyberMod} that I know of.
+    `,
+  ],
+  [
     InstallerType.AMM,
     `
     Any combination of the below canonical layouts (including any canonical Archives)
@@ -828,6 +872,7 @@ export const enum NoLayout {
 
 export type Layout =
   | CoreAmmLayout
+  | CoreCyberModLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout

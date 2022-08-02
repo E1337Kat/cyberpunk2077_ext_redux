@@ -1354,6 +1354,7 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
 //
 
 import AmmCore from "./mods.example.core.amm";
+import CyberModCore from "./mods.example.core.cybermod";
 import RedscriptCore from "./mods.example.core.redscript";
 import MultiTypeMod from "./mods.example.multitype";
 import JsonMod from "./mods.example.config.json";
@@ -1363,12 +1364,13 @@ import RedscriptMod from "./mods.example.redscript";
 import CyberCatCore from "./mods.example.core.cybercat";
 import PresetMod from "./mods.example.preset";
 import InputLoaderCore from "./mods.example.core.inputloader";
-import DeprecatedTools from "./mods.example.deprecated";
+import DeprecatedTools from "./mods.example.special.deprecated";
 import ExtraFiles from "./mods.example.special.extrafiles";
 
 export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
   Object.entries({
     CoreAmmInstallShouldSucceed: AmmCore.AllExpectedSuccesses,
+    CoreCyberModInstallShouldSucceed: CyberModCore.AllExpectedSuccesses,
     CoreCetInstall,
     CoreRedscriptInstallShouldSucceed: RedscriptCore.AllExpectedSuccesses,
     CoreRed4ExtInstall,
@@ -1397,6 +1399,7 @@ export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
 export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
+    CoreCyberModInstallShouldFailDirectly: CyberModCore.AllExpectedDirectFailures,
     CoreInputLoaderShouldFailDirectly: InputLoaderCore.AllExpectedDirectFailures,
     CoreCyberCatShouldFailDirectly: CyberCatCore.AllExpectedDirectFailures,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
@@ -1417,6 +1420,7 @@ export const AllExpectedInstallPromptables = new Map<
 >(
   Object.entries({
     CoreAmmModShouldPromptForInstall: AmmCore.AllExpectedPromptInstalls,
+    CoreCyberModModShouldPromptForInstall: CyberModCore.AllExpectedPromptInstalls,
     MultiTypeModShouldPromptForInstall: MultiTypeMod.AllExpectedPromptInstalls,
     ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
     ConfigXmlModShouldPromptToInstall: XmlMod.AllExpectedPromptInstalls,
