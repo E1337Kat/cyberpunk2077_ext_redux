@@ -328,12 +328,12 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 );
 
 //
-// CyberMod
+// CyberScript
 //
 
-// CyberMod is a special case of both ASI and CET
+// CyberScript is a special case of both ASI and CET
 
-export const enum CoreCyberModLayout {
+export const enum CoreCyberScriptLayout {
   OnlyValid = `
               - .\\bin\\x64\\plugins\\ImmersiveRoleplayFramework.asi
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\quest_mod\\init.lua
@@ -342,21 +342,21 @@ export const enum CoreCyberModLayout {
               `,
 }
 
-export const CYBERMOD_CORE_BASEDIR = path.normalize(`bin\\x64\\plugins`);
-export const CYBERMOD_CORE_CETBASEDIR = path.normalize(
+export const CYBERSCRIPT_CORE_BASEDIR = path.normalize(`bin\\x64\\plugins`);
+export const CYBERSCRIPT_CORE_CETBASEDIR = path.normalize(
   `${CET_MOD_CANONICAL_PATH_PREFIX}\\quest_mod`,
 );
-export const CYBERMOD_CORE_CPSTYLING_PLUGINDIR = path.normalize(
+export const CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR = path.normalize(
   `${CET_MOD_CANONICAL_PATH_PREFIX}\\CPStyling`,
 );
 
-export const CYBERMOD_CORE_ASI = path.normalize(
-  `${CYBERMOD_CORE_BASEDIR}\\ImmersiveRoleplayFramework.asi`,
+export const CYBERSCRIPT_CORE_ASI = path.normalize(
+  `${CYBERSCRIPT_CORE_BASEDIR}\\ImmersiveRoleplayFramework.asi`,
 );
 
-export const CYBERMOD_CORE_REQUIRED_FILES = [
-  CYBERMOD_CORE_ASI,
-  path.normalize(`${CYBERMOD_CORE_CETBASEDIR}\\init.lua`),
+export const CYBERSCRIPT_CORE_REQUIRED_FILES = [
+  CYBERSCRIPT_CORE_ASI,
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\init.lua`),
 ];
 
 //
@@ -707,11 +707,11 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
-    InstallerType.CoreCyberMod,
+    InstallerType.CoreCyberScript,
     `
-    ${CoreCyberModLayout.OnlyValid}
+    ${CoreCyberScriptLayout.OnlyValid}
 
-    This is the only possible valid layout for ${InstallerType.CoreCyberMod} that I know of.
+    This is the only possible valid layout for ${InstallerType.CoreCyberScript} that I know of.
     `,
   ],
   [
@@ -872,7 +872,7 @@ export const enum NoLayout {
 
 export type Layout =
   | CoreAmmLayout
-  | CoreCyberModLayout
+  | CoreCyberScriptLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout
