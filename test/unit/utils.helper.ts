@@ -52,7 +52,7 @@ export interface ExamplePromptInstallableMod extends ExampleMod {
 }
 
 // Really should probably make this a sensible type but w/e
-export type ExampleModCategory = Map<string, ExampleSucceedingMod>;
+export type ExampleSucceedingModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 export type ExamplePromptInstallableModCategory = Map<
   string,
@@ -60,7 +60,7 @@ export type ExamplePromptInstallableModCategory = Map<
 >;
 
 export interface ExamplesForType {
-  readonly AllExpectedSuccesses: ExampleModCategory;
+  readonly AllExpectedSuccesses: ExampleSucceedingModCategory;
   readonly AllExpectedDirectFailures: ExampleFailingModCategory;
   readonly AllExpectedPromptInstalls: ExamplePromptInstallableModCategory;
 }
