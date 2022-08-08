@@ -151,7 +151,7 @@ export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/p
 //
 // Core Input_Loader
 
-export const enum CoreInputLoaderayout {
+export const enum CoreInputLoaderLayout {
   OnlyValid = `
               - .\\engine\\config\\platform\\pc\\input_loader.ini
               - .\\r6\\input\\                       (note, empty directory is an exception)
@@ -685,7 +685,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.CoreInputLoader,
     `
-        \`${CoreInputLoaderayout.OnlyValid}\`
+        \`${CoreInputLoaderLayout.OnlyValid}\`
 
         This is the only possible valid layout for ${InstallerType.CoreInputLoader} that I know of.
     `,
