@@ -1,5 +1,7 @@
 /* eslint-disable import/first */
 import path from "path";
+import glob from "glob";
+
 import {
   ARCHIVE_GIFTWRAPS,
   ARCHIVE_PREFIX,
@@ -16,7 +18,7 @@ import {
   createdDirectory,
   ExampleFailingMod,
   ExampleFailingModCategory,
-  ExampleModCategory,
+  ExampleSucceedingModCategory,
   ExamplePromptInstallableMod,
   ExamplePromptInstallableModCategory,
   ExampleSucceedingMod,
@@ -37,6 +39,7 @@ import {
   REDS_PREFIXES,
   TWEAK_XL_PATH,
   TWEAK_XL_PATHS,
+  ExamplesForType,
 } from "./utils.helper";
 
 import {
@@ -1352,85 +1355,83 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
 //
 // And then the already-split-up types
 //
+// Ensure that everything gets run by looping
+//
 
-import AmmCore from "./mods.example.core.amm";
-import CyberModCore from "./mods.example.core.cybermod";
-import RedscriptCore from "./mods.example.core.redscript";
-import MultiTypeMod from "./mods.example.multitype";
-import JsonMod from "./mods.example.config.json";
-import XmlMod from "./mods.example.config.xml";
-import AmmMod from "./mods.example.amm";
-import RedscriptMod from "./mods.example.redscript";
-import CyberCatCore from "./mods.example.core.cybercat";
-import PresetMod from "./mods.example.preset";
-import InputLoaderCore from "./mods.example.core.inputloader";
-import DeprecatedTools from "./mods.example.special.deprecated";
-import ExtraFiles from "./mods.example.special.extrafiles";
+interface ExampleModSet {
+  successes: Map<string, ExampleSucceedingModCategory>;
+  failures: Map<string, ExampleFailingModCategory>;
+  prompts: Map<string, ExamplePromptInstallableModCategory>;
+}
 
-export const AllExpectedSuccesses = new Map<string, ExampleModCategory>(
+const blankModSet: ExampleModSet = {
+  successes: new Map<string, ExampleSucceedingModCategory>(),
+  failures: new Map<string, ExampleFailingModCategory>(),
+  prompts: new Map<string, ExamplePromptInstallableModCategory>(),
+};
+
+// Need to move these out
+const NotYetMovedSuccesses = new Map<string, ExampleSucceedingModCategory>(
   Object.entries({
-    CoreAmmInstallShouldSucceed: AmmCore.AllExpectedSuccesses,
-    CoreCyberModInstallShouldSucceed: CyberModCore.AllExpectedSuccesses,
     CoreCetInstall,
-    CoreRedscriptInstallShouldSucceed: RedscriptCore.AllExpectedSuccesses,
     CoreRed4ExtInstall,
-    CoreCyberCatInstall: CyberCatCore.AllExpectedSuccesses,
-    CoreInputLoaderShouldSucceed: InputLoaderCore.AllExpectedSuccesses,
     CoreTweakXLInstall,
-    MultiTypeInstallShouldSucceed: MultiTypeMod.AllExpectedSuccesses,
-    ConfigJsonModInstallShouldSucceed: JsonMod.AllExpectedSuccesses,
-    ConfigXmlInstallShouldSucceed: XmlMod.AllExpectedSuccesses,
     TweakXLMod,
     CoreArchiveXLInstall,
     AsiMod,
-    AmmModInstallShouldSucceed: AmmMod.AllExpectedSuccesses,
     CetMod,
-    RedscriptModInstallShouldSucceed: RedscriptMod.AllExpectedSuccesses,
     Red4ExtMod,
     IniMod,
-    PresetMod: PresetMod.AllExpectedSuccesses,
     ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
     GiftwrappedModsFixable,
-    ExtraFiles: ExtraFiles.AllExpectedSuccesses,
   }),
 );
 
-export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>(
+const NotYetMovedFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
-    CoreAmmInstallShouldFailDirectly: AmmCore.AllExpectedDirectFailures,
-    CoreCyberModInstallShouldFailDirectly: CyberModCore.AllExpectedDirectFailures,
-    CoreInputLoaderShouldFailDirectly: InputLoaderCore.AllExpectedDirectFailures,
-    CoreCyberCatShouldFailDirectly: CyberCatCore.AllExpectedDirectFailures,
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
-    MultiTypeModShouldFailDirectly: MultiTypeMod.AllExpectedDirectFailures,
-    ConfigJsonModShouldFailDirectly: JsonMod.AllExpectedDirectFailures,
-    ConfigXmlShouldFailDirectly: XmlMod.AllExpectedDirectFailures,
     Red4ExtModShouldFailInTest,
-    PresetModShouldFailDirectly: PresetMod.AllExpectedDirectFailures,
-    AmmModInstallShouldFailDirectly: AmmMod.AllExpectedDirectFailures,
-    DeprecatedToolsShouldFailDirectly: DeprecatedTools.AllExpectedDirectFailures,
   }),
 );
 
-export const AllExpectedInstallPromptables = new Map<
-  string,
-  ExamplePromptInstallableModCategory
->(
+const NotYetMovedPromptables = new Map<string, ExamplePromptInstallableModCategory>(
   Object.entries({
-    CoreAmmModShouldPromptForInstall: AmmCore.AllExpectedPromptInstalls,
-    CoreCyberModModShouldPromptForInstall: CyberModCore.AllExpectedPromptInstalls,
-    MultiTypeModShouldPromptForInstall: MultiTypeMod.AllExpectedPromptInstalls,
-    ConfigJsonModShouldPromptForInstall: JsonMod.AllExpectedPromptInstalls,
-    ConfigXmlModShouldPromptToInstall: XmlMod.AllExpectedPromptInstalls,
-    AmmModShouldPromptForInstall: AmmMod.AllExpectedPromptInstalls,
     CetModShouldPromptForInstall,
-    RedscriptModShouldPromptForInstall: RedscriptMod.AllExpectedPromptInstalls,
     Red4ExtModShouldPromptForInstall,
     TweakXLModShouldPromptForInstall,
-    PresetModShouldPromptForInstall: PresetMod.AllExpectedPromptInstalls,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,
   }),
 );
+
+const allModExamples = glob.sync(`test/unit/mods.example.*.ts`);
+
+const AllModExamplesByKind: ExampleModSet = allModExamples.reduce((set, exampleFile) => {
+  const filename = path.basename(exampleFile, `.ts`);
+  const kind = filename.split(`.`).slice(2).join(`.`);
+  // eslint-disable-next-line import/no-dynamic-require, global-require, @typescript-eslint/no-var-requires
+  const examples: ExamplesForType = require(`./${filename}`).default;
+
+  set.successes.set(kind, examples.AllExpectedSuccesses);
+  set.failures.set(kind, examples.AllExpectedDirectFailures);
+  set.prompts.set(kind, examples.AllExpectedPromptInstalls);
+
+  return set;
+}, blankModSet);
+
+export const AllExpectedSuccesses = new Map<string, ExampleSucceedingModCategory>([
+  ...NotYetMovedSuccesses.entries(),
+  ...AllModExamplesByKind.successes.entries(),
+]);
+
+export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCategory>([
+  ...NotYetMovedFailures.entries(),
+  ...AllModExamplesByKind.failures.entries(),
+]);
+
+export const AllExpectedInstallPromptables = new Map<
+  string,
+  ExamplePromptInstallableModCategory
+>([...NotYetMovedPromptables.entries(), ...AllModExamplesByKind.prompts.entries()]);

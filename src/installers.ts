@@ -57,7 +57,10 @@ import {
   installCoreInputLoader,
   testForCoreInputLoader,
 } from "./installer.core.inputloader";
-import { installCoreCyberMod, testForCoreCyberMod } from "./installer.core.cybermod";
+import {
+  installCoreCyberScript,
+  testForCoreCyberScript,
+} from "./installer.core.cyberscript";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -178,10 +181,10 @@ const installers: Installer[] = [
     install: installCoreAmm,
   },
   {
-    type: InstallerType.CoreCyberMod,
-    id: InstallerType.CoreCyberMod,
-    testSupported: testForCoreCyberMod,
-    install: installCoreCyberMod,
+    type: InstallerType.CoreCyberScript,
+    id: InstallerType.CoreCyberScript,
+    testSupported: testForCoreCyberScript,
+    install: installCoreCyberScript,
   },
   {
     type: InstallerType.ASI,

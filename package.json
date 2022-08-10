@@ -32,6 +32,7 @@
     "license": "GPL-3.0",
     "devDependencies": {
         "@jest/types": "^27.5.1",
+        "@types/glob": "^7.2.0",
         "@types/jest": "^27.4.1",
         "@types/jest-expect-message": "^1.0.3",
         "@types/mock-fs": "^4.13.1",
@@ -48,6 +49,7 @@
         "eslint-config-airbnb-typescript": "^16.1.1",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-import": "^2.25.4",
+        "glob": "^8.0.3",
         "husky": "^7.0.0",
         "i18next": "^21.0.0",
         "jest": "^27.5.1",
