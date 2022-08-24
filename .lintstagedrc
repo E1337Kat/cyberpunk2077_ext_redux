@@ -1,3 +1,3 @@
 {
-  "*.ts": ["eslint --config .eslintrc.build.json --env-info", "prettier --write"]
+  "*.ts": ["eslint --config .eslintrc.build.json --env-info"]
 }
