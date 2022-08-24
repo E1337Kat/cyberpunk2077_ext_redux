@@ -1,6 +1,7 @@
 /* eslint-disable import/first */
 import path from "path";
 import glob from "glob";
+import * as RA from "fp-ts/ReadonlyArray";
 
 import {
   ARCHIVE_GIFTWRAPS,
@@ -1408,18 +1409,21 @@ const NotYetMovedPromptables = new Map<string, ExamplePromptInstallableModCatego
 
 const allModExamples = glob.sync(`test/unit/mods.example.*.ts`);
 
-const AllModExamplesByKind: ExampleModSet = allModExamples.reduce((set, exampleFile) => {
-  const filename = path.basename(exampleFile, `.ts`);
-  const kind = filename.split(`.`).slice(2).join(`.`);
-  // eslint-disable-next-line import/no-dynamic-require, global-require, @typescript-eslint/no-var-requires
-  const examples: ExamplesForType = require(`./${filename}`).default;
+const AllModExamplesByKind: ExampleModSet = RA.reduce(
+  blankModSet,
+  (set, exampleFile: string) => {
+    const filename = path.basename(exampleFile, `.ts`);
+    const kind = filename.split(`.`).slice(2).join(`.`);
+    // eslint-disable-next-line import/no-dynamic-require, global-require, @typescript-eslint/no-var-requires
+    const examples: ExamplesForType = require(`./${filename}`).default;
 
-  set.successes.set(kind, examples.AllExpectedSuccesses);
-  set.failures.set(kind, examples.AllExpectedDirectFailures);
-  set.prompts.set(kind, examples.AllExpectedPromptInstalls);
+    set.successes.set(kind, examples.AllExpectedSuccesses);
+    set.failures.set(kind, examples.AllExpectedDirectFailures);
+    set.prompts.set(kind, examples.AllExpectedPromptInstalls);
 
-  return set;
-}, blankModSet);
+    return set;
+  },
+)(allModExamples);
 
 export const AllExpectedSuccesses = new Map<string, ExampleSucceedingModCategory>([
   ...NotYetMovedSuccesses.entries(),
