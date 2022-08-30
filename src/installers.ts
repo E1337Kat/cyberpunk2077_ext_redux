@@ -87,7 +87,7 @@ export const notInstallableMod: VortexWrappedInstallFunc = (
   _destinationPath: string,
   _progressDelegate: VortexProgressDelegate,
 ) => {
-  throw new Error("Should never get here");
+  throw new Error(`Should never get here`);
 };
 
 // Installers
@@ -309,8 +309,7 @@ const detectGiftwrapLayout = (fileTree: FileTree) => {
   }
 
   const subdirsMatchingKnownToplevelSubdirs = allFirstLevelSubdirs.filter((dir) =>
-    KNOWN_TOPLEVEL_DIRS.includes(dir),
-  );
+    KNOWN_TOPLEVEL_DIRS.includes(dir));
 
   if (allFirstLevelSubdirs.length === subdirsMatchingKnownToplevelSubdirs.length) {
     return true;
@@ -379,13 +378,13 @@ const giftwrapSourcesAgainIfNecessary = (
   treeInUse: ProcessedFileTree,
   instructions: VortexInstruction[],
 ): VortexInstruction[] =>
-  treeInUse.transform === Transform.Unwrapped
+  (treeInUse.transform === Transform.Unwrapped
     ? instructions.map(({ type, source, destination }: VortexInstruction) => ({
-        type,
-        source: path.join(treeInUse.wrapperDir, source),
-        destination,
-      }))
-    : instructions;
+      type,
+      source: path.join(treeInUse.wrapperDir, source),
+      destination,
+    }))
+    : instructions);
 
 //
 // (wrap) `testSupported`
@@ -403,29 +402,29 @@ export const wrapTestSupported =
     vortexApiThing,
     installer: Installer,
   ): VortexTestSupportedFunc =>
-  (files: string[], gameId: string) => {
+    (files: string[], gameId: string) => {
     //
-    const vortexLog: VortexLogFunc = vortexApiThing.log;
-    const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+      const vortexLog: VortexLogFunc = vortexApiThing.log;
+      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-    if (gameId !== GAME_ID) {
-      vortexApi.log(`error`, `Not a ${GAME_ID} mod: ${gameId}`);
-      return Promise.resolve({ supported: false, requiredFiles: [] });
-    }
+      if (gameId !== GAME_ID) {
+        vortexApi.log(`error`, `Not a ${GAME_ID} mod: ${gameId}`);
+        return Promise.resolve({ supported: false, requiredFiles: [] });
+      }
 
-    vortexApi.log(`info`, `Testing for ${installer.type}`);
-    vortexApi.log(`debug`, `Input files: `, files);
+      vortexApi.log(`info`, `Testing for ${installer.type}`);
+      vortexApi.log(`debug`, `Input files: `, files);
 
-    const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
 
-    // Unlike in `install`, Vortex doesn't supply us the mod's disk path
-    return installer.testSupported(
-      vortexApi,
-      vortexLog,
-      sourcePaths(treeForTesting.fileTree),
-      treeForTesting.fileTree,
-    );
-  };
+      // Unlike in `install`, Vortex doesn't supply us the mod's disk path
+      return installer.testSupported(
+        vortexApi,
+        vortexLog,
+        sourcePaths(treeForTesting.fileTree),
+        treeForTesting.fileTree,
+      );
+    };
 
 //
 //  (wrap) `install`
@@ -445,88 +444,88 @@ export const wrapInstall =
     vortexApiThing,
     installer: Installer,
   ): VortexInstallFunc =>
-  async (
-    files: string[],
-    destinationPath: string,
-    _gameId: string,
-    progressDelegate: VortexProgressDelegate,
-    choices?: unknown,
-    unattended?: boolean,
-  ): Promise<VortexInstallResult> => {
+    async (
+      files: string[],
+      destinationPath: string,
+      _gameId: string,
+      progressDelegate: VortexProgressDelegate,
+      choices?: unknown,
+      unattended?: boolean,
+    ): Promise<VortexInstallResult> => {
     //
-    const vortexLog: VortexLogFunc = vortexApiThing.log;
-    const vortexApi: VortexApi = { ...vortex.api, log: vortexLog };
+      const vortexLog: VortexLogFunc = vortexApiThing.log;
+      const vortexApi: VortexApi = { ...vortex.api, log: vortexLog };
 
-    vortexApi.log(`info`, `Trying to install using ${installer.type}`);
-    vortexApi.log(`debug`, `Input files:`, files);
+      vortexApi.log(`info`, `Trying to install using ${installer.type}`);
+      vortexApi.log(`debug`, `Input files:`, files);
 
-    const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
-    const sourceFileCount = fileCount(treeForInstallers.fileTree);
+      const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+      const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-    const stagingDirPathForMod = path.join(
-      path.dirname(destinationPath),
-      path.basename(destinationPath, ".installing"),
-    );
+      const stagingDirPathForMod = path.join(
+        path.dirname(destinationPath),
+        path.basename(destinationPath, `.installing`),
+      );
 
-    const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
+      const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
 
-    const modName = makeSyntheticName(stagingDirPathForMod);
+      const modName = makeSyntheticName(stagingDirPathForMod);
 
-    const instructionsFromInstaller = await installer.install(
-      vortexApi,
-      vortexLog,
-      sourcePaths(treeForInstallers.fileTree),
-      treeForInstallers.fileTree,
-      destinationPath,
-      progressDelegate,
-      sourceDirPathForMod,
-      stagingDirPathForMod,
-      modName,
-      choices,
-      unattended,
-    );
+      const instructionsFromInstaller = await installer.install(
+        vortexApi,
+        vortexLog,
+        sourcePaths(treeForInstallers.fileTree),
+        treeForInstallers.fileTree,
+        destinationPath,
+        progressDelegate,
+        sourceDirPathForMod,
+        stagingDirPathForMod,
+        modName,
+        choices,
+        unattended,
+      );
 
-    const allSourceFilesAccountedFor =
+      const allSourceFilesAccountedFor =
       instructionsFromInstaller.instructions.length >= sourceFileCount;
 
-    const extraFilesInstructions = allSourceFilesAccountedFor
-      ? { kind: NoLayout.Optional, instructions: [] }
-      : extraFilesAllowedInOtherModTypesInstructions(
+      const extraFilesInstructions = allSourceFilesAccountedFor
+        ? { kind: NoLayout.Optional, instructions: [] }
+        : extraFilesAllowedInOtherModTypesInstructions(
           vortexApi,
           modName,
           treeForInstallers.fileTree,
         );
 
-    const allInstructionsWeKnowHowToGenerate = [
-      ...instructionsFromInstaller.instructions,
-      ...extraFilesInstructions.instructions,
-    ];
+      const allInstructionsWeKnowHowToGenerate = [
+        ...instructionsFromInstaller.instructions,
+        ...extraFilesInstructions.instructions,
+      ];
 
-    const stillMissingSourceFiles =
+      const stillMissingSourceFiles =
       allInstructionsWeKnowHowToGenerate.length < sourceFileCount;
 
-    if (stillMissingSourceFiles) {
+      if (stillMissingSourceFiles) {
       // If we want to handle cases where we're intentionally returning
       // fewer files for some reason, need to add a type for those.
       //
-      vortexApi.log(
-        `error`,
-        `There are fewer instructions than source files, meaning we're missing files. Reverting to Fallback!`,
-        {
-          sourcePaths: sourcePaths(treeForInstallers.fileTree),
-          instructionSources: allInstructionsWeKnowHowToGenerate.map(
-            (instruction) => instruction.source,
-          ),
-        },
-      );
-      vortexApi.log(`info`, `instructions generated by ${InstallerType.Fallback}`);
-    } else {
-      vortexApi.log(`info`, `instructions generated by ${installer.type}`);
-    }
+        vortexApi.log(
+          `error`,
+          `There are fewer instructions than source files, meaning we're missing files. Reverting to Fallback!`,
+          {
+            sourcePaths: sourcePaths(treeForInstallers.fileTree),
+            instructionSources: allInstructionsWeKnowHowToGenerate.map(
+              (instruction) => instruction.source,
+            ),
+          },
+        );
+        vortexApi.log(`info`, `instructions generated by ${InstallerType.Fallback}`);
+      } else {
+        vortexApi.log(`info`, `instructions generated by ${installer.type}`);
+      }
 
-    const finalInstructions = !stillMissingSourceFiles
-      ? allInstructionsWeKnowHowToGenerate
-      : (
+      const finalInstructions = !stillMissingSourceFiles
+        ? allInstructionsWeKnowHowToGenerate
+        : (
           await fallbackInstaller.install(
             vortexApi,
             vortexApi.log,
@@ -542,22 +541,22 @@ export const wrapInstall =
           )
         ).instructions;
 
-    const instructionsFromFullyResolvedSources = giftwrapSourcesAgainIfNecessary(
-      vortexApi,
-      treeForInstallers,
-      finalInstructions,
-    );
+      const instructionsFromFullyResolvedSources = giftwrapSourcesAgainIfNecessary(
+        vortexApi,
+        treeForInstallers,
+        finalInstructions,
+      );
 
-    // Delay this until we know we're succeeding. Probably needs a better mechanism,
-    // but hopefully we don't need to start queuing notifs.
-    if (extraFilesInstructions.instructions.length > 0) {
-      await showInfoNotification(vortexApi, InfoNotification.InstallerExtraFilesMoved);
-    }
+      // Delay this until we know we're succeeding. Probably needs a better mechanism,
+      // but hopefully we don't need to start queuing notifs.
+      if (extraFilesInstructions.instructions.length > 0) {
+        await showInfoNotification(vortexApi, InfoNotification.InstallerExtraFilesMoved);
+      }
 
-    return Promise.resolve({
-      instructions: instructionsFromFullyResolvedSources,
-    });
-  };
+      return Promise.resolve({
+        instructions: instructionsFromFullyResolvedSources,
+      });
+    };
 
 // Test in ~~production~~ install!
 //
