@@ -12,7 +12,7 @@
   },
   "rules": {
     "semi": ["error", "always"],
-    "indent": ["error", 2],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
 
     "max-len": ["error", {
       "code": 120,
@@ -25,13 +25,14 @@
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "curly": "error",
     "func-style": "error",
+    "function-paren-newline": ["error", "multiline-arguments"],
     "array-element-newline": ["error", "consistent"],
     "comma-dangle": [
       "error",
       "always-multiline"
     ],
     "arrow-body-style": ["error", "as-needed"],
-    "implicit-arrow-linebreak": ["warn", "below"],
+    "implicit-arrow-linebreak": "off",
     "operator-linebreak": [
       "error",
       "after",
