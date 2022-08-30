@@ -27,8 +27,6 @@ import {
   installCetCore,
   testForRedscriptCore,
   installRedscriptCore,
-  testRed4ExtCore,
-  installRed4ExtCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
@@ -61,6 +59,7 @@ import {
   installCoreCyberScript,
   testForCoreCyberScript,
 } from "./installer.core.cyberscript";
+import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
 
 // Ensure we're using win32 conventions
 const path = win32;

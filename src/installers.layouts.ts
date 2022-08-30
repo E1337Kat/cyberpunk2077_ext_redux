@@ -364,10 +364,22 @@ export const CYBERSCRIPT_CORE_REQUIRED_FILES = [
 //
 
 export const enum CoreRed4extLayout {
+  //
+  // RED4ext > v1.7.0
+  //
   OnlyValid = `
               - .\\bin\\x64\\d3d11.dll
               - .\\red4ext\\LICENSE.txt
               - .\\red4ext\\THIRD_PARTY_LICENSES.txt
+              - .\\red4ext\\RED4ext.dll
+              `,
+
+  //
+  // Red4ext < v1.7.0 [DEPRECATED]
+  //
+  Deprecated = `
+              - .\\bin\\x64\\powrprof.dll
+              - .\\red4ext\\LICENSE.txt
               - .\\red4ext\\RED4ext.dll
               `,
 }
@@ -378,33 +390,22 @@ export const RED4EXT_CORE_HOOK_DLL = path.normalize(
   `bin\\x64\\d3d11.dll`,
 );
 
+export const DEPRECATED_RED4EXT_CORE_HOOK_DLL = path.normalize(
+  `bin\\x64\\powrprof.dll`,
+);
+
+export const RED4EXT_PLUGIN_BASEDIR = path.normalize(`red4ext\\plugins`);
+export const CORE_RED4EXT_GENERATED_DIRS = [RED4EXT_PLUGIN_BASEDIR];
+
 export const RED4EXT_CORE_REQUIRED_FILES = [
-    RED4EXT_CORE_HOOK_DLL,
+  RED4EXT_CORE_HOOK_DLL,
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
 ];
 
-//
-// [DEPRECATED] Red4ext v. < 1.7.0
-//
-
-export const enum CoreDeprecatedRed4extLayout {
-  OnlyValid = `
-              - .\\bin\\x64\\powrprof.dll
-              - .\\red4ext\\LICENSE.txt
-              - .\\red4ext\\RED4ext.dll
-              `,
-}
-
-export const DEPRECATED_RED4EXT_CORE_BASEDIR = path.normalize(`red4ext\\`);
-
-export const DEPRECATED_RED4EXT_CORE_HOOK_DLL = path.normalize(
-  `bin\\x64\\d3d11.dll`,
-);
-
 export const DEPRECATED_RED4EXT_CORE_REQUIRED_FILES = [
-    RED4EXT_CORE_HOOK_DLL,
+  DEPRECATED_RED4EXT_CORE_HOOK_DLL,
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
@@ -721,6 +722,15 @@ export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 // but for now just gonna check and raise if the description is missing.
 export const LayoutDescriptions = new Map<InstallerType, string>([
   [
+    InstallerType.CoreRed4ext,
+    `
+    \`${CoreRed4extLayout.OnlyValid}\`
+    This is the only possible valid layout for current ${InstallerType.CoreRed4ext} that I know of.
+    This older version can still be installed, but should be updated:
+    \`${CoreRed4extLayout.Deprecated}\`
+    `,
+  ],
+  [
     InstallerType.CoreTweakXL,
     `
     \`${CoreTweakXLLayout.OnlyValid}\`
@@ -928,7 +938,6 @@ export type Layout =
   | CoreAmmLayout
   | CoreCyberScriptLayout
   | CoreRed4extLayout
-  | CoreDeprecatedRed4extLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout

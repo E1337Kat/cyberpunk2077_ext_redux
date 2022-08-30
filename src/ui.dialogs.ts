@@ -155,14 +155,14 @@ export const promptUserToInstallOrCancelOnDepecatedRed4ext = (
   api: VortexApi,
   files: string[],
 ) => {
-  api.log("info", `Deprecated red4ext found, prompting to proceed/cancel`, files);
+  api.log(`info`, `Deprecated red4ext found, prompting to proceed/cancel`, files);
 
-  const deprecationTitle = `You Seem to be installing an older version of Red4Ext!`;
+  const deprecationTitle = `This looks like an old version of RED4Ext!`;
 
   const deprecationExplanation = `
-    It looks like you are attempting to install an older version of Red4Ext.
-    It is suggested to update to the latest version. We can still install this version,
-    but some issues can occur.
+    It looks like you are attempting to install an older version of RED4Ext.
+    I can still install this version, but please check the mod
+    page for the most recent version and update to that.
     `;
 
   return promptUserToInstallOrCancel(api, deprecationTitle, deprecationExplanation);
