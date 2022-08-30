@@ -290,42 +290,6 @@ ExampleFailingMod
   }),
 );
 
-const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    Red4ExtCoreInstallTest: {
-      expectedInstallerType: InstallerType.CoreRed4ext,
-      inFiles: [
-        ...pathHierarchyFor(path.normalize(`bin/x64`)),
-        path.normalize(`bin/x64/powrprof.dll`),
-        ...pathHierarchyFor(path.normalize(`red4ext/plugins`)),
-        path.normalize(`red4ext/LICENSE.txt`),
-        path.normalize(`red4ext/RED4ext.dll`),
-      ].map(path.normalize),
-      outInstructions: [
-        {
-          type: `copy`,
-          source: path.normalize(`bin/x64/powrprof.dll`),
-          destination: path.normalize(`bin/x64/powrprof.dll`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/LICENSE.txt`),
-          destination: path.normalize(`red4ext/LICENSE.txt`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/RED4ext.dll`),
-          destination: path.normalize(`red4ext/RED4ext.dll`),
-        },
-        {
-          type: `mkdir`,
-          destination: path.normalize(`red4ext/plugins`),
-        },
-      ],
-    },
-  }),
-);
-
 const AsiMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     asiModWithCet: {
@@ -1133,7 +1097,6 @@ const blankModSet: ExampleModSet = {
 const NotYetMovedSuccesses = new Map<string, ExampleSucceedingModCategory>(
   Object.entries({
     CoreCetInstall,
-    CoreRed4ExtInstall,
     CoreTweakXLInstall,
     TweakXLMod,
     CoreArchiveXLInstall,
