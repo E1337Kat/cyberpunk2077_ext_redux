@@ -1,9 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
 
+import * as A from "fp-ts/Array";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
 
+import { pipe } from "fp-ts/lib/function";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
@@ -103,6 +105,17 @@ export const instructionsForSourceToDestPairs = (
 export const instructionsForSameSourceAndDestPaths = (
   files: string[],
 ): VortexInstruction[] => instructionsForSourceToDestPairs(files.map(toSamePath));
+
+export const instructionsToGenerateDirs = (
+  dirs: string[],
+): VortexInstruction[] =>
+  pipe(
+    dirs,
+    A.map((dir) => ({
+      type: `mkdir`,
+      destination: dir,
+    })),
+  );
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,

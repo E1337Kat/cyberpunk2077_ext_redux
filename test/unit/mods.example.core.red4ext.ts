@@ -56,7 +56,7 @@ const DeprecatedCoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`red4ext/plugins`),
         },
       ],
-      infoDialogTitle: `Old RED4Ext version!`,
+      infoDialogTitle: `Old RED4ext version!`,
     },
   }),
 );

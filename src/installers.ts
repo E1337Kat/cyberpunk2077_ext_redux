@@ -27,11 +27,10 @@ import {
   installCetCore,
   testForRedscriptCore,
   installRedscriptCore,
-  testRed4ExtCore,
-  installRed4ExtCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
+import { installCoreRed4ext, testForCoreRed4ext } from "./installer.core.red4ext";
 import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
 import { testForFallback, installFallback } from "./installer.fallback";
 import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
@@ -135,8 +134,8 @@ const installers: Installer[] = [
   {
     type: InstallerType.CoreRed4ext,
     id: InstallerType.CoreRed4ext,
-    testSupported: testRed4ExtCore,
-    install: installRed4ExtCore,
+    testSupported: testForCoreRed4ext,
+    install: installCoreRed4ext,
   },
   {
     type: InstallerType.CoreCSVMerge,

@@ -299,6 +299,26 @@ export const showRed4ExtReservedDllErrorDialog = (
   );
 };
 
+export const showWarningForDeprecatedMod = (
+  api: VortexApi,
+  installerType: InstallerType,
+  warningTitle: string,
+): void => {
+  api.showDialog(
+    `info`,
+    warningTitle,
+    {
+      md: heredoc(`
+        This looks like an old version of the mod!
+
+        I have installed this version, but please check the mod
+        page for the most recent version and update to that.
+      `),
+    },
+    [{ label: `Understood!` }],
+  );
+};
+
 export const showWarningForUnrecoverableStructureError = (
   api: VortexApi,
   installerType: InstallerType,

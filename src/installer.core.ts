@@ -20,12 +20,6 @@ const REDSCRIPT_CORE_IDENTIFIERS = [
   path.normalize(`r6/scripts/redscript.toml`),
 ];
 
-const RED4EXT_CORE_IDENTIFIERS = [
-  path.normalize(`bin/x64/powrprof.dll`),
-  path.normalize(`red4ext/LICENSE.txt`),
-  path.normalize(`red4ext/RED4ext.dll`),
-];
-
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
@@ -78,39 +72,6 @@ export const installRedscriptCore: VortexWrappedInstallFunc = (
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   const instructions = instructionsForSameSourceAndDestPaths(files);
-
-  return Promise.resolve({ instructions });
-};
-
-export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every((red4extPath) =>
-    files.includes(red4extPath));
-
-  return Promise.resolve({
-    supported: containsAllNecessaryRed4ExtPaths,
-    requiredFiles: [],
-  });
-};
-
-export const installRed4ExtCore: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const red4extInstructions = instructionsForSameSourceAndDestPaths(files);
-
-  const pluginsDir = [].concat({
-    type: `mkdir`,
-    destination: path.normalize(`red4ext/plugins`),
-  });
-  const instructions = [].concat(red4extInstructions, pluginsDir);
 
   return Promise.resolve({ instructions });
 };

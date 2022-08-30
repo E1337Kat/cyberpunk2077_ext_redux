@@ -149,6 +149,42 @@ export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize(`archive/pc/p
 //
 
 //
+// Core RED4ext
+//
+
+export const enum CoreRed4ExtLayout {
+  OnlyValid = `
+               - .\\bin\\x64\\d3d11.dll
+               - .\\red4ext\\LICENSE.txt
+               - .\\red4ext\\THIRD_PARTY_LICENSES.txt
+               - .\\red4ext\\RED4ext.dll
+               - .\\red4ext\\plugins\\      (generated)
+              `,
+  Deprecated = `
+               - .\\bin\\x64\\powrprof.dll
+               - .\\red4ext\\LICENSE.txt
+               - .\\red4ext\\RED4ext.dll
+               - .\\red4ext\\plugins\\     (generated)
+              `,
+}
+
+export const CORE_RED4EXT_FILES = [
+  path.normalize(`bin/x64/d3d11.dll`),
+  path.normalize(`red4ext/LICENSE.txt`),
+  path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`),
+  path.normalize(`red4ext/RED4ext.dll`),
+];
+
+export const RED4EXT_PLUGIN_BASEDIR = path.normalize(`red4ext\\plugins`);
+export const CORE_RED4EXT_GENERATED_DIRS = [RED4EXT_PLUGIN_BASEDIR];
+
+export const CORE_RED4EXT_DEPRECATED_FILES = [
+  path.normalize(`bin/x64/powrprof.dll`),
+  path.normalize(`red4ext/LICENSE.txt`),
+  path.normalize(`red4ext/RED4ext.dll`),
+];
+
+//
 // Core Input_Loader
 
 export const enum CoreInputLoaderLayout {
@@ -667,6 +703,18 @@ export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 // but for now just gonna check and raise if the description is missing.
 export const LayoutDescriptions = new Map<InstallerType, string>([
   [
+    InstallerType.CoreRed4ext,
+    `
+    \`${CoreRed4ExtLayout.OnlyValid}\`
+
+    This is the only possible valid layout for current ${InstallerType.CoreRed4ext} that I know of.
+
+    This older version can still be installed, but should be updated:
+
+    \`${CoreRed4ExtLayout.Deprecated}\`
+    `,
+  ],
+  [
     InstallerType.CoreTweakXL,
     `
     \`${CoreTweakXLLayout.OnlyValid}\`
@@ -871,6 +919,7 @@ export const enum NoLayout {
 }
 
 export type Layout =
+  | CoreRed4ExtLayout
   | CoreAmmLayout
   | CoreCyberScriptLayout
   | ConfigJsonLayout
