@@ -7,7 +7,6 @@ import {
   ExamplesForType,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
-  expectedUserCancelMessageFor,
   copiedToSamePath,
   createdDirectory,
 } from "./utils.helper";
@@ -54,7 +53,7 @@ const CoreRed4ExtShouldWarnOnDeprecatedInstall = new Map<string, ExamplePromptIn
         createdDirectory(path.normalize(`red4ext/plugins`)),
       ],
       cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.CoreRed4ext),
+      cancelErrorMessage: `${InstallerType.CoreRed4ext}: user chose to cancel installing deprecated version`,
     },
   }),
 );
