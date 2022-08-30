@@ -2,7 +2,7 @@ import { MODS_EXTRA_BASEDIR } from "./installers.layouts";
 import { VortexApi, VortexNotification } from "./vortex-wrapper";
 
 export type Notification = Required<
-  Pick<VortexNotification, `id` | `type` | `title` | `message`>
+Pick<VortexNotification, `id` | `type` | `title` | `message`>
 >;
 
 export const enum NotificationStatus {
@@ -17,7 +17,7 @@ export const enum NotificationStatus {
 
 export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
-  CyberCatRestartRequired = "V2077-notify-info-restart-required",
+  CyberCatRestartRequired = `V2077-notify-info-restart-required`,
 }
 
 //

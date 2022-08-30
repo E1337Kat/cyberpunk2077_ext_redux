@@ -55,8 +55,8 @@ export interface ExamplePromptInstallableMod extends ExampleMod {
 export type ExampleSucceedingModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 export type ExamplePromptInstallableModCategory = Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >;
 
 export interface ExamplesForType {
@@ -90,10 +90,10 @@ export const getMockVortexLog = () => {
 
   // if (process.env.DEBUG || true) {
   if (process.env.DEBUG) {
-    mockLog.mockImplementation((...args) =>
+    mockLog.mockImplementation((...args) => {
       // eslint-disable-next-line no-console
-      console.log(`vortex.log():`, args),
-    );
+      console.log(`vortex.log():`, args);
+    });
   }
 
   return mockLog;
@@ -103,7 +103,7 @@ export const getMockVortexLog = () => {
 // Mod path stuff
 //
 
-const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileandmodidasdir-7536");
+const FAKE_STAGING_ZIPFILE = path.normalize(`vortexusesthezipfileandmodidasdir-7536`);
 const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_ZIPFILE];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
@@ -134,7 +134,7 @@ export const pathHierarchyFor = (entirePath: string): string[] => {
   const hierarchy: string[] = pathSegments.reduce(
     (supers: string[], segment: string) =>
       supers.concat(path.join(supers[supers.length - 1], segment, path.sep)),
-    [""],
+    [``],
   );
 
   return hierarchy.slice(1);
@@ -180,10 +180,10 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 //
 
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
+  `bin/x64/plugins/cyber_engine_tweaks/scripts/json`,
 );
 export const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
-export const GAME_DIR = path.normalize("bin/x64");
+export const GAME_DIR = path.normalize(`bin/x64`);
 
 export const XML_PREFIXES = pathHierarchyFor(CONFIG_XML_MOD_BASEDIR);
 
