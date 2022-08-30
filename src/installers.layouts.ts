@@ -360,6 +360,57 @@ export const CYBERSCRIPT_CORE_REQUIRED_FILES = [
 ];
 
 //
+// Red4ext
+//
+
+export const enum CoreRed4extLayout {
+  OnlyValid = `
+              - .\\bin\\x64\\d3d11.dll
+              - .\\red4ext\\LICENSE.txt
+              - .\\red4ext\\THIRD_PARTY_LICENSES.txt
+              - .\\red4ext\\RED4ext.dll
+              `,
+}
+
+export const RED4EXT_CORE_BASEDIR = path.normalize(`red4ext\\`);
+
+export const RED4EXT_CORE_HOOK_DLL = path.normalize(
+  `bin\\x64\\d3d11.dll`,
+);
+
+export const RED4EXT_CORE_REQUIRED_FILES = [
+    RED4EXT_CORE_HOOK_DLL,
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
+];
+
+//
+// [DEPRECATED] Red4ext v. < 1.7.0
+//
+
+export const enum CoreDeprecatedRed4extLayout {
+  OnlyValid = `
+              - .\\bin\\x64\\powrprof.dll
+              - .\\red4ext\\LICENSE.txt
+              - .\\red4ext\\RED4ext.dll
+              `,
+}
+
+export const DEPRECATED_RED4EXT_CORE_BASEDIR = path.normalize(`red4ext\\`);
+
+export const DEPRECATED_RED4EXT_CORE_HOOK_DLL = path.normalize(
+  `bin\\x64\\d3d11.dll`,
+);
+
+export const DEPRECATED_RED4EXT_CORE_REQUIRED_FILES = [
+    RED4EXT_CORE_HOOK_DLL,
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
+  path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
+];
+
+//
 // AMM
 //
 
@@ -557,6 +608,9 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
   path.join(`vcruntime140_cor3.dll`),
   path.join(`wpfgfx_cor3.dll`),
 ];
+
+export const RED4EXT_CORE_OLD_DLL =
+    [path.join(`bin\\x64\\powrprof.dll`)]
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
@@ -873,6 +927,8 @@ export const enum NoLayout {
 export type Layout =
   | CoreAmmLayout
   | CoreCyberScriptLayout
+  | CoreRed4extLayout
+  | CoreDeprecatedRed4extLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout

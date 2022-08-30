@@ -6,9 +6,13 @@ import {
   VortexInstallResult,
   VortexWrappedInstallFunc,
   VortexWrappedTestSupportedFunc,
+  VortexInstruction,
 } from "./vortex-wrapper";
-import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { FileTree } from "./filetree";
+import { instructionsForSameSourceAndDestPaths, useFirstMatchingLayoutForInstructions } from "./installers.shared";
+import { filesIn, filesUnder, FileTree, fileTreeFromPaths, FILETREE_ROOT, Glob, pathInTree } from "./filetree";
+import { CoreDeprecatedRed4extLayout, CoreRed4extLayout, DEPRECATED_RED4EXT_CORE_REQUIRED_FILES, Instructions, InvalidLayout, MaybeInstructions, NoInstructions, NoLayout, RED4EXT_CORE_REQUIRED_FILES } from "./installers.layouts";
+import { promptUserToInstallOrCancelOnDepecatedRed4ext } from "./ui.dialogs";
+import { InstallerType } from "./installers.types";
 
 const path = win32;
 
@@ -20,11 +24,33 @@ const REDSCRIPT_CORE_IDENTIFIERS = [
   path.normalize("r6/scripts/redscript.toml"),
 ];
 
-const RED4EXT_CORE_IDENTIFIERS = [
+const OLD_RED4EXT_CORE_IDENTIFIERS = [
   path.normalize("bin/x64/powrprof.dll"),
   path.normalize("red4ext/LICENSE.txt"),
   path.normalize("red4ext/RED4ext.dll"),
 ];
+
+const RED4EXT_CORE_IDENTIFIERS = [
+  path.normalize("bin/x64/d3d11.dll"),
+  path.normalize("red4ext/LICENSE.txt"),
+  path.normalize("red4ext/THIRD_PARTY_LICENSES.txt"),
+  path.normalize("red4ext/RED4ext.dll"),
+];
+// Recognizers
+  
+  const findCoreRed4extFiles = (fileTree: FileTree): string[] =>
+  RED4EXT_CORE_REQUIRED_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
+
+  const findDeprecatedCoreRed4extFiles = (fileTree: FileTree): string[] =>
+  DEPRECATED_RED4EXT_CORE_REQUIRED_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
+  
+  const detectCoreRed4ext = (fileTree: FileTree): boolean =>
+    // We just need to know this looks right, not that it is
+    findCoreRed4extFiles(fileTree).length > 0;
+  
+  const detectDeprecatedCoreRed4ext = (fileTree: FileTree): boolean =>
+    // We just need to know this looks right, not that it is
+    findDeprecatedCoreRed4extFiles(fileTree).length > 0;
 
 export const testForCetCore: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
@@ -88,32 +114,117 @@ export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  const containsAllNecessaryRed4ExtPaths = RED4EXT_CORE_IDENTIFIERS.every((red4extPath) =>
-    files.includes(red4extPath),
-  );
+  fileTree: FileTree,
+): Promise<VortexTestResult> =>
+    Promise.resolve({
+        supported:
+        detectCoreRed4ext(fileTree) ||
+        detectDeprecatedCoreRed4ext(fileTree),
+        requiredFiles: [],
+    });
 
-  return Promise.resolve({
-    supported: containsAllNecessaryRed4ExtPaths,
-    requiredFiles: [],
-  });
-};
+const coreRed4extLayout = (
+    _api: VortexApi,
+    _modName: string,
+    fileTree: FileTree,
+  ): MaybeInstructions => {
+    const allCanonConfigXmlFiles = findCoreRed4extFiles(fileTree);
+  
+    if (allCanonConfigXmlFiles.length < 1) {
+      return NoInstructions.NoMatch;
+    }
+  
+    return {
+      kind: CoreRed4extLayout.OnlyValid,
+      instructions: instructionsForSameSourceAndDestPaths(allCanonConfigXmlFiles),
+    };
+  };
+  
+  const deprecatedCoreRed4ExtLayout = (
+    _api: VortexApi,
+    _modName: string,
+    fileTree: FileTree,
+  ): MaybeInstructions => {
+    const allMergeableConfigXmlFiles = findDeprecatedCoreRed4extFiles(fileTree);
+  
+    if (allMergeableConfigXmlFiles.length < 1) {
+      return NoInstructions.NoMatch;
+    }
+  
+    return {
+      kind: CoreDeprecatedRed4extLayout.OnlyValid,
+      instructions: instructionsForSameSourceAndDestPaths(allMergeableConfigXmlFiles),
+    };
+  };
 
 export const installRed4ExtCore: VortexWrappedInstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  const red4extInstructions = instructionsForSameSourceAndDestPaths(files);
 
+  const theGoodGoodInstructions = coreRed4extInstructions(api, fileTree)
   const pluginsDir = [].concat({
     type: "mkdir",
     destination: path.normalize("red4ext/plugins"),
   });
-  const instructions = [].concat(red4extInstructions, pluginsDir);
+  const instructions = [].concat(theGoodGoodInstructions.instructions, pluginsDir);
 
   return Promise.resolve({ instructions });
 };
+
+
+
+export const coreRed4extInstructions = (
+    api: VortexApi,
+    fileTree: FileTree,
+  ): Instructions => {
+    const allPossibleConfigXmlLayouts = [
+        coreRed4extLayout,
+        deprecatedCoreRed4ExtLayout,
+      ];
+    const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    allPossibleConfigXmlLayouts,
+    );
+    if (
+        selectedInstructions === NoInstructions.NoMatch ||
+        selectedInstructions === InvalidLayout.Conflict
+      ) {
+        api.log(`debug`, `${InstallerType.CoreRed4ext}: No valid extra canon archives`);
+        return { kind: NoLayout.Optional, instructions: [] };
+      }
+
+    warnUserIfDeprecatedRed4ext(api, selectedInstructions);
+  
+    return selectedInstructions;
+  };
+
+
+// Prompts
+
+const warnUserIfDeprecatedRed4ext = (
+    api: VortexApi,
+    chosenInstructions: Instructions,
+  ) => {
+    // Trying out the tree-based approach..
+    const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
+    const newTree = fileTreeFromPaths(destinationPaths);
+  
+    // const warnAboutSubdirs = subdirsIn(ARCHIVE_MOD_CANONICAL_PREFIX, newTree).length > 0;
+  
+    const containsDeprecatedRed4ExtPaths = OLD_RED4EXT_CORE_IDENTIFIERS.every((red4extPath) =>
+    filesUnder(FILETREE_ROOT, Glob.Any, newTree).includes(red4extPath),
+    );
+  
+    if (containsDeprecatedRed4ExtPaths) {
+        promptUserToInstallOrCancelOnDepecatedRed4ext(
+        api,
+        filesUnder(FILETREE_ROOT, Glob.Any, newTree),
+      );
+    }
+  };

@@ -50,6 +50,7 @@ import {
   CONFIG_RESHADE_MOD_SHADER_BASEDIR,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+  RED4EXT_CORE_OLD_DLL,
 } from "../../src/installers.layouts";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
@@ -295,7 +296,51 @@ const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
 
 const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
+    
     Red4ExtCoreInstallTest: {
+      expectedInstallerType: InstallerType.CoreRed4ext,
+      inFiles: [
+        ...pathHierarchyFor(path.normalize("bin/x64")),
+        path.normalize("bin/x64/d3d11.dll"),
+        ...pathHierarchyFor(path.normalize("red4ext/plugins")),
+        path.normalize("red4ext/LICENSE.txt"),
+        path.normalize("red4ext/THIRD_PARTY_LICENSES.txt"),
+        path.normalize("red4ext/RED4ext.dll"),
+      ].map(path.normalize),
+      outInstructions: [
+        {
+          type: "copy",
+          source: path.normalize("bin/x64/d3d11.dll"),
+          destination: path.normalize("bin/x64/d3d11.dll"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/LICENSE.txt"),
+          destination: path.normalize("red4ext/LICENSE.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/THIRD_PARTY_LICENSES.txt"),
+          destination: path.normalize("red4ext/THIRD_PARTY_LICENSES.txt"),
+        },
+        {
+          type: "copy",
+          source: path.normalize("red4ext/RED4ext.dll"),
+          destination: path.normalize("red4ext/RED4ext.dll"),
+        },
+        {
+          type: "mkdir",
+          destination: path.normalize("red4ext/plugins"),
+        },
+      ],
+    },
+  }),
+);
+
+const CoreRed4ExtShouldWarn = new Map<string, ExamplePromptInstallableMod>(
+  Object.entries({
+    Red4ExtCoreInstallTest: {
+
       expectedInstallerType: InstallerType.CoreRed4ext,
       inFiles: [
         ...pathHierarchyFor(path.normalize("bin/x64")),
@@ -304,7 +349,8 @@ const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
         path.normalize("red4ext/LICENSE.txt"),
         path.normalize("red4ext/RED4ext.dll"),
       ].map(path.normalize),
-      outInstructions: [
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions:  [
         {
           type: "copy",
           source: path.normalize("bin/x64/powrprof.dll"),
@@ -325,6 +371,8 @@ const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize("red4ext/plugins"),
         },
       ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.CoreRed4ext),
     },
   }),
 );

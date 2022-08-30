@@ -151,6 +151,23 @@ export const promptUserOnUnresolvableLayout = async (
   );
 };
 
+export const promptUserToInstallOrCancelOnDepecatedRed4ext = (
+  api: VortexApi,
+  files: string[],
+) => {
+  api.log("info", `Deprecated red4ext found, prompting to proceed/cancel`, files);
+
+  const deprecationTitle = `You Seem to be installing an older version of Red4Ext!`;
+
+  const deprecationExplanation = `
+    It looks like you are attempting to install an older version of Red4Ext.
+    It is suggested to update to the latest version. We can still install this version,
+    but some issues can occur.
+    `;
+
+  return promptUserToInstallOrCancel(api, deprecationTitle, deprecationExplanation);
+};
+
 export const promptUserToInstallOrCancelOnReachingFallback = (
   api: VortexApi,
   files: string[],
