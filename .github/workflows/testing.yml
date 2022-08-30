@@ -5,11 +5,6 @@ name: Testing
 
 # Packaging will take care of testing on pushes to the main branch, so we don't need it in this workflow.
 on:
-  push:
-    branches-ignore:
-      - 'main'
-      - 'version/**'
-      - 'release/**'
   pull_request:
     branches:
       - main
@@ -17,35 +12,62 @@ on:
 
 jobs:
   dependencies:
+    name: Dependencies
     if: "!contains(github.event.commits[0].message, '[skip ci]')"
     runs-on: windows-latest
-
-    name: Dependencies
-
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Node.js 16.x
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-
-    - name: Install all dependencies
-      run: npm install
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+      - name: Install all dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
 
   test:
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
-    runs-on: windows-latest
-
     name: Tests
     needs: [dependencies]
+    if: "!contains(github.event.commits[0].message, '[skip ci]')"
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-    - run: npm install
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+      # - run: npm install
 
-    - name: Run The Tests
-      run: npm run test
+      - name: Run The Tests
+        run: npm run test
