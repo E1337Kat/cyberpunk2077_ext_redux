@@ -4,5 +4,5 @@ export const negate = (b: boolean): boolean => !b;
 
 // Haha you have to do this yourself
 export const exhaustiveMatchFailure = (_: never): never => {
-  throw new Error("Type guard failed");
+  throw new Error(`Type guard failed`);
 };

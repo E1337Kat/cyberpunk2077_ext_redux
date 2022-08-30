@@ -9,15 +9,15 @@ import { InstallDecision, InstallerType } from "./installers.types";
 import { VortexApi, VortexDialogResult } from "./vortex-wrapper";
 
 export const enum InstallChoices {
-  Proceed = "Yes, Install To Staging Anyway",
-  Cancel = "No, Cancel Installation",
+  Proceed = `Yes, Install To Staging Anyway`,
+  Cancel = `No, Cancel Installation`,
 }
 
-export const heredoc = (str: string) =>
+export const heredoc = (str: string): string =>
   str
-    .replace(/^[ \t]+/gm, "") // Remove leading whitespace on each row
+    .replace(/^[ \t]+/gm, ``) // Remove leading whitespace on each row
     .replace(/^\|/gm, ` `) // Drop |'s that protected leading whitespace
-    .replace(/\n{3,}/g, "\n\n"); // And squash extra empty lines into one empty max
+    .replace(/\n{3,}/g, `\n\n`); // And squash extra empty lines into one empty max
 
 const INSTRUCTIONS_TO_FIX_IN_STAGING = `
     If you want to proceed, I'll install *EVERYTHING* in the mod
@@ -40,7 +40,7 @@ const INSTRUCTIONS_TO_REPORT_ISSUE = `
     `;
 
 // This'll be converted to a reject down the line somewhere
-const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType) => {
+const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerType): string => {
   const supportedLayoutsDescription = LayoutDescriptions.get(installerType);
 
   if (supportedLayoutsDescription === undefined) {
@@ -61,7 +61,7 @@ export const promptUserToInstallOrCancel = async (
   explanation: string,
 ): Promise<InstallDecision> => {
   const dialogResponse: VortexDialogResult = await api.showDialog(
-    "question",
+    `question`,
     title,
     {
       md: heredoc(explanation),
@@ -154,7 +154,7 @@ export const promptUserOnUnresolvableLayout = async (
 export const promptUserToInstallOrCancelOnDepecatedRed4ext = (
   api: VortexApi,
   files: string[],
-) => {
+): Promise<InstallDecision> => {
   api.log(`info`, `Deprecated red4ext found, prompting to proceed/cancel`, files);
 
   const deprecationTitle = `This looks like an old version of RED4Ext!`;
@@ -171,8 +171,8 @@ export const promptUserToInstallOrCancelOnDepecatedRed4ext = (
 export const promptUserToInstallOrCancelOnReachingFallback = (
   api: VortexApi,
   files: string[],
-) => {
-  api.log("info", `Fallback installer reached, prompting to proceed/cancel`, files);
+): Promise<InstallDecision> => {
+  api.log(`info`, `Fallback installer reached, prompting to proceed/cancel`, files);
 
   const fallbackTitle = `You Have Reached The Fallback Installer!`;
 
@@ -187,7 +187,7 @@ export const promptUserToInstallOrCancelOnReachingFallback = (
     These are the files in the mod:
 
     \`\`\`
-    ${files.join("\n")}
+    ${files.join(`\n`)}
     \`\`\`
     `;
 
@@ -233,8 +233,8 @@ export const showArchiveInstallWarning = (
     : `\n`;
 
   api.showDialog(
-    "info",
-    "Mod Installed But May Need Manual Adjustment!",
+    `info`,
+    `Mod Installed But May Need Manual Adjustment!`,
     {
       md: heredoc(
         `I installed the mod, but it may need to be manually adjusted because:
@@ -257,15 +257,15 @@ export const showArchiveInstallWarning = (
         These are the files I installed:
 
         \`\`\`
-        ${files.join("\n")}
+        ${files.join(`\n`)}
         \`\`\``,
       ),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
 };
 
-export const wolvenKitDesktopFoundErrorDialog = (api: VortexApi, message: string) => {
+export const wolvenKitDesktopFoundErrorDialog = (api: VortexApi, message: string): Promise<VortexDialogResult> =>
   // It'd be nicer to move at least the long text out, maybe constant
   // for text + function for handling the boilerplate?
   api.showDialog(
@@ -277,9 +277,9 @@ export const wolvenKitDesktopFoundErrorDialog = (api: VortexApi, message: string
         is WolvenKit Desktop which cannot be installed through Vortex
       `),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
-};
+// };
 
 export const showRed4ExtReservedDllErrorDialog = (
   api: VortexApi,
@@ -287,7 +287,7 @@ export const showRed4ExtReservedDllErrorDialog = (
   dangerPaths: string[],
 ): void => {
   api.showDialog(
-    "error",
+    `error`,
     message,
     {
       md: heredoc(`
@@ -309,10 +309,10 @@ export const showRed4ExtReservedDllErrorDialog = (
         I cancelled the installation because of these files:
 
         \`\`\`
-        ${dangerPaths.join("\n")}
+        ${dangerPaths.join(`\n`)}
         \`\`\``),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
 };
 
@@ -325,7 +325,7 @@ export const showWarningForUnrecoverableStructureError = (
   const supportedLayoutsDescription = getLayoutDescriptionOrThrow(api, installerType);
 
   api.showDialog(
-    "error",
+    `error`,
     warningTitle,
     {
       md: heredoc(`
@@ -344,10 +344,10 @@ export const showWarningForUnrecoverableStructureError = (
         The mod contains these files:
 
         \`\`\`
-        ${filesToList.join("\n")}
+        ${filesToList.join(`\n`)}
         \`\`\``),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
 };
 
@@ -357,7 +357,7 @@ export const showErrorForDeprecatedModTool = (
   warningTitle: string,
 ): void => {
   api.showDialog(
-    "error",
+    `error`,
     warningTitle,
     {
       md: heredoc(`
@@ -373,7 +373,7 @@ export const showErrorForDeprecatedModTool = (
         supported for installation to the game directory. Please consider installing
         this tool manually.`),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
 };
 
@@ -394,6 +394,6 @@ export const showManualStepRequiredForToolInfo = (
         through Vortex, or as you normally would.
       `),
     },
-    [{ label: "Understood!" }],
+    [{ label: `Understood!` }],
   );
 };
