@@ -8,6 +8,8 @@ import {
   ExampleFailingMod,
   ExamplePromptInstallableMod,
   expectedUserCancelMessageFor,
+  copiedToSamePath,
+  createdDirectory,
 } from "./utils.helper";
 
 const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
@@ -23,38 +25,19 @@ const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
         path.normalize(`red4ext/RED4ext.dll`),
       ].map(path.normalize),
       outInstructions: [
-        {
-          type: `copy`,
-          source: path.normalize(`bin/x64/d3d11.dll`),
-          destination: path.normalize(`bin/x64/d3d11.dll`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/LICENSE.txt`),
-          destination: path.normalize(`red4ext/LICENSE.txt`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`),
-          destination: path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/RED4ext.dll`),
-          destination: path.normalize(`red4ext/RED4ext.dll`),
-        },
-        {
-          type: `mkdir`,
-          destination: path.normalize(`red4ext/plugins`),
-        },
+        copiedToSamePath(path.normalize(`bin/x64/d3d11.dll`)),
+        copiedToSamePath(path.normalize(`red4ext/LICENSE.txt`)),
+        copiedToSamePath(path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`)),
+        copiedToSamePath(path.normalize(`red4ext/RED4ext.dll`)),
+        createdDirectory(path.normalize(`red4ext/plugins`)),
       ],
     },
   }),
 );
 
-const CoreRed4ExtShouldWarn = new Map<string, ExamplePromptInstallableMod>(
+const CoreRed4ExtShouldWarnOnDeprecatedInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
-    Red4ExtCoreInstallTest: {
+    Red4ExtDeprecatedCoreInstallTest: {
       expectedInstallerType: InstallerType.CoreRed4ext,
       inFiles: [
         ...pathHierarchyFor(path.normalize(`bin/x64`)),
@@ -65,25 +48,10 @@ const CoreRed4ExtShouldWarn = new Map<string, ExamplePromptInstallableMod>(
       ].map(path.normalize),
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
-        {
-          type: `copy`,
-          source: path.normalize(`bin/x64/powrprof.dll`),
-          destination: path.normalize(`bin/x64/powrprof.dll`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/LICENSE.txt`),
-          destination: path.normalize(`red4ext/LICENSE.txt`),
-        },
-        {
-          type: `copy`,
-          source: path.normalize(`red4ext/RED4ext.dll`),
-          destination: path.normalize(`red4ext/RED4ext.dll`),
-        },
-        {
-          type: `mkdir`,
-          destination: path.normalize(`red4ext/plugins`),
-        },
+        copiedToSamePath(path.normalize(`bin/x64/powrprof.dll`)),
+        copiedToSamePath(path.normalize(`red4ext/LICENSE.txt`)),
+        copiedToSamePath(path.normalize(`red4ext/RED4ext.dll`)),
+        createdDirectory(path.normalize(`red4ext/plugins`)),
       ],
       cancelLabel: InstallChoices.Cancel,
       cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.CoreRed4ext),
@@ -94,7 +62,7 @@ const CoreRed4ExtShouldWarn = new Map<string, ExamplePromptInstallableMod>(
 const examples: ExamplesForType = {
   AllExpectedSuccesses: CoreRed4ExtInstall,
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
-  AllExpectedPromptInstalls: CoreRed4ExtShouldWarn,
+  AllExpectedPromptInstalls: CoreRed4ExtShouldWarnOnDeprecatedInstall,
 };
 
 export default examples;

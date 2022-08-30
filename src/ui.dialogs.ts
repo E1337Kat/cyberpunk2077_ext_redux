@@ -151,11 +151,11 @@ export const promptUserOnUnresolvableLayout = async (
   );
 };
 
-export const promptUserToInstallOrCancelOnDepecatedRed4ext = (
+export const promptUserToInstallOrCancelOnDepecatedRed4ext = async (
   api: VortexApi,
   files: string[],
 ): Promise<InstallDecision> => {
-  api.log(`info`, `Deprecated red4ext found, prompting to proceed/cancel`, files);
+  api.log(`info`, `Deprecated RED4ext found, prompting to proceed/cancel`, files);
 
   const deprecationTitle = `This looks like an old version of RED4Ext!`;
 

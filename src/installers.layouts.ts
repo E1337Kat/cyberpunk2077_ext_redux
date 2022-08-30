@@ -407,7 +407,6 @@ export const RED4EXT_CORE_REQUIRED_FILES = [
 export const DEPRECATED_RED4EXT_CORE_REQUIRED_FILES = [
   DEPRECATED_RED4EXT_CORE_HOOK_DLL,
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
-  path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
 ];
 
@@ -609,9 +608,6 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
   path.join(`vcruntime140_cor3.dll`),
   path.join(`wpfgfx_cor3.dll`),
 ];
-
-export const RED4EXT_CORE_OLD_DLL =
-    [path.join(`bin\\x64\\powrprof.dll`)]
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 

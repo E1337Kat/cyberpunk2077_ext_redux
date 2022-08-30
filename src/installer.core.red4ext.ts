@@ -21,7 +21,7 @@ import {
   NoLayout,
   RED4EXT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
-import { InstallerType } from "./installers.types";
+import { InstallDecision, InstallerType } from "./installers.types";
 import {
   VortexWrappedTestSupportedFunc,
   VortexApi,
@@ -113,11 +113,10 @@ const deprecatedCoreRed4ExtLayout = (
 
 // Prompts
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const warnUserIfDeprecatedRed4ext = (
+const warnUserIfDeprecatedRed4ext = async (
   api: VortexApi,
   chosenInstructions: Instructions,
-) => {
+): Promise<InstallDecision> => {
   // Trying out the tree-based approach..
   const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
   const newTree = fileTreeFromPaths(destinationPaths);
@@ -126,18 +125,20 @@ const warnUserIfDeprecatedRed4ext = (
     filesUnder(FILETREE_ROOT, Glob.Any, newTree).includes(red4extPath));
 
   if (containsDeprecatedRed4ExtPaths) {
-    promptUserToInstallOrCancelOnDepecatedRed4ext(
+    return promptUserToInstallOrCancelOnDepecatedRed4ext(
       api,
       filesUnder(FILETREE_ROOT, Glob.Any, newTree),
     );
   }
+
+  return InstallDecision.UserWantsToProceed;
 };
 
-export const coreRed4extInstructions = (
+export const coreRed4extInstructions = async (
   api: VortexApi,
   fileTree: FileTree,
-): Instructions => {
-  const allPossibleConfigXmlLayouts = [
+): Promise<Instructions> => {
+  const allPossibleCoreRed4extLayouts = [
     coreRed4extLayout,
     deprecatedCoreRed4ExtLayout,
   ];
@@ -145,7 +146,7 @@ export const coreRed4extInstructions = (
     api,
     undefined,
     fileTree,
-    allPossibleConfigXmlLayouts,
+    allPossibleCoreRed4extLayouts,
   );
   if (
     selectedInstructions === NoInstructions.NoMatch ||
@@ -169,8 +170,21 @@ export const coreRed4extInstructions = (
 
   if (selectedInstructions.kind === CoreRed4extLayout.Deprecated) {
     const infoMessage = `Old RED4ext version!`;
-    api.log(`info`, `${InstallerType.CoreRed4ext}: ${infoMessage} Installing mod with warning.`);
-    warnUserIfDeprecatedRed4ext(api, selectedInstructions);
+    api.log(`info`, `${InstallerType.CoreRed4ext}: ${infoMessage} Confirming installation.`);
+
+    const confirmedInstructions = await warnUserIfDeprecatedRed4ext(api, selectedInstructions);
+
+    if (confirmedInstructions === InstallDecision.UserWantsToCancel) {
+      const cancelMessage = `${InstallerType.CoreRed4ext}: user chose to cancel installing deprecated version`;
+
+      api.log(`warn`, cancelMessage);
+      return Promise.reject(new Error(cancelMessage));
+    }
+
+    api.log(
+      `info`,
+      `${InstallerType.ConfigXml}: User confirmed installing deprecated version`,
+    );
   }
 
   return selectedInstructions;
@@ -187,7 +201,7 @@ export const installRed4ExtCore: VortexWrappedInstallFunc = async (
   _progressDelegate: VortexProgressDelegate,
 ) => {
   //
-  const selectedInstructions = coreRed4extInstructions(
+  const selectedInstructions = await coreRed4extInstructions(
     api,
     fileTree,
   );

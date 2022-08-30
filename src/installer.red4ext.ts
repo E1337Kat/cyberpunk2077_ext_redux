@@ -41,7 +41,7 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 
-const matchDll = (file: string) => path.extname(file) === ".dll";
+const matchDll = (file: string) => path.extname(file) === `.dll`;
 const reservedDllDir = (dir: string) =>
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.includes(path.join(dir, path.sep));
 const reservedDllName = (file: string) =>
@@ -112,7 +112,7 @@ export const red4extCanonLayout: LayoutToInstructions = (
 
   if (hasBasedirReds) {
     // Errors need to be handled downstream if it's relevant there
-    api.log("debug", "No instructions from canon: basedir overrides");
+    api.log(`debug`, `No instructions from canon: basedir overrides`);
     return NoInstructions.NoMatch;
   }
 
@@ -196,6 +196,11 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   const noDllDirs = allDllSubdirs.length < 1;
   const noToplevelDlls = toplevelDlls.length < 1;
 
+  // Red4Ext itself handled elsewhere
+  if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
+    return Promise.resolve({ supported: false, requiredFiles: [] });
+  }
+
   if (noDllDirs && noToplevelDlls) {
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
@@ -206,15 +211,10 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   ];
 
   if (dangerPaths.length !== 0) {
-    const message = "Red4Ext Mod Installation Canceled, Dangerous DLL paths!";
-    log("error", message, dangerPaths);
+    const message = `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`;
+    log(`error`, message, dangerPaths);
     showRed4ExtReservedDllErrorDialog(api, message, dangerPaths);
     return Promise.reject(new Error(message));
-  }
-
-  // Red4Ext itself handled elsewhere
-  if (pathInTree(RED4EXT_CORE_RED4EXT_DLL, fileTree)) {
-    return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
   // Good enough, this is the right installer, more checks in `install`
@@ -253,8 +253,8 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
   );
 
   if (chosenInstructions === NoInstructions.NoMatch) {
-    const message = "Red4Ext installer failed to generate any instructions!";
-    log("error", message, files);
+    const message = `Red4Ext installer failed to generate any instructions!`;
+    log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
@@ -270,13 +270,13 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
 
   const allInstructions = extraArchiveLayoutsAllowed
     ? [
-        ...chosenInstructions.instructions,
-        ...extraCanonArchiveInstructions(api, fileTree).instructions,
-      ]
+      ...chosenInstructions.instructions,
+      ...extraCanonArchiveInstructions(api, fileTree).instructions,
+    ]
     : chosenInstructions.instructions;
 
-  log("info", "Red4Ext installer installing files.");
-  log("debug", "Red4Ext instructions: ", allInstructions);
+  log(`info`, `Red4Ext installer installing files.`);
+  log(`debug`, `Red4Ext instructions: `, allInstructions);
 
   return Promise.resolve({ instructions: allInstructions });
 };
