@@ -32,9 +32,7 @@ jobs:
         id: npm-cache
         with:
           path: |
-            deps
-            _build
-            priv/plts
+            node_modules
           key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
       - name: Install all dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
