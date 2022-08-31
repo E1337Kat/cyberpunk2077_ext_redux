@@ -1,3 +1,49 @@
+# Cyberpunk2077 Vortex Support v0.8.0 "TAKEMURA"
+
+Beware mean reds. Gotta keep moving, gotta stay crystal, never lose focus - 'specially when you think you're gold. You might've put together the sharpest crew since the 20's, but you only gotta be unlucky once. Make exit, don't stand still, gear up, chrome up, change your face if you gotta. They're gonna come for you and the only way out is up.
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+Why use a mod manager? In addition to quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
+
+As always, any feedback and such is appreciated so we can ensure that no bugs or oversights have slipped through our testing - and other feedback and ideas are more than welcome! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+
+No time to advance the story this sesh, just doing side gigs!
+
+## Fixer Gigs
+
+- ✨️ Support new RED4ext 1.7 [\#191 by @E1337Kat](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/191)
+- 🐛 Separate Fem/Masc Preset Support For Appearance Change Unlocker Presets [\#183 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/183)
+- 🐛 MultiType Redscript Installs Basedir Layout Correctly [\#185 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/185)
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+
+- 🎨 Replace Prettier with Eslint Rules [\#189 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/189)
+- 📝 Explicitly State That The ASCII Art Structure Is Incomplete [\#179 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/179)
+
+
+**Full Changelog**: [v0.7.0...v0.8.0](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.7.0...v0.8.0)
+
+## Detes
+
+The fixes should just make your life easier, no need to do anything special! In addition to the fixes, there's some support built in for CyberScript in this release, but full support will come in the next release. And then some other goodies...
+
+## The Crew
+
+No new contributors this time around, but we got good bug reports, thank you - and thanks for all your help, ideas, and support!
+
+## Holo at us
+
+[Discord](<https://discord.gg/7NUQJ2b4ZN>) (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
+[Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux)
+[Nexus](https://www.nexusmods.com/site/mods/196)
+
+End of transmission, subject: 'v0.8.0 "TAKEMURA"'
+
+---
+
 # Cyberpunk2077 Vortex Support v0.7.0 "Meredith"
 
 _Don't get too attached, you're just a tool to get the job done... even if part of it seems to merge biz with something a bit more personal,
