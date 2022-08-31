@@ -9,80 +9,131 @@ on:
 
 jobs:
   dependencies:
-    runs-on: windows-latest
-
     name: Dependencies
-
+    if: "!contains(github.event.commits[0].message, '[skip ci]')"
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Setup Node.js 16.x
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-
-    - name: Install all dependencies
-      run: npm install
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            deps
+            _build
+            priv/plts
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+      - name: Install all dependencies
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
 
   test:
-    runs-on: windows-latest
-
     name: Tests
     needs: [dependencies]
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-    - run: npm install
-
-    - name: Run The Tests
-      run: npm run test
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+      - name: Run The Tests
+        run: npm run test
   
   package-dev:
-    if: "contains(github.event.commits[0].message, '[gonk]') || (contains(github.event.commits[0].message, 'release/') && contains(github.event.commits[0].message, '/gonk'))"
-    runs-on: windows-latest
-
     name: Package Dev Build
     needs: [dependencies, test]
+    if: "contains(github.event.commits[0].message, '[gonk]') || (contains(github.event.commits[0].message, 'release/') && contains(github.event.commits[0].message, '/gonk'))"
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-    - run: npm install
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
 
-    - name: package it up
-      run: npm run pack-dev
+      - name: package it up
+        run: npm run pack-dev
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: dev-release-zip
-        path: 'cyberpunk2077-dev-*.7z'
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dev-release-zip
+          path: 'cyberpunk2077-dev-*.7z'
 
   package-release:
-    if: "contains(github.event.commits[0].message, '[release]') || (contains(github.event.commits[0].message, 'release/') && !contains(github.event.commits[0].message, '/gonk'))"
-    runs-on: windows-latest
-
     name: Package
     needs: [dependencies, test]
+    if: "contains(github.event.commits[0].message, '[release]') || (contains(github.event.commits[0].message, 'release/') && !contains(github.event.commits[0].message, '/gonk'))"
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        node: ['16.17.0']
+        npm: ['8.15.0']
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-        cache: 'npm'
-    - run: npm install
-
-    - name: package it up
-      run: npm run pack
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-zip
-        path: 'cyberpunk2077-*.7z'
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+          cache: 'npm'
+      - name: Retrieve cached dependencies
+        uses: actions/cache@v2
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package.lock') }}
+      - name: package it up
+        run: npm run pack
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-zip
+          path: 'cyberpunk2077-*.7z'

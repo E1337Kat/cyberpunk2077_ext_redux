@@ -34,7 +34,6 @@ import {
   pathHierarchyFor,
   RED4EXT_GIFTWRAPS,
   RED4EXT_PREFIX,
-  RED4EXT_PREFIXES,
   REDS_GIFTWRAPS,
   REDS_PREFIX,
   REDS_PREFIXES,
@@ -48,8 +47,6 @@ import {
   CONFIG_INI_MOD_BASEDIR,
   CONFIG_RESHADE_MOD_BASEDIR,
   CONFIG_RESHADE_MOD_SHADER_BASEDIR,
-  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
-  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { InstallerType } from "../../src/installers.types";
@@ -76,27 +73,27 @@ const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GAME_DIR}/global.ini`),
           destination: path.join(`${GAME_DIR}/global.ini`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GAME_DIR}/LICENSE`),
           destination: path.join(`${GAME_DIR}/LICENSE`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GAME_DIR}/version.dll`),
           destination: path.join(`${GAME_DIR}/version.dll`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
           destination: path.join(`${GAME_DIR}/plugins/cyber_engine_tweaks.asi`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(
             `${GAME_DIR}/plugins/cyber_engine_tweaks/ThirdParty_LICENSES`,
           ),
@@ -105,7 +102,7 @@ const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(
             `${GAME_DIR}/plugins/cyber_engine_tweaks/scripts/autoexec.lua`,
           ),
@@ -114,17 +111,17 @@ const CoreCetInstall = new Map<string, ExampleSucceedingMod>(
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
           destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/json.lua`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
           destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/LICENSE`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
           destination: path.join(`${CORE_CET_FULL_PATH_DEPTH}/README.md`),
         },
@@ -293,42 +290,6 @@ const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
   }),
 );
 
-const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    Red4ExtCoreInstallTest: {
-      expectedInstallerType: InstallerType.CoreRed4ext,
-      inFiles: [
-        ...pathHierarchyFor(path.normalize("bin/x64")),
-        path.normalize("bin/x64/powrprof.dll"),
-        ...pathHierarchyFor(path.normalize("red4ext/plugins")),
-        path.normalize("red4ext/LICENSE.txt"),
-        path.normalize("red4ext/RED4ext.dll"),
-      ].map(path.normalize),
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.normalize("bin/x64/powrprof.dll"),
-          destination: path.normalize("bin/x64/powrprof.dll"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("red4ext/LICENSE.txt"),
-          destination: path.normalize("red4ext/LICENSE.txt"),
-        },
-        {
-          type: "copy",
-          source: path.normalize("red4ext/RED4ext.dll"),
-          destination: path.normalize("red4ext/RED4ext.dll"),
-        },
-        {
-          type: "mkdir",
-          destination: path.normalize("red4ext/plugins"),
-        },
-      ],
-    },
-  }),
-);
-
 const AsiMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     asiModWithCet: {
@@ -344,22 +305,22 @@ const AsiMod = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
           destination: path.normalize(`${ASI_PREFIX}/DiscordRPCHelper.asi`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
           destination: path.normalize(`${ASI_PREFIX}/discord_game_sdk.dll`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
           destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/${CET_INIT}`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
           destination: path.normalize(`${CET_PREFIX}/CP77 Discord RPC/GameUI.lua`),
         },
@@ -370,7 +331,7 @@ const AsiMod = new Map<string, ExampleSucceedingMod>(
       inFiles: [...ASI_PREFIXES, `${ASI_PREFIX}/normal.asi`].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ASI_PREFIX}/normal.asi`),
           destination: path.normalize(`${ASI_PREFIX}/normal.asi`),
         },
@@ -390,7 +351,7 @@ const CetMod = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
           destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
@@ -415,7 +376,7 @@ const CetMod = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(
             `${CET_PREFIX}/exmod/AdditionalSubFolder/Whoaonemore/init.lua`,
           ),
@@ -424,39 +385,39 @@ const CetMod = new Map<string, ExampleSucceedingMod>(
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`),
           destination: path.join(
             `${CET_PREFIX}/exmod/AdditionalSubFolder/strangestuff.lua`,
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
           destination: path.join(`${CET_PREFIX}/exmod/Modules/UI.lua`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/Modules/MagicCheats.lua`),
           destination: path.join(`${CET_PREFIX}/exmod/Modules/MagicCheats.lua`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/configfile.json`),
           destination: path.join(`${CET_PREFIX}/exmod/configfile.json`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/db.sqlite3`),
           destination: path.join(`${CET_PREFIX}/exmod/db.sqlite3`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
           destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/README.md`),
           destination: path.join(`${CET_PREFIX}/exmod/README.md`),
         },
@@ -472,12 +433,12 @@ const CetMod = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
           destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${CET_PREFIX}/exmod/some.ini`),
           destination: path.join(`${CET_PREFIX}/exmod/some.ini`),
         },
@@ -506,245 +467,6 @@ const CetModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod
   }),
 );
 
-const Red4ExtMod = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    red4extWithSingleFileCanonical: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/r4emod/`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-        },
-      ],
-    },
-    red4extWithMultipleFilesCanonical: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/r4emod/`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
-        },
-      ],
-    },
-    red4extIncludingNonRedsAndNonemptySubdirsCanonical: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/r4emod/`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/emptysubs/`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
-        path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/options.json`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/instructions.txt`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/whoa.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
-          destination: path.join(`${RED4EXT_PREFIX}/r4emod/subsies/totally.dude`),
-        },
-      ],
-    },
-    red4extWithDllsInBasedirIsFixableNameable: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/`),
-        path.join(`${RED4EXT_PREFIX}/script.dll`),
-        path.join(`${RED4EXT_PREFIX}/notascript.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/notascript.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notascript.dll`),
-        },
-      ],
-    },
-    red4extWithFilesInBasedirANDSubdirsIeInCanonicalIsFixableNameable: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/script.dll`),
-        path.join(`${RED4EXT_PREFIX}/notcanonicalnow/`),
-        path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
-          destination: path.join(
-            `${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notcanonicalnow/notascript.dll`,
-          ),
-        },
-      ],
-    },
-    red4extWithFilesInToplevelAndMaybeSubdirsIsFixableModnamed: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`script.dll`),
-        path.join(`notcanonicalnow/`),
-        path.join(`notcanonicalnow/notascript.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`notcanonicalnow/notascript.dll`),
-          destination: path.join(
-            `${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/notcanonicalnow/notascript.dll`,
-          ),
-        },
-      ],
-    },
-    red4extWithFilesInToplevelSubdirIsFixable: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        ...RED4EXT_PREFIXES,
-        path.join(`notcanonicalnow/`),
-        path.join(`notcanonicalnow/notascript.dll`),
-      ],
-      outInstructions: [
-        {
-          type: "copy",
-          source: path.join(`notcanonicalnow/notascript.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/notcanonicalnow/notascript.dll`),
-        },
-      ],
-    },
-  }),
-);
-
-const Red4ExtModShouldFailInTest = new Map<string, ExampleFailingMod>([
-  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS.map(
-    (dir: string): [string, ExampleFailingMod] => [
-      `red4ext DLL in dangerous dir ${dir}`,
-      {
-        expectedInstallerType: InstallerType.Red4Ext,
-        inFiles: [path.join(dir, "some.dll")],
-        failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
-        errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
-      },
-    ],
-  ),
-  ...RED4EXT_KNOWN_NONOVERRIDABLE_DLLS.map((dll: string): [string, ExampleFailingMod] => [
-    `red4ext DLL with reserved name ${dll}`,
-    {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [path.join(`bin/x64/scripties.dll`)],
-      failure: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
-      errorDialogTitle: `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`,
-    },
-  ]),
-]);
-
-const Red4ExtModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
-  Object.entries({
-    red4extWithMultipleSubdirsPromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        path.join(`subdir1/`),
-        path.join(`subdir1/script1.dll`),
-        path.join(`subdir2/`),
-        path.join(`subdir2/script2.dll`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`subdir1\\script1.dll`),
-          destination: path.join(`subdir1\\script1.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`subdir2\\script2.dll`),
-          destination: path.join(`subdir2\\script2.dll`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageFor(InstallerType.Red4Ext),
-    },
-    red4extWithExtraArchivesInWrongPlacePromptsOnConflictForFallback: {
-      expectedInstallerType: InstallerType.Red4Ext,
-      inFiles: [
-        path.join(`subdir1/`),
-        path.join(`subdir1/script1.dll`),
-        path.join(`outtaplace.archive`),
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        {
-          type: "copy",
-          source: path.join(`subdir1\\script1.dll`),
-          destination: path.join(`subdir1\\script1.dll`),
-        },
-        {
-          type: "copy",
-          source: path.join(`outtaplace.archive`),
-          destination: path.join(`outtaplace.archive`),
-        },
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: expectedUserCancelMessageForHittingFallback,
-    },
-  }),
-);
-
 const ArchiveMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
@@ -754,7 +476,7 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
@@ -769,12 +491,12 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
@@ -789,12 +511,12 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
@@ -809,12 +531,12 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(
             `${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/second.archive`,
           ),
@@ -824,27 +546,27 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
     },
     archiveWithSingleArchiveToplevel: {
       expectedInstallerType: InstallerType.Archive,
-      inFiles: ["first.archive"].map(path.normalize),
+      inFiles: [`first.archive`].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
-          source: path.normalize("first.archive"),
+          type: `copy`,
+          source: path.normalize(`first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
       ],
     },
     archiveWithMultipleArchivesTopLevel: {
       expectedInstallerType: InstallerType.Archive,
-      inFiles: ["first.archive", "second.archive"].map(path.normalize),
+      inFiles: [`first.archive`, `second.archive`].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
-          source: path.normalize("first.archive"),
+          type: `copy`,
+          source: path.normalize(`first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
-          type: "copy",
-          source: path.normalize("second.archive"),
+          type: `copy`,
+          source: path.normalize(`second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
@@ -856,12 +578,12 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/first.archive"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/second.archive"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
@@ -869,15 +591,15 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
     },
     archiveWithArchivesTopLevelAndFolder: {
       expectedInstallerType: InstallerType.Archive,
-      inFiles: ["first.archive", "fold1/", "fold1/second.archive"].map(path.normalize),
+      inFiles: [`first.archive`, "fold1/", "fold1/second.archive"].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
-          source: path.normalize("first.archive"),
+          type: `copy`,
+          source: path.normalize(`first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/second.archive"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
@@ -895,27 +617,27 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/first.archive"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/foobar.txt"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/foobar.txt`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/more"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/more`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/second.archive"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/thisisenough.md"),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/thisisenough.md`),
         },
@@ -995,12 +717,12 @@ const ArchiveOnlyModShouldPromptForInstall = new Map<string, ExamplePromptInstal
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`outtaplace.archive`),
           destination: path.join(`outtaplace.archive`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${ARCHIVE_PREFIX}\\innaspot.archive`),
           destination: path.join(`${ARCHIVE_PREFIX}\\innaspot.archive`),
         },
@@ -1135,41 +857,41 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     iniWithSingleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
-      inFiles: ["myawesomeconfig.ini"].map(path.normalize),
+      inFiles: [`myawesomeconfig.ini`].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
-          source: path.normalize("myawesomeconfig.ini"),
+          type: `copy`,
+          source: path.normalize(`myawesomeconfig.ini`),
           destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
       ],
     },
     iniWithMultipleIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
-      inFiles: ["myawesomeconfig.ini", "serious.ini"].map(path.normalize),
+      inFiles: [`myawesomeconfig.ini`, `serious.ini`].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
-          source: path.normalize("myawesomeconfig.ini"),
+          type: `copy`,
+          source: path.normalize(`myawesomeconfig.ini`),
           destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
         {
-          type: "copy",
-          source: path.normalize("serious.ini"),
+          type: `copy`,
+          source: path.normalize(`serious.ini`),
           destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/serious.ini`),
         },
       ],
     },
     iniWithReshadeIniAtRoot: {
       expectedInstallerType: InstallerType.INI,
-      inFiles: ["superreshade.ini"].map(path.normalize),
+      inFiles: [`superreshade.ini`].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
-          source: "superreshade.ini",
+          type: `copy`,
+          source: `superreshade.ini`,
           destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
       ],
@@ -1180,7 +902,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/myawesomeconfig.ini"),
           destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
@@ -1189,7 +911,7 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     iniWithReshadeIniAndShadersFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: [
-        "superreshade.ini",
+        `superreshade.ini`,
         "reshade-shaders/",
         "reshade-shaders/Shaders/",
         "reshade-shaders/Shaders/fancy.fx",
@@ -1199,19 +921,19 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
-          source: "superreshade.ini",
+          type: `copy`,
+          source: `superreshade.ini`,
           destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("reshade-shaders/Textures/lut.png"),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Textures/lut.png`,
@@ -1232,19 +954,19 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
       fsMocked: iniFsMock,
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/superreshade.ini"),
           destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
           ),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize(`fold1/reshade-shaders/Textures/lut.png`),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Textures/lut.png`,
@@ -1262,13 +984,13 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
   Object.entries({
     invalidModContainingJustAnExe: {
       expectedInstallerType: InstallerType.Fallback,
-      inFiles: [path.normalize("bin/myProg.exe")],
+      inFiles: [path.normalize(`bin/myProg.exe`)],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
-          type: "copy",
-          source: path.normalize("bin/myProg.exe"),
-          destination: path.normalize("bin/myProg.exe"),
+          type: `copy`,
+          source: path.normalize(`bin/myProg.exe`),
+          destination: path.normalize(`bin/myProg.exe`),
         },
       ],
       cancelLabel: InstallChoices.Cancel,
@@ -1276,18 +998,18 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
     },
     invalidModContainingRandomFiles: {
       expectedInstallerType: InstallerType.Fallback,
-      inFiles: ["Categorized AIO Command List.xlsx", "readme.md"],
+      inFiles: ["Categorized AIO Command List.xlsx", `readme.md`],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.normalize("Categorized AIO Command List.xlsx"),
           destination: path.normalize("Categorized AIO Command List.xlsx"),
         },
         {
-          type: "copy",
-          source: path.normalize("readme.md"),
-          destination: path.normalize("readme.md"),
+          type: `copy`,
+          source: path.normalize(`readme.md`),
+          destination: path.normalize(`readme.md`),
         },
       ],
       cancelLabel: InstallChoices.Cancel,
@@ -1297,14 +1019,14 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
       expectedInstallerType: InstallerType.Fallback,
       inFiles: [
         ...pathHierarchyFor(FAKE_STAGING_PATH),
-        path.join(FAKE_STAGING_PATH, "toodles.txt"),
+        path.join(FAKE_STAGING_PATH, `toodles.txt`),
       ],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
-          type: "copy",
-          source: path.join(FAKE_STAGING_PATH, "toodles.txt"),
-          destination: path.join(FAKE_STAGING_PATH, "toodles.txt"),
+          type: `copy`,
+          source: path.join(FAKE_STAGING_PATH, `toodles.txt`),
+          destination: path.join(FAKE_STAGING_PATH, `toodles.txt`),
         },
       ],
       cancelLabel: InstallChoices.Cancel,
@@ -1329,22 +1051,22 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GIFTWRAP_PREFIX}/${CET_PREFIX}/exmod/${CET_INIT}`),
           destination: path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GIFTWRAP_PREFIX}/${REDS_PREFIX}/rexmod/script.reds`),
           destination: path.join(`${REDS_PREFIX}/rexmod/script.reds`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GIFTWRAP_PREFIX}/${RED4EXT_PREFIX}/script.dll`),
           destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
         },
         {
-          type: "copy",
+          type: `copy`,
           source: path.join(`${GIFTWRAP_PREFIX}/${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           destination: path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         },
@@ -1375,13 +1097,11 @@ const blankModSet: ExampleModSet = {
 const NotYetMovedSuccesses = new Map<string, ExampleSucceedingModCategory>(
   Object.entries({
     CoreCetInstall,
-    CoreRed4ExtInstall,
     CoreTweakXLInstall,
     TweakXLMod,
     CoreArchiveXLInstall,
     AsiMod,
     CetMod,
-    Red4ExtMod,
     IniMod,
     ArchiveOnly: ArchiveMod,
     ValidExtraArchivesWithType,
@@ -1393,14 +1113,12 @@ const NotYetMovedFailures = new Map<string, ExampleFailingModCategory>(
   Object.entries({
     CoreTweakXLShouldFailOnInstallIfNotExactLayout,
     CoreArchiveXLShouldFailOnInstallIfNotExactLayout,
-    Red4ExtModShouldFailInTest,
   }),
 );
 
 const NotYetMovedPromptables = new Map<string, ExamplePromptInstallableModCategory>(
   Object.entries({
     CetModShouldPromptForInstall,
-    Red4ExtModShouldPromptForInstall,
     TweakXLModShouldPromptForInstall,
     ArchiveOnlyModShouldPromptForInstall,
     FallbackForNonMatchedAndInvalidShouldPromptForInstall,

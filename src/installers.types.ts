@@ -13,7 +13,7 @@ export enum InstallerType {
   CoreAmm = `Core Appearance Menu Mod Installer (special case of CET)`,
   CoreCyberScript = `Core CyberScript Installer`,
   CoreRedscript = `Core Redscript Installer`,
-  CoreRed4ext = `Core Red4ext Installer`,
+  CoreRed4ext = `Core RED4ext Installer`,
   CoreInputLoader = `Core Input Loader Installer (special case of Red4Ext)`,
   CoreCSVMerge = `(DEPRECATED - use TweakXL/ArchiveXL) Core CSVMerge Installer`,
   CoreCyberCat = `CyberCAT Save Editor Installer`,
@@ -29,7 +29,7 @@ export enum InstallerType {
   AMM = `AMM Mod Installer`,
   CET = `CET Mod Installer`,
   Redscript = `Redscript Mod Installer`,
-  Red4Ext = `Red4ext Mod Installer`,
+  Red4Ext = `RED4ext Mod Installer`,
   TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
   TweakXL = `TweakXL Mod Installer`,
   INI = `INI Mod Installer`,
@@ -55,7 +55,7 @@ export interface InstallerWithPriority extends Installer {
 }
 
 export const enum InstallDecision {
-  UserWantsToProceed = "User explicitly wants to proceed with the installation",
+  UserWantsToProceed = `User explicitly wants to proceed with the installation`,
 
-  UserWantsToCancel = "User explicitly wants to cancel the installation",
+  UserWantsToCancel = `User explicitly wants to cancel the installation`,
 }

@@ -55,8 +55,8 @@ export interface ExamplePromptInstallableMod extends ExampleMod {
 export type ExampleSucceedingModCategory = Map<string, ExampleSucceedingMod>;
 export type ExampleFailingModCategory = Map<string, ExampleFailingMod>;
 export type ExamplePromptInstallableModCategory = Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >;
 
 export interface ExamplesForType {
@@ -85,15 +85,16 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
 // eslint-disable-next-line no-global-assign
 console = new Console(process.stdout, process.stderr);
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const getMockVortexLog = () => {
   const mockLog = jest.fn();
 
   // if (process.env.DEBUG || true) {
   if (process.env.DEBUG) {
-    mockLog.mockImplementation((...args) =>
+    mockLog.mockImplementation((...args) => {
       // eslint-disable-next-line no-console
-      console.log(`vortex.log():`, args),
-    );
+      console.log(`vortex.log():`, args);
+    });
   }
 
   return mockLog;
@@ -103,7 +104,7 @@ export const getMockVortexLog = () => {
 // Mod path stuff
 //
 
-const FAKE_STAGING_ZIPFILE = path.normalize("vortexusesthezipfileandmodidasdir-7536");
+const FAKE_STAGING_ZIPFILE = path.normalize(`vortexusesthezipfileandmodidasdir-7536`);
 const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_ZIPFILE];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
@@ -134,7 +135,7 @@ export const pathHierarchyFor = (entirePath: string): string[] => {
   const hierarchy: string[] = pathSegments.reduce(
     (supers: string[], segment: string) =>
       supers.concat(path.join(supers[supers.length - 1], segment, path.sep)),
-    [""],
+    [``],
   );
 
   return hierarchy.slice(1);
@@ -163,14 +164,14 @@ export const createdFile = (contents: string, ...dest: string[]): VortexInstruct
   destination: path.join(...dest),
 });
 
-export const expectedUserCancelMessageFor = (installerType: InstallerType) =>
+export const expectedUserCancelMessageFor = (installerType: InstallerType): string =>
   `${installerType}: user chose to cancel installation`;
 
 export const expectedUserCancelMessageForHittingFallback = expectedUserCancelMessageFor(
   InstallerType.Fallback,
 );
 
-export const expectedUserCancelProtectedMessageFor = (installerType: InstallerType) =>
+export const expectedUserCancelProtectedMessageFor = (installerType: InstallerType): string =>
   `${installerType}: user chose to cancel installing to protected paths`;
 
 export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.MultiType}: user has canceled installation for some part of this mod. Can't proceed safely, canceling entirely.`;
@@ -180,10 +181,10 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 //
 
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/scripts/json",
+  `bin/x64/plugins/cyber_engine_tweaks/scripts/json`,
 );
 export const CORE_CET_PREFIXES = pathHierarchyFor(CORE_CET_FULL_PATH_DEPTH);
-export const GAME_DIR = path.normalize("bin/x64");
+export const GAME_DIR = path.normalize(`bin/x64`);
 
 export const XML_PREFIXES = pathHierarchyFor(CONFIG_XML_MOD_BASEDIR);
 
@@ -220,13 +221,14 @@ export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
 // Actual test helpers
 //
 
-export const compareByDestination = (a: VortexInstruction, b: VortexInstruction) => {
+export const compareByDestination = (a: VortexInstruction, b: VortexInstruction): number => {
   if (!a?.destination || !b?.destination) {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     throw new Error(`null destination, shouldn't happen: ${{ a, b }}`);
   } else {
     return a.destination.localeCompare(b.destination);
   }
 };
 
-export const sortByDestination = (instructions: VortexInstruction[]) =>
+export const sortByDestination = (instructions: VortexInstruction[]): VortexInstruction[] =>
   instructions.sort(compareByDestination);
