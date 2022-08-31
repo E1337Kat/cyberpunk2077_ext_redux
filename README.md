@@ -4,7 +4,7 @@
 
 - [Cyberpunk 2077 Vortex Support on Nexus](https://www.nexusmods.com/site/mods/196)
 - [Repository on Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux)
-- Dev chat on the #nexus-vortex-update-for-cyberpunk2077 channel on [Cyberpunk 2077 Modding Community Discord](https://discord.gg/PxGUQVWk)
+- Dev chat on the [#vortex-support](https://discord.gg/PxGUQVWk) channel on Cyberpunk 2077 Modding Community Discord
 
 ## Installation
 
