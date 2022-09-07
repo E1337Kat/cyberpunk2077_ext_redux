@@ -14,6 +14,7 @@ import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ASI_MOD_PATH,
+  REDMOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 
@@ -197,6 +198,9 @@ export const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 
 export const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 export const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
+
+export const REDMOD_PREFIX = REDMOD_CANONICAL_PATH_PREFIX;
+export const REDMOD_PREFIXES = pathHierarchyFor(REDMOD_PREFIX);
 
 export const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
 export const TWEAK_XL_PATHS = pathHierarchyFor(TWEAK_XL_PATH);

@@ -60,6 +60,7 @@ import {
   testForCoreCyberScript,
 } from "./installer.core.cyberscript";
 import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
+import { installREDmod, testForREDmod } from "./installer.redmod";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -223,6 +224,12 @@ const installers: Installer[] = [
     id: InstallerType.Red4Ext,
     testSupported: testForRed4ExtMod,
     install: installRed4ExtMod,
+  },
+  {
+    type: InstallerType.REDmod,
+    id: InstallerType.REDmod,
+    testSupported: testForREDmod,
+    install: installREDmod,
   },
   {
     type: InstallerType.TweakXL,
