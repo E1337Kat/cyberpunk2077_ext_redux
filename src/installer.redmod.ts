@@ -4,7 +4,6 @@ import {
 } from "./filetree";
 import {
   REDMOD_CANONICAL_INFO_FILE,
-  REDMOD_CANONICAL_PATH_PREFIX,
   MaybeInstructions,
   NoInstructions,
   REDmodLayout,
@@ -38,7 +37,7 @@ const matchREDmodInfoJson = (f: string): boolean =>
   path.basename(f) === REDMOD_CANONICAL_INFO_FILE;
 
 const findCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(REDMOD_CANONICAL_PATH_PREFIX, matchREDmodInfoJson, fileTree);
+  findDirectSubdirsWithSome(FILETREE_ROOT, matchREDmodInfoJson, fileTree);
 
 export const detectCanonREDmodLayout = (fileTree: FileTree): boolean =>
   findCanonicalREDmodDirs(fileTree).length > 0;
@@ -68,21 +67,32 @@ export const canonREDmodLayout = (
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const allCanonREDmodFiles = findCanonicalREDmodDirs(fileTree).flatMap((namedSubdir) =>
-    filesUnder(namedSubdir, Glob.Any, fileTree));
+  const toplevelSubdirsWithFiles = findCanonicalREDmodDirs(fileTree);
 
-  if (allCanonREDmodFiles.length < 1) {
+  if (toplevelSubdirsWithFiles.length < 1) {
     api.log(`debug`, `No canonical REDmod files found.`);
     return NoInstructions.NoMatch;
   }
 
-  const allToRootModirWithSubdirAsModname = allCanonREDmodFiles.map(
-    moveFromTo(FILETREE_ROOT, REDMOD_CANONICAL_BASEDIR),
+  if (toplevelSubdirsWithFiles.length > 1) {
+    return InvalidLayout.Conflict;
+  }
+
+  if (toplevelSubdirsWithFiles.length < 1) {
+    api.log(`debug`, `No canonical REDmod files found.`);
+    return NoInstructions.NoMatch;
+  }
+
+  const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
+    (dir) =>
+      filesUnder(dir, Glob.Any, fileTree).map(
+        moveFromTo(FILETREE_ROOT, REDMOD_CANONICAL_BASEDIR),
+      ),
   );
 
   return {
     kind: REDmodLayout.Canon,
-    instructions: instructionsForSourceToDestPairs(allToRootModirWithSubdirAsModname),
+    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
   };
 };
 
