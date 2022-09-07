@@ -1,11 +1,12 @@
 import path from "path";
+import { REDMOD_CANONICAL_BASEDIR } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
-  REDMOD_PREFIXES,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
   ExamplesForType,
+  movedFromTo,
 } from "./utils.helper";
 
 const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
@@ -13,23 +14,20 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
     redmodBasicCanonical: {
       expectedInstallerType: InstallerType.REDmod,
       inFiles: [
-        ...REDMOD_PREFIXES,
         path.join(`myRedMod/`),
-        path.join(`/myRedMod/info.json`),
-        path.join(`/myRedMod/archives/`),
-        path.join(`/myRedMod/archives/cool_stuff.archive`),
+        path.join(`myRedMod/info.json`),
+        path.join(`myRedMod/archives/`),
+        path.join(`myRedMod/archives/cool_stuff.archive`),
       ],
       outInstructions: [
-        {
-          type: `copy`,
-          source: path.join(`/myRedMod/info.json`),
-          destination: path.join(`mods/myRedMod/info.json`),
-        },
-        {
-          type: `copy`,
-          source: path.join(`/myRedMod/archives/cool_stuff.archive`),
-          destination: path.join(`mods/myRedMod/archives/cool_stuff.archive`),
-        },
+        movedFromTo(
+          path.normalize(`myRedMod/info.json`),
+          path.normalize(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
+        ),
+        movedFromTo(
+          path.normalize(`myRedMod/archives/cool_stuff.archive`),
+          path.normalize(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
       ],
     },
   }),
