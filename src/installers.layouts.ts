@@ -609,6 +609,8 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
   path.join(`wpfgfx_cor3.dll`),
 ];
 
+export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
+
 // REDmod
 
 export const enum REDmodLayout {
@@ -616,14 +618,6 @@ export const enum REDmodLayout {
 }
 export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
 export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
-
-// Here, the mod should be packaged in a folder with the mod name so the
-// prefix is not nonexistent, but rather explicitly the root folder.
-export const REDMOD_CANONICAL_PATH_PREFIX = path.normalize(
-  `.`,
-);
-
-export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
 // ASI
 
