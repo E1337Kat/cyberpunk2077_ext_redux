@@ -6,6 +6,7 @@ import {
   EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID,
 } from "./index.metadata";
 import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
+import { internalLoadOrderer, wrapDeserialize, wrapSerialize, wrapValidate } from "./load_order";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
 
 const moddingTools = [
@@ -70,6 +71,14 @@ const main = (vortex: VortexExtensionContext) => {
     wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
     wrapInstall(vortex, vortexApi, internalPipelineInstaller),
   );
+
+  vortex.registerLoadOrder({
+    gameId: GAME_ID,
+    toggleableEntries: true,
+    validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
+    deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
+    serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
+  });
 
   vortex.once(() => {
     vortex.api.onAsync(`did-deploy`, (profileId) => {

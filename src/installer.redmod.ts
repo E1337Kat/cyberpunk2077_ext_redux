@@ -45,7 +45,7 @@ import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 //
 // Fixable: no
 
-const matchREDmodInfoJson = (f: string): boolean =>
+export const matchREDmodInfoJson = (f: string): boolean =>
   path.basename(f) === REDMOD_CANONICAL_INFO_FILE;
 
 const findBasedirREDmodDirs = (fileTree: FileTree): string[] =>
