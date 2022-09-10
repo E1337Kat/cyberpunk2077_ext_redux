@@ -155,12 +155,14 @@ export const enum CoreInputLoaderLayout {
   OnlyValid = `
               - .\\engine\\config\\platform\\pc\\input_loader.ini
               - .\\r6\\input\\                       (note, empty directory is an exception)
-              - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
+              - .\\red4ext\\plugins\\input_loader\\input_loader.dll
+              - .\\red4ext\\plugins\\input_loader\\inputUserMappings.xml
               `,
 }
 
 export const INPUT_LOADER_CORE_FILES = [
   path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
+  path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
 ];
 
 //

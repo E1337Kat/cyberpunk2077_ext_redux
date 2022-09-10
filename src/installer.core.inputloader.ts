@@ -7,7 +7,12 @@ import {
   VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { FileTree, fileCount, pathInTree, sourcePaths } from "./filetree";
+import {
+  FileTree,
+  fileCount,
+  pathInTree,
+  sourcePaths,
+} from "./filetree";
 import { InstallerType } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
@@ -29,6 +34,11 @@ const CoreInputLoaderInstructions: VortexInstruction[] = [
     type: `copy`,
     source: `red4ext\\plugins\\input_loader\\input_loader.dll`,
     destination: `red4ext\\plugins\\input_loader\\input_loader.dll`,
+  },
+  {
+    type: `copy`,
+    source: `red4ext\\plugins\\input_loader\\inputUserMappings.xml`,
+    destination: `red4ext\\plugins\\input_loader\\inputUserMappings.xml`,
   },
 ];
 

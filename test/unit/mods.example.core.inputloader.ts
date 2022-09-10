@@ -24,11 +24,13 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
       inFiles: [
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
         path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+        path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
       ],
       outInstructions: [
         createdFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
         copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
       ],
     },
   ],
