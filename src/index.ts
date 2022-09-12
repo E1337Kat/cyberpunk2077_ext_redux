@@ -5,6 +5,7 @@ import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extran
 import { EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID } from "./index.metadata";
 import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import prepareForModding from './prepareForModding';
 
 const moddingTools = [
   {
@@ -21,6 +22,14 @@ const moddingTools = [
     shell: false,
     relative: true,
   },
+  {
+    id: "REDLauncher",
+    name: "REDLauncher",
+    logo: "REDLauncher.png",
+    executable: () => "REDprelauncher.exe",
+    requiredFiles: [ "REDprelauncher.exe" ],
+    relative: true
+  }
 ];
 
 export const findGame = () =>
@@ -32,9 +41,6 @@ const requiresGoGLauncher = () =>
   vortexApi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
     gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
   );
-
-const prepareForModding = (discovery) =>
-  vortexApi.fs.readdirAsync(path.join(discovery.path));
 
 // This is the main function Vortex will run when detecting the game extension.
 const main = (vortex: VortexExtensionContext) => {
@@ -52,10 +58,11 @@ const main = (vortex: VortexExtensionContext) => {
       symlinks: false,
     },
     requiresLauncher: requiresGoGLauncher,
-    setup: prepareForModding,
+    setup: (discovery) => prepareForModding(discovery, vortex.api),
     environment: {
       SteamAPPId: STEAMAPP_ID,
     },
+    parameters: [ "-modded" ],
     details: {
       steamAppId: STEAMAPP_ID,
       gogAppId: GOGAPP_ID,
