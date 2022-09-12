@@ -10,7 +10,7 @@ import {
 } from "./index.metadata";
 import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
-import { wrappedPrepareForModding } from './extension';
+import { wrappedPrepareForModding } from './redmodding';
 
 const moddingTools = [
   {

@@ -1,6 +1,5 @@
 import path from "path";
-import { fs } from "vortex-api";
-import * as VortexUtil from "vortex-api/lib/util/api"; // eslint-disable-line import/no-extraneous-dependencies
+import { fs, util as VortexUtil } from "vortex-api";
 import { GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID } from './index.metadata';
 import { promptUserInstallREDmodDLC } from "./ui.dialogs";
 import {
@@ -41,7 +40,7 @@ const getREDmodetails = (id: string): { name: string, url: string } => {
 const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
   const redModDetails = getREDmodetails(gameStoreId);
 
-  await promptUserInstallREDmodDLC(vortexApi, redModDetails);
+  await promptUserInstallREDmodDLC(vortexApi, redModDetails, () => VortexUtil.opn(redModDetails.url));
 };
 
 const prepareForModding = async (

@@ -1,5 +1,4 @@
 /* eslint-disable prefer-template */
-import * as VortexUtil from "vortex-api/lib/util/api"; // eslint-disable-line import/no-extraneous-dependencies
 import {
   EXTENSION_NAME_NEXUS,
   EXTENSION_URL_GITHUB,
@@ -59,6 +58,7 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 export const promptUserInstallREDmodDLC = async (
   api: VortexApi,
   redModDetails: { name: string, url: string },
+  vortexActionCallback,
 ): Promise<void> => {
   const title = `REDmod DLC missing`;
   const redmodInstallExplanation = `
@@ -76,7 +76,7 @@ export const promptUserInstallREDmodDLC = async (
     [
       {
         label: `Get REDmod`,
-        action: () => VortexUtil.opn(redModDetails.url),
+        action: vortexActionCallback,
       },
       {
         label: `Ignore`,
