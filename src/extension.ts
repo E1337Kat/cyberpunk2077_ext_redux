@@ -1,12 +1,12 @@
 import path from "path";
 import { fs } from "vortex-api";
+import * as VortexUtil from "vortex-api/lib/util/api"; // eslint-disable-line import/no-extraneous-dependencies
 import { GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID } from './index.metadata';
 import { promptUserInstallREDmodDLC } from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
-  vortexUtil,
 } from "./vortex-wrapper";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
@@ -64,7 +64,7 @@ const prepareForModding = async (
   }
 
   // Determine which game store this is from, so we can recommend the correct process.
-  const game = await vortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
+  const game = await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
   if (game?.path !== discovery.path) vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
 
   await promptREDmodInstall(vortexApi, game?.gameStoreId);

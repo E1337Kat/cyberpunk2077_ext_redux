@@ -1,4 +1,3 @@
-import { util } from "vortex-api";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 import { FileTree } from "./filetree";
 
@@ -16,8 +15,6 @@ export type VortexNotificationAction = Vortex.INotificationAction;
 export type VortexNotificationState = Vortex.INotificationState;
 
 export type VortexDialogResult = Vortex.IDialogResult;
-
-export const vortexUtil = util;
 
 export type VortexLogLevel = "debug" | "info" | "warn" | "error";
 export type VortexLogFunc = (

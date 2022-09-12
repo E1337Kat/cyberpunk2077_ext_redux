@@ -1,4 +1,5 @@
 /* eslint-disable prefer-template */
+import * as VortexUtil from "vortex-api/lib/util/api"; // eslint-disable-line import/no-extraneous-dependencies
 import {
   EXTENSION_NAME_NEXUS,
   EXTENSION_URL_GITHUB,
@@ -6,7 +7,7 @@ import {
 } from "./index.metadata";
 import { ARCHIVE_MOD_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
-import { VortexApi, VortexDialogResult, vortexUtil } from "./vortex-wrapper";
+import { VortexApi, VortexDialogResult } from "./vortex-wrapper";
 
 export const enum InstallChoices {
   Proceed = `Yes, Install To Staging Anyway`,
@@ -75,7 +76,7 @@ export const promptUserInstallREDmodDLC = async (
     [
       {
         label: `Get REDmod`,
-        action: () => vortexUtil.opn(redModDetails.url),
+        action: () => VortexUtil.opn(redModDetails.url),
       },
       {
         label: `Ignore`,
