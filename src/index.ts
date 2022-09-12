@@ -2,34 +2,39 @@ import path from "path";
 import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 
 // Our stuff
-import { EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID } from "./index.metadata";
+import {
+  EPICAPP_ID,
+  GAME_ID,
+  GOGAPP_ID,
+  STEAMAPP_ID,
+} from "./index.metadata";
 import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
 import { wrappedPrepareForModding } from './extension';
 
 const moddingTools = [
   {
-    id: "CyberCat",
-    name: "CyberCAT Save Editor",
-    shortName: "CyberCAT",
-    logo: "SaveEditor.png",
-    executable: () => path.join("CyberCAT", "CP2077SaveEditor.exe"),
+    id: `CyberCat`,
+    name: `CyberCAT Save Editor`,
+    shortName: `CyberCAT`,
+    logo: `SaveEditor.png`,
+    executable: () => path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
     requiredFiles: [
-      path.join("CyberCAT", "CP2077SaveEditor.exe"),
-      path.join("CyberCAT", "licenses", "CyberCAT.Core.LICENSE.txt"),
+      path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
+      path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
     ],
     defaultPrimary: true,
     shell: false,
     relative: true,
   },
   {
-    id: "REDLauncher",
-    name: "REDLauncher",
-    logo: "REDLauncher.png",
-    executable: () => "REDprelauncher.exe",
-    requiredFiles: [ "REDprelauncher.exe" ],
-    relative: true
-  }
+    id: `REDLauncher`,
+    name: `REDLauncher`,
+    logo: `REDLauncher.png`,
+    executable: () => `REDprelauncher.exe`,
+    requiredFiles: [`REDprelauncher.exe`],
+    relative: true,
+  },
 ];
 
 export const findGame = () =>
@@ -38,21 +43,20 @@ export const findGame = () =>
   );
 
 const requiresGoGLauncher = () =>
-  vortexApi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, "gog").then((gog) =>
-    gog ? { launcher: "gog", addInfo: GOGAPP_ID } : undefined,
-  );
+  vortexApi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
+    (gog ? { launcher: `gog`, addInfo: GOGAPP_ID } : undefined));
 
 // This is the main function Vortex will run when detecting the game extension.
 const main = (vortex: VortexExtensionContext) => {
   vortex.registerGame({
     id: GAME_ID,
-    name: "Cyberpunk 2077",
+    name: `Cyberpunk 2077`,
     mergeMods: true,
     queryPath: findGame,
-    queryModPath: () => "",
-    logo: "gameart.png",
-    executable: () => "bin/x64/Cyberpunk2077.exe",
-    requiredFiles: ["bin/x64/Cyberpunk2077.exe"],
+    queryModPath: () => ``,
+    logo: `gameart.png`,
+    executable: () => `bin/x64/Cyberpunk2077.exe`,
+    requiredFiles: [`bin/x64/Cyberpunk2077.exe`],
     supportedTools: moddingTools,
     compatible: {
       symlinks: false,
@@ -62,7 +66,7 @@ const main = (vortex: VortexExtensionContext) => {
     environment: {
       SteamAPPId: STEAMAPP_ID,
     },
-    parameters: [ "-modded" ],
+    parameters: [`-modded`],
     details: {
       steamAppId: STEAMAPP_ID,
       gogAppId: GOGAPP_ID,
