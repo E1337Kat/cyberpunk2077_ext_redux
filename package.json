@@ -16,7 +16,7 @@
         "repl": "ts-node -r tsconfig-paths/register",
         "postinstall": "patch-package",
         "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color",
-        "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./gameicon.png ./LICENSE ./SaveEditor.png ./dist/",
+        "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./gameicon.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./dist/",
         "pack": "npm run build && powershell.exe ./script/package.ps1",
         "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
         "pack-linux": "npm run build && bash ./script/package.sh",

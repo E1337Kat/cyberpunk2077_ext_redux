@@ -55,6 +55,36 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 // Dialog functions
 
+export const promptUserInstallREDmodDLC = async (
+  api: VortexApi,
+  redModDetails: { name: string, url: string },
+  vortexActionCallback,
+): Promise<void> => {
+  const title = `REDmod DLC missing`;
+  const redmodInstallExplanation = `
+  The 1.6 update for Cyberpunk 2077 included an optional DLC called REDmod. 
+  This DLC allows the game to load modded content created with the REDmod toolkit.
+  Vortex has detected that the REDmod DLC is installed on your system.
+  You can get the DLC for free${redModDetails.name ? ` from ${redModDetails.name}` : null} using the button below.`;
+
+  return api.showDialog(
+    `question`,
+    title,
+    {
+      md: heredoc(redmodInstallExplanation),
+    },
+    [
+      {
+        label: `Get REDmod`,
+        action: vortexActionCallback,
+      },
+      {
+        label: `Ignore`,
+      },
+    ],
+  );
+};
+
 export const promptUserToInstallOrCancel = async (
   api: VortexApi,
   title: string,
