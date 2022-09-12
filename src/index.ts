@@ -5,7 +5,7 @@ import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extran
 import { EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID } from "./index.metadata";
 import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
 import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
-import prepareForModding from './prepareForModding';
+import { wrappedPrepareForModding } from './extension';
 
 const moddingTools = [
   {
@@ -58,7 +58,7 @@ const main = (vortex: VortexExtensionContext) => {
       symlinks: false,
     },
     requiresLauncher: requiresGoGLauncher,
-    setup: (discovery) => prepareForModding(discovery, vortex.api),
+    setup: (discovery) => wrappedPrepareForModding(vortex, vortexApi, discovery),
     environment: {
       SteamAPPId: STEAMAPP_ID,
     },

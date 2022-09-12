@@ -1,3 +1,4 @@
+import { util } from "vortex-api";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 import { FileTree } from "./filetree";
 
@@ -7,12 +8,16 @@ export type VortexExtensionContext = Vortex.IExtensionContext;
 export type VortexGameStoreEntry = Vortex.IGameStoreEntry;
 export type VortexProgressDelegate = Vortex.ProgressDelegate;
 
+export type VortexDiscoveryResult = Vortex.IDiscoveryResult;
+
 export type VortexNotificationType = Vortex.NotificationType;
 export type VortexNotification = Vortex.INotification;
 export type VortexNotificationAction = Vortex.INotificationAction;
 export type VortexNotificationState = Vortex.INotificationState;
 
 export type VortexDialogResult = Vortex.IDialogResult;
+
+export const vortexUtil = util;
 
 export type VortexLogLevel = "debug" | "info" | "warn" | "error";
 export type VortexLogFunc = (
