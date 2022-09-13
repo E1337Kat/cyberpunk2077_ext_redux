@@ -1,5 +1,4 @@
 import path from "path";
-import * as winapi from 'winapi-bindings';
 import { fs, util as VortexUtil } from "vortex-api";
 import { GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID } from './index.metadata';
 import { promptUserInstallREDmodDLC } from "./ui.dialogs";
@@ -17,7 +16,7 @@ interface IREDmodDetails {
   openCommand: () => Promise<void>;
 }
 
-const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
+const getREDmodetails = (id: string): IREDmodDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
 
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
@@ -40,15 +39,7 @@ const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
     gog: {
       name: `GOG`,
       url: `https://www.gog.com/en/game/cyberpunk_2077_redmod`,
-      openCommand: (): Promise<void> => {
-        const gogPath = winapi.RegGetValue(
-          `HKEY_LOCAL_MACHINE`,
-          `SOFTWARE\\WOW6432Node\\GOG.com\\GalaxyClient\\paths`,
-          `client`,
-        );
-        if (!gogPath || !gogPath.value) throw new Error(`GOG Galaxy Registry key is invalid`);
-        return api.runExecutable(path.join(gogPath.value as string, `GalaxyClient.exe`), [`/gameId=1597316373`, `/command=rungame`], { shell: true, detach: true });
-      },
+      openCommand: (): Promise<void> => VortexUtil.opn(`goggalaxy://openGameView/1597316373`),
     },
   };
 
@@ -56,7 +47,7 @@ const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
 };
 
 const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
-  const redModDetails = getREDmodetails(gameStoreId, vortexApi);
+  const redModDetails = getREDmodetails(gameStoreId);
 
   await promptUserInstallREDmodDLC(
     vortexApi,

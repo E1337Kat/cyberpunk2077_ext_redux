@@ -71,7 +71,6 @@
     "dependencies": {
         "fp-ts": "^2.12.1",
         "key-tree": "^1.0.3",
-        "patch-package": "^6.4.7",
-        "winapi-bindings": "github:Nexus-Mods/node-winapi-bindings"
+        "patch-package": "^6.4.7"
     }
 }
