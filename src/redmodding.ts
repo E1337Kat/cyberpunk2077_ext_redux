@@ -1,4 +1,5 @@
 import path from "path";
+import * as winapi from 'winapi-bindings';
 import { fs, util as VortexUtil } from "vortex-api";
 import { GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID } from './index.metadata';
 import { promptUserInstallREDmodDLC } from "./ui.dialogs";
@@ -10,27 +11,44 @@ import {
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
 
-const getREDmodetails = (id: string): { name: string, url: string } => {
+interface IREDmodDetails {
+  name: string;
+  url: string;
+  openCommand: () => Promise<void>;
+}
+
+const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
 
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
 
   if (!isRedModSupportingGamePlatform) {
-    return { name: undefined, url: genericHelpUrl };
+    return { name: undefined, url: genericHelpUrl, openCommand: VortexUtil.opn(genericHelpUrl) };
   }
 
-  const gameStoreData = {
+  const gameStoreData: { [id: string]: IREDmodDetails } = {
     epic: {
       name: `Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
+      openCommand: VortexUtil.opn(`com.epicgames.launcher://store/p/cyberpunk-2077`),
     },
     steam: {
       name: `Steam`,
-      url: `steam://run/2060310`,
+      url: `https://store.steampowered.com/app/2060310/Cyberpunk_2077_REDmod/`,
+      openCommand: VortexUtil.opn(`steam://run/2060310`),
     },
     gog: {
       name: `GOG`,
       url: `https://www.gog.com/en/game/cyberpunk_2077_redmod`,
+      openCommand: (): Promise<void> => {
+        const gogPath = winapi.RegGetValue(
+          `HKEY_LOCAL_MACHINE`,
+          `SOFTWARE\\WOW6432Node\\GOG.com\\GalaxyClient\\paths`,
+          `client`,
+        );
+        if (!gogPath || !gogPath.value) throw new Error(`GOG Galaxy Registry key is invalid`);
+        return api.runExecutable(gogPath.value as string, [`/gameId=1597316373`], { shell: false });
+      },
     },
   };
 
@@ -38,9 +56,13 @@ const getREDmodetails = (id: string): { name: string, url: string } => {
 };
 
 const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
-  const redModDetails = getREDmodetails(gameStoreId);
+  const redModDetails = getREDmodetails(gameStoreId, vortexApi);
 
-  await promptUserInstallREDmodDLC(vortexApi, redModDetails, () => VortexUtil.opn(redModDetails.url));
+  await promptUserInstallREDmodDLC(
+    vortexApi,
+    redModDetails,
+    redModDetails.openCommand().catch(() => VortexUtil.opn(redModDetails.url).catch(() => undefined)),
+  );
 };
 
 const prepareForModding = async (
