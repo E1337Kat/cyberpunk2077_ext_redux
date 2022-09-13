@@ -1,4 +1,5 @@
 /* eslint-disable prefer-template */
+import { util as VortexUtil } from "vortex-api";
 import {
   EXTENSION_NAME_NEXUS,
   EXTENSION_URL_GITHUB,
@@ -57,8 +58,7 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 export const promptUserInstallREDmodDLC = async (
   api: VortexApi,
-  redModDetails: { name: string, url: string },
-  vortexActionCallback,
+  redModDetails: { name: string, url: string, openCommand: () => Promise<void> },
 ): Promise<void> => {
   const title = `REDmod DLC missing`;
   const redmodInstallExplanation = `
@@ -76,7 +76,9 @@ export const promptUserInstallREDmodDLC = async (
     [
       {
         label: `Get REDmod`,
-        action: vortexActionCallback,
+        action: () => redModDetails.openCommand()
+          .catch(() => VortexUtil.opn(redModDetails.url)
+            .catch(() => undefined)),
       },
       {
         label: `Ignore`,

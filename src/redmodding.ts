@@ -10,27 +10,36 @@ import {
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
 
-const getREDmodetails = (id: string): { name: string, url: string } => {
+interface IREDmodDetails {
+  name: string;
+  url: string;
+  openCommand: () => Promise<void>;
+}
+
+const getREDmodetails = (id: string): IREDmodDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
 
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
 
   if (!isRedModSupportingGamePlatform) {
-    return { name: undefined, url: genericHelpUrl };
+    return { name: undefined, url: genericHelpUrl, openCommand: () => VortexUtil.opn(genericHelpUrl) };
   }
 
-  const gameStoreData = {
+  const gameStoreData: { [id: string]: IREDmodDetails } = {
     epic: {
       name: `Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
+      openCommand: () => VortexUtil.opn(`com.epicgames.launcher://store/p/cyberpunk-2077`),
     },
     steam: {
       name: `Steam`,
-      url: `steam://run/2060310`,
+      url: `https://store.steampowered.com/app/2060310/Cyberpunk_2077_REDmod/`,
+      openCommand: () => VortexUtil.opn(`steam://run/2060310`),
     },
     gog: {
       name: `GOG`,
       url: `https://www.gog.com/en/game/cyberpunk_2077_redmod`,
+      openCommand: (): Promise<void> => VortexUtil.opn(`goggalaxy://openGameView/1597316373`),
     },
   };
 
@@ -40,7 +49,10 @@ const getREDmodetails = (id: string): { name: string, url: string } => {
 const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
   const redModDetails = getREDmodetails(gameStoreId);
 
-  await promptUserInstallREDmodDLC(vortexApi, redModDetails, () => VortexUtil.opn(redModDetails.url));
+  await promptUserInstallREDmodDLC(
+    vortexApi,
+    redModDetails,
+  );
 };
 
 const prepareForModding = async (
@@ -69,7 +81,7 @@ const prepareForModding = async (
 
   // Determine which game store this is from, so we can recommend the correct process.
   const game = await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
-  if (game?.path !== discovery.path) {
+  if (game?.gamePath !== discovery.path) {
     vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
   }
 
