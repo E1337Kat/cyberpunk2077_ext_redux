@@ -3,17 +3,17 @@ import { win32 } from "path";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Promise from 'bluebird';
 import { fs, selectors } from "vortex-api";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as turbowalk from 'turbowalk';
 import { GAME_ID } from "./index.metadata";
 import { REDMOD_CANONICAL_INFO_FILE } from "./installers.layouts";
-import { LoadOrderer } from "./load_order.types";
+import { LoadOrderer, REDmodEntry } from "./load_order.types";
 import {
   VortexApi,
   VortexDeserializeFunc,
   VortexDiscoveryResult,
   VortexExtensionContext,
   VortexLoadOrder,
-  // VortexLoadOrderEntry,
-  // VortexLOValidateFunc,
   VortexSerializeFunc,
   vortexUtil,
   VortexValidateFunc,
@@ -22,14 +22,9 @@ import {
   VortexWrappedSerializeFunc,
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
-import { filesUnder, fileTreeFromPaths } from "./filetree";
-import { matchREDmodInfoJson } from "./installer.redmod";
 
 // Ensure we're using win32 conventions
 const path = win32;
-// export const validate = (prev: VortexLoadOrderEntry, current: VortexLoadOrderEntry) => internal_validate(api: VortexApi, prev, current);
-// export const deserializeLoadOrder: VortexDeserializeFunc = () => deserialize(context.api);
-// export const serializeLoadOrder = (loadOrder) => serialize(api: VortexApi, loadOrder);
 
 const readDeploymentManifest = async (vortexApi: VortexApi) =>
   vortexUtil.getManifest(vortexApi, '', GAME_ID)
@@ -44,12 +39,13 @@ const readDeploymentManifest = async (vortexApi: VortexApi) =>
       return Promise.resolve(accum);
     }, {}));
 
+const nameToId = (name: string): string => name.replace(/[ ]|[0-9]/g, '');
 const fileNameToId = (filePath: string): string => {
   const file = path.isAbsolute(filePath)
     ? path.basename(filePath)
     : filePath;
 
-  const id = file.replace(/[ ]|[0-9]/g, '');
+  const id = nameToId(file);
   return id;
 };
 
@@ -88,16 +84,33 @@ const getDiscoveryPath = (
   return discovery?.path;
 };
 
+const readREDmodManifest = async (
+  vortexApi: VortexApi,
+): Promise<{ mods: REDmodEntry[] }> => {
+  const discoveryPath = getDiscoveryPath(vortexApi);
+  const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
+
+  const listData = await fs.readFileAsync(modListPath, { encoding: `utf8` });
+  const modList = JSON.parse(listData);
+  return Promise.resolve(modList);
+};
+
 const getDeployedRedMods = async (
   vortexApi: VortexApi,
 ): Promise<string[]> => {
   const discoveryPath = getDiscoveryPath(vortexApi);
   const modsPath = path.join(discoveryPath, 'mods');
-  // const segments = modsPath.split(path.sep).length;
-  const filetree = fileTreeFromPaths([modsPath]);
-  // let modFiles = [];
-  const modFiles = filesUnder(modsPath, matchREDmodInfoJson, filetree);
-  return Promise.resolve(modFiles);
+  vortexApi.log(`debug`, `Checking for REDmods at location: `, modsPath);
+  let modFiles = [];
+  const progressCallback = (entries: turbowalk.IEntry[]): void => {
+    vortexApi.log(`debug`, `turbowalk entries: `, entries);
+    modFiles = modFiles.concat(entries);
+  };
+  return turbowalk.default(modsPath, progressCallback, { recurse: false })
+    .catch((err) => (['ENOENT', 'ENOTFOUND'].includes(err.code)
+      ? Promise.resolve()
+      : Promise.reject(err)))
+    .then(() => Promise.resolve(modFiles));
 };
 
 // Internal Deserializer so that we can have access to more good good information
@@ -121,22 +134,30 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
 
   // We scan the game’s mods directory for all folders containing an 'info.json'.
   const deployedModFiles = await getDeployedRedMods(vortexApi);
+  vortexApi.log(`debug`, `Found deployed data, maybe: `, deployedModFiles);
 
   // We retrieve the deployment manifest information which will allow us to find the modId for mod files deployed through Vortex.
   const deploymentMap = await readDeploymentManifest(vortexApi);
 
-  const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
-
   // Need to handle reading it as json in any special way?
-  const listData = await fs.readFileAsync(modListPath, { encoding: `utf8` });
-  const modList = listData.mods;
+  const listData = await readREDmodManifest(vortexApi);
+  vortexApi.log(`debug`, `Found list data: `, listData);
+  const modList: REDmodEntry[] = listData.mods;
+  vortexApi.log(`debug`, `The Mod list: `, modList);
 
   // We iterate through all the mod files we found earlier when we scanned the game’s mods directory
   const newLO = deployedModFiles.reduce((accum, file) => {
-    // Check if the file name is present inside the mods.cfg file
+    // Check if the folder name is present inside the mods.json file for some entry
     const modFile = path.basename(file.filePath);
     const id = fileNameToId(modFile.toLowerCase());
-    const isInModList = modList.find((mod) => fileNameToId(mod) === id) !== undefined;
+    vortexApi.log(`debug`, `the LO id to use: `, id);
+    const redmodEntry = modList.find((mod: REDmodEntry) => {
+      const redmodID = nameToId(mod.folder.toLowerCase());
+      vortexApi.log(`debug`, `Current redmod to id: `, redmodID);
+      return redmodID === id;
+    });
+    vortexApi.log(`debug`, `A REDmod entry in the LO: `, redmodEntry);
+    const isInModList = redmodEntry !== undefined && redmodEntry.enabled;
 
     // Check to see if the file has been deployed by Vortex and retrieve its modId so we can add it to our load order entry (if we manage to find it)
     const modId = Object.keys(deploymentMap)
@@ -145,7 +166,9 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
     // Assign the load order entry’s display name - we can use the modName as displayed inside Vortex’s mods page if the game has been deployed through Vortex
     const modName = (modId !== undefined)
       ? managedMods?.[modId]?.attributes?.modName
-      : path.dirname(modFile); // Maybe???
+      : modFile; // Maybe???
+
+    const modIndex = modList.findIndex((mod: REDmodEntry) => nameToId(mod.folder.toLowerCase()) === id);
 
     // We should now have all the data we need - start populating the array.
     if (isInModList) {
@@ -156,7 +179,8 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
         name: modName,
         modId,
         data: {
-          modFile,
+          index: modIndex,
+          entry: redmodEntry,
         },
       });
     } else {
@@ -167,7 +191,8 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
         name: modName,
         modId,
         data: {
-          modFile,
+          index: modIndex,
+          entry: redmodEntry,
         },
       });
     }
@@ -177,8 +202,8 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
   // Send the deserialized load order to the load order page - Vortex will validate the array using the validation function
   // provided by the extension developer and apply it if valid, otherwise it will inform the user that validation failed
   newLO.sort((a, b) => {
-    const aId = a.data.modFile.toLowerCase();
-    const bId = b.data.modFile.toLowerCase();
+    const aId = a.data.index;
+    const bId = b.data.index;
     return modList.indexOf(aId) - modList.indexOf(bId);
   });
 
@@ -198,8 +223,17 @@ export const internalSerializeLoadOrder: VortexWrappedSerializeFunc = (
   }
 
   const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
-  return fs.writeFileAsync(modListPath, loadOrder.map((mod) =>
-    mod.data.modFile).join('\n'), { encoding: 'utf8' });
+  vortexApi.log(`debug`, `LO to write: `, loadOrder);
+  const mods: REDmodEntry[] = loadOrder.map((mod) => {
+    vortexApi.log(`debug`, `adding mod to write: `, mod);
+    const theRedEntry = mod.data.entry;
+    theRedEntry.enabled = mod.enabled;
+    return theRedEntry;
+  });
+  vortexApi.log(`debug`, `JSONifiable mods: `, mods);
+  const meowjson = JSON.stringify({ mods }, undefined, ' ');
+  vortexApi.log(`debug`, `stringy JSON being written: `, meowjson);
+  return fs.writeFileAsync(modListPath, meowjson, { encoding: 'utf8' });
 };
 
 export const internalLoadOrderer: LoadOrderer = {

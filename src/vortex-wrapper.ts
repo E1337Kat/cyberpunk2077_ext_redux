@@ -14,8 +14,6 @@ export type VortexExtensionContext = Vortex.IExtensionContext;
 export type VortexGameStoreEntry = Vortex.IGameStoreEntry;
 export type VortexProgressDelegate = Vortex.ProgressDelegate;
 
-export type VortexDiscoveryResult = Vortex.IDiscoveryResult;
-
 export type VortexNotificationType = Vortex.NotificationType;
 export type VortexNotification = Vortex.INotification;
 export type VortexNotificationAction = Vortex.INotificationAction;
