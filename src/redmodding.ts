@@ -23,19 +23,19 @@ const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
 
   if (!isRedModSupportingGamePlatform) {
-    return { name: undefined, url: genericHelpUrl, openCommand: VortexUtil.opn(genericHelpUrl) };
+    return { name: undefined, url: genericHelpUrl, openCommand: () => VortexUtil.opn(genericHelpUrl) };
   }
 
   const gameStoreData: { [id: string]: IREDmodDetails } = {
     epic: {
       name: `Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
-      openCommand: VortexUtil.opn(`com.epicgames.launcher://store/p/cyberpunk-2077`),
+      openCommand: () => VortexUtil.opn(`com.epicgames.launcher://store/p/cyberpunk-2077`),
     },
     steam: {
       name: `Steam`,
       url: `https://store.steampowered.com/app/2060310/Cyberpunk_2077_REDmod/`,
-      openCommand: VortexUtil.opn(`steam://run/2060310`),
+      openCommand: () => VortexUtil.opn(`steam://run/2060310`),
     },
     gog: {
       name: `GOG`,
@@ -47,7 +47,7 @@ const getREDmodetails = (id: string, api: VortexApi): IREDmodDetails => {
           `client`,
         );
         if (!gogPath || !gogPath.value) throw new Error(`GOG Galaxy Registry key is invalid`);
-        return api.runExecutable(gogPath.value as string, [`/gameId=1597316373`], { shell: false });
+        return api.runExecutable(path.join(gogPath.value as string, `GalaxyClient.exe`), [`/gameId=1597316373`, `/command=rungame`], { shell: true, detach: true });
       },
     },
   };
@@ -61,7 +61,6 @@ const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): P
   await promptUserInstallREDmodDLC(
     vortexApi,
     redModDetails,
-    redModDetails.openCommand().catch(() => VortexUtil.opn(redModDetails.url).catch(() => undefined)),
   );
 };
 
@@ -91,7 +90,7 @@ const prepareForModding = async (
 
   // Determine which game store this is from, so we can recommend the correct process.
   const game = await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
-  if (game?.path !== discovery.path) {
+  if (game?.gamePath !== discovery.path) {
     vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
   }
 
