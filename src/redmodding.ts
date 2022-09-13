@@ -52,6 +52,7 @@ const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): P
   await promptUserInstallREDmodDLC(
     vortexApi,
     redModDetails,
+    () => VortexUtil.opn(redModDetails.url),
   );
 };
 
