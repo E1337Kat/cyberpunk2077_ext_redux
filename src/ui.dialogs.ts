@@ -57,8 +57,8 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 export const promptUserInstallREDmodDLC = async (
   api: VortexApi,
-  redModDetails: { name: string, url: string },
-  vortexActionCallback,
+  redModDetails: { name: string, url: string, openCommand: () => Promise<void> },
+  fallback: () => Promise<void>,
 ): Promise<void> => {
   const title = `REDmod DLC missing`;
   const redmodInstallExplanation = `
@@ -76,7 +76,9 @@ export const promptUserInstallREDmodDLC = async (
     [
       {
         label: `Get REDmod`,
-        action: vortexActionCallback,
+        action: () => redModDetails.openCommand()
+          .catch(() => fallback()
+            .catch(() => undefined)),
       },
       {
         label: `Ignore`,
