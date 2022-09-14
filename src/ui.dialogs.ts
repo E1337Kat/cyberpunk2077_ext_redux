@@ -64,7 +64,7 @@ export const promptUserInstallREDmodDLC = async (
   const redmodInstallExplanation = `
   The 1.6 update for Cyberpunk 2077 included an optional DLC called REDmod. 
   This DLC allows the game to load modded content created with the REDmod toolkit.
-  Vortex has detected that the REDmod DLC is installed on your system.
+  Vortex has detected that the REDmod DLC is not installed on your system.
   You can get the DLC for free${redModDetails.name ? ` from ${redModDetails.name}` : null} using the button below.`;
 
   return api.showDialog(
