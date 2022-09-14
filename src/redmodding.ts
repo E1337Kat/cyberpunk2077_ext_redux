@@ -39,7 +39,7 @@ const getREDmodetails = (id: string): IREDmodDetails => {
     gog: {
       name: `GOG`,
       url: `https://www.gog.com/en/game/cyberpunk_2077_redmod`,
-      openCommand: (): Promise<void> => VortexUtil.opn(`goggalaxy://openGameView/1597316373`),
+      openCommand: (): Promise<void> => VortexUtil.opn(`goggalaxy://openStoreUrl/embed.gog.com/game/cyberpunk_2077_redmod`),
     },
   };
 
