@@ -134,15 +134,15 @@ export const enum ExtraArchiveLayout {
 // ArchiveXL Mods
 //
 
-export const ARCHIVE_MOD_FILE_EXTENSION = ".archive";
+export const ARCHIVE_MOD_FILE_EXTENSION = `.archive`;
 export const ARCHIVE_MOD_XL_EXTENSION = `.xl`;
 export const ARCHIVE_MOD_EXTENSIONS = [
   ARCHIVE_MOD_FILE_EXTENSION,
   ARCHIVE_MOD_XL_EXTENSION,
 ];
 
-export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize("archive/pc/mod/");
-export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize("archive/pc/patch/");
+export const ARCHIVE_MOD_CANONICAL_PREFIX = path.normalize(`archive/pc/mod/`);
+export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize(`archive/pc/patch/`);
 
 //
 // Core installers
@@ -266,7 +266,7 @@ export const enum ConfigJsonLayout {
             `,
 }
 
-export const CONFIG_JSON_MOD_EXTENSION = ".json";
+export const CONFIG_JSON_MOD_EXTENSION = `.json`;
 
 export const CONFIG_JSON_MOD_ENGINE_BASEDIR = path.join(`engine\\config\\`);
 export const CONFIG_JSON_MOD_BASEDIR = path.join(`r6\\config\\`);
@@ -302,11 +302,11 @@ export const CONFIG_JSON_MOD_PROTECTED_FILENAMES = CONFIG_JSON_MOD_PROTECTED_FIL
 
 // INI (these are generally non-overriding)
 
-export const CONFIG_INI_MOD_BASEDIR = path.join("engine", "config", "platform", "pc");
-export const CONFIG_INI_MOD_EXTENSION = ".ini";
+export const CONFIG_INI_MOD_BASEDIR = path.join(`engine`, `config`, `platform`, `pc`);
+export const CONFIG_INI_MOD_EXTENSION = `.ini`;
 
-export const CONFIG_RESHADE_MOD_BASEDIR = path.join("bin", "x64");
-export const CONFIG_RESHADE_MOD_SHADER_DIRNAME = "reshade-shaders";
+export const CONFIG_RESHADE_MOD_BASEDIR = path.join(`bin`, `x64`);
+export const CONFIG_RESHADE_MOD_SHADER_DIRNAME = `reshade-shaders`;
 export const CONFIG_RESHADE_MOD_SHADER_BASEDIR = path.join(
   CONFIG_RESHADE_MOD_BASEDIR,
   CONFIG_RESHADE_MOD_SHADER_DIRNAME,
@@ -323,10 +323,10 @@ export const enum AsiLayout {
 export const enum CetLayout {
   Canon = `.\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\[modname]\\init.lua + [any files + subdirs]`,
 }
-export const CET_GLOBAL_INI = path.normalize("bin/x64/global.ini");
-export const CET_MOD_CANONICAL_INIT_FILE = "init.lua";
+export const CET_GLOBAL_INI = path.normalize(`bin/x64/global.ini`);
+export const CET_MOD_CANONICAL_INIT_FILE = `init.lua`;
 export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
-  "bin/x64/plugins/cyber_engine_tweaks/mods",
+  `bin/x64/plugins/cyber_engine_tweaks/mods`,
 );
 
 //
@@ -580,8 +580,8 @@ export const enum RedscriptLayout {
   Toplevel = `.\\*.reds + [any files + subdirs]`,
 }
 
-export const REDS_MOD_CANONICAL_EXTENSION = ".reds";
-export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize("r6/scripts");
+export const REDS_MOD_CANONICAL_EXTENSION = `.reds`;
+export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize(`r6/scripts`);
 
 //
 // Red4Ext
@@ -594,8 +594,8 @@ export const enum Red4ExtLayout {
   Toplevel = `.\\[*.dll, any files or subdirs]`,
 }
 
-export const RED4EXT_MOD_CANONICAL_EXTENSION = ".dll";
-export const RED4EXT_MOD_CANONICAL_BASEDIR = path.normalize("red4ext/plugins/");
+export const RED4EXT_MOD_CANONICAL_EXTENSION = `.dll`;
+export const RED4EXT_MOD_CANONICAL_BASEDIR = path.normalize(`red4ext/plugins/`);
 
 export const RED4EXT_CORE_RED4EXT_DLL = path.join(`red4ext\\RED4ext.dll`);
 
@@ -623,21 +623,21 @@ export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
 
 // ASI
 
-export const ASI_MOD_EXT = ".asi";
-export const ASI_MOD_PATH = path.join("bin", "x64", "plugins");
+export const ASI_MOD_EXT = `.asi`;
+export const ASI_MOD_PATH = path.join(`bin`, `x64`, `plugins`);
 
 // CyberCAT
 
-export const CYBERCAT_CORE_BASEDIR = path.join("CyberCAT");
+export const CYBERCAT_CORE_BASEDIR = path.join(`CyberCAT`);
 export const CYBERCAT_CORE_REQUIRED_FILES = [
-  path.join("CP2077SaveEditor.exe"),
-  path.join("D3DCompiler_47_cor3.dll"),
-  path.join("e_sqlite3.dll"),
-  path.join("kraken.dll"),
-  path.join("PenImc_cor3.dll"),
-  path.join("PresentationNative_cor3.dll"),
-  path.join("vcruntime140_cor3.dll"),
-  path.join("wpfgfx_cor3.dll"),
+  path.join(`CP2077SaveEditor.exe`),
+  path.join(`D3DCompiler_47_cor3.dll`),
+  path.join(`e_sqlite3.dll`),
+  path.join(`kraken.dll`),
+  path.join(`PenImc_cor3.dll`),
+  path.join(`PresentationNative_cor3.dll`),
+  path.join(`vcruntime140_cor3.dll`),
+  path.join(`wpfgfx_cor3.dll`),
 ];
 
 export const enum CyberCatLayout {
@@ -937,7 +937,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
 // Layouts to instructions
 
 export const enum NoLayout {
-  Optional = "it's a valid result that nothing was found",
+  Optional = `it's a valid result that nothing was found`,
 }
 
 export type Layout =
@@ -962,12 +962,12 @@ export type Layout =
   | NoLayout;
 
 export const enum NoInstructions {
-  NoMatch = "attempted layout didn't match",
+  NoMatch = `attempted layout didn't match`,
 }
 
 // Should really refactor these into NoInstructions
 export const enum InvalidLayout {
-  Conflict = "can't determine what the intended layout is, conflicting files",
+  Conflict = `can't determine what the intended layout is, conflicting files`,
 }
 
 export const enum NotAllowed {

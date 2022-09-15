@@ -35,8 +35,7 @@ export interface FileMove extends File {
 
 export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
   T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
-    fs.readFile(pathOnDisk, `utf8`),
-  );
+    fs.readFile(pathOnDisk, `utf8`));
 
 export const fileMove = (to: string, file: File): FileMove => ({
   relativePath: path.join(to, path.basename(file.relativePath)),
@@ -94,7 +93,7 @@ export const instructionsForSourceToDestPairs = (
 
   const instructions: VortexInstruction[] = justTheRegularFiles.map(
     ([src, dst]): VortexInstruction => ({
-      type: "copy",
+      type: `copy`,
       source: src,
       destination: dst,
     }),
@@ -118,7 +117,6 @@ export const instructionsToGenerateDirs = (
     })),
   );
 
-
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
   modName: string,
@@ -127,7 +125,7 @@ export const useFirstMatchingLayoutForInstructions = (
 ): MaybeInstructions =>
   possibleLayouts.reduce(
     (found, tryLayout) =>
-      found === NoInstructions.NoMatch ? tryLayout(api, modName, fileTree) : found,
+      (found === NoInstructions.NoMatch ? tryLayout(api, modName, fileTree) : found),
     NoInstructions.NoMatch,
   );
 
