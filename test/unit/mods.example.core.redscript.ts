@@ -1,52 +1,63 @@
 import path from "path";
 import { InstallerType } from "../../src/installers.types";
+import { InstallChoices } from "../../src/ui.dialogs";
 import {
   ExampleSucceedingMod,
   ExamplesForType,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
+  copiedToSamePath,
+  expectedUserCancelMessageForDeprecated,
+  CORE_REDSCRIPT_PREFIXES,
+  DEPRECATED_CORE_REDSCRIPT_PREFIXES,
 } from "./utils.helper";
 
-const CoreRedscriptInstall = new Map<string, ExampleSucceedingMod>(
+const CoreRedscriptInstallSuccesses = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    coreRedscriptInstall: {
+    validCoreRedscriptFileLayout: {
       expectedInstallerType: InstallerType.CoreRedscript,
       inFiles: [
-        path.join(`engine/`),
-        path.join(`engine/config/`),
-        path.join(`engine/config/base/`),
-        path.join(`engine/config/base/scripts.ini`),
-        path.join(`engine/tools/`),
-        path.join(`engine/tools/scc.exe`),
-        path.join(`r6/`),
-        path.join(`r6/scripts/`),
-        path.join(`r6/scripts/redscript.toml`),
-      ].map(path.normalize),
+        ...CORE_REDSCRIPT_PREFIXES,
+        path.normalize(`engine\\config\\base\\scripts.ini`),
+        path.normalize(`engine\\tools\\scc.exe`),
+        path.normalize(`r6\\config\\cybercmd\\scc.toml`),
+      ],
       outInstructions: [
-        {
-          type: `copy`,
-          source: path.join(`engine/config/base/scripts.ini`),
-          destination: path.join(`engine/config/base/scripts.ini`),
-        },
-        {
-          type: `copy`,
-          source: path.join(`engine/tools/scc.exe`),
-          destination: path.join(`engine/tools/scc.exe`),
-        },
-        {
-          type: `copy`,
-          source: path.join(`r6/scripts/redscript.toml`),
-          destination: path.join(`r6/scripts/redscript.toml`),
-        },
+        copiedToSamePath(`engine\\config\\base\\scripts.ini`),
+        copiedToSamePath(`engine\\tools\\scc.exe`),
+        copiedToSamePath(`r6\\config\\cybercmd\\scc.toml`),
       ],
     },
   }),
 );
 
+const CoreRedscriptDeprecatedPromptables = new Map<string, ExamplePromptInstallableMod>(
+  Object.entries({
+    deprecatedCoreRedscriptFileLayout: {
+      expectedInstallerType: InstallerType.CoreRedscript,
+      inFiles: [
+        ...DEPRECATED_CORE_REDSCRIPT_PREFIXES,
+        path.normalize(`engine\\config\\base\\scripts.ini`),
+        path.normalize(`engine\\tools\\scc.exe`),
+        path.normalize(`r6\\scripts\\redscript.toml`),
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        copiedToSamePath(`engine\\config\\base\\scripts.ini`),
+        copiedToSamePath(`engine\\tools\\scc.exe`),
+        copiedToSamePath(`r6\\scripts\\redscript.toml`),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: expectedUserCancelMessageForDeprecated(InstallerType.CoreRedscript),
+    },
+  }),
+);
+
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: CoreRedscriptInstall,
+  AllExpectedSuccesses: CoreRedscriptInstallSuccesses,
+  // No point to add failures, we test for all required files
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
-  AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
+  AllExpectedPromptInstalls: CoreRedscriptDeprecatedPromptables,
 };
 
 export default examples;
