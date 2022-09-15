@@ -149,6 +149,37 @@ export const ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX = path.normalize(`archive/pc/p
 //
 
 //
+// Core Redscript
+//
+
+export const enum CoreRedscriptLayout {
+  OnlyValid = `
+              - .\\engine\\config\\base\\scripts.ini
+              - .\\engine\\tools\\scc.exe
+              - .\\r6\\config\\cybercmd\\scc.toml
+              `,
+  Deprecated = `
+              - .\\engine\\config\\base\\scripts.ini
+              - .\\engine\\tools\\scc.exe
+              - .\\r6\\scripts\\redscript.toml
+              `,
+}
+
+export const REDSCRIPT_CORE_FILES = [
+  path.normalize(`engine\\config\\base\\scripts.ini`),
+  path.normalize(`engine\\tools\\scc.exe`),
+  path.normalize(`r6\\config\\cybercmd\\scc.toml`),
+];
+export const REDSCRIPT_CORE_REQUIRED_FILES = REDSCRIPT_CORE_FILES;
+
+export const DEPRECATED_REDSCRIPT_CORE_FILES = [
+  path.normalize(`engine\\config\\base\\scripts.ini`),
+  path.normalize(`engine\\tools\\scc.exe`),
+  path.normalize(`r6\\scripts\\redscript.toml`),
+];
+export const DEPRECATED_REDSCRIPT_CORE_REQUIRED_FILES = DEPRECATED_REDSCRIPT_CORE_FILES;
+
+//
 // Core Input_Loader
 
 export const enum CoreInputLoaderLayout {
@@ -737,6 +768,15 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.CoreRedscript,
+    `
+    \`${CoreRedscriptLayout.OnlyValid}\`
+    This is the only possible valid layout for current ${InstallerType.CoreRedscript} that I know of.
+    This older version can still be installed, but should be updated:
+    \`${CoreRedscriptLayout.Deprecated}\`
+    `,
+  ],
+  [
     InstallerType.CoreTweakXL,
     `
     \`${CoreTweakXLLayout.OnlyValid}\`
@@ -944,6 +984,7 @@ export type Layout =
   | CoreAmmLayout
   | CoreCyberScriptLayout
   | CoreRed4extLayout
+  | CoreRedscriptLayout
   | ConfigJsonLayout
   | ConfigXmlLayout
   | AsiLayout

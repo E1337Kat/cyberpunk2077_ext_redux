@@ -59,7 +59,7 @@ import {
 } from "./installer.core.cyberscript";
 import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
 import { installREDmod, testForREDmod } from "./installer.redmod";
-import { testForRedscriptCore, installRedscriptCore } from "./installer.core.redscript";
+import { installCoreRedscript, testForCoreRedscript } from "./installer.core.redscript";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -131,8 +131,8 @@ const installers: Installer[] = [
   {
     type: InstallerType.CoreRedscript,
     id: InstallerType.CoreRedscript,
-    testSupported: testForRedscriptCore,
-    install: installRedscriptCore,
+    testSupported: testForCoreRedscript,
+    install: installCoreRedscript,
   },
   {
     type: InstallerType.CoreRed4ext,
