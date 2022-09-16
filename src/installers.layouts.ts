@@ -901,6 +901,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.REDmod,
+    `
+    - \`${REDmodLayout.Canon}\` (Canonical)
+    - \`${REDmodLayout.Basedir}\` (Can be fixed to canonical)
+    | - (No other files allowed)
+    `,
+  ],
+  [
     InstallerType.Archive,
     `
     - \`${ArchiveLayout.XL}\` (Canonical, with ArchiveXL)
