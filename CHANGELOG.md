@@ -1,3 +1,17 @@
+# Cyberpunk2077 Vortex Support v0.8.2 "It takes two to tango, TAKEMURA"
+
+FIXES Core Redscript to support v0.5.7.
+
+cybercmd, which is required to run Redscript v0.5.7 when `-modded` is
+already supported, so you can just install that normally.
+
+# Cyberpunk2077 Vortex Support v0.8.1 "TAKEMURA... point one, I guess?"
+
+FIXES Core Input Loader to support the new 1.6-compatible version.
+
+(It also adds the ability to install REDmods but that's of limited utility until full REDmod support that's coming in v0.9 "Rogue".)
+
+
 # Cyberpunk2077 Vortex Support v0.8.0 "TAKEMURA"
 
 Beware mean reds. Gotta keep moving, gotta stay crystal, never lose focus - 'specially when you think you're gold. You might've put together the sharpest crew since the 20's, but you only gotta be unlucky once. Make exit, don't stand still, gear up, chrome up, change your face if you gotta. They're gonna come for you and the only way out is up.
