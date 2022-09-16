@@ -2,6 +2,8 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { Console } from "console";
+import * as RA from "fp-ts/ReadonlyArray";
+import { pipe } from "fp-ts/lib/function";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import { InstallerType } from "../../src/installers.types";
 import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
@@ -15,6 +17,8 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ASI_MOD_PATH,
   REDMOD_CANONICAL_BASEDIR,
+  REDSCRIPT_CORE_FILES,
+  DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 
@@ -168,6 +172,9 @@ export const createdFile = (contents: string, ...dest: string[]): VortexInstruct
 export const expectedUserCancelMessageFor = (installerType: InstallerType): string =>
   `${installerType}: user chose to cancel installation`;
 
+export const expectedUserCancelMessageForDeprecated = (installerType: InstallerType): string =>
+  `${installerType}: user chose to cancel installing deprecated version`;
+
 export const expectedUserCancelMessageForHittingFallback = expectedUserCancelMessageFor(
   InstallerType.Fallback,
 );
@@ -180,6 +187,20 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 //
 // Path helpers etc.
 //
+
+export const CORE_REDSCRIPT_PREFIXES =
+  pipe(
+    REDSCRIPT_CORE_FILES,
+    RA.map(pathHierarchyFor),
+    RA.flatten,
+  );
+
+export const DEPRECATED_CORE_REDSCRIPT_PREFIXES =
+  pipe(
+    DEPRECATED_REDSCRIPT_CORE_FILES,
+    RA.map(pathHierarchyFor),
+    RA.flatten,
+  );
 
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
   `bin/x64/plugins/cyber_engine_tweaks/scripts/json`,

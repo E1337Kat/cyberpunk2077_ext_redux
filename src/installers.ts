@@ -25,8 +25,6 @@ import { KNOWN_TOPLEVEL_DIRS, NoLayout } from "./installers.layouts";
 import {
   testForCetCore,
   installCetCore,
-  testForRedscriptCore,
-  installRedscriptCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
@@ -61,6 +59,7 @@ import {
 } from "./installer.core.cyberscript";
 import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
 import { installREDmod, testForREDmod } from "./installer.redmod";
+import { installCoreRedscript, testForCoreRedscript } from "./installer.core.redscript";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -132,8 +131,8 @@ const installers: Installer[] = [
   {
     type: InstallerType.CoreRedscript,
     id: InstallerType.CoreRedscript,
-    testSupported: testForRedscriptCore,
-    install: installRedscriptCore,
+    testSupported: testForCoreRedscript,
+    install: installCoreRedscript,
   },
   {
     type: InstallerType.CoreRed4ext,

@@ -271,8 +271,8 @@ const CoreArchiveXLInstall = new Map<string, ExampleSucceedingMod>(
 );
 
 const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
-  string,
-  ExampleFailingMod
+string,
+ExampleFailingMod
 >(
   Object.entries({
     coreArchiveXLWithExtraFiles: {
@@ -573,25 +573,25 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
     },
     archiveWithArchivesInRandomFolder: {
       expectedInstallerType: InstallerType.Archive,
-      inFiles: ["fold1/", "fold1/first.archive", "fold1/second.archive"].map(
+      inFiles: [`fold1/`, `fold1/first.archive`, `fold1/second.archive`].map(
         path.normalize,
       ),
       outInstructions: [
         {
           type: `copy`,
-          source: path.normalize("fold1/first.archive"),
+          source: path.normalize(`fold1/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/second.archive"),
+          source: path.normalize(`fold1/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
     },
     archiveWithArchivesTopLevelAndFolder: {
       expectedInstallerType: InstallerType.Archive,
-      inFiles: [`first.archive`, "fold1/", "fold1/second.archive"].map(path.normalize),
+      inFiles: [`first.archive`, `fold1/`, `fold1/second.archive`].map(path.normalize),
       outInstructions: [
         {
           type: `copy`,
@@ -600,7 +600,7 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/second.archive"),
+          source: path.normalize(`fold1/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
@@ -608,37 +608,37 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
     archiveWithArchivesInRandomFolderPlusRandomFiles: {
       expectedInstallerType: InstallerType.Archive,
       inFiles: [
-        "fold1/",
-        "fold1/first.archive",
-        "fold1/foobar.txt",
-        "fold1/more",
-        "fold1/second.archive",
-        "fold1/thisisenough.md",
+        `fold1/`,
+        `fold1/first.archive`,
+        `fold1/foobar.txt`,
+        `fold1/more`,
+        `fold1/second.archive`,
+        `fold1/thisisenough.md`,
       ].map(path.normalize),
       outInstructions: [
         {
           type: `copy`,
-          source: path.normalize("fold1/first.archive"),
+          source: path.normalize(`fold1/first.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/first.archive`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/foobar.txt"),
+          source: path.normalize(`fold1/foobar.txt`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/foobar.txt`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/more"),
+          source: path.normalize(`fold1/more`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/more`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/second.archive"),
+          source: path.normalize(`fold1/second.archive`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/thisisenough.md"),
+          source: path.normalize(`fold1/thisisenough.md`),
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/thisisenough.md`),
         },
       ],
@@ -833,15 +833,15 @@ const ValidExtraArchivesWithType = new Map<string, ExampleSucceedingMod>(
 );
 
 const iniFsMock: MockFsDirItems = mockedFsLayout({
-  "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-  "serious.ini": "[super serious]\nWings=false",
+  "myawesomeconfig.ini": `[Secret setting]\nFrogs=Purple`,
+  "serious.ini": `[super serious]\nWings=false`,
   "superreshade.ini":
-    "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+    `KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1`,
   fold1: {
-    "myawesomeconfig.ini": "[Secret setting]\nFrogs=Purple",
-    "serious.ini": "[super serious]\nWings=false",
+    "myawesomeconfig.ini": `[Secret setting]\nFrogs=Purple`,
+    "serious.ini": `[super serious]\nWings=false`,
     "superreshade.ini":
-      "KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1",
+      `KeyPCGI_One@RadiantGI.fx=46,0,0,0\nPreprocessorDefinitions=SMOOTHNORMALS=1`,
     "reshade-shaders": {
       Shaders: { "fancy.fx": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
       Textures: { "lut.png": Buffer.from([8, 6, 7, 5, 3, 0, 9]) },
@@ -898,12 +898,12 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     },
     iniWithSingleIniInRandomFolder: {
       expectedInstallerType: InstallerType.INI,
-      inFiles: ["fold1/", "fold1/myawesomeconfig.ini"].map(path.normalize),
+      inFiles: [`fold1/`, `fold1/myawesomeconfig.ini`].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
         {
           type: `copy`,
-          source: path.normalize("fold1/myawesomeconfig.ini"),
+          source: path.normalize(`fold1/myawesomeconfig.ini`),
           destination: path.normalize(`${CONFIG_INI_MOD_BASEDIR}/myawesomeconfig.ini`),
         },
       ],
@@ -912,11 +912,11 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
       expectedInstallerType: InstallerType.INI,
       inFiles: [
         `superreshade.ini`,
-        "reshade-shaders/",
-        "reshade-shaders/Shaders/",
-        "reshade-shaders/Shaders/fancy.fx",
-        "reshade-shaders/Textures/",
-        "reshade-shaders/Textures/lut.png",
+        `reshade-shaders/`,
+        `reshade-shaders/Shaders/`,
+        `reshade-shaders/Shaders/fancy.fx`,
+        `reshade-shaders/Textures/`,
+        `reshade-shaders/Textures/lut.png`,
       ].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
@@ -927,14 +927,14 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
         },
         {
           type: `copy`,
-          source: path.normalize("reshade-shaders/Shaders/fancy.fx"),
+          source: path.normalize(`reshade-shaders/Shaders/fancy.fx`),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
           ),
         },
         {
           type: `copy`,
-          source: path.normalize("reshade-shaders/Textures/lut.png"),
+          source: path.normalize(`reshade-shaders/Textures/lut.png`),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Textures/lut.png`,
           ),
@@ -944,23 +944,23 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
     iniWithReshadeIniAndShadersInAFolder: {
       expectedInstallerType: InstallerType.INI,
       inFiles: [
-        "fold1/superreshade.ini",
-        "fold1/reshade-shaders/",
-        "fold1/reshade-shaders/Shaders/",
-        "fold1/reshade-shaders/Shaders/fancy.fx",
-        "fold1/reshade-shaders/Textures/",
-        "fold1/reshade-shaders/Textures/lut.png",
+        `fold1/superreshade.ini`,
+        `fold1/reshade-shaders/`,
+        `fold1/reshade-shaders/Shaders/`,
+        `fold1/reshade-shaders/Shaders/fancy.fx`,
+        `fold1/reshade-shaders/Textures/`,
+        `fold1/reshade-shaders/Textures/lut.png`,
       ].map(path.normalize),
       fsMocked: iniFsMock,
       outInstructions: [
         {
           type: `copy`,
-          source: path.normalize("fold1/superreshade.ini"),
+          source: path.normalize(`fold1/superreshade.ini`),
           destination: path.normalize(`${CONFIG_RESHADE_MOD_BASEDIR}/superreshade.ini`),
         },
         {
           type: `copy`,
-          source: path.normalize("fold1/reshade-shaders/Shaders/fancy.fx"),
+          source: path.normalize(`fold1/reshade-shaders/Shaders/fancy.fx`),
           destination: path.normalize(
             `${CONFIG_RESHADE_MOD_SHADER_BASEDIR}/Shaders/fancy.fx`,
           ),
@@ -978,8 +978,8 @@ const IniMod = new Map<string, ExampleSucceedingMod>(
 );
 
 const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   Object.entries({
     invalidModContainingJustAnExe: {
@@ -998,13 +998,13 @@ const FallbackForNonMatchedAndInvalidShouldPromptForInstall = new Map<
     },
     invalidModContainingRandomFiles: {
       expectedInstallerType: InstallerType.Fallback,
-      inFiles: ["Categorized AIO Command List.xlsx", `readme.md`],
+      inFiles: [`Categorized AIO Command List.xlsx`, `readme.md`],
       proceedLabel: InstallChoices.Proceed,
       proceedOutInstructions: [
         {
           type: `copy`,
-          source: path.normalize("Categorized AIO Command List.xlsx"),
-          destination: path.normalize("Categorized AIO Command List.xlsx"),
+          source: path.normalize(`Categorized AIO Command List.xlsx`),
+          destination: path.normalize(`Categorized AIO Command List.xlsx`),
         },
         {
           type: `copy`,
@@ -1154,6 +1154,6 @@ export const AllExpectedDirectFailures = new Map<string, ExampleFailingModCatego
 ]);
 
 export const AllExpectedInstallPromptables = new Map<
-  string,
-  ExamplePromptInstallableModCategory
+string,
+ExamplePromptInstallableModCategory
 >([...NotYetMovedPromptables.entries(), ...AllModExamplesByKind.prompts.entries()]);

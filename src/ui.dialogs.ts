@@ -183,16 +183,20 @@ export const promptUserOnUnresolvableLayout = async (
   );
 };
 
-export const promptUserToInstallOrCancelOnDepecatedRed4ext = async (
+export const promptUserToInstallOrCancelOnDeprecatedCoreMod = async (
   api: VortexApi,
+  coreModType: InstallerType,
   files: string[],
 ): Promise<InstallDecision> => {
-  api.log(`info`, `Deprecated RED4ext found, prompting to proceed/cancel`, files);
+  // -.-
+  const coreModName = coreModType.replace(/installer.*$/i, ``);
 
-  const deprecationTitle = `This looks like an old version of RED4Ext!`;
+  api.log(`info`, `Deprecated ${coreModName} found, prompting to proceed/cancel`, files);
+
+  const deprecationTitle = `This looks like an old version of ${coreModName}!`;
 
   const deprecationExplanation = `
-    It looks like you are attempting to install an older version of RED4Ext.
+    It looks like you are attempting to install an older version of ${coreModName}.
     I can still install this version, but please check the mod
     page for the most recent version and update to that.
     `;

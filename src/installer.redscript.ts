@@ -68,7 +68,7 @@ export const redscriptBasedirLayout = (
   const hasBasedirReds = detectRedscriptBasedirLayout(fileTree);
 
   if (!hasBasedirReds) {
-    api.log("debug", "No basedir Redscript files found");
+    api.log(`debug`, `No basedir Redscript files found`);
     return NoInstructions.NoMatch;
   }
 

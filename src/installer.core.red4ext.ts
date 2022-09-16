@@ -31,7 +31,7 @@ import {
   VortexProgressDelegate,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths, instructionsToGenerateDirs, useFirstMatchingLayoutForInstructions } from './installers.shared';
-import { promptUserToInstallOrCancelOnDepecatedRed4ext, showWarningForUnrecoverableStructureError } from './ui.dialogs';
+import { promptUserToInstallOrCancelOnDeprecatedCoreMod, showWarningForUnrecoverableStructureError } from './ui.dialogs';
 
 // Recognizers
 
@@ -125,8 +125,9 @@ const warnUserIfDeprecatedRed4ext = async (
     filesUnder(FILETREE_ROOT, Glob.Any, newTree).includes(red4extPath));
 
   if (containsDeprecatedRed4ExtPaths) {
-    return promptUserToInstallOrCancelOnDepecatedRed4ext(
+    return promptUserToInstallOrCancelOnDeprecatedCoreMod(
       api,
+      InstallerType.CoreRed4ext,
       filesUnder(FILETREE_ROOT, Glob.Any, newTree),
     );
   }
