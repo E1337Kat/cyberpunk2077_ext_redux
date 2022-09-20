@@ -195,16 +195,16 @@ const installers: Installer[] = [
     install: installAsiMod,
   },
   {
-    type: InstallerType.REDmod,
-    id: InstallerType.REDmod,
-    testSupported: testForREDmod,
-    install: installREDmod,
-  },
-  {
     type: InstallerType.MultiType,
     id: InstallerType.MultiType,
     testSupported: testForMultiTypeMod,
     install: installMultiTypeMod,
+  },
+  {
+    type: InstallerType.REDmod,
+    id: InstallerType.REDmod,
+    testSupported: testForREDmod,
+    install: installREDmod,
   },
   {
     type: InstallerType.AMM,
