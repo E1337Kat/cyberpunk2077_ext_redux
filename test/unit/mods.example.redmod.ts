@@ -29,6 +29,29 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
     },
   ],
   [
+    `redmodBasicCanonicalWithMultipleMods`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      inFiles: [
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/info.json`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/archives/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/archives/boring_stuff.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        copiedToSamePath(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/info.json`),
+        copiedToSamePath(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber2/archives/boring_stuff.archive`),
+      ],
+    },
+  ],
+  [
     `redmodBasicBasedir`,
     {
       expectedInstallerType: InstallerType.REDmod,
@@ -46,6 +69,40 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         movedFromTo(
           path.join(`myRedMod/archives/cool_stuff.archive`),
           path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
+      ],
+    },
+  ],
+  [
+    `redmodBasicBasedir with multiple mods`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      inFiles: [
+        path.join(`myRedMod/`),
+        path.join(`myRedMod/info.json`),
+        path.join(`myRedMod/archives/`),
+        path.join(`myRedMod/archives/cool_stuff.archive`),
+        path.join(`myRedModNumber4/`),
+        path.join(`myRedModNumber4/info.json`),
+        path.join(`myRedModNumber4/archives/`),
+        path.join(`myRedModNumber4/archives/4d.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`myRedMod/info.json`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
+        ),
+        movedFromTo(
+          path.join(`myRedMod/archives/cool_stuff.archive`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
+        movedFromTo(
+          path.join(`myRedModNumber4/info.json`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber4/info.json`),
+        ),
+        movedFromTo(
+          path.join(`myRedModNumber4/archives/4d.archive`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModNumber4/archives/4d.archive`),
         ),
       ],
     },
