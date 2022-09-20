@@ -81,7 +81,7 @@ export const moveFromTo =
 // Drop any folders and duplicates from the file list,
 // and then create the instructions.
 export const instructionsForSourceToDestPairs = (
-  srcAndDestPairs: string[][],
+  srcAndDestPairs: readonly string[][],
 ): VortexInstruction[] => {
   const justTheRegularFiles = srcAndDestPairs.filter(
     ([src, _]) => !src.endsWith(path.sep),

@@ -33,6 +33,10 @@ import { VortexApi, VortexInstruction } from "./vortex-wrapper";
  * | | |-📁 platform
  * | | | |-📁 pc
  * | | | | |-📄 *.ini
+ * |-📁 mods
+ * | |-📁 SomeMod
+ * | | |-📄 info.json
+ * | | | |- Whatever structure the mod wants
  * |-📁 r6
  * | |-📁 config
  * | | |-📄 bumperSettings.json
@@ -644,15 +648,20 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
+//
 // REDmod
+//
 
 export const enum REDmodLayout {
-  Canon = `.\\[modname]\\info.json + [any files + subdirs]`,
+  Canon = `.\\mods\\[modname]\\info.json + [any files + subdirs]`,
+  Basedir = `.\\[modname]\\info.json + [any files + subdirs]`,
 }
 export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
 export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
 
+//
 // ASI
+//
 
 export const ASI_MOD_EXT = `.asi`;
 export const ASI_MOD_PATH = path.join(`bin`, `x64`, `plugins`);
@@ -892,6 +901,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     | - \`${ArchiveLayout.Canon}\`
     | - \`${ArchiveLayout.Heritage}\`
     - \`${Red4ExtLayout.Toplevel}\` (Can be fixed to canonical)
+    | - (No other files allowed)
+    `,
+  ],
+  [
+    InstallerType.REDmod,
+    `
+    - \`${REDmodLayout.Canon}\` (Canonical)
+    - \`${REDmodLayout.Basedir}\` (Can be fixed to canonical)
     | - (No other files allowed)
     `,
   ],

@@ -1,6 +1,13 @@
 import path from "path";
+import { map, flatten } from "fp-ts/ReadonlyArray";
+import { pipe } from "fp-ts/lib/function";
 import {
-  FileTree, findDirectSubdirsWithSome, filesUnder, Glob, FILETREE_ROOT, sourcePaths,
+  FileTree,
+  findDirectSubdirsWithSome,
+  filesUnder,
+  Glob,
+  FILETREE_ROOT,
+  sourcePaths,
 } from "./filetree";
 import {
   REDMOD_CANONICAL_INFO_FILE,
@@ -12,7 +19,12 @@ import {
   NoLayout,
   REDMOD_CANONICAL_BASEDIR,
 } from "./installers.layouts";
-import { instructionsForSourceToDestPairs, moveFromTo, useFirstMatchingLayoutForInstructions } from "./installers.shared";
+import {
+  instructionsForSameSourceAndDestPaths,
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+  useFirstMatchingLayoutForInstructions,
+} from "./installers.shared";
 import {
   VortexApi,
   VortexWrappedTestSupportedFunc,
@@ -29,108 +41,161 @@ import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 // REDmod type mods are detected by:
 //
 // Canonical:
-//  - .\MODNAME\info.json
+//  - .\mods\MODNAME\info.json
 //
 // Fixable: no
 
 const matchREDmodInfoJson = (f: string): boolean =>
   path.basename(f) === REDMOD_CANONICAL_INFO_FILE;
 
-const findCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
+const findBasedirREDmodDirs = (fileTree: FileTree): string[] =>
   findDirectSubdirsWithSome(FILETREE_ROOT, matchREDmodInfoJson, fileTree);
+
+const findCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
+  findDirectSubdirsWithSome(REDMOD_CANONICAL_BASEDIR, matchREDmodInfoJson, fileTree);
+
+export const detectBasedirREDmodLayout = (fileTree: FileTree): boolean =>
+  findBasedirREDmodDirs(fileTree).length > 0;
 
 export const detectCanonREDmodLayout = (fileTree: FileTree): boolean =>
   findCanonicalREDmodDirs(fileTree).length > 0;
 
-export const testForREDmod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  _files: string[],
-  fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  const hasREDmodFilesInANamedModDir = detectCanonREDmodLayout(fileTree);
+export const detectREDmodLayout = (fileTree: FileTree): boolean =>
+  detectCanonREDmodLayout(fileTree) || detectBasedirREDmodLayout(fileTree);
 
-  if (!hasREDmodFilesInANamedModDir) {
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
+//
+// Layouts
+//
 
-  log(`info`, `Matching REDmod installer: ${hasREDmodFilesInANamedModDir}`);
-
-  return Promise.resolve({
-    supported: hasREDmodFilesInANamedModDir,
-    requiredFiles: [],
-  });
-};
-
-export const canonREDmodLayout = (
+export const basedirREDmodLayout = (
   api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const toplevelSubdirsWithFiles = findCanonicalREDmodDirs(fileTree);
+  const hasBasedirREDmods = detectBasedirREDmodLayout(fileTree);
 
-  if (toplevelSubdirsWithFiles.length < 1) {
-    api.log(`debug`, `No canonical REDmod files found.`);
+  if (!hasBasedirREDmods) {
     return NoInstructions.NoMatch;
   }
 
-  if (toplevelSubdirsWithFiles.length > 1) {
+  const allBasedirREDmodDirs = findBasedirREDmodDirs(fileTree);
+
+  if (allBasedirREDmodDirs.length > 1) {
     return InvalidLayout.Conflict;
   }
 
-  if (toplevelSubdirsWithFiles.length < 1) {
-    api.log(`debug`, `No canonical REDmod files found.`);
-    return NoInstructions.NoMatch;
-  }
+  const allBasedirREDmodFiles =
+    pipe(
+      allBasedirREDmodDirs,
+      map((namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree)),
+      flatten,
+    );
 
-  const allToBasedirWithSubdirAsModname: string[][] = toplevelSubdirsWithFiles.flatMap(
-    (dir) =>
-      filesUnder(dir, Glob.Any, fileTree).map(
-        moveFromTo(FILETREE_ROOT, REDMOD_CANONICAL_BASEDIR),
-      ),
-  );
+  const allToBasedirWithSubdirAsModname =
+    pipe(
+      allBasedirREDmodFiles,
+      map(moveFromTo(FILETREE_ROOT, REDMOD_CANONICAL_BASEDIR)),
+    );
+
+  const allBasedirInstructions =
+    instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname);
 
   return {
-    kind: REDmodLayout.Canon,
-    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+    kind: REDmodLayout.Basedir,
+    instructions: allBasedirInstructions,
   };
 };
 
-export const canonRedmodInstructions = async (
+export const canonREDmodLayout = (
+  api: VortexApi,
+  modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const hasCanonREDmods = detectCanonREDmodLayout(fileTree);
+
+  if (!hasCanonREDmods) {
+    return NoInstructions.NoMatch;
+  }
+
+  const allCanonAndSubdirFiles =
+    filesUnder(REDMOD_CANONICAL_BASEDIR, Glob.Any, fileTree);
+
+  const allCanonInstructions =
+    instructionsForSameSourceAndDestPaths(allCanonAndSubdirFiles);
+
+  return {
+    kind: REDmodLayout.Canon,
+    instructions: allCanonInstructions,
+  };
+};
+
+//
+// Helpers
+//
+
+export const redmodInstructions = async (
   api: VortexApi,
   fileTree: FileTree,
 ): Promise<Instructions> => {
   const allPossibleRedmodLayouts = [
+    basedirREDmodLayout,
     canonREDmodLayout,
   ];
+
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
     api,
     undefined,
     fileTree,
     allPossibleRedmodLayouts,
   );
+
   if (
     selectedInstructions === NoInstructions.NoMatch ||
     selectedInstructions === InvalidLayout.Conflict
   ) {
     //
     const errorMessage = `Didn't Find Expected REDmod Installation!`;
+
     api.log(
       `error`,
       `${InstallerType.REDmod}: ${errorMessage}`,
       sourcePaths(fileTree),
     );
+
     showWarningForUnrecoverableStructureError(
       api,
       InstallerType.REDmod,
       errorMessage,
       sourcePaths(fileTree),
     );
+
     return ({ kind: NoLayout.Optional, instructions: [] });
   }
 
   return selectedInstructions;
 };
+
+//
+// Vortex
+//
+
+//
+// testSupported
+//
+
+export const testForREDmod: VortexWrappedTestSupportedFunc = (
+  _api: VortexApi,
+  log: VortexLogFunc,
+  _files: string[],
+  fileTree: FileTree,
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: detectREDmodLayout(fileTree),
+  requiredFiles: [],
+});
+
+//
+// install
+//
 
 // Install the REDmod stuff, as well as any archives we find
 export const installREDmod: VortexWrappedInstallFunc = async (
@@ -141,7 +206,7 @@ export const installREDmod: VortexWrappedInstallFunc = async (
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   //
-  const selectedInstructions = await canonRedmodInstructions(
+  const selectedInstructions = await redmodInstructions(
     api,
     fileTree,
   );

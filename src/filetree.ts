@@ -24,21 +24,21 @@ export interface FileTree {
 
 export type PathFilter = (path: string) => boolean;
 export enum Glob {
-  Any = "*",
-  AnySubdir = "**",
+  Any = `*`,
+  AnySubdir = `**`,
 }
 
 // -.-
 export type MaybeFileTree = FileTree | undefined;
 
-export const FILETREE_ROOT = "";
+export const FILETREE_ROOT = ``;
 
 // Get rid of TOPLEVEL, it bleeds everywhere in here
 //
 // improvement: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/78
 //
 export const FILETREE_TOPLEVEL = nodejsPath.dirname(
-  "This has no directory so it normalizes to . or current dir basically",
+  `This has no directory so it normalizes to . or current dir basically`,
 );
 
 // As with nodejsPath.dirname(), leave out the trailing separator
@@ -73,8 +73,7 @@ const actualChildren = (node) => {
 
 const findFilesRecursive = (predicate: PathFilter, node): string[] => {
   const subMatches: string[] = node.children.flatMap((c) =>
-    findFilesRecursive(predicate, c),
-  );
+    findFilesRecursive(predicate, c));
 
   const matches = node.values.filter(predicate);
 
@@ -100,19 +99,18 @@ const findDirsRecursive = (
   }
 
   const subMatches: string[] = node.children.flatMap((c) =>
-    findDirsRecursive(breakEarly, predicate, c),
-  );
+    findDirsRecursive(breakEarly, predicate, c));
 
   return subMatches.concat(selfMaybe);
 };
 
 // It's 2022, Javascript, why am I adding this manually -.-
-const regexpEscape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const regexpEscape = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, `\\$&`);
 
 const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 
 const stripTrailingSeparator = (path: string): string =>
-  path.replace(looksLikeADirectory, "");
+  path.replace(looksLikeADirectory, ``);
 
 // Annoyingly all three mechanisms behave subtly differently wrt. paths.
 // get() does one thing, getSub() another, and _getNode() a third..
@@ -302,8 +300,7 @@ export const findAllSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(false, predicate, sub),
-  );
+    findDirsRecursive(false, predicate, sub));
 
 /**
  * Find a subdirectory at the top level from the starting `dir` with some files matching the predicate. Generally used to find a named directory on a path that we do not know before hand.
@@ -318,8 +315,7 @@ export const findTopmostSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(true, predicate, sub),
-  );
+    findDirsRecursive(true, predicate, sub));
 
 /**
  * Get all of the filepaths the exist under the direct subdirectories of the given directory, and optionally filter the results.
@@ -345,8 +341,7 @@ export const findDirectSubdirsWithSome = (
  */
 export const subtreeFrom = (dir: string, fileTree: FileTree): FileTree => {
   const subtreeFiles = filesUnder(dir, Glob.Any, fileTree).map((path) =>
-    nodejsPath.join(...path.split(nodejsPath.sep).slice(1)),
-  );
+    nodejsPath.join(...path.split(nodejsPath.sep).slice(1)));
 
   return fileTreeFromPaths(subtreeFiles);
 };
