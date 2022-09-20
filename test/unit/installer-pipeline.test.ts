@@ -22,8 +22,8 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 );
 */
 
-describe("Transforming modules to instructions", () => {
-  afterEach(() => mockFs.restore());
+describe(`Transforming modules to instructions`, () => {
+  afterEach(() => { mockFs.restore(); });
 
   AllExpectedSuccesses.forEach((examples, set) => {
     describe(`${set} mods`, () => {
@@ -63,7 +63,7 @@ describe("Transforming modules to instructions", () => {
             notEmpty(),
             notEmpty(),
           );
-          emitAndAwaitMock.mockResolvedValue("Irrelevant");
+          emitAndAwaitMock.mockResolvedValue(`Irrelevant`);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,

@@ -113,7 +113,6 @@ export const basedirREDmodLayout = (
   };
 };
 
-
 export const canonREDmodLayout = (
   api: VortexApi,
   modName: string,
@@ -129,7 +128,6 @@ export const canonREDmodLayout = (
   const allCanonAndSubdirFiles = findCanonicalREDmodDirs(fileTree).flatMap(
     (namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree),
   );
-
 
   return {
     kind: REDmodLayout.Canon,

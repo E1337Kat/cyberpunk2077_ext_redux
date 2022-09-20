@@ -36,12 +36,12 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         movedFromTo(
-          path.normalize(`myRedMod/info.json`),
-          path.normalize(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
+          path.join(`myRedMod/info.json`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/info.json`),
         ),
         movedFromTo(
-          path.normalize(`myRedMod/archives/cool_stuff.archive`),
-          path.normalize(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+          path.join(`myRedMod/archives/cool_stuff.archive`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
       ],
     },
