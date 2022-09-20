@@ -648,7 +648,9 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLLS = [
 
 export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 
+//
 // REDmod
+//
 
 export const enum REDmodLayout {
   Canon = `.\\mods\\[modname]\\info.json + [any files + subdirs]`,
@@ -657,7 +659,9 @@ export const enum REDmodLayout {
 export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
 export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
 
+//
 // ASI
+//
 
 export const ASI_MOD_EXT = `.asi`;
 export const ASI_MOD_PATH = path.join(`bin`, `x64`, `plugins`);
