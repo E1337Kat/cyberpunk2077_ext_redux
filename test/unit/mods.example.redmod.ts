@@ -10,9 +10,10 @@ import {
   copiedToSamePath,
 } from "./utils.helper";
 
-const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    redmodBasicCanonical: {
+const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
+  [
+    `redmodBasicCanonical`,
+    {
       expectedInstallerType: InstallerType.REDmod,
       inFiles: [
         path.join(`${REDMOD_CANONICAL_BASEDIR}/`),
@@ -26,7 +27,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`${REDMOD_CANONICAL_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
       ],
     },
-    redmodBasicBasedir: {
+  ],
+  [
+    `redmodBasicBasedir`,
+    {
       expectedInstallerType: InstallerType.REDmod,
       inFiles: [
         path.join(`myRedMod/`),
@@ -45,8 +49,8 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>(
         ),
       ],
     },
-  }),
-);
+  ],
+]);
 
 const examples: ExamplesForType = {
   AllExpectedSuccesses: REDmodSucceeds,
