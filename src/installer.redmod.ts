@@ -78,15 +78,11 @@ export const basedirREDmodLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const allBasedirREDmodDirs = findBasedirREDmodDirs(fileTree);
-
-  if (allBasedirREDmodDirs.length > 1) {
-    return InvalidLayout.Conflict;
-  }
+  const allBasedirREDmodDirsInCaseThereIsExtraStuff = findBasedirREDmodDirs(fileTree);
 
   const allBasedirREDmodFiles =
     pipe(
-      allBasedirREDmodDirs,
+      allBasedirREDmodDirsInCaseThereIsExtraStuff,
       map((namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree)),
       flatten,
     );
