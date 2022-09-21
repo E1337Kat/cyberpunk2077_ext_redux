@@ -109,9 +109,30 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
   ],
 ]);
 
+const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
+  [
+    `Canonical REDmod with one or more of the moddirs missing a required file`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      inFiles: [
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModGood/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModGood/info.json`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModGood/archives/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModGood/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModBad/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModBad/archives/`),
+        path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModBad/archives/wouldbesupercool.archive`),
+      ],
+      failure: `Missing Required REDmod Files!`,
+      errorDialogTitle: `Missing Required REDmod Files!`,
+    },
+  ],
+]);
+
 const examples: ExamplesForType = {
   AllExpectedSuccesses: REDmodSucceeds,
-  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
+  AllExpectedDirectFailures: REDmodDirectFailures,
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 
