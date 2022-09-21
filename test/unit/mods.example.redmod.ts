@@ -124,8 +124,8 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModBad/archives/`),
         path.join(`${REDMOD_CANONICAL_BASEDIR}/myRedModBad/archives/wouldbesupercool.archive`),
       ],
-      failure: `Missing Required REDmod Files!`,
-      errorDialogTitle: `Missing Required REDmod Files!`,
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
     },
   ],
 ]);

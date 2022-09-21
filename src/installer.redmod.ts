@@ -1,5 +1,5 @@
 import path from "path";
-import { map, flatten } from "fp-ts/ReadonlyArray";
+import { map, filter, flatten } from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import {
   FileTree,
@@ -8,15 +8,15 @@ import {
   Glob,
   FILETREE_ROOT,
   sourcePaths,
+  subdirsIn,
+  pathInTree,
 } from "./filetree";
 import {
   REDMOD_CANONICAL_INFO_FILE,
   MaybeInstructions,
   NoInstructions,
   REDmodLayout,
-  Instructions,
   InvalidLayout,
-  NoLayout,
   REDMOD_CANONICAL_BASEDIR,
 } from "./installers.layouts";
 import {
@@ -51,14 +51,17 @@ const matchREDmodInfoJson = (f: string): boolean =>
 const findBasedirREDmodDirs = (fileTree: FileTree): string[] =>
   findDirectSubdirsWithSome(FILETREE_ROOT, matchREDmodInfoJson, fileTree);
 
-const findCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
+const findAllREDmodLookingDirs = (fileTree: FileTree): string[] =>
+  subdirsIn(REDMOD_CANONICAL_BASEDIR, fileTree);
+
+const findValidCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
   findDirectSubdirsWithSome(REDMOD_CANONICAL_BASEDIR, matchREDmodInfoJson, fileTree);
 
 export const detectBasedirREDmodLayout = (fileTree: FileTree): boolean =>
   findBasedirREDmodDirs(fileTree).length > 0;
 
 export const detectCanonREDmodLayout = (fileTree: FileTree): boolean =>
-  findCanonicalREDmodDirs(fileTree).length > 0;
+  pathInTree(REDMOD_CANONICAL_BASEDIR, fileTree);
 
 export const detectREDmodLayout = (fileTree: FileTree): boolean =>
   detectCanonREDmodLayout(fileTree) || detectBasedirREDmodLayout(fileTree);
@@ -107,10 +110,22 @@ export const canonREDmodLayout = (
   modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasCanonREDmods = detectCanonREDmodLayout(fileTree);
-
-  if (!hasCanonREDmods) {
+  if (!detectCanonREDmodLayout(fileTree)) {
     return NoInstructions.NoMatch;
+  }
+
+  const allREDmodLookingDirs = findAllREDmodLookingDirs(fileTree);
+  const allValidCanonicalREDmodDirs = findValidCanonicalREDmodDirs(fileTree);
+
+  if (allValidCanonicalREDmodDirs.length !== allREDmodLookingDirs.length) {
+    const invalidDirs = pipe(
+      allREDmodLookingDirs,
+      filter((dir) => !allValidCanonicalREDmodDirs.includes(dir)),
+    );
+
+    api.log(`error`, `${InstallerType.REDmod}: these directories don't look like valid REDmods: ${invalidDirs.join(`, `)}`);
+
+    return InvalidLayout.Conflict;
   }
 
   const allCanonAndSubdirFiles =
@@ -123,52 +138,6 @@ export const canonREDmodLayout = (
     kind: REDmodLayout.Canon,
     instructions: allCanonInstructions,
   };
-};
-
-//
-// Helpers
-//
-
-export const redmodInstructions = async (
-  api: VortexApi,
-  fileTree: FileTree,
-): Promise<Instructions> => {
-  const allPossibleRedmodLayouts = [
-    basedirREDmodLayout,
-    canonREDmodLayout,
-  ];
-
-  const selectedInstructions = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    allPossibleRedmodLayouts,
-  );
-
-  if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
-  ) {
-    //
-    const errorMessage = `Didn't Find Expected REDmod Installation!`;
-
-    api.log(
-      `error`,
-      `${InstallerType.REDmod}: ${errorMessage}`,
-      sourcePaths(fileTree),
-    );
-
-    showWarningForUnrecoverableStructureError(
-      api,
-      InstallerType.REDmod,
-      errorMessage,
-      sourcePaths(fileTree),
-    );
-
-    return ({ kind: NoLayout.Optional, instructions: [] });
-  }
-
-  return selectedInstructions;
 };
 
 //
@@ -202,14 +171,39 @@ export const installREDmod: VortexWrappedInstallFunc = async (
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
   //
-  const selectedInstructions = await redmodInstructions(
-    api,
-    fileTree,
-  );
-
-  const instructions = [
-    ...selectedInstructions.instructions,
+  const allPossibleRedmodLayouts = [
+    basedirREDmodLayout,
+    canonREDmodLayout,
   ];
 
-  return Promise.resolve({ instructions });
+  const selectedInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    allPossibleRedmodLayouts,
+  );
+
+  if (
+    selectedInstructions === NoInstructions.NoMatch ||
+    selectedInstructions === InvalidLayout.Conflict
+  ) {
+    const errorMessage = `Didn't Find Expected REDmod Installation!`;
+
+    api.log(
+      `error`,
+      `${InstallerType.REDmod}: ${errorMessage}`,
+      sourcePaths(fileTree),
+    );
+
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.REDmod,
+      errorMessage,
+      sourcePaths(fileTree),
+    );
+
+    return Promise.reject(new Error(errorMessage));
+  }
+
+  return Promise.resolve({ instructions: selectedInstructions.instructions });
 };
