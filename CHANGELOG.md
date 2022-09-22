@@ -1,3 +1,7 @@
+# Cyberpunk2077 Vortex Support v0.8.3 "Third's the Charm, TAKEMURA"
+
+✨ ADDS support for upcoming Red4ext 1.9.0
+
 # Cyberpunk2077 Vortex Support v0.8.2 "It takes two to tango, TAKEMURA"
 
 FIXES Core Redscript to support v0.5.7.
