@@ -13,7 +13,7 @@ import {
 
 const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    Red4ExtCoreInstallTest: {
+    Red4ExtCoreOneSevenInstallTest: {
       expectedInstallerType: InstallerType.CoreRed4ext,
       inFiles: [
         ...pathHierarchyFor(path.normalize(`bin/x64`)),
@@ -25,6 +25,24 @@ const CoreRed4ExtInstall = new Map<string, ExampleSucceedingMod>(
       ].map(path.normalize),
       outInstructions: [
         copiedToSamePath(path.normalize(`bin/x64/d3d11.dll`)),
+        copiedToSamePath(path.normalize(`red4ext/LICENSE.txt`)),
+        copiedToSamePath(path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`)),
+        copiedToSamePath(path.normalize(`red4ext/RED4ext.dll`)),
+        createdDirectory(path.normalize(`red4ext/plugins`)),
+      ],
+    },
+    Red4ExtCoreOneNineInstallTest: {
+      expectedInstallerType: InstallerType.CoreRed4ext,
+      inFiles: [
+        ...pathHierarchyFor(path.normalize(`bin/x64`)),
+        path.normalize(`bin/x64/winmm.dll`),
+        ...pathHierarchyFor(path.normalize(`red4ext/plugins`)),
+        path.normalize(`red4ext/LICENSE.txt`),
+        path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`),
+        path.normalize(`red4ext/RED4ext.dll`),
+      ].map(path.normalize),
+      outInstructions: [
+        copiedToSamePath(path.normalize(`bin/x64/winmm.dll`)),
         copiedToSamePath(path.normalize(`red4ext/LICENSE.txt`)),
         copiedToSamePath(path.normalize(`red4ext/THIRD_PARTY_LICENSES.txt`)),
         copiedToSamePath(path.normalize(`red4ext/RED4ext.dll`)),

@@ -402,9 +402,19 @@ export const CYBERSCRIPT_CORE_REQUIRED_FILES = [
 
 export const enum CoreRed4extLayout {
   //
-  // RED4ext > v1.7.0
+  // RED4ext > v1.9.0
   //
-  OnlyValid = `
+  OneNine = `
+              - .\\bin\\x64\\winmm.dll
+              - .\\red4ext\\LICENSE.txt
+              - .\\red4ext\\THIRD_PARTY_LICENSES.txt
+              - .\\red4ext\\RED4ext.dll
+              `,
+
+  //
+  // v1.9.0 > RED4ext > v1.7.0
+  //
+  OneSeven = `
               - .\\bin\\x64\\d3d11.dll
               - .\\red4ext\\LICENSE.txt
               - .\\red4ext\\THIRD_PARTY_LICENSES.txt
@@ -423,7 +433,11 @@ export const enum CoreRed4extLayout {
 
 export const RED4EXT_CORE_BASEDIR = path.normalize(`red4ext\\`);
 
-export const RED4EXT_CORE_HOOK_DLL = path.normalize(
+export const RED4EXT_CORE_ONE_NINE_HOOK_DLL = path.normalize(
+  `bin\\x64\\winmm.dll`,
+);
+
+export const RED4EXT_CORE_ONE_SEVEN_HOOK_DLL = path.normalize(
   `bin\\x64\\d3d11.dll`,
 );
 
@@ -433,12 +447,20 @@ export const DEPRECATED_RED4EXT_CORE_HOOK_DLL = path.normalize(
 
 export const RED4EXT_PLUGIN_BASEDIR = path.normalize(`red4ext\\plugins`);
 export const CORE_RED4EXT_GENERATED_DIRS = [RED4EXT_PLUGIN_BASEDIR];
-
-export const RED4EXT_CORE_REQUIRED_FILES = [
-  RED4EXT_CORE_HOOK_DLL,
+const RED4EXT_BASE_FILES = [
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\LICENSE.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\THIRD_PARTY_LICENSES.txt`),
   path.normalize(`${RED4EXT_CORE_BASEDIR}\\RED4ext.dll`),
+];
+
+export const RED4EXT_CORE_ONE_NINE_REQUIRED_FILES = [
+  RED4EXT_CORE_ONE_NINE_HOOK_DLL,
+  ...RED4EXT_BASE_FILES,
+];
+
+export const RED4EXT_CORE_ONE_SEVEN_REQUIRED_FILES = [
+  RED4EXT_CORE_ONE_SEVEN_HOOK_DLL,
+  ...RED4EXT_BASE_FILES,
 ];
 
 export const DEPRECATED_RED4EXT_CORE_REQUIRED_FILES = [
@@ -768,9 +790,10 @@ export const PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC = [/LocKey#\d+:\d+/];
 // but for now just gonna check and raise if the description is missing.
 export const LayoutDescriptions = new Map<InstallerType, string>([
   [
+    // @TODO: Update this to 1.9.0 after next RED4ext release
     InstallerType.CoreRed4ext,
     `
-    \`${CoreRed4extLayout.OnlyValid}\`
+    \`${CoreRed4extLayout.OneSeven}\`
     This is the only possible valid layout for current ${InstallerType.CoreRed4ext} that I know of.
     This older version can still be installed, but should be updated:
     \`${CoreRed4extLayout.Deprecated}\`

@@ -19,7 +19,8 @@ import {
   MaybeInstructions,
   NoInstructions,
   NoLayout,
-  RED4EXT_CORE_REQUIRED_FILES,
+  RED4EXT_CORE_ONE_NINE_REQUIRED_FILES,
+  RED4EXT_CORE_ONE_SEVEN_REQUIRED_FILES,
 } from "./installers.layouts";
 import { InstallDecision, InstallerType } from "./installers.types";
 import {
@@ -35,9 +36,9 @@ import { promptUserToInstallOrCancelOnDeprecatedCoreMod, showWarningForUnrecover
 
 // Recognizers
 
-const detectCoreRed4extLayout = (fileTree: FileTree): boolean =>
+const detectCoreRed4extOneSevenLayout = (fileTree: FileTree): boolean =>
   pipe(
-    RED4EXT_CORE_REQUIRED_FILES,
+    RED4EXT_CORE_ONE_SEVEN_REQUIRED_FILES,
     RA.every(
       (requiredFile) => pathInTree(requiredFile, fileTree),
     ),
@@ -51,8 +52,18 @@ const detectDeprecatedCoreRed4extLayout = (fileTree: FileTree): boolean =>
     ),
   );
 
+const detectCoreRed4extOneNineLayout = (fileTree: FileTree): boolean =>
+  pipe(
+    RED4EXT_CORE_ONE_NINE_REQUIRED_FILES,
+    RA.every(
+      (requiredFile) => pathInTree(requiredFile, fileTree),
+    ),
+  );
+
 const detectCoreRed4ext = (fileTree: FileTree): boolean =>
-  detectCoreRed4extLayout(fileTree) || detectDeprecatedCoreRed4extLayout(fileTree);
+  detectCoreRed4extOneNineLayout(fileTree) ||
+  detectCoreRed4extOneSevenLayout(fileTree) ||
+  detectDeprecatedCoreRed4extLayout(fileTree);
 
 export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
   api: VortexApi,
@@ -97,12 +108,12 @@ const layout = (
   };
 };
 
-const coreRed4extLayout = (
+const coreRed4extOneSevenLayout = (
   _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions =>
-  layout(_api, _modName, fileTree, CoreRed4extLayout.OnlyValid, detectCoreRed4extLayout);
+  layout(_api, _modName, fileTree, CoreRed4extLayout.OneSeven, detectCoreRed4extOneSevenLayout);
 
 const deprecatedCoreRed4ExtLayout = (
   _api: VortexApi,
@@ -110,6 +121,13 @@ const deprecatedCoreRed4ExtLayout = (
   fileTree: FileTree,
 ): MaybeInstructions =>
   layout(_api, _modName, fileTree, CoreRed4extLayout.Deprecated, detectDeprecatedCoreRed4extLayout);
+
+const coreRed4extOneNineLayout = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions =>
+  layout(_api, _modName, fileTree, CoreRed4extLayout.OneNine, detectCoreRed4extOneNineLayout);
 
 // Prompts
 
@@ -140,7 +158,8 @@ export const coreRed4extInstructions = async (
   fileTree: FileTree,
 ): Promise<Instructions> => {
   const allPossibleCoreRed4extLayouts = [
-    coreRed4extLayout,
+    coreRed4extOneNineLayout,
+    coreRed4extOneSevenLayout,
     deprecatedCoreRed4ExtLayout,
   ];
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
