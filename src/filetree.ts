@@ -142,7 +142,10 @@ export const fileTreeFromPaths = (paths: string[]): FileTree => {
   const filePathsOnly = paths.filter((path) => !path.endsWith(nodejsPath.sep));
 
   // Yay mutation
-  filePathsOnly.forEach((path) => internalKeyTree.add(nodejsPath.dirname(path), path));
+  filePathsOnly.forEach((path) => {
+    const nomalizedPath = nodejsPath.join(nodejsPath.dirname(path).toLowerCase(), nodejsPath.basename(path));
+    internalKeyTree.add(nodejsPath.dirname(nomalizedPath), path);
+  });
 
   return {
     _kt: internalKeyTree,
