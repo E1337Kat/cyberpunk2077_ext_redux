@@ -482,6 +482,19 @@ const ArchiveMod = new Map<string, ExampleSucceedingMod>(
         },
       ],
     },
+    archiveWithSingleFileCanonicalUpperCaseInFolderNames: {
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [...pathHierarchyFor(`Archive/PC/Mod`), `Archive/PC/Mod/first.archive`].map(
+        path.normalize,
+      ),
+      outInstructions: [
+        {
+          type: `copy`,
+          source: path.normalize(`Archive/PC/Mod/first.archive`),
+          destination: path.normalize(`${ARCHIVE_PREFIX}/first.archive`),
+        },
+      ],
+    },
     archiveWithMultipleFilesCanonical: {
       expectedInstallerType: InstallerType.Archive,
       inFiles: [
