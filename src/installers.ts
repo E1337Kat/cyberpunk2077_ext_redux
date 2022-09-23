@@ -297,6 +297,11 @@ const installerPipeline: InstallerWithPriority[] = installers.reduce(
 
 const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
 
+// Let's be cautious
+if (fallbackInstaller.type !== InstallerType.Fallback) {
+  throw new Error(`Fallback installer not found in pipeline`);
+}
+
 //
 // Install nonsense
 //
