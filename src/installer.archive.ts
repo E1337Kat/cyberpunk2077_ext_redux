@@ -235,15 +235,13 @@ const archiveOtherDirsToCanonLayout = (
   );
 
   const allFiles = allDirsWithArchives.flatMap((dir: string) =>
-    filesUnder(dir, Glob.Any, fileTree),
-  );
+    filesUnder(dir, Glob.Any, fileTree));
 
   const allToPrefixedMap: string[][] = allFiles.map((f: string) =>
     // There may be some non-canonical layouts in the basedir
-    f.startsWith(ARCHIVE_MOD_CANONICAL_PREFIX)
+    (f.startsWith(ARCHIVE_MOD_CANONICAL_PREFIX)
       ? [f, f]
-      : [f, path.join(ARCHIVE_MOD_CANONICAL_PREFIX, f)],
-  );
+      : [f, path.join(ARCHIVE_MOD_CANONICAL_PREFIX, f)]));
 
   return {
     kind: ArchiveLayout.Other,
@@ -296,7 +294,7 @@ export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
   );
 
   if (filtered.length === 0) {
-    log("info", "No archives.");
+    log(`info`, `No archives.`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -308,15 +306,14 @@ export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
     // such as readmes, usage text, etc.
     const unfiltered = files.filter((f: string) => !filtered.includes(f));
 
-    const importantBaseDirs = ["bin", "r6", "red4ext"];
+    const importantBaseDirs = [`bin`, `r6`, `red4ext`];
     const hasNonArchive =
       unfiltered.find((f: string) =>
-        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
-      ) !== undefined;
+        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0])) !== undefined;
 
     // there is a base folder for non archive mods, so why bother.
     if (hasNonArchive) {
-      log("info", "Other mod folder exist... probably an archive as part of those.");
+      log(`info`, `Other mod folder exist... probably an archive as part of those.`);
       return Promise.resolve({
         supported: false,
         requiredFiles: [],
@@ -330,13 +327,13 @@ export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
   } else {
     supported = false;
     log(
-      "error",
-      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
+      `error`,
+      `I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.`,
     );
   }
 
   if (supported !== undefined && supported) {
-    log("info", "Only archive files, so installing them should be easy peasy.");
+    log(`info`, `Only archive files, so installing them should be easy peasy.`);
   } else {
     supported = false;
   }
@@ -375,7 +372,7 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
 
   if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `${InstallerType.Archive} installer failed to generate any instructions!`;
-    log("error", message, files);
+    log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
