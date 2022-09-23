@@ -83,12 +83,17 @@ const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
 const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
   findArchiveHeritageFiles(fileTree).length > 0;
 
+export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
+  detectArchiveCanonWithXLLayout(fileTree) ||
+  detectArchiveCanonLayout(fileTree) ||
+  detectArchiveHeritageLayout(fileTree);
+
 // Prompts
 
 const warnUserIfArchivesMightNeedManualReview = (
   api: VortexApi,
   chosenInstructions: Instructions,
-) => {
+): boolean => {
   // Trying out the tree-based approach..
   const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
   const newTree = fileTreeFromPaths(destinationPaths);
@@ -108,9 +113,12 @@ const warnUserIfArchivesMightNeedManualReview = (
     matchArchiveXL,
     newTree,
   );
+
   const warnAboutXLs = xlsInSubdirs.length > 0;
 
-  if (warnAboutSubdirs || warnAboutToplevel || warnAboutXLs) {
+  const requiresWarning = warnAboutSubdirs || warnAboutToplevel || warnAboutXLs;
+
+  if (requiresWarning) {
     showArchiveInstallWarning(
       api,
       warnAboutSubdirs,
@@ -119,6 +127,8 @@ const warnUserIfArchivesMightNeedManualReview = (
       filesUnder(FILETREE_ROOT, Glob.Any, newTree),
     );
   }
+
+  return requiresWarning;
 };
 
 // Layouts
@@ -271,6 +281,77 @@ const archiveExtraToplevelLayout = (
 };
 
 //
+// Instruction generators
+//
+
+// Once again we could get fancy, but let's not
+const instructionsForStandaloneMod = (
+  api: VortexApi,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
+    archiveCanonWithXLLayout,
+    archiveCanonLayout,
+    archiveHeritageLayout,
+    archiveOtherDirsToCanonLayout,
+  ];
+
+  const chosenInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    possibleLayoutsToTryInOrder,
+  );
+
+  return chosenInstructions;
+};
+
+export const instructionsForCanonicalExtras = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const extraCanonArchiveLayoutsAllowedInOtherModTypes = [
+    archiveCanonWithXLLayout,
+    archiveCanonLayout,
+    archiveHeritageLayout,
+  ];
+
+  const chosenInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    extraCanonArchiveLayoutsAllowedInOtherModTypes,
+  );
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return chosenInstructions;
+};
+
+export const instructionsForToplevelExtras = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const chosenInstructions = archiveExtraToplevelLayout(api, undefined, fileTree);
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return chosenInstructions;
+};
+
+//
 // Vortex API
 //
 
@@ -355,20 +436,7 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
   fileTree: FileTree,
   _destinationPath: string,
 ): Promise<VortexInstallResult> => {
-  // Once again we could get fancy, but let's not
-  const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
-    archiveCanonWithXLLayout,
-    archiveCanonLayout,
-    archiveHeritageLayout,
-    archiveOtherDirsToCanonLayout,
-  ];
-
-  const chosenInstructions = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    possibleLayoutsToTryInOrder,
-  );
+  const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
 
   if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `${InstallerType.Archive} installer failed to generate any instructions!`;
@@ -392,38 +460,19 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
 };
 
 //
-// Including Archives with other stuff
+// Internal API for including in other installers
 //
-
-const extraCanonArchiveLayoutsAllowedInOtherModTypes = [
-  archiveCanonWithXLLayout,
-  archiveCanonLayout,
-  archiveHeritageLayout,
-];
-
-export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
-  detectArchiveCanonWithXLLayout(fileTree) ||
-  detectArchiveCanonLayout(fileTree) ||
-  detectArchiveHeritageLayout(fileTree);
 
 export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveInstructionsToUse = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    extraCanonArchiveLayoutsAllowedInOtherModTypes,
-  );
+  const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
 
-  if (
-    archiveInstructionsToUse === NoInstructions.NoMatch ||
-    archiveInstructionsToUse === InvalidLayout.Conflict
-  ) {
-    api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
+  /*
+  const transformedInstructions =
+    maybeTransformToREDmod(api, canonicalInstructions, fileTree);
+    */
 
   // We should handle the potentially-conflicting archives case here,
   // but it requires some extra logic (which we should do, just not now)
@@ -432,24 +481,16 @@ export const extraCanonArchiveInstructions = (
   // it'll be a better design in addition to the robustness.
   //
   // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
+  warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
-  return archiveInstructionsToUse;
+  return canonicalInstructions;
 };
 
 export const extraToplevelArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveInstructionsToUse = archiveExtraToplevelLayout(api, undefined, fileTree);
-
-  if (
-    archiveInstructionsToUse === NoInstructions.NoMatch ||
-    archiveInstructionsToUse === InvalidLayout.Conflict
-  ) {
-    api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
+  const toplevelInstructions = instructionsForToplevelExtras(api, fileTree);
 
   // We should handle the potentially-conflicting archives case here,
   // but it requires some extra logic (which we should do, just not now)
@@ -458,7 +499,7 @@ export const extraToplevelArchiveInstructions = (
   // it'll be a better design in addition to the robustness.
   //
   // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
+  warnUserIfArchivesMightNeedManualReview(api, toplevelInstructions);
 
-  return archiveInstructionsToUse;
+  return toplevelInstructions;
 };
