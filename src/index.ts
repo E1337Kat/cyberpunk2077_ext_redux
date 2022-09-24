@@ -1,5 +1,6 @@
 import path from "path";
 import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { CurrentFeatureSet } from "./features";
 
 // Our stuff
 import {
@@ -68,7 +69,7 @@ const main = (vortex: VortexExtensionContext) => {
     internalPipelineInstaller.id,
     internalPipelineInstaller.priority,
     wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
-    wrapInstall(vortex, vortexApi, internalPipelineInstaller),
+    wrapInstall(vortex, vortexApi, internalPipelineInstaller, CurrentFeatureSet),
   );
 
   vortex.once(() => {

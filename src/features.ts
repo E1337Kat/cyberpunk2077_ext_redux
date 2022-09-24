@@ -6,8 +6,10 @@ export const enum Feature {
 
 export interface Features {
   RedModding: Feature;
+  HeritageToREDmodAutoconversion: Feature;
 }
 
-export const FeatureSet: Features = {
+export const CurrentFeatureSet: Features = {
   RedModding: Feature.Disabled,
+  HeritageToREDmodAutoconversion: Feature.Disabled,
 };
