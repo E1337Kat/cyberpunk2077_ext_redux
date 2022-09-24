@@ -21,6 +21,7 @@ import {
   DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
+import { Features } from "../../src/features";
 
 //
 // Types
@@ -36,6 +37,7 @@ interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
   fsMocked?: MockFsDirItems;
+  features?: Features;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {
@@ -163,7 +165,7 @@ export const createdDirectory = (...args: string[]): VortexInstruction => ({
   destination: path.join(...args),
 });
 
-export const createdFile = (contents: string, ...dest: string[]): VortexInstruction => ({
+export const generatedFile = (contents: string, ...dest: string[]): VortexInstruction => ({
   type: `generatefile`,
   data: contents,
   destination: path.join(...dest),

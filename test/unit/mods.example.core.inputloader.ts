@@ -7,7 +7,7 @@ import { InstallerType } from "../../src/installers.types";
 import {
   copiedToSamePath,
   createdDirectory,
-  createdFile,
+  generatedFile,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
   ExamplesForType,
@@ -27,7 +27,7 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
       ],
       outInstructions: [
-        createdFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
+        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
         copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
         copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
