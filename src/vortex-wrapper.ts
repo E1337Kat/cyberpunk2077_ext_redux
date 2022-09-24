@@ -1,4 +1,5 @@
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+import { Features } from "./features";
 import { FileTree } from "./filetree";
 
 // Plain renames
@@ -41,6 +42,7 @@ export type VortexWrappedTestSupportedFunc = (
   sourceDirPathForMod?: string,
   stagingDirPathForMod?: string,
   modName?: string,
+  features?: Features,
 ) => Promise<VortexTestResult>;
 
 export type VortexInstallFunc = Vortex.InstallFunc;
@@ -58,4 +60,5 @@ export type VortexWrappedInstallFunc = (
   sourceDirPathForMod: string,
   stagingDirPathForMod: string,
   modName: string,
+  features: Features,
 ) => Promise<VortexInstallResult>;

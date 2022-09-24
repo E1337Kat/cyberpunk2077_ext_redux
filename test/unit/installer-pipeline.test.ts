@@ -13,6 +13,7 @@ import {
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
 } from "./mods.example";
+import { CurrentFeatureSet } from "../../src/features";
 
 // Should switch this to compute the path in case changed, but eh..
 /*
@@ -21,6 +22,8 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
   fakeStagingDirContent,
 );
 */
+
+const DEFAULT_FEATURES = CurrentFeatureSet;
 
 describe(`Transforming modules to instructions`, () => {
   afterEach(() => { mockFs.restore(); });
@@ -69,6 +72,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            DEFAULT_FEATURES,
           );
 
           const installResult = await wrappedInstall(
@@ -132,6 +136,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            DEFAULT_FEATURES,
           );
 
           const installResult = await wrappedInstall(
@@ -176,6 +181,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            DEFAULT_FEATURES,
           );
 
           const expectation = expect(
@@ -214,6 +220,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            DEFAULT_FEATURES,
           );
 
           const expectation = expect(
