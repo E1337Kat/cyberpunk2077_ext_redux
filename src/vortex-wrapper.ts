@@ -58,6 +58,4 @@ export type VortexWrappedInstallFunc = (
   sourceDirPathForMod: string,
   stagingDirPathForMod: string,
   modName: string,
-  choices?: unknown,
-  unattended?: boolean,
 ) => Promise<VortexInstallResult>;
