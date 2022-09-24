@@ -37,6 +37,8 @@ describe(`Transforming modules to instructions`, () => {
             mockFs(mod.fsMocked);
           }
           //
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
@@ -72,7 +74,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
-            DEFAULT_FEATURES,
+            defaultOrOverriddenFeatures,
           );
 
           const installResult = await wrappedInstall(
@@ -110,6 +112,8 @@ describe(`Transforming modules to instructions`, () => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -136,7 +140,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
-            DEFAULT_FEATURES,
+            defaultOrOverriddenFeatures,
           );
 
           const installResult = await wrappedInstall(
@@ -155,6 +159,8 @@ describe(`Transforming modules to instructions`, () => {
         });
 
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -181,7 +187,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
-            DEFAULT_FEATURES,
+            defaultOrOverriddenFeatures,
           );
 
           const expectation = expect(
@@ -198,6 +204,8 @@ describe(`Transforming modules to instructions`, () => {
     describe(`mods that installers reject without prompt, ${set}`, () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -220,7 +228,7 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
-            DEFAULT_FEATURES,
+            defaultOrOverriddenFeatures,
           );
 
           const expectation = expect(
