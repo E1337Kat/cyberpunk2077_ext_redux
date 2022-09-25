@@ -113,9 +113,16 @@ export const modInfoFromArchiveName = (archiveName: string): Either<string, ModI
   return right(modInfo);
 };
 
-// For a synthetic mod name
+// For a synthetic mod name when one is not provided
+//
+// TODO: this should be changed to try to parse using ModInfo
+//       and only use the synthetic name if we can't parse the
+//       the real mod info.
+//
+// TODO https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/241
+//
 export const makeSyntheticName = (vortexStagingDirPath: string): string =>
-  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath)}`;
+  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath, `.installing`)}`;
 
 //
 // Source to dest path mapping helpers

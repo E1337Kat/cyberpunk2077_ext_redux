@@ -108,38 +108,31 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
     return new Map([...mergedMap, ...map]);
   }, new Map<K, V>());
 
-// This is the most nonsense of all nonsense, but under some
-// conditions it seems to be possible for jest to override
-// `console`...
-//
-// eslint-disable-next-line no-global-assign
-console = new Console(process.stdout, process.stderr);
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const getMockVortexLog = () => {
-  const mockLog = jest.fn();
-
-  // if (process.env.DEBUG || true) {
-  if (process.env.DEBUG) {
-    mockLog.mockImplementation((...args) => {
-      // eslint-disable-next-line no-console
-      console.log(`vortex.log():`, args);
-    });
-  }
-
-  return mockLog;
-};
-
 //
 // Mod path stuff
 //
 
-const FAKE_STAGING_ZIPFILE = path.normalize(`vortexusesthezipfileandmodidasdir-7536`);
-const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_ZIPFILE];
+export const FAKE_MOD_INFO: ModInfo = {
+  name: `Fake Mod For Examples`,
+  id: `8279`,
+  version: {
+    v: `v1.0a`,
+    major: `v1`,
+    minor: `0a`,
+    patch: undefined,
+  },
+  createTime: new Date(),
+  copy: undefined,
+  variant: `+varianttag`,
+};
+
+const FAKE_MOD_NAME_SOURCE = modInfoToArchiveName(FAKE_MOD_INFO);
+export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_MOD_NAME_SOURCE}`;
+
+const FAKE_STAGING_MOD_NAME = `${FAKE_MOD_NAME_SOURCE}.installing`;
+const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_MOD_NAME];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
-// This will be derived from the staging path
-export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
 
 //
 // Test support functions, mocks
