@@ -2,10 +2,11 @@ import fs from "fs/promises";
 import path from "path";
 
 import * as A from "fp-ts/Array";
+import { Either, left, right } from "fp-ts/Either";
+import { pipe } from "fp-ts/lib/function";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
 
-import { pipe } from "fp-ts/lib/function";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import { FileTree, FILETREE_ROOT } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
@@ -50,8 +51,70 @@ export const fileToInstruction = (movedFile: FileMove): VortexInstruction => ({
   destination: movedFile.relativePath,
 });
 
+export interface SemVer {
+  v: string;
+  major: string;
+  minor?: string;
+  patch?: string;
+  prerelease?: string;
+  build?: string;
+}
+export interface ModInfo {
+  name: string;
+  id: string;
+  version: SemVer;
+  createTime: Date;
+  copy?: string;
+  variant?: string;
+}
+
+const ModInfoFormatParser =
+  // eslint-disable-next-line max-len
+  /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
+
+export const modInfoToArchiveName = (modInfo: ModInfo): string =>
+  // eslint-disable-next-line prefer-template
+  `${modInfo.name}-` +
+  `${modInfo.id}-` +
+  `${modInfo.version.major}-` +
+  (modInfo.version.minor ? `${modInfo.version.minor}-` : ``) +
+  (modInfo.version.patch ? `${modInfo.version.patch}-` : ``) +
+  `${modInfo.createTime.getTime() / 1000}-` +
+  (modInfo.copy ? modInfo.copy : ``) +
+  (modInfo.variant ? modInfo.variant : ``);
+
+export const modInfoFromArchiveName = (archiveName: string): Either<string, ModInfo> => {
+  const match = ModInfoFormatParser.exec(archiveName);
+
+  if (!match) {
+    return left(`Failed to parse archive name: ${archiveName}`);
+  }
+
+  const {
+    name, id, major, minor, patch, createTime, copy, variant,
+  } = match.groups;
+
+  const version: SemVer = {
+    v: major + (minor ? `.${minor}` : ``) + (patch ? `.${patch}` : ``),
+    major,
+    minor,
+    patch,
+  };
+
+  const modInfo: ModInfo = {
+    name,
+    id,
+    version,
+    createTime: new Date(parseInt(createTime, 10) * 1000),
+    copy,
+    variant,
+  };
+
+  return right(modInfo);
+};
+
 // For a synthetic mod name
-export const makeSyntheticName = (vortexStagingDirPath: string) =>
+export const makeSyntheticName = (vortexStagingDirPath: string): string =>
   `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath)}`;
 
 //

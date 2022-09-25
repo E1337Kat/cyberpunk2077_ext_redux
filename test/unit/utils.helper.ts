@@ -6,7 +6,6 @@ import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import { InstallerType } from "../../src/installers.types";
-import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CET_MOD_CANONICAL_PATH_PREFIX,
@@ -22,6 +21,30 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
+import { ModInfo, modInfoToArchiveName } from "../../src/installers.shared";
+import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
+
+// This is the most nonsense of all nonsense, but under some
+// conditions it seems to be possible for jest to override
+// `console`...
+//
+// eslint-disable-next-line no-global-assign
+console = new Console(process.stdout, process.stderr);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getMockVortexLog = () => {
+  const mockLog = jest.fn();
+
+  // if (process.env.DEBUG || true) {
+  if (process.env.DEBUG) {
+    mockLog.mockImplementation((...args) => {
+      // eslint-disable-next-line no-console
+      console.log(`vortex.log():`, args);
+    });
+  }
+
+  return mockLog;
+};
 
 //
 // Types
