@@ -2,8 +2,10 @@ import fs from "fs/promises";
 import path from "path";
 
 import * as A from "fp-ts/Array";
-import { Either, left, right } from "fp-ts/Either";
-import { pipe } from "fp-ts/lib/function";
+import {
+  Either, fold, left, right,
+} from "fp-ts/Either";
+import { identity, pipe } from "fp-ts/lib/function";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
 
@@ -18,9 +20,12 @@ import {
   NoInstructions,
   NotAllowed,
   PromptedOptionalInstructions,
+  REDMOD_AUTOCONVERTED_NAME_TAG,
+  REDMOD_AUTOCONVERTED_VERSION_TAG,
 } from "./installers.layouts";
-import { InstallDecision, InstallerType } from "./installers.types";
-
+import {
+  InstallDecision, InstallerType, ModInfo, SemanticVersion,
+} from "./installers.types";
 import { VortexApi, VortexInstruction } from "./vortex-wrapper";
 
 // Types
@@ -51,66 +56,82 @@ export const fileToInstruction = (movedFile: FileMove): VortexInstruction => ({
   destination: movedFile.relativePath,
 });
 
-export interface SemVer {
-  v: string;
-  major: string;
-  minor?: string;
-  patch?: string;
-  prerelease?: string;
-  build?: string;
-}
-export interface ModInfo {
-  name: string;
-  id: string;
-  version: SemVer;
-  createTime: Date;
-  copy?: string;
-  variant?: string;
-}
+//
+// Mod Info and Name And Stuff
+//
 
-const ModInfoFormatParser =
-  // eslint-disable-next-line max-len
-  /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
+//
+// Types
 
-export const modInfoToArchiveName = (modInfo: ModInfo): string =>
-  // eslint-disable-next-line prefer-template
-  `${modInfo.name}-` +
-  `${modInfo.id}-` +
-  `${modInfo.version.major}-` +
-  (modInfo.version.minor ? `${modInfo.version.minor}-` : ``) +
-  (modInfo.version.patch ? `${modInfo.version.patch}-` : ``) +
-  `${modInfo.createTime.getTime() / 1000}-` +
-  (modInfo.copy ? modInfo.copy : ``) +
-  (modInfo.variant ? modInfo.variant : ``);
+// Vortex doesn't seem to supply prelease/build
+type SemanticVersionRaw = Omit<SemanticVersion, `v` | `prerelease`>;
 
-export const modInfoFromArchiveName = (archiveName: string): Either<string, ModInfo> => {
-  const match = ModInfoFormatParser.exec(archiveName);
+type ModInfoRaw =
+  Omit<ModInfo, `version` | `createTime`> &
+  { version: SemanticVersionRaw } &
+  { createTime: string };
 
-  if (!match) {
-    return left(`Failed to parse archive name: ${archiveName}`);
-  }
+//
+// Helpers
+//
 
-  const {
-    name, id, major, minor, patch, createTime, copy, variant,
-  } = match.groups;
+const V2077_GENERATED_MODNAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
 
-  const version: SemVer = {
-    v: major + (minor ? `.${minor}` : ``) + (patch ? `.${patch}` : ``),
-    major,
-    minor,
-    patch,
-  };
+const dateToSeconds = (date: Date): string => (date.getTime() / 1000).toString();
+const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);
 
-  const modInfo: ModInfo = {
-    name,
-    id,
-    version,
-    createTime: new Date(parseInt(createTime, 10) * 1000),
-    copy,
-    variant,
-  };
+//
+// Creation
+//
 
-  return right(modInfo);
+//
+export const makeSemanticVersion = (v: SemanticVersionRaw): SemanticVersion => ({
+  ...v,
+  v: `${v.major}${v.minor ? `.${v.minor}` : ``}${v.patch ? `.${v.patch}` : ``}${v.build ? `+${v.build}` : ``}`,
+});
+
+//
+export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
+  ...rawModInfo,
+  version: makeSemanticVersion(rawModInfo.version),
+  createTime: secondsToDate(rawModInfo.createTime),
+});
+
+//
+export const makeSyntheticModInfo = (modName: string): ModInfo =>
+  makeModInfo({
+    name: `${modName}${V2077_GENERATED_MODNAME_TAG}`,
+    id: ``,
+    version: makeSemanticVersion({ major: `0`, minor: `0`, patch: `1` }),
+    createTime: dateToSeconds(new Date()),
+  });
+
+//
+export const tagModInfoAsAutoconverted = (modInfo: ModInfo): ModInfo => {
+  const modNameWithoutExtraTag =
+    modInfo.name.replace(V2077_GENERATED_MODNAME_TAG, ``);
+
+  const modNameTaggedAsAutoconverted =
+    `${modNameWithoutExtraTag} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
+
+  const existingBuildTagMustBeModified =
+    modInfo.version.build && modInfo.version.build !== ``;
+
+  const tagSeparator =
+    existingBuildTagMustBeModified ? `-` : ``;
+
+  const taggedBuildVersion =
+      `${modInfo.version.build || ``}${tagSeparator}${REDMOD_AUTOCONVERTED_VERSION_TAG}`;
+
+  return makeModInfo({
+    ...modInfo,
+    name: modNameTaggedAsAutoconverted,
+    version: {
+      ...modInfo.version,
+      build: taggedBuildVersion,
+    },
+    createTime: dateToSeconds(modInfo.createTime),
+  });
 };
 
 // For a synthetic mod name when one is not provided
@@ -125,7 +146,71 @@ export const makeSyntheticName = (vortexStagingDirPath: string): string =>
   `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath, `.installing`)}`;
 
 //
+// Parsing
+//
+
+const ModInfoFormatParser =
+  // eslint-disable-next-line max-len
+  /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
+
+//
+export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, ModInfo> => {
+  const cleanedArchiveName =
+    path.basename(archiveName, `.installing`);
+
+  const infoSuccessfullyParsed = ModInfoFormatParser.exec(cleanedArchiveName);
+
+  if (!infoSuccessfullyParsed) {
+    return left(makeSyntheticModInfo(cleanedArchiveName));
+  }
+
+  const {
+    name, id, major, minor, patch, createTime, copy, variant,
+  } = infoSuccessfullyParsed.groups;
+
+  const modInfo: ModInfo =
+    makeModInfo({
+      name,
+      id,
+      version: {
+        major,
+        minor,
+        patch,
+      },
+      createTime,
+      copy,
+      variant,
+    });
+
+  return right(modInfo);
+};
+
+//
+export const modInfoFromArchiveNameOrSynthetic = (archiveName: string): ModInfo =>
+  pipe(
+    modInfoFromArchiveName(archiveName),
+    fold(identity, identity),
+  );
+
+//
+export const modInfoToVortexArchiveName = (modInfo: ModInfo): string =>
+  // eslint-disable-next-line prefer-template
+  `${modInfo.name}` +
+  `-${modInfo.id}` +
+  `-${modInfo.version.major}` +
+  (modInfo.version.minor ? `-${modInfo.version.minor}` : ``) +
+  (modInfo.version.patch ? `-${modInfo.version.patch}` : ``) +
+  `-${dateToSeconds(modInfo.createTime)}` +
+  (modInfo.copy ? modInfo.copy : ``) +
+  (modInfo.variant ? `+${modInfo.variant}` : ``);
+
+//
+export const modInfoToREDmodModuleName = (modInfo: ModInfo): string =>
+  `${modInfo.name}-${modInfo.version.v}`;
+
+//
 // Source to dest path mapping helpers
+//
 
 export const toSamePath = (f: string) => [f, f];
 

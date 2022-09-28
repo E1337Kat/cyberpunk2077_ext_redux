@@ -2,7 +2,8 @@ import { partitionMap } from 'fp-ts/ReadonlyArray';
 import { pipe } from "fp-ts/lib/function";
 import { match } from 'fp-ts/lib/Either';
 import * as Separated from 'fp-ts/lib/Separated';
-import { ModInfo, modInfoFromArchiveName } from "../../src/installers.shared";
+import { modInfoFromArchiveName } from "../../src/installers.shared";
+import { ModInfo } from '../../src/installers.types';
 
 const fakeDate = new Date(2021, 1, 1);
 const fakeDateMs = fakeDate.getTime() / 1000;

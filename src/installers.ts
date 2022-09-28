@@ -43,7 +43,7 @@ import { testForJsonMod, installJsonMod } from "./installer.config.json";
 import { installConfigXmlMod, testForConfigXmlMod } from "./installer.config.xml";
 import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
 import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
-import { makeSyntheticName } from "./installers.shared";
+import { modInfoFromArchiveNameOrSynthetic } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
 import { InfoNotification, showInfoNotification } from "./ui.notifications";
 import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
