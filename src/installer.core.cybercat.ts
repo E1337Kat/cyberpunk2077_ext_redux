@@ -3,18 +3,30 @@ import {
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-
 } from "./vortex-wrapper";
 import {
-  FileTree, FILETREE_ROOT, pathInTree, sourcePaths,
+  FileTree,
+  FILETREE_ROOT,
+  pathInTree,
+  sourcePaths,
 } from "./filetree";
 import {
   CYBERCAT_CORE_BASEDIR,
   CYBERCAT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
-import { showInfoNotification, InfoNotification } from "./ui.notifications";
-import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  showInfoNotification,
+  InfoNotification,
+} from "./ui.notifications";
+import {
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+} from "./installers.shared";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   showManualStepRequiredForToolInfo,
   showWarningForUnrecoverableStructureError,

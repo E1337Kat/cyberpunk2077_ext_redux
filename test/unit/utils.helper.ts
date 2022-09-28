@@ -5,7 +5,10 @@ import { Console } from "console";
 import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import { VortexInstruction } from "../../src/vortex-wrapper";
-import { InstallerType, ModInfo } from "../../src/installers.types";
+import {
+  InstallerType,
+  ModInfo,
+} from "../../src/installers.types";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CET_MOD_CANONICAL_PATH_PREFIX,
@@ -111,6 +114,8 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
 // Mod path stuff
 //
 
+const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`];
+
 export const FAKE_MOD_INFO: ModInfo = {
   name: `Fake Mod For Examples`,
   id: `8279`,
@@ -121,18 +126,16 @@ export const FAKE_MOD_INFO: ModInfo = {
     patch: undefined,
   },
   createTime: new Date(),
+  stagingDirPrefix: path.join(...FAKE_STAGING_DIRS),
   copy: undefined,
   variant: `varianttag`,
 };
 
 const FAKE_MOD_ARCHIVE_NAME = modInfoToVortexArchiveName(FAKE_MOD_INFO);
 export const FAKE_MOD_NAME = FAKE_MOD_INFO.name;
-// export const FAKE_MOD_NAME = `V2077-${FAKE_MOD_ARCHIVE_NAME}`;
 
 const FAKE_MOD_INSTALL_DIRNAME = `${FAKE_MOD_ARCHIVE_NAME}.installing`;
-const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_MOD_INSTALL_DIRNAME];
-
-export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
+export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, FAKE_MOD_INSTALL_DIRNAME, path.sep);
 
 //
 // Test support functions, mocks

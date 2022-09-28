@@ -1,6 +1,10 @@
 import path from "path";
 import {
-  FileTree, filesIn, filesUnder, Glob, fileCount,
+  FileTree,
+  filesIn,
+  filesUnder,
+  Glob,
+  fileCount,
 } from "./filetree";
 import {
   ASI_MOD_PATH,
@@ -15,15 +19,15 @@ import {
   instructionsForSameSourceAndDestPaths,
   makeSyntheticName,
 } from "./installers.shared";
-import { V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
-
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
+import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
-
 } from "./vortex-wrapper";
 
 const matchAsiFile = (file: string) => path.extname(file) === ASI_MOD_EXT;

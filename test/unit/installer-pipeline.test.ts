@@ -1,12 +1,26 @@
-import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
+import {
+  notEmpty,
+  mockDeep,
+  DeepMockProxy,
+} from "jest-mock-extended";
 import mockFs from "mock-fs";
 import { IState } from "vortex-api/lib/types/IState";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { GAME_ID } from "../../src/index.metadata";
-import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
-import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
+import {
+  internalPipelineInstaller,
+  wrapInstall,
+} from "../../src/installers";
+import {
+  VortexDialogResult,
+  VortexExtensionContext,
+} from "../../src/vortex-wrapper";
 
-import { FAKE_STAGING_PATH, getMockVortexLog, sortByDestination } from "./utils.helper";
+import {
+  FAKE_STAGING_PATH,
+  getMockVortexLog,
+  sortByDestination,
+} from "./utils.helper";
 
 import {
   AllExpectedDirectFailures,

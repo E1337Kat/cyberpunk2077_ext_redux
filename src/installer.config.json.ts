@@ -1,6 +1,10 @@
 import path from "path";
 import {
-  filesIn, filesUnder, FileTree, FILETREE_ROOT, pathInTree,
+  filesIn,
+  filesUnder,
+  FileTree,
+  FILETREE_ROOT,
+  pathInTree,
 } from "./filetree";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
@@ -25,15 +29,16 @@ import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
 } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
-
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
+import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
-
 } from "./vortex-wrapper";
 
 const matchConfigJson = (filePath: string): boolean =>

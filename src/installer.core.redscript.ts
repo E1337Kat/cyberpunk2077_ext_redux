@@ -18,18 +18,25 @@ import {
   REDSCRIPT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
 import {
-  InstallDecision, InstallerType, V2077InstallFunc, V2077TestFunc,
+  InstallDecision,
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
 } from "./installers.types";
 import {
-
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
 } from "./vortex-wrapper";
-import { instructionsForSameSourceAndDestPaths, useFirstMatchingLayoutForInstructions } from './installers.shared';
-import { promptUserToInstallOrCancelOnDeprecatedCoreMod, showWarningForUnrecoverableStructureError } from './ui.dialogs';
+import {
+  instructionsForSameSourceAndDestPaths,
+  useFirstMatchingLayoutForInstructions,
+} from './installers.shared';
+import {
+  promptUserToInstallOrCancelOnDeprecatedCoreMod,
+  showWarningForUnrecoverableStructureError,
+} from './ui.dialogs';
 
 // Recognizers
 

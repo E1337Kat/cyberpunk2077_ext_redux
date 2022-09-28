@@ -3,7 +3,11 @@ import {
   promptUserToInstallOrCancelOnReachingFallback,
 } from "./ui.dialogs";
 import {
-  filesUnder, FileTree, FILETREE_ROOT, Glob, sourcePaths,
+  filesUnder,
+  FileTree,
+  FILETREE_ROOT,
+  Glob,
+  sourcePaths,
 } from "./filetree";
 import {
   FallbackLayout,
@@ -14,7 +18,10 @@ import {
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
-  InstallerType, InstallDecision, V2077InstallFunc, V2077TestFunc,
+  InstallerType,
+  InstallDecision,
+  V2077InstallFunc,
+  V2077TestFunc,
 } from "./installers.types";
 import { exhaustiveMatchFailure } from "./installers.utils";
 import {
@@ -22,7 +29,6 @@ import {
   VortexInstallResult,
   VortexLogFunc,
   VortexTestResult,
-
 } from "./vortex-wrapper";
 
 export const findFallbackFiles = (fileTree: FileTree): string[] =>

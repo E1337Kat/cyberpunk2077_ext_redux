@@ -1,5 +1,9 @@
 import path from "path";
-import { CONFIG_INI_MOD_BASEDIR, CONFIG_RESHADE_MOD_BASEDIR, CONFIG_RESHADE_MOD_SHADER_BASEDIR } from "../../src/installers.layouts";
+import {
+  CONFIG_INI_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_BASEDIR,
+  CONFIG_RESHADE_MOD_SHADER_BASEDIR,
+} from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
   ExampleSucceedingMod,

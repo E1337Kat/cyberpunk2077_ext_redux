@@ -12,14 +12,14 @@ import {
 } from "./installers.layouts";
 import {
   VortexLogFunc,
-
   VortexApi,
   VortexTestResult,
-
   VortexInstallResult,
-
 } from "./vortex-wrapper";
-import { V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 
 const testForReshadeFile = (
   log: VortexLogFunc,

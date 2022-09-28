@@ -38,8 +38,8 @@ const JsonModShouldPromptOnProtected = new Map<string, ExamplePromptInstallableM
 );
 
 const JsonModShouldPromptOnProtectedFilenameToplevelFixables = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   Object.keys(CONFIG_JSON_MOD_FIXABLE_FILENAMES_TO_PATHS).map((protectedName) => [
     `JSON prompts to install protected filename to correct dir when ${protectedName}`,
@@ -66,8 +66,8 @@ const JsonModShouldPromptOnProtectedFilenameToplevelFixables = new Map<
 
 // A bit silly these are separate but -.-
 const JsonModShouldPromptOnProtectedFilenameToplevelUnfixables = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   CONFIG_JSON_MOD_UNFIXABLE_FILENAMES.map((protectedName) => [
     `JSON prompts to install unfixable protected filename as is because we don't know where to put it ${protectedName}`,
@@ -85,8 +85,8 @@ const JsonModShouldPromptOnProtectedFilenameToplevelUnfixables = new Map<
 );
 
 const JsonModShouldPromptOnUnknownJsonInConfigDirs = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   CONFIG_JSON_MOD_PROTECTED_DIRS.map((protectedDir) => [
     `JSON prompts to install any unknown JSON in protected dir ${protectedDir}`,
@@ -102,8 +102,8 @@ const JsonModShouldPromptOnUnknownJsonInConfigDirs = new Map<
 );
 
 const JsonModGoesToFallbackPromptWhenUnknownsCombinedWithProtected = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   Object.entries({
     "JSON will go to conflict fallback prompt with protected and unknown files in basedir":
@@ -127,8 +127,8 @@ const JsonModGoesToFallbackPromptWhenUnknownsCombinedWithProtected = new Map<
 );
 
 const JsonModGoesToFallbackPromptOnOtherUnknownJsons = new Map<
-  string,
-  ExamplePromptInstallableMod
+string,
+ExamplePromptInstallableMod
 >(
   Object.entries({
     "JSON will go to no-match fallback prompt when only unknown files in basedir": {

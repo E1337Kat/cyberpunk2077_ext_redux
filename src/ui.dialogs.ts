@@ -4,9 +4,18 @@ import {
   EXTENSION_URL_GITHUB,
   EXTENSION_URL_NEXUS,
 } from "./index.metadata";
-import { ARCHIVE_MOD_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
-import { InstallDecision, InstallerType } from "./installers.types";
-import { VortexApi, VortexDialogResult } from "./vortex-wrapper";
+import {
+  ARCHIVE_MOD_CANONICAL_PREFIX,
+  LayoutDescriptions,
+} from "./installers.layouts";
+import {
+  InstallDecision,
+  InstallerType,
+} from "./installers.types";
+import {
+  VortexApi,
+  VortexDialogResult,
+} from "./vortex-wrapper";
 
 export const enum InstallChoices {
   Proceed = `Yes, Install To Staging Anyway`,

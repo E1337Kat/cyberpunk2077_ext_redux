@@ -1,5 +1,9 @@
 import path from "path";
-import { map, filter, flatten } from "fp-ts/ReadonlyArray";
+import {
+  map,
+  filter,
+  flatten,
+} from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import {
   FileTree,
@@ -27,13 +31,15 @@ import {
 } from "./installers.shared";
 import {
   VortexApi,
-
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 // REDmod

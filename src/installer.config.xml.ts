@@ -3,12 +3,14 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
   VortexInstallResult,
-
 } from "./vortex-wrapper";
-import { FileTree, filesIn, FILETREE_ROOT } from "./filetree";
+import {
+  FileTree,
+  filesIn,
+  FILETREE_ROOT,
+} from "./filetree";
 import {
   MaybeInstructions,
   NoInstructions,
@@ -30,7 +32,11 @@ import {
   promptBeforeContinuingWithProtectedInstructions,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 // Recognizers

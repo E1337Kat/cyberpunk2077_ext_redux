@@ -4,11 +4,13 @@ import {
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import { FileTree } from "./filetree";
-import { V2077TestFunc, V2077InstallFunc } from "./installers.types";
+import {
+  V2077TestFunc,
+  V2077InstallFunc,
+} from "./installers.types";
 
 const path = win32;
 

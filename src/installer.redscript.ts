@@ -26,13 +26,15 @@ import {
   makeSyntheticName,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   VortexApi,
-
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
 } from "./vortex-wrapper";
 

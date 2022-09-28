@@ -3,7 +3,6 @@ import {
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-
 } from "./vortex-wrapper";
 import {
   fileCount,
@@ -20,7 +19,11 @@ import {
   CYBERSCRIPT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 const detectCoreCyberScript = (fileTree: FileTree): boolean =>

@@ -1,7 +1,10 @@
 import path from "path";
 import KeyTree from "key-tree";
 import {
-  FileTree, findDirectSubdirsWithSome, filesUnder, Glob,
+  FileTree,
+  findDirectSubdirsWithSome,
+  filesUnder,
+  Glob,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import {
@@ -14,14 +17,14 @@ import {
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
   VortexApi,
-
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
-
 } from "./vortex-wrapper";
-import { V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 
 const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
