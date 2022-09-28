@@ -8,9 +8,17 @@ import {
   GOGAPP_ID,
   STEAMAPP_ID,
 } from "./index.metadata";
-import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
-import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import {
+  wrapTestSupported,
+  wrapInstall,
+  internalPipelineInstaller,
+} from "./installers";
+import {
+  VortexExtensionContext,
+  VortexGameStoreEntry,
+} from "./vortex-wrapper";
 import { wrappedPrepareForModding } from './redmodding';
+import { CurrentFeatureSet } from "./features";
 
 const moddingTools = [
   {
@@ -78,7 +86,7 @@ const main = (vortex: VortexExtensionContext) => {
     internalPipelineInstaller.id,
     internalPipelineInstaller.priority,
     wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
-    wrapInstall(vortex, vortexApi, internalPipelineInstaller),
+    wrapInstall(vortex, vortexApi, internalPipelineInstaller, CurrentFeatureSet),
   );
 
   vortex.once(() => {

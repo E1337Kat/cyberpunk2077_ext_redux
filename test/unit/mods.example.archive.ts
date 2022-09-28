@@ -1,5 +1,9 @@
 import path from "path";
-import { CurrentFeatureSet, Feature, Features } from "../../src/features";
+import {
+  CurrentFeatureSet,
+  Feature,
+  Features,
+} from "../../src/features";
 import {
   ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
   REDMOD_AUTOCONVERTED_NAME_TAG,

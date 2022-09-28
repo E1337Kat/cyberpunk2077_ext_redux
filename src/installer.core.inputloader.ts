@@ -2,7 +2,6 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
@@ -12,7 +11,11 @@ import {
   pathInTree,
   sourcePaths,
 } from "./filetree";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,

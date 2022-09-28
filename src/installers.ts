@@ -19,36 +19,101 @@ import {
   VortexInstallFunc,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { KNOWN_TOPLEVEL_DIRS, NoLayout } from "./installers.layouts";
+import {
+  KNOWN_TOPLEVEL_DIRS,
+  NoLayout,
+} from "./installers.layouts";
 import {
   testForCetCore,
   installCetCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import {
-  Installer, InstallerType, InstallerWithPriority, ModInfo, V2077InstallFunc, V2077TestFunc,
+  Installer,
+  InstallerType,
+  InstallerWithPriority,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
 } from "./installers.types";
-import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
-import { testForFallback, installFallback } from "./installer.fallback";
-import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
-import { installCoreArchiveXL, testForCoreArchiveXL } from "./installer.core-archive-xl";
-import { testForArchiveMod, installArchiveMod } from "./installer.archive";
-import { testForMultiTypeMod, installMultiTypeMod } from "./installer.multitype";
-import { testForAsiMod, installAsiMod } from "./installer.asi";
-import { testForCetMod, installCetMod } from "./installer.cet";
-import { testForIniMod, installIniMod } from "./installer.config.ini-reshade";
-import { testForJsonMod, installJsonMod } from "./installer.config.json";
-import { installConfigXmlMod, testForConfigXmlMod } from "./installer.config.xml";
-import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
-import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
+import {
+  installCoreTweakXL,
+  testForCoreTweakXL,
+} from "./installer.core-tweak-xl";
+import {
+  testForFallback,
+  installFallback,
+} from "./installer.fallback";
+import {
+  installTweakXLMod,
+  testForTweakXLMod,
+} from "./installer.tweak-xl";
+import {
+  installCoreArchiveXL,
+  testForCoreArchiveXL,
+} from "./installer.core-archive-xl";
+import {
+  testForArchiveMod,
+  installArchiveMod,
+} from "./installer.archive";
+import {
+  testForMultiTypeMod,
+  installMultiTypeMod,
+} from "./installer.multitype";
+import {
+  testForAsiMod,
+  installAsiMod,
+} from "./installer.asi";
+import {
+  testForCetMod,
+  installCetMod,
+} from "./installer.cet";
+import {
+  testForIniMod,
+  installIniMod,
+} from "./installer.config.ini-reshade";
+import {
+  testForJsonMod,
+  installJsonMod,
+} from "./installer.config.json";
+import {
+  installConfigXmlMod,
+  testForConfigXmlMod,
+} from "./installer.config.xml";
+import {
+  testForRed4ExtMod,
+  installRed4ExtMod,
+} from "./installer.red4ext";
+import {
+  testForRedscriptMod,
+  installRedscriptMod,
+} from "./installer.redscript";
 import { modInfoFromArchiveNameOrSynthetic } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
-import { InfoNotification, showInfoNotification } from "./ui.notifications";
-import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
-import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
-import { installAmmMod, testForAmmMod } from "./installer.amm";
-import { installPresetMod, testForPresetMod } from "./installer.preset";
-import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.special.deprecated";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
+import {
+  installCoreAmm,
+  testForCoreAmm,
+} from "./installer.core.amm";
+import {
+  installCoreCyberCat,
+  testForCyberCatCore,
+} from "./installer.core.cybercat";
+import {
+  installAmmMod,
+  testForAmmMod,
+} from "./installer.amm";
+import {
+  installPresetMod,
+  testForPresetMod,
+} from "./installer.preset";
+import {
+  testCoreCsvMerge,
+  testCoreWolvenKitCli,
+} from "./installer.special.deprecated";
 import {
   installCoreInputLoader,
   testForCoreInputLoader,
@@ -57,9 +122,18 @@ import {
   installCoreCyberScript,
   testForCoreCyberScript,
 } from "./installer.core.cyberscript";
-import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
-import { installREDmod, testForREDmod } from "./installer.redmod";
-import { installCoreRedscript, testForCoreRedscript } from "./installer.core.redscript";
+import {
+  installRed4ExtCore,
+  testRed4ExtCore,
+} from "./installer.core.red4ext";
+import {
+  installREDmod,
+  testForREDmod,
+} from "./installer.redmod";
+import {
+  installCoreRedscript,
+  testForCoreRedscript,
+} from "./installer.core.redscript";
 import { Features } from "./features";
 
 // Ensure we're using win32 conventions

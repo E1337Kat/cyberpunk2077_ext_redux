@@ -3,20 +3,26 @@ import * as A from "fp-ts/Array";
 import * as E from "fp-ts/Either";
 import * as J from "fp-ts/Json";
 import * as O from "fp-ts/Option";
-import { Option, some, none } from "fp-ts/Option";
+import {
+  Option,
+  some,
+  none,
+} from "fp-ts/Option";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/function";
 import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
   VortexInstallResult,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
-  FileTree, FILETREE_ROOT, filesIn, dirWithSomeUnder,
+  FileTree,
+  FILETREE_ROOT,
+  filesIn,
+  dirWithSomeUnder,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -41,7 +47,11 @@ import {
   instructionsForSameSourceAndDestPaths,
   useFirstMatchingLayoutForInstructionsAsync,
 } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 const matchPresetExt = (filePath: string): boolean =>

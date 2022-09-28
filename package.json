@@ -48,6 +48,7 @@
         "eslint": "^8.22.0",
         "eslint-config-airbnb-typescript": "^16.1.1",
         "eslint-plugin-import": "^2.25.4",
+        "eslint-plugin-import-newlines": "^1.2.3",
         "glob": "^8.0.3",
         "husky": "^7.0.0",
         "i18next": "^21.0.0",

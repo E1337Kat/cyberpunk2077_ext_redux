@@ -2,14 +2,20 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
-  FileTree, fileCount, pathInTree, sourcePaths,
+  FileTree,
+  fileCount,
+  pathInTree,
+  sourcePaths,
 } from "./filetree";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
 

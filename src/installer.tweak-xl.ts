@@ -3,11 +3,14 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { FileTree, pathInTree, filesUnder } from "./filetree";
+import {
+  FileTree,
+  pathInTree,
+  filesUnder,
+} from "./filetree";
 import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS,
@@ -19,7 +22,11 @@ import {
   NoLayout,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 const matchTweakYaml = (filePath: string): boolean =>

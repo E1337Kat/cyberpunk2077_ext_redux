@@ -2,7 +2,10 @@ import path from "path";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
-import { VortexApi, VortexInstruction } from "./vortex-wrapper";
+import {
+  VortexApi,
+  VortexInstruction,
+} from "./vortex-wrapper";
 
 /**
  * Correct Directory structure is something like this,

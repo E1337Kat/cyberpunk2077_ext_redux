@@ -1,5 +1,8 @@
 import { MODS_EXTRA_BASEDIR } from "./installers.layouts";
-import { VortexApi, VortexNotification } from "./vortex-wrapper";
+import {
+  VortexApi,
+  VortexNotification,
+} from "./vortex-wrapper";
 
 export type Notification = Required<Pick<VortexNotification, `id` | `type` | `title` | `message`>>;
 

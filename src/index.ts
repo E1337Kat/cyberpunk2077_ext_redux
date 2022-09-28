@@ -4,10 +4,20 @@ import { CurrentFeatureSet } from "./features";
 
 // Our stuff
 import {
-  EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID,
+  EPICAPP_ID,
+  GAME_ID,
+  GOGAPP_ID,
+  STEAMAPP_ID,
 } from "./index.metadata";
-import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
-import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import {
+  wrapTestSupported,
+  wrapInstall,
+  internalPipelineInstaller,
+} from "./installers";
+import {
+  VortexExtensionContext,
+  VortexGameStoreEntry,
+} from "./vortex-wrapper";
 
 const moddingTools = [
   {

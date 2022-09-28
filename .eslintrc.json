@@ -5,7 +5,7 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended"
   ],
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "import-newlines"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.eslint.json"
@@ -23,6 +23,11 @@
    }],
     "linebreak-style": "off",
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
+    "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1 }],
+    "import-newlines/enforce": [
+      "error",
+      1
+    ],
     "curly": "error",
     "func-style": "error",
     "function-paren-newline": ["error", "multiline-arguments"],
@@ -55,6 +60,7 @@
     "@typescript-eslint/no-base-to-string": "warn",
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-inferrable-types": "off",
+    "padding-line-between-statements": "off",
     "import/prefer-default-export": "off",
     "no-debugger": "warn"
   }

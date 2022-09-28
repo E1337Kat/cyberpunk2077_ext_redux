@@ -1,6 +1,13 @@
 import path from "path";
-import { fs, util as VortexUtil } from "vortex-api";
-import { GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID } from './index.metadata';
+import {
+  fs,
+  util as VortexUtil,
+} from "vortex-api";
+import {
+  GOGAPP_ID,
+  STEAMAPP_ID,
+  EPICAPP_ID,
+} from './index.metadata';
 import { promptUserInstallREDmodDLC } from "./ui.dialogs";
 import {
   VortexApi,

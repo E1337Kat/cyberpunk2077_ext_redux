@@ -13,14 +13,16 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
-
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexProgressDelegate,
 } from "./vortex-wrapper";
 

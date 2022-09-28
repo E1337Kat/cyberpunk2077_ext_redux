@@ -1,6 +1,9 @@
 import { win32 } from "path";
 import { FileTree } from "./filetree";
-import { InstallerType, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   showErrorForDeprecatedModTool,
   wolvenKitDesktopFoundErrorDialog,

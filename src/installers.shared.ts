@@ -3,14 +3,23 @@ import path from "path";
 
 import * as A from "fp-ts/Array";
 import {
-  Either, fold, left, right,
+  Either,
+  fold,
+  left,
+  right,
 } from "fp-ts/Either";
-import { identity, pipe } from "fp-ts/lib/function";
+import {
+  identity,
+  pipe,
+} from "fp-ts/lib/function";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
 
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
-import { FileTree, FILETREE_ROOT } from "./filetree";
+import {
+  FileTree,
+  FILETREE_ROOT,
+} from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
   Instructions,
@@ -24,9 +33,15 @@ import {
   REDMOD_AUTOCONVERTED_VERSION_TAG,
 } from "./installers.layouts";
 import {
-  InstallDecision, InstallerType, ModInfo, SemanticVersion,
+  InstallDecision,
+  InstallerType,
+  ModInfo,
+  SemanticVersion,
 } from "./installers.types";
-import { VortexApi, VortexInstruction } from "./vortex-wrapper";
+import {
+  VortexApi,
+  VortexInstruction,
+} from "./vortex-wrapper";
 
 // Types
 export interface File {

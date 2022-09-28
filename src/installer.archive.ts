@@ -1,6 +1,9 @@
 import path from "path";
 import { pipe } from "fp-ts/lib/function";
-import { map, toArray } from "fp-ts/lib/ReadonlyArray";
+import {
+  map,
+  toArray,
+} from "fp-ts/lib/ReadonlyArray";
 import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
@@ -41,20 +44,27 @@ import {
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import {
-  InstallerType, ModInfo, V2077InstallFunc, V2077TestFunc,
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
 } from "./installers.types";
 import {
   VortexApi,
-
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
   VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { Feature, Features } from "./features";
-import { InfoNotification, showInfoNotification } from "./ui.notifications";
+import {
+  Feature,
+  Features,
+} from "./features";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
 
 //
 

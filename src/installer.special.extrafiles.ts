@@ -1,5 +1,10 @@
 import path from "path";
-import { filesUnder, FileTree, FILETREE_ROOT, prunedTreeFrom } from "./filetree";
+import {
+  filesUnder,
+  FileTree,
+  FILETREE_ROOT,
+  prunedTreeFrom,
+} from "./filetree";
 import {
   Instructions,
   NoInstructions,

@@ -3,7 +3,10 @@ import {
   detectExtraArchiveLayouts,
   extraCanonArchiveInstructions,
 } from "./installer.archive";
-import { detectCetCanonLayout, cetCanonLayout } from "./installer.cet";
+import {
+  detectCetCanonLayout,
+  cetCanonLayout,
+} from "./installer.cet";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   detectRed4ExtCanonOnlyLayout,
@@ -23,16 +26,24 @@ import {
   configXmlAllowedInMultiInstructions,
   detectAllowedConfigXmlLayouts,
 } from "./installer.config.xml";
-import { LayoutToInstructions, NotAllowed } from "./installers.layouts";
-import { makeSyntheticName, useAllMatchingLayouts } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  LayoutToInstructions,
+  NotAllowed,
+} from "./installers.layouts";
+import {
+  makeSyntheticName,
+  useAllMatchingLayouts,
+} from "./installers.shared";
+import {
+  InstallerType,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { trueish } from "./installers.utils";
 import {
-
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
