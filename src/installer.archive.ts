@@ -33,14 +33,15 @@ import {
   moveFromTo,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
+
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
+
 } from "./vortex-wrapper";
 
 //
@@ -359,7 +360,7 @@ export const instructionsForToplevelExtras = (
 // testSupport
 //
 
-export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
+export const testForArchiveMod: V2077TestFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -429,7 +430,7 @@ export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
 // install
 //
 
-export const installArchiveMod: VortexWrappedInstallFunc = (
+export const installArchiveMod: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],

@@ -31,13 +31,13 @@ import {
   makeSyntheticName,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
+
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
 } from "./vortex-wrapper";
 
@@ -184,7 +184,7 @@ const red4extModnamedToplevelLayout: LayoutToInstructions = (
   };
 };
 
-export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
+export const testForRed4ExtMod: V2077TestFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -222,7 +222,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   return Promise.resolve({ supported: true, requiredFiles: [] });
 };
 
-export const installRed4ExtMod: VortexWrappedInstallFunc = (
+export const installRed4ExtMod: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],

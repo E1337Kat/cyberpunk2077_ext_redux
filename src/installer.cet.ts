@@ -1,6 +1,8 @@
 import path from "path";
 import KeyTree from "key-tree";
-import { FileTree, findDirectSubdirsWithSome, filesUnder, Glob } from "./filetree";
+import {
+  FileTree, findDirectSubdirsWithSome, filesUnder, Glob,
+} from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import {
   CET_MOD_CANONICAL_PATH_PREFIX,
@@ -12,12 +14,14 @@ import {
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
+
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
+
 } from "./vortex-wrapper";
+import { V2077InstallFunc, V2077TestFunc } from "./installers.types";
 
 const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
@@ -71,11 +75,10 @@ export const cetCanonLayout = (
   fileTree: FileTree,
 ): MaybeInstructions => {
   const allCanonCetFiles = findCanonicalCetDirs(fileTree).flatMap((namedSubdir) =>
-    filesUnder(namedSubdir, Glob.Any, fileTree),
-  );
+    filesUnder(namedSubdir, Glob.Any, fileTree));
 
   if (allCanonCetFiles.length < 1) {
-    api.log("debug", "No canonical CET files found.");
+    api.log(`debug`, `No canonical CET files found.`);
     return NoInstructions.NoMatch;
   }
 
@@ -97,7 +100,7 @@ export const cetCanonLayout = (
 //
 // Archives: both canonical
 
-export const testForCetMod: VortexWrappedTestSupportedFunc = (
+export const testForCetMod: V2077TestFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
   _files: string[],
@@ -109,7 +112,7 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
-  log("info", `Matching CET installer: ${hasCetFilesInANamedModDir}`);
+  log(`info`, `Matching CET installer: ${hasCetFilesInANamedModDir}`);
 
   return Promise.resolve({
     supported: hasCetFilesInANamedModDir,
@@ -118,7 +121,7 @@ export const testForCetMod: VortexWrappedTestSupportedFunc = (
 };
 
 // Install the CET stuff, as well as any archives we find
-export const installCetMod: VortexWrappedInstallFunc = (
+export const installCetMod: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -129,7 +132,7 @@ export const installCetMod: VortexWrappedInstallFunc = (
 
   if (cetFiles.length === 0) {
     return Promise.reject(
-      new Error("CET install but no CET files, should never get here"),
+      new Error(`CET install but no CET files, should never get here`),
     );
   }
 

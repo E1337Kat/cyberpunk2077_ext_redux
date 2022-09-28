@@ -3,8 +3,7 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
   VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
@@ -20,7 +19,7 @@ import {
   NoLayout,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 const matchTweakYaml = (filePath: string): boolean =>
@@ -52,7 +51,7 @@ const tweakXLCanonLayout = (
 
 // testSupport
 
-export const testForTweakXLMod: VortexWrappedTestSupportedFunc = (
+export const testForTweakXLMod: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -62,7 +61,7 @@ export const testForTweakXLMod: VortexWrappedTestSupportedFunc = (
 
 // install
 
-export const installTweakXLMod: VortexWrappedInstallFunc = async (
+export const installTweakXLMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

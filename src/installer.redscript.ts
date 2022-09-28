@@ -26,13 +26,13 @@ import {
   makeSyntheticName,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
+
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
 } from "./vortex-wrapper";
 
@@ -145,7 +145,7 @@ export const redscriptCanonLayout = (
 // testSupport
 //
 
-export const testForRedscriptMod: VortexWrappedTestSupportedFunc = async (
+export const testForRedscriptMod: V2077TestFunc = async (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -164,7 +164,7 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = async (
 // install
 //
 
-export const installRedscriptMod: VortexWrappedInstallFunc = async (
+export const installRedscriptMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

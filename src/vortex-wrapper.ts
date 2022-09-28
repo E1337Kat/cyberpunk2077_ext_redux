@@ -1,6 +1,4 @@
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { Features } from "./features";
-import { FileTree } from "./filetree";
 
 // Plain renames
 
@@ -32,33 +30,7 @@ export interface VortexApi extends Vortex.IExtensionApi {
 export type VortexTestResult = Vortex.ISupportedResult;
 export type VortexTestSupportedFunc = Vortex.TestSupported;
 
-// Vortex.TestSupported
-export type VortexWrappedTestSupportedFunc = (
-  vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  destinationPath?: string,
-  sourceDirPathForMod?: string,
-  stagingDirPathForMod?: string,
-  modName?: string,
-  features?: Features,
-) => Promise<VortexTestResult>;
-
 export type VortexInstallFunc = Vortex.InstallFunc;
 export type VortexInstallResult = Vortex.IInstallResult;
 export type VortexInstruction = Vortex.IInstruction;
-
-// Vortex.InstallFunc
-export type VortexWrappedInstallFunc = (
-  vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  destinationPath: string,
-  progressDelegate: VortexProgressDelegate,
-  sourceDirPathForMod: string,
-  stagingDirPathForMod: string,
-  modName: string,
-  features: Features,
-) => Promise<VortexInstallResult>;
+export type VortexInstructionType = Vortex.InstructionType;

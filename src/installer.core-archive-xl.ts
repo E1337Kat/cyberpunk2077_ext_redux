@@ -2,13 +2,14 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
   VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { FileTree, fileCount, pathInTree, sourcePaths } from "./filetree";
-import { InstallerType } from "./installers.types";
+import {
+  FileTree, fileCount, pathInTree, sourcePaths,
+} from "./filetree";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
 
@@ -27,7 +28,7 @@ const detectCoreArchiveXL = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   findCoreArchiveXLFiles(fileTree).length > 0;
 
-export const testForCoreArchiveXL: VortexWrappedTestSupportedFunc = (
+export const testForCoreArchiveXL: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -35,7 +36,7 @@ export const testForCoreArchiveXL: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreArchiveXL(fileTree), requiredFiles: [] });
 
-export const installCoreArchiveXL: VortexWrappedInstallFunc = async (
+export const installCoreArchiveXL: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

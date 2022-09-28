@@ -27,13 +27,13 @@ import {
 } from "./installers.shared";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
+
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 // REDmod
@@ -148,7 +148,7 @@ export const canonREDmodLayout = (
 // testSupported
 //
 
-export const testForREDmod: VortexWrappedTestSupportedFunc = (
+export const testForREDmod: V2077TestFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
   _files: string[],
@@ -163,7 +163,7 @@ export const testForREDmod: VortexWrappedTestSupportedFunc = (
 //
 
 // Install the REDmod stuff, as well as any archives we find
-export const installREDmod: VortexWrappedInstallFunc = async (
+export const installREDmod: V2077InstallFunc = async (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],

@@ -1,5 +1,7 @@
 import path from "path";
-import { FileTree, filesIn, filesUnder, Glob, fileCount } from "./filetree";
+import {
+  FileTree, filesIn, filesUnder, Glob, fileCount,
+} from "./filetree";
 import {
   ASI_MOD_PATH,
   LayoutToInstructions,
@@ -13,13 +15,15 @@ import {
   instructionsForSameSourceAndDestPaths,
   makeSyntheticName,
 } from "./installers.shared";
+import { V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
-  VortexWrappedTestSupportedFunc,
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
+
 } from "./vortex-wrapper";
 
 const matchAsiFile = (file: string) => path.extname(file) === ASI_MOD_EXT;
@@ -33,7 +37,7 @@ const detectASICanonLayout = (fileTree: FileTree): boolean =>
 const findCanonicalAsiFiles = (fileTree: FileTree): string[] =>
   filesUnder(ASI_MOD_PATH, Glob.Any, fileTree);
 
-export const testForAsiMod: VortexWrappedTestSupportedFunc = (
+export const testForAsiMod: V2077TestFunc = (
   _api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -69,7 +73,7 @@ const asiCanonLayout: LayoutToInstructions = (
   };
 };
 
-export const installAsiMod: VortexWrappedInstallFunc = (
+export const installAsiMod: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -84,8 +88,8 @@ export const installAsiMod: VortexWrappedInstallFunc = (
     chosenInstructions === NoInstructions.NoMatch ||
     chosenInstructions === InvalidLayout.Conflict
   ) {
-    const message = "ASI installer failed to generate instructions";
-    log("error", message, files);
+    const message = `ASI installer failed to generate instructions`;
+    log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
@@ -96,12 +100,12 @@ export const installAsiMod: VortexWrappedInstallFunc = (
 
   if (haveFilesOutsideSelectedInstructions) {
     const message = `Too many files in ASI Mod! ${instructions.length}`;
-    log("error", message, files);
+    log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
-  log("info", "ASI installer installing files.");
-  log("debug", "ASI instructions: ", instructions);
+  log(`info`, `ASI installer installing files.`);
+  log(`debug`, `ASI instructions: `, instructions);
 
   return Promise.resolve({ instructions });
 };

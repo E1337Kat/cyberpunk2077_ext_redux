@@ -1,5 +1,7 @@
 import path from "path";
-import { filesIn, filesUnder, FileTree, FILETREE_ROOT, pathInTree } from "./filetree";
+import {
+  filesIn, filesUnder, FileTree, FILETREE_ROOT, pathInTree,
+} from "./filetree";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   CONFIG_JSON_MOD_EXTENSION,
@@ -23,14 +25,15 @@ import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import {
-  VortexWrappedTestSupportedFunc,
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
+
 } from "./vortex-wrapper";
 
 const matchConfigJson = (filePath: string): boolean =>
@@ -38,24 +41,21 @@ const matchConfigJson = (filePath: string): boolean =>
 
 const findConfigJsonProtectedFiles = (fileTree: FileTree): string[] =>
   CONFIG_JSON_MOD_PROTECTED_FILES.filter((protectedPath) =>
-    pathInTree(protectedPath, fileTree),
-  );
+    pathInTree(protectedPath, fileTree));
 
 const detectConfigJsonProtectedLayout = (fileTree: FileTree): boolean =>
   findConfigJsonProtectedFiles(fileTree).length > 0;
 
 const findConfigJsonToplevelFiles = (fileTree: FileTree): string[] =>
   filesIn(FILETREE_ROOT, matchConfigJson, fileTree).filter((json) =>
-    CONFIG_JSON_MOD_PROTECTED_FILENAMES.includes(path.basename(json)),
-  );
+    CONFIG_JSON_MOD_PROTECTED_FILENAMES.includes(path.basename(json)));
 
 const detectConfigJsonToplevelLayout = (fileTree: FileTree): boolean =>
   findConfigJsonToplevelFiles(fileTree).length > 0;
 
 const findJsonFilesInProtectedDirs = (fileTree: FileTree): string[] =>
   CONFIG_JSON_MOD_PROTECTED_DIRS.flatMap((dir) =>
-    filesUnder(dir, matchConfigJson, fileTree),
-  );
+    filesUnder(dir, matchConfigJson, fileTree));
 
 const detectJsonFilesInProtectedDirs = (fileTree: FileTree): boolean =>
   findJsonFilesInProtectedDirs(fileTree).length > 0;
@@ -128,7 +128,7 @@ const configJsonTopevelLayout: LayoutToInstructions = (
 // testSupport
 //
 
-export const testForJsonMod: VortexWrappedTestSupportedFunc = async (
+export const testForJsonMod: V2077TestFunc = async (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -149,7 +149,7 @@ export const testForJsonMod: VortexWrappedTestSupportedFunc = async (
 // install
 //
 
-export const installJsonMod: VortexWrappedInstallFunc = async (
+export const installJsonMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

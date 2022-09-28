@@ -2,13 +2,15 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
   VortexProgressDelegate,
   VortexInstruction,
+
 } from "./vortex-wrapper";
-import { FileTree, fileCount, pathInTree, sourcePaths } from "./filetree";
-import { InstallerType } from "./installers.types";
+import {
+  FileTree, fileCount, pathInTree, sourcePaths,
+} from "./filetree";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
@@ -39,7 +41,7 @@ const detectCoreTweakXL = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   findCoreTweakXLFiles(fileTree).length > 0;
 
-export const testForCoreTweakXL: VortexWrappedTestSupportedFunc = (
+export const testForCoreTweakXL: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -47,7 +49,7 @@ export const testForCoreTweakXL: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreTweakXL(fileTree), requiredFiles: [] });
 
-export const installCoreTweakXL: VortexWrappedInstallFunc = async (
+export const installCoreTweakXL: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

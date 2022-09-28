@@ -7,11 +7,10 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
   VortexProgressDelegate,
   VortexInstallResult,
   VortexInstruction,
+
 } from "./vortex-wrapper";
 import {
   FileTree,
@@ -61,7 +60,7 @@ import {
   moveFromTo,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   extraCanonArchiveInstructions,
@@ -71,7 +70,7 @@ import {
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
 const matchAmmExt = (filePath: string): boolean =>
-  [".json", ".lua"].includes(path.extname(filePath));
+  [`.json`, `.lua`].includes(path.extname(filePath));
 
 const findAmmFiles = (
   ammDir: string,
@@ -79,8 +78,7 @@ const findAmmFiles = (
   fileTree: FileTree,
 ): string[] =>
   findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
-    filesUnder(dir, Glob.Any, fileTree),
-  );
+    filesUnder(dir, Glob.Any, fileTree));
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
   ...findAmmFiles(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree),
@@ -123,10 +121,10 @@ const canonPrefixedPathByTypeIfActualAmmMod = (file: File): Option<FileMove> => 
 
     const jsonKeyMatcher = A.findFirstMap<[string[], string], FileMove>(
       ([requiredKeys, canonDirForType]) =>
-        keysInData.length >= requiredKeys.length &&
+        (keysInData.length >= requiredKeys.length &&
         requiredKeys.every((key) => keysInData.includes(key))
           ? some(fileMove(canonDirForType, file))
-          : none,
+          : none),
     );
 
     return jsonKeyMatcher(ammJsonContentToPath);
@@ -135,9 +133,9 @@ const canonPrefixedPathByTypeIfActualAmmMod = (file: File): Option<FileMove> => 
   if (kind === `.lua`) {
     const luaContentMatcher = A.findFirstMap<[RegExp[], string], FileMove>(
       ([requiredMatches, canonDirForType]) =>
-        requiredMatches.every((required) => file.content.match(required))
+        (requiredMatches.every((required) => file.content.match(required))
           ? some(fileMove(canonDirForType, file))
-          : none,
+          : none),
     );
 
     return luaContentMatcher(ammLuaContentToPath);
@@ -220,8 +218,7 @@ const ammToplevelLayout = async (
   const allToplevelCandidates: File[] = await pipe(
     filesIn(FILETREE_ROOT, matchAmmExt, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
-    ),
+      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath)),
   )();
 
   const toplevelAmmInstructions: VortexInstruction[] = pipe(
@@ -253,7 +250,7 @@ const ammToplevelLayout = async (
 
 // testSupport
 
-export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
+export const testForAmmMod: V2077TestFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -306,7 +303,7 @@ export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
 
 // install
 
-export const installAmmMod: VortexWrappedInstallFunc = async (
+export const installAmmMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

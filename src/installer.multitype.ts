@@ -25,14 +25,14 @@ import {
 } from "./installer.config.xml";
 import { LayoutToInstructions, NotAllowed } from "./installers.layouts";
 import { makeSyntheticName, useAllMatchingLayouts } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { trueish } from "./installers.utils";
 import {
-  VortexWrappedTestSupportedFunc,
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
@@ -40,7 +40,7 @@ import {
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
 
-export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
+export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -91,7 +91,7 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
-export const installMultiTypeMod: VortexWrappedInstallFunc = async (
+export const installMultiTypeMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

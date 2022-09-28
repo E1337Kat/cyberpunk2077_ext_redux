@@ -1,6 +1,11 @@
+import { Features } from "./features";
+import { FileTree } from "./filetree";
 import {
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+  VortexApi,
+  VortexLogFunc,
+  VortexTestResult,
+  VortexProgressDelegate,
+  VortexInstallResult,
 } from "./vortex-wrapper";
 
 export enum InstallerType {
@@ -44,11 +49,68 @@ export enum InstallerType {
   NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE SEEN OUTSIDE TESTS>`,
 }
 
+//
+// Mod Info and Name And Stuff
+//
+export interface SemanticVersion {
+  v: string;
+  major: string;
+  minor?: string;
+  patch?: string;
+  prerelease?: string;
+  build?: string;
+}
+
+export interface ModInfo {
+  name: string;
+  id: string;
+  version: SemanticVersion;
+  createTime: Date;
+  copy?: string;
+  variant?: string;
+}
+
+//
+// Installer API functions
+//
+
+// Vortex.TestSupported
+export type V2077TestFunc = (
+  vortexApi: VortexApi,
+  vortexLog: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  destinationPath?: string,
+  sourceDirPathForMod?: string,
+  stagingDirPathForMod?: string,
+  modName?: string,
+  modInfo?: ModInfo,
+  features?: Features,
+) => Promise<VortexTestResult>;
+
+// Vortex.InstallFunc
+export type V2077InstallFunc = (
+  vortexApi: VortexApi,
+  vortexLog: VortexLogFunc,
+  files: string[],
+  fileTree: FileTree,
+  destinationPath: string,
+  progressDelegate: VortexProgressDelegate,
+  sourceDirPathForMod: string,
+  stagingDirPathForMod: string,
+  modName: string,
+  modInfo: ModInfo,
+  features: Features,
+) => Promise<VortexInstallResult>;
+
+//
+// Installers
+//
 export interface Installer {
   type: InstallerType;
   id: string;
-  testSupported: VortexWrappedTestSupportedFunc;
-  install: VortexWrappedInstallFunc;
+  testSupported: V2077TestFunc;
+  install: V2077InstallFunc;
 }
 
 export interface InstallerWithPriority extends Installer {
