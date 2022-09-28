@@ -1,4 +1,6 @@
 import path from "path";
+import { pipe } from "fp-ts/lib/function";
+import { map, toArray } from "fp-ts/lib/ReadonlyArray";
 import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
@@ -26,14 +28,21 @@ import {
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
+  REDmodTransformedLayout,
+  REDMOD_CANONICAL_BASEDIR,
+  REDMOD_CANONICAL_INFO_FILE,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
+  modInfoToREDmodModuleName,
   moveFromTo,
+  tagModInfoAsAutoconverted,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
+import {
+  InstallerType, ModInfo, V2077InstallFunc, V2077TestFunc,
+} from "./installers.types";
 import {
   VortexApi,
 
@@ -41,8 +50,11 @@ import {
   VortexTestResult,
 
   VortexInstallResult,
-
+  VortexProgressDelegate,
+  VortexInstruction,
 } from "./vortex-wrapper";
+import { Feature, Features } from "./features";
+import { InfoNotification, showInfoNotification } from "./ui.notifications";
 
 //
 
@@ -307,7 +319,7 @@ const instructionsForStandaloneMod = (
   return chosenInstructions;
 };
 
-export const instructionsForCanonicalExtras = (
+const instructionsForCanonicalExtras = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
@@ -335,7 +347,7 @@ export const instructionsForCanonicalExtras = (
   return chosenInstructions;
 };
 
-export const instructionsForToplevelExtras = (
+const instructionsForToplevelExtras = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
@@ -350,6 +362,108 @@ export const instructionsForToplevelExtras = (
   }
 
   return chosenInstructions;
+};
+
+//
+// REDmod stuff
+//
+
+const transformToREDmodInstructions = (
+  api: VortexApi,
+  features: Features,
+  modInfo: ModInfo,
+  originalInstructions: Instructions,
+): Instructions => {
+  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    api.log(`error`, `${InstallerType.Archive}: REDmod transform function called but feature is disabled`);
+    return originalInstructions;
+  }
+
+  const redmodInfoWithAutoconvertTag =
+    tagModInfoAsAutoconverted(modInfo);
+
+  const redmodModuleName =
+    modInfoToREDmodModuleName(redmodInfoWithAutoconvertTag);
+
+  const redmodVersion =
+    redmodInfoWithAutoconvertTag.version.v;
+
+  const destinationDirWithModnamePrefix =
+    path.join(REDMOD_CANONICAL_BASEDIR, redmodModuleName, path.sep);
+
+  // This should really be handled through fp-ts/json, but
+  // for now I can't be bothered..
+  const infoJson = JSON.stringify({
+    name: redmodModuleName,
+    version: redmodVersion,
+  });
+
+  const generateInfoJsonInstruction: VortexInstruction = {
+    type: `generatefile`,
+    data: infoJson,
+    destination: path.join(destinationDirWithModnamePrefix, REDMOD_CANONICAL_INFO_FILE),
+  };
+
+  api.log(`debug`, `Transforming Archive instructions to REDmod`);
+  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
+
+  const instructionsWithDestinationSwitchedToREDmodDir = pipe(
+    originalInstructions.instructions,
+    map((instruction) =>
+      (!instruction.destination
+        ? instruction
+        : {
+          ...instruction,
+          destination: instruction.destination.replace(
+            ARCHIVE_MOD_CANONICAL_PREFIX,
+            destinationDirWithModnamePrefix,
+          ),
+        }
+      )),
+    toArray,
+  );
+
+  const allREDmodTransformedInstructions = [
+    generateInfoJsonInstruction,
+    ...instructionsWithDestinationSwitchedToREDmodDir,
+  ];
+
+  showInfoNotification(
+    api,
+    InfoNotification.REDmodArchiveAutoconverted,
+    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
+  );
+
+  return {
+    kind: REDmodTransformedLayout.Canon,
+    instructions: allREDmodTransformedInstructions,
+  };
+};
+
+const transformAndValidateAndFinalizeInstructions = (
+  api: VortexApi,
+  features: Features,
+  modInfo: ModInfo,
+  originalInstructions: Instructions,
+): Instructions => {
+  //
+  // This needs to be moved after the finalization but needs logic changes?
+  //
+
+  // We should handle the potentially-conflicting archives case here,
+  // but it requires some extra logic (which we should do, just not now)
+  // and most likely most real mods do the right thing here and this won't
+  // be much of a problem in practice. But we should still fix it because
+  // it'll be a better design in addition to the robustness.
+  //
+  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
+  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
+  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    return originalInstructions;
+  }
+
+  return transformToREDmodInstructions(api, features, modInfo, originalInstructions);
 };
 
 //
@@ -436,6 +550,12 @@ export const installArchiveMod: V2077InstallFunc = (
   files: string[],
   fileTree: FileTree,
   _destinationPath: string,
+  _progressDelegate: VortexProgressDelegate,
+  _sourceDirPathForMod: string,
+  _stagingDirPathForMod: string,
+  _modName: string,
+  modInfo: ModInfo,
+  features: Features,
 ): Promise<VortexInstallResult> => {
   const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
 
@@ -455,9 +575,10 @@ export const installArchiveMod: V2077InstallFunc = (
     );
   }
 
-  warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
+  const finalInstructions =
+    transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
 
-  return Promise.resolve({ instructions: chosenInstructions.instructions });
+  return Promise.resolve({ instructions: finalInstructions.instructions });
 };
 
 //
@@ -474,14 +595,6 @@ export const extraCanonArchiveInstructions = (
   const transformedInstructions =
     maybeTransformToREDmod(api, canonicalInstructions, fileTree);
     */
-
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
   warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
   return canonicalInstructions;
@@ -492,14 +605,6 @@ export const extraToplevelArchiveInstructions = (
   fileTree: FileTree,
 ): Instructions => {
   const toplevelInstructions = instructionsForToplevelExtras(api, fileTree);
-
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
   warnUserIfArchivesMightNeedManualReview(api, toplevelInstructions);
 
   return toplevelInstructions;
