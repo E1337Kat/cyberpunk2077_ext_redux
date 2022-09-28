@@ -22,13 +22,15 @@ import {
   RED4EXT_CORE_ONE_NINE_REQUIRED_FILES,
   RED4EXT_CORE_ONE_SEVEN_REQUIRED_FILES,
 } from "./installers.layouts";
-import { InstallDecision, InstallerType } from "./installers.types";
 import {
-  VortexWrappedTestSupportedFunc,
+  InstallDecision, InstallerType, V2077InstallFunc, V2077TestFunc,
+} from "./installers.types";
+import {
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexProgressDelegate,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths, instructionsToGenerateDirs, useFirstMatchingLayoutForInstructions } from './installers.shared';
@@ -65,7 +67,7 @@ const detectCoreRed4ext = (fileTree: FileTree): boolean =>
   detectCoreRed4extOneSevenLayout(fileTree) ||
   detectDeprecatedCoreRed4extLayout(fileTree);
 
-export const testRed4ExtCore: VortexWrappedTestSupportedFunc = (
+export const testRed4ExtCore: V2077TestFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -212,7 +214,7 @@ export const coreRed4extInstructions = async (
 
 // install
 
-export const installRed4ExtCore: VortexWrappedInstallFunc = async (
+export const installRed4ExtCore: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

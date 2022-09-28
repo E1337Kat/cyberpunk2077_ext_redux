@@ -4,17 +4,17 @@ import {
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import { FileTree } from "./filetree";
+import { V2077TestFunc, V2077InstallFunc } from "./installers.types";
 
 const path = win32;
 
 const CET_CORE_IDENTIFIERS = [path.normalize(`bin/x64/plugins/cyber_engine_tweaks.asi`)];
 
-export const testForCetCore: VortexWrappedTestSupportedFunc = (
+export const testForCetCore: V2077TestFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -29,7 +29,7 @@ export const testForCetCore: VortexWrappedTestSupportedFunc = (
   });
 };
 
-export const installCetCore: VortexWrappedInstallFunc = (
+export const installCetCore: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],

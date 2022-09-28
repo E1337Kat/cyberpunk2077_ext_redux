@@ -17,13 +17,15 @@ import {
   NoInstructions,
   REDSCRIPT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
-import { InstallDecision, InstallerType } from "./installers.types";
 import {
-  VortexWrappedTestSupportedFunc,
+  InstallDecision, InstallerType, V2077InstallFunc, V2077TestFunc,
+} from "./installers.types";
+import {
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexProgressDelegate,
 } from "./vortex-wrapper";
 import { instructionsForSameSourceAndDestPaths, useFirstMatchingLayoutForInstructions } from './installers.shared';
@@ -97,7 +99,7 @@ const deprecatedCoreRedscriptLayout = (
 
 // testSupported
 
-export const testForCoreRedscript: VortexWrappedTestSupportedFunc = (
+export const testForCoreRedscript: V2077TestFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
@@ -111,7 +113,7 @@ export const testForCoreRedscript: VortexWrappedTestSupportedFunc = (
 
 // install
 
-export const installCoreRedscript: VortexWrappedInstallFunc = async (
+export const installCoreRedscript: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

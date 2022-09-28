@@ -13,14 +13,14 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
-  VortexWrappedTestSupportedFunc,
+
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
+
   VortexProgressDelegate,
 } from "./vortex-wrapper";
 
@@ -36,7 +36,7 @@ const detectCoreAmm = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   AMM_CORE_REQUIRED_PATHS.some((requiredFile) => pathInTree(requiredFile, fileTree));
 
-export const testForCoreAmm: VortexWrappedTestSupportedFunc = (
+export const testForCoreAmm: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -44,7 +44,7 @@ export const testForCoreAmm: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreAmm(fileTree), requiredFiles: [] });
 
-export const installCoreAmm: VortexWrappedInstallFunc = async (
+export const installCoreAmm: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

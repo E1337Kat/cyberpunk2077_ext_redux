@@ -14,7 +14,7 @@ import {
   VortexTestResult,
   VortexInstallResult,
   VortexProgressDelegate,
-  VortexWrappedInstallFunc,
+
   VortexWrappedTestSupportedFunc,
   VortexExtensionContext,
   VortexTestSupportedFunc,
@@ -27,7 +27,9 @@ import {
   installCetCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
-import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
+import {
+  Installer, InstallerType, InstallerWithPriority, V2077InstallFunc,
+} from "./installers.types";
 import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
 import { testForFallback, installFallback } from "./installer.fallback";
 import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
@@ -79,7 +81,7 @@ export const notSupportedModType: VortexWrappedTestSupportedFunc = (
 
 // install that always fails
 //
-export const notInstallableMod: VortexWrappedInstallFunc = (
+export const notInstallableMod: V2077InstallFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -595,7 +597,7 @@ const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
 // turn (by priority) for `testSupport` on the mod. If an installer
 // is found, it's used to get the instructions. If not: error.
 //
-const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
+const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   vortexApi: VortexApi,
   vortexLog: VortexLogFunc,
   _files: string[],

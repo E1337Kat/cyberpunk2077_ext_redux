@@ -10,13 +10,14 @@ import {
   VortexApi,
   VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
   VortexProgressDelegate,
   VortexInstallResult,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { FileTree, FILETREE_ROOT, filesIn, dirWithSomeUnder } from "./filetree";
+import {
+  FileTree, FILETREE_ROOT, filesIn, dirWithSomeUnder,
+} from "./filetree";
 import {
   MaybeInstructions,
   NoInstructions,
@@ -40,7 +41,7 @@ import {
   instructionsForSameSourceAndDestPaths,
   useFirstMatchingLayoutForInstructionsAsync,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 
 const matchPresetExt = (filePath: string): boolean =>
@@ -66,24 +67,22 @@ const detectPresetLayout = (fileTree: FileTree): boolean =>
 
 const canonPrefixedPathByTypeIfActualPresetMod = (file: File): Option<FileMove> => {
   const cyberCatJsonMatcher = (keysInData: string[]) =>
-    keysInData.length >= PRESET_MOD_CYBERCAT_REQUIRED_KEYS.length &&
+    (keysInData.length >= PRESET_MOD_CYBERCAT_REQUIRED_KEYS.length &&
     PRESET_MOD_CYBERCAT_REQUIRED_KEYS.every((key) => keysInData.includes(key))
       ? some(fileMove(PRESET_MOD_CYBERCAT_BASEDIR, file))
-      : none;
+      : none);
 
   const unlockerStringContentMatcherFem = (): Option<FileMove> =>
-    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST.every((required) =>
-      file.content.match(required),
-    )
+    (PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST.every((required) =>
+      file.content.match(required))
       ? some(fileMove(PRESET_MOD_UNLOCKER_FEMDIR, file))
-      : none;
+      : none);
 
   const unlockerStringContentMatcherMasc = (): Option<FileMove> =>
-    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC.every((required) =>
-      file.content.match(required),
-    )
+    (PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC.every((required) =>
+      file.content.match(required))
       ? some(fileMove(PRESET_MOD_UNLOCKER_MASCDIR, file))
-      : none;
+      : none);
 
   const maybeRealPreset = pipe(
     J.parse(file.content),
@@ -105,8 +104,7 @@ const presetInstructionsFromDecodingUnknownPresets = async (
   const allCandidates: File[] = await pipe(
     findPresetFilesIn(dir, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
-    ),
+      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath)),
   )();
 
   const presetInstructions: VortexInstruction[] = pipe(
@@ -203,7 +201,7 @@ const presetToplevelLayout = async (
 
 // testSupport
 
-export const testForPresetMod: VortexWrappedTestSupportedFunc = async (
+export const testForPresetMod: V2077TestFunc = async (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -219,7 +217,7 @@ export const testForPresetMod: VortexWrappedTestSupportedFunc = async (
 
 // install
 
-export const installPresetMod: VortexWrappedInstallFunc = async (
+export const installPresetMod: V2077InstallFunc = async (
   api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],

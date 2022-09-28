@@ -3,8 +3,7 @@ import {
   VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
+
 } from "./vortex-wrapper";
 import {
   fileCount,
@@ -21,15 +20,14 @@ import {
   CYBERSCRIPT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import { InstallerType, V2077InstallFunc, V2077TestFunc } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 const detectCoreCyberScript = (fileTree: FileTree): boolean =>
   CYBERSCRIPT_CORE_REQUIRED_FILES.some((requiredFile) =>
-    pathInTree(requiredFile, fileTree),
-  );
+    pathInTree(requiredFile, fileTree));
 
-export const testForCoreCyberScript: VortexWrappedTestSupportedFunc = (
+export const testForCoreCyberScript: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -37,7 +35,7 @@ export const testForCoreCyberScript: VortexWrappedTestSupportedFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreCyberScript(fileTree), requiredFiles: [] });
 
-export const installCoreCyberScript: VortexWrappedInstallFunc = (
+export const installCoreCyberScript: V2077InstallFunc = (
   api: VortexApi,
   log: VortexLogFunc,
   files: string[],
