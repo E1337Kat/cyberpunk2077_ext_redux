@@ -66,6 +66,7 @@ export interface ModInfo {
   id: string;
   version: SemanticVersion;
   createTime: Date;
+  stagingDirPrefix: string;
   copy?: string;
   variant?: string;
 }
