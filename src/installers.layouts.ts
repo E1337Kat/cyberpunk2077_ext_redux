@@ -678,8 +678,27 @@ export const enum REDmodLayout {
   Canon = `.\\mods\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
   Basedir = `.\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
 }
-export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
+
+export const enum REDmodTransformedLayout {
+  Canon = `Archive layout transformed to REDmod Canon`,
+}
+
+export interface REDmodInfo {
+  name: string;
+  version: string;
+}
+
 export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
+
+export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
+
+export const REDMOD_INFO_FILE_REQUIRED_KEYS: (keyof REDmodInfo)[] = [
+  `name`,
+  `version`,
+];
+
+export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
+export const REDMOD_AUTOCONVERTED_VERSION_TAG = `V2077RED`;
 
 //
 // ASI
@@ -1033,6 +1052,7 @@ export type Layout =
   | RedscriptLayout
   | Red4ExtLayout
   | REDmodLayout
+  | REDmodTransformedLayout
   | TweakXLLayout
   | PresetLayout
   | ArchiveLayout

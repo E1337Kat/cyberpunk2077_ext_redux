@@ -16,6 +16,7 @@ export const enum NotificationStatus {
 export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
+  REDmodArchiveAutoconverted = `V2077-notify-info-redmod-archive-autoconverted`,
 }
 
 //
@@ -41,11 +42,21 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       message: `To complete installing CyberCAT, wait for the deploy to finish and then restart Vortex!`,
     },
   ],
+  [
+    InfoNotification.REDmodArchiveAutoconverted,
+    {
+      id: InfoNotification.REDmodArchiveAutoconverted,
+      type: `info`,
+      title: `Mod Autoconverted to REDmod`,
+      message: `The mod was automatically converted and will be installed as a REDmod`,
+    },
+  ],
 ]);
 
 const getInfoNotificationOrThrow = (
   api: VortexApi,
   id: InfoNotification,
+  overrideMessage?: string,
 ): Notification => {
   const notification = InfoNotificationsUnsafeMap.get(id);
 
@@ -56,7 +67,12 @@ const getInfoNotificationOrThrow = (
     throw new Error(errorCausingAnExitHopefullyInTestsAndNotInProd);
   }
 
-  return notification;
+  const maybeModifiedNotification: Notification =
+    overrideMessage
+      ? { ...notification, message: overrideMessage }
+      : notification;
+
+  return maybeModifiedNotification;
 };
 
 //
@@ -66,8 +82,9 @@ const getInfoNotificationOrThrow = (
 export const showInfoNotification = async (
   api: VortexApi,
   id: InfoNotification,
+  overrideMessage?: string,
 ): Promise<NotificationStatus> => {
-  api.sendNotification(getInfoNotificationOrThrow(api, id));
+  api.sendNotification(getInfoNotificationOrThrow(api, id, overrideMessage));
 
   return NotificationStatus.Complete;
 };

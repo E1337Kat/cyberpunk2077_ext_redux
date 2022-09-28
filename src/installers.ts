@@ -14,8 +14,6 @@ import {
   VortexTestResult,
   VortexInstallResult,
   VortexProgressDelegate,
-
-  VortexWrappedTestSupportedFunc,
   VortexExtensionContext,
   VortexTestSupportedFunc,
   VortexInstallFunc,
@@ -28,7 +26,7 @@ import {
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
 import {
-  Installer, InstallerType, InstallerWithPriority, V2077InstallFunc,
+  Installer, InstallerType, InstallerWithPriority, ModInfo, V2077InstallFunc, V2077TestFunc,
 } from "./installers.types";
 import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
 import { testForFallback, installFallback } from "./installer.fallback";
@@ -72,7 +70,7 @@ const PRIORITY_STARTING_NUMBER = PRIORITY_FOR_PIPELINE_INSTALLER + 1;
 
 // testSupported that always fails
 //
-export const notSupportedModType: VortexWrappedTestSupportedFunc = (
+export const notSupportedModType: V2077TestFunc = (
   _api: VortexApi,
   _log: VortexLogFunc,
   _files: string[],
@@ -488,7 +486,11 @@ export const wrapInstall =
 
       const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
 
-      const modName = makeSyntheticName(stagingDirPathForMod);
+      const modInfo = modInfoFromArchiveNameOrSynthetic(stagingDirPathForMod);
+      vortexApi.log(`info`, `Parsed or generated mod info: `, modInfo);
+
+      const modName =
+        modInfo.name;
 
       const instructionsFromInstaller = await installer.install(
         vortexApi,
@@ -500,6 +502,7 @@ export const wrapInstall =
         sourceDirPathForMod,
         stagingDirPathForMod,
         modName,
+        modInfo,
         features,
       );
 
@@ -554,6 +557,7 @@ export const wrapInstall =
             sourceDirPathForMod,
             stagingDirPathForMod,
             modName,
+            modInfo,
             features,
           )
         ).instructions;
@@ -585,7 +589,7 @@ export const wrapInstall =
 // Doing this avoids having to match the installer twice,
 // but if it turns out to be necessary... well, we can just
 // do that, then.
-const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
+const testUsingPipelineOfInstallers: V2077TestFunc = async (
   _vortexApi: VortexApi,
   _vortexLog: VortexLogFunc,
   _files: string[],
@@ -607,6 +611,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   sourceDirPathForMod: string,
   stagingDirPathForMod: string,
   modName: string,
+  modInfo: ModInfo,
   features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
@@ -630,6 +635,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
       sourceDirPathForMod,
       stagingDirPathForMod,
       modName,
+      modInfo,
       features,
     );
 
@@ -658,6 +664,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
     sourceDirPathForMod,
     stagingDirPathForMod,
     modName,
+    modInfo,
     features,
   );
 
