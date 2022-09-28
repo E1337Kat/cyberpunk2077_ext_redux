@@ -113,12 +113,13 @@ export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
 });
 
 //
-export const makeSyntheticModInfo = (modName: string): ModInfo =>
+export const makeSyntheticModInfo = (stagingDirPrefix: string, modName: string): ModInfo =>
   makeModInfo({
     name: `${modName}${V2077_GENERATED_MODNAME_TAG}`,
     id: ``,
     version: makeSemanticVersion({ major: `0`, minor: `0`, patch: `1` }),
     createTime: dateToSeconds(new Date()),
+    stagingDirPrefix,
   });
 
 //
@@ -170,13 +171,16 @@ const ModInfoFormatParser =
 
 //
 export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, ModInfo> => {
+  const stagingDirPrefix =
+    path.dirname(archiveName);
+
   const cleanedArchiveName =
     path.basename(archiveName, `.installing`);
 
   const infoSuccessfullyParsed = ModInfoFormatParser.exec(cleanedArchiveName);
 
   if (!infoSuccessfullyParsed) {
-    return left(makeSyntheticModInfo(cleanedArchiveName));
+    return left(makeSyntheticModInfo(stagingDirPrefix, cleanedArchiveName));
   }
 
   const {
@@ -193,6 +197,7 @@ export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, Mod
         patch,
       },
       createTime,
+      stagingDirPrefix,
       copy,
       variant,
     });
