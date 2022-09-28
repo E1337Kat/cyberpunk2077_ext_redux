@@ -5,7 +5,7 @@ import { Console } from "console";
 import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import { VortexInstruction } from "../../src/vortex-wrapper";
-import { InstallerType } from "../../src/installers.types";
+import { InstallerType, ModInfo } from "../../src/installers.types";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CET_MOD_CANONICAL_PATH_PREFIX,
@@ -21,8 +21,7 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
-import { ModInfo, modInfoToArchiveName } from "../../src/installers.shared";
-import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
+import { modInfoToVortexArchiveName } from "../../src/installers.shared";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -123,14 +122,15 @@ export const FAKE_MOD_INFO: ModInfo = {
   },
   createTime: new Date(),
   copy: undefined,
-  variant: `+varianttag`,
+  variant: `varianttag`,
 };
 
-const FAKE_MOD_NAME_SOURCE = modInfoToArchiveName(FAKE_MOD_INFO);
-export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_MOD_NAME_SOURCE}`;
+const FAKE_MOD_ARCHIVE_NAME = modInfoToVortexArchiveName(FAKE_MOD_INFO);
+export const FAKE_MOD_NAME = FAKE_MOD_INFO.name;
+// export const FAKE_MOD_NAME = `V2077-${FAKE_MOD_ARCHIVE_NAME}`;
 
-const FAKE_STAGING_MOD_NAME = `${FAKE_MOD_NAME_SOURCE}.installing`;
-const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_MOD_NAME];
+const FAKE_MOD_INSTALL_DIRNAME = `${FAKE_MOD_ARCHIVE_NAME}.installing`;
+const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_MOD_INSTALL_DIRNAME];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
 
