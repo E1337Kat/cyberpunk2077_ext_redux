@@ -29,7 +29,6 @@ import {
   mergeOrFailOnConflict,
   ExampleFailingMod,
   movedFromTo,
-  FAKE_MOD_NAME,
   generatedFile,
   FAKE_MOD_INFO,
 } from "./utils.helper";
@@ -403,25 +402,26 @@ const ValidExtraArchivesWithTypeSucceeds = new Map<string, ExampleSucceedingMod>
 // REDmodding
 //
 
-const REDMOD_AUTOCONVERT_ARCHIVES: Features = {
+const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: Features = {
   ...CurrentFeatureSet,
   REDmodAutoconvertArchives: Feature.Enabled,
 };
 
 // const REDMOD_AUTOCONVERT_MOD_NAME = `${FAKE_MOD_NAME} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
-const REDMOD_AUTOCONVERT_MOD_DIR = `${FAKE_MOD_NAME} ${REDMOD_AUTOCONVERTED_NAME_TAG}-${FAKE_MOD_INFO.version.v}+V2077RED`;
-const REDMOD_AUTOCONVERT_MOD_NAME = REDMOD_AUTOCONVERT_MOD_DIR.replace(/^V2077-/, ``);
+const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
+const AUTOCONVERT_MOD_DIR = AUTOCONVERT_MOD_NAME;
+const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
 const REDMOD_FAKE_INFO_JSON = JSON.stringify({
-  name: REDMOD_AUTOCONVERT_MOD_NAME,
-  version: `${FAKE_MOD_INFO.version.v}+V2077RED`,
+  name: AUTOCONVERT_MOD_NAME,
+  version: AUTOCONVERT_MOD_VERSION,
 });
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
     `Canonical with single archive migrated to REDmod`,
     {
-      features: REDMOD_AUTOCONVERT_ARCHIVES,
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.Archive,
       inFiles: [
         ...ARCHIVE_PREFIXES,
@@ -430,11 +430,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${REDMOD_AUTOCONVERT_MOD_DIR}\\first.archive`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${REDMOD_AUTOCONVERT_MOD_DIR}\\${REDMOD_CANONICAL_INFO_FILE}`),
+          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_CANONICAL_INFO_FILE}`),
         ),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
