@@ -43,7 +43,6 @@ import {
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
-  modInfoToVortexInstallingDir,
   useFirstMatchingLayoutForInstructionsAsync,
 } from "./installers.shared";
 import {
@@ -228,14 +227,11 @@ export const installPresetMod: V2077InstallFunc = async (
   modInfo: ModInfo,
   _features: Features,
 ): Promise<VortexInstallResult> => {
-  const installingDir =
-    modInfoToVortexInstallingDir(modInfo);
-
   const selectedInstructions = await useFirstMatchingLayoutForInstructionsAsync(
     api,
     undefined,
     fileTree,
-    installingDir,
+    modInfo.installingDir,
     [
       presetCanonCyberCatLayout,
       presetCanonUnlockerLayout,

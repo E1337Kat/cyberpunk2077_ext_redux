@@ -25,7 +25,6 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import { Features } from "./features";
-import { modInfoToVortexInstallingDir } from "./installers.shared";
 
 const testForReshadeFile = (
   log: VortexLogFunc,
@@ -119,10 +118,7 @@ export const installIniMod: V2077InstallFunc = (
     (file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION,
   );
 
-  const installingPath =
-    modInfoToVortexInstallingDir(modInfo);
-
-  const reshade = testForReshadeFile(api.log, allIniModFiles, installingPath);
+  const reshade = testForReshadeFile(api.log, allIniModFiles, modInfo.installingDir);
 
   // Set destination depending on file type
 
