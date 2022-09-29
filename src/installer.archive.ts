@@ -39,9 +39,8 @@ import {
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
-  modInfoToREDmodModuleName,
   moveFromTo,
-  tagModInfoAsAutoconverted,
+  modInfoTaggedAsAutoconverted,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import {
@@ -389,10 +388,10 @@ const transformToREDmodInstructions = (
   }
 
   const redmodInfoWithAutoconvertTag =
-    tagModInfoAsAutoconverted(modInfo);
+    modInfoTaggedAsAutoconverted(modInfo);
 
   const redmodModuleName =
-    modInfoToREDmodModuleName(redmodInfoWithAutoconvertTag);
+    redmodInfoWithAutoconvertTag.name;
 
   const redmodVersion =
     redmodInfoWithAutoconvertTag.version.v;

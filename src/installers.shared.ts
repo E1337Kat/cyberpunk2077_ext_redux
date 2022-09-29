@@ -127,7 +127,7 @@ export const makeSyntheticModInfo = (modName: string, stagingDirPrefix: string, 
   });
 
 //
-export const tagModInfoAsAutoconverted = (modInfo: ModInfo): ModInfo => {
+export const modInfoTaggedAsAutoconverted = (modInfo: ModInfo): ModInfo => {
   const modNameWithoutExtraTag =
     modInfo.name.replace(V2077_GENERATED_MOD_NAME_TAG, ``);
 
@@ -206,9 +206,6 @@ export const modInfoFromArchiveNameOrSynthetic = (archiveName: string): ModInfo 
     fold(identity, identity),
   );
 
-
-export const modInfoToREDmodModuleName = (modInfo: ModInfo): string =>
-  `${modInfo.name}-${modInfo.version.v}`;
 
 //
 // Source to dest path mapping helpers
