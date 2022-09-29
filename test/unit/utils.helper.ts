@@ -24,7 +24,6 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
-import { modInfoToVortexArchiveName } from "../../src/installers.shared";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -116,6 +115,14 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
 
 const FAKE_STAGING_DIR_PREFIXES = [`some`, `dirs`, `to`, `stage`];
 
+const FAKE_MOD_INFO_INSTALLING_DIRNAME =
+  `Fake Mod For Examples-8279-v1-0a-1664414660+varianttag.installing`;
+
+const FAKE_STAGING_DIRS = [...FAKE_STAGING_DIR_PREFIXES, FAKE_MOD_INFO_INSTALLING_DIRNAME];
+
+export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
+export const FAKE_MOD_NAME = `Fake Mod For Examples`;
+
 export const FAKE_MOD_INFO: ModInfo = {
   name: `Fake Mod For Examples`,
   id: `8279`,
@@ -125,18 +132,13 @@ export const FAKE_MOD_INFO: ModInfo = {
     minor: `0a`,
     patch: undefined,
   },
-  createTime: new Date(),
+  createTime: new Date(1664414660000),
   stagingDirPrefix: path.join(...FAKE_STAGING_DIR_PREFIXES),
+  installingDir: path.join(...FAKE_STAGING_DIRS),
   copy: undefined,
   variant: `varianttag`,
 };
 
-const FAKE_MOD_ARCHIVE_NAME = modInfoToVortexArchiveName(FAKE_MOD_INFO);
-export const FAKE_MOD_NAME = FAKE_MOD_INFO.name;
-
-const FAKE_MOD_INSTALL_DIRNAME = `${FAKE_MOD_ARCHIVE_NAME}.installing`;
-const FAKE_STAGING_DIRS = [...FAKE_STAGING_DIR_PREFIXES, FAKE_MOD_INSTALL_DIRNAME];
-export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
 
 //
 // Test support functions, mocks

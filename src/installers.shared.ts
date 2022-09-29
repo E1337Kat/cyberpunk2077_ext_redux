@@ -79,10 +79,10 @@ export const fileToInstruction = (movedFile: FileMove): VortexInstruction => ({
 // Types
 
 // Vortex doesn't seem to supply prelease/build
-type SemanticVersionRaw = Omit<SemanticVersion, `v` | `prerelease`>;
+type SemanticVersionRaw = Omit<SemanticVersion, `v`>;
 
 type ModInfoRaw =
-  Omit<ModInfo, `version` | `createTime` | `installingDir`> &
+  Omit<ModInfo, `version` | `createTime`> &
   { version: SemanticVersionRaw } &
   { createTime: string };
 
@@ -90,9 +90,8 @@ type ModInfoRaw =
 // Helpers
 //
 
-const V2077_GENERATED_MODNAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
-
-const VORTEX_INSTALLING_DIR_SUFFIX = `.installing`;
+const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
+const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;
 
 const dateToSeconds = (date: Date): string => (date.getTime() / 1000).toString();
 const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);
@@ -104,7 +103,7 @@ const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);
 //
 export const makeSemanticVersion = (v: SemanticVersionRaw): SemanticVersion => ({
   ...v,
-  v: `${v.major}${v.minor ? `.${v.minor}` : ``}${v.patch ? `.${v.patch}` : ``}${v.build ? `+${v.build}` : ``}`,
+  v: `${v.major}${v.minor ? `.${v.minor}` : ``}${v.patch ? `.${v.patch}` : ``}${v.prerelease ? `-${v.prerelease}` : ``}${v.build ? `+${v.build}` : ``}`,
 });
 
 //
@@ -115,19 +114,22 @@ export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
 });
 
 //
-export const makeSyntheticModInfo = (stagingDirPrefix: string, modName: string): ModInfo =>
+export const makeSyntheticModInfo = (modName: string, stagingDirPrefix: string, installingDir): ModInfo =>
   makeModInfo({
-    name: `${modName}${V2077_GENERATED_MODNAME_TAG}`,
-    id: ``,
-    version: makeSemanticVersion({ major: `0`, minor: `0`, patch: `1` }),
+    name: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`,
+    id: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`, // Vortex uses the mod name as is
+    version: makeSemanticVersion({
+      major: `0`, minor: `0`, patch: `1`, prerelease: V2077_GENERATED_MOD_VERSION_PRERELEASE,
+    }),
     createTime: dateToSeconds(new Date()),
     stagingDirPrefix,
+    installingDir,
   });
 
 //
 export const tagModInfoAsAutoconverted = (modInfo: ModInfo): ModInfo => {
   const modNameWithoutExtraTag =
-    modInfo.name.replace(V2077_GENERATED_MODNAME_TAG, ``);
+    modInfo.name.replace(V2077_GENERATED_MOD_NAME_TAG, ``);
 
   const modNameTaggedAsAutoconverted =
     `${modNameWithoutExtraTag} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
@@ -161,17 +163,17 @@ const ModInfoFormatParser =
   /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
 
 //
-export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, ModInfo> => {
+export const modInfoFromArchiveName = (installingDir: string): Either<ModInfo, ModInfo> => {
   const stagingDirPrefix =
-    path.dirname(archiveName);
+    path.dirname(installingDir);
 
   const cleanedArchiveName =
-    path.basename(archiveName, `.installing`);
+    path.basename(installingDir, `.installing`);
 
   const infoSuccessfullyParsed = ModInfoFormatParser.exec(cleanedArchiveName);
 
   if (!infoSuccessfullyParsed) {
-    return left(makeSyntheticModInfo(stagingDirPrefix, cleanedArchiveName));
+    return left(makeSyntheticModInfo(cleanedArchiveName, stagingDirPrefix, installingDir));
   }
 
   const {
@@ -189,6 +191,7 @@ export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, Mod
       },
       createTime,
       stagingDirPrefix,
+      installingDir,
       copy,
       variant,
     });
@@ -202,22 +205,6 @@ export const modInfoFromArchiveNameOrSynthetic = (archiveName: string): ModInfo 
     modInfoFromArchiveName(archiveName),
     fold(identity, identity),
   );
-
-
-export const modInfoToVortexArchiveName = (modInfo: ModInfo): string =>
-  // eslint-disable-next-line prefer-template
-  `${modInfo.name}` +
-  `-${modInfo.id}` +
-  `-${modInfo.version.major}` +
-  (modInfo.version.minor ? `-${modInfo.version.minor}` : ``) +
-  (modInfo.version.patch ? `-${modInfo.version.patch}` : ``) +
-  `-${dateToSeconds(modInfo.createTime)}` +
-  (modInfo.copy ? modInfo.copy : ``) +
-  (modInfo.variant ? `+${modInfo.variant}` : ``);
-
-
-export const modInfoToVortexInstallingDir = (modInfo: ModInfo): string =>
-  path.join(modInfo.stagingDirPrefix, `${modInfoToVortexArchiveName(modInfo)}${VORTEX_INSTALLING_DIR_SUFFIX}`);
 
 
 export const modInfoToREDmodModuleName = (modInfo: ModInfo): string =>

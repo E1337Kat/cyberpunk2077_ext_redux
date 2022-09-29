@@ -58,7 +58,6 @@ import {
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
-  modInfoToVortexInstallingDir,
   moveFromTo,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
@@ -286,7 +285,7 @@ export const testForAmmMod: V2077TestFunc = async (
   // could appear toplevel. And then we duplicate this in install..
   const maybeToplevelAmmInstructions = await ammToplevelLayout(
     api,
-    modInfoToVortexInstallingDir(modInfo),
+    modInfo.installingDir,
     undefined,
     fileTree,
   );
@@ -313,9 +312,6 @@ export const installAmmMod: V2077InstallFunc = async (
   modInfo: ModInfo,
   _features: Features,
 ): Promise<VortexInstallResult> => {
-  const installingDir =
-    modInfoToVortexInstallingDir(modInfo);
-
   const pathBasedMatchInstructions = useFirstMatchingLayoutForInstructions(
     api,
     undefined,
@@ -326,7 +322,7 @@ export const installAmmMod: V2077InstallFunc = async (
   const selectedInstructions =
     pathBasedMatchInstructions === NoInstructions.NoMatch ||
     pathBasedMatchInstructions === InvalidLayout.Conflict
-      ? await ammToplevelLayout(api, installingDir, undefined, fileTree)
+      ? await ammToplevelLayout(api, modInfo.installingDir, undefined, fileTree)
       : pathBasedMatchInstructions;
 
   if (

@@ -65,6 +65,7 @@ export interface ModInfo {
   version: SemanticVersion;
   createTime: Date;
   stagingDirPrefix: string;
+  installingDir: string;
   copy?: string;
   variant?: string;
 }
