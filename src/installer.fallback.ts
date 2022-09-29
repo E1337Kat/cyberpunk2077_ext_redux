@@ -22,14 +22,15 @@ import {
   InstallDecision,
   V2077InstallFunc,
   V2077TestFunc,
+  ModInfo,
 } from "./installers.types";
 import { exhaustiveMatchFailure } from "./installers.utils";
 import {
   VortexApi,
   VortexInstallResult,
-  VortexLogFunc,
   VortexTestResult,
 } from "./vortex-wrapper";
+import { Features } from "./features";
 
 export const findFallbackFiles = (fileTree: FileTree): string[] =>
   filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
@@ -112,23 +113,17 @@ export const promptToFallbackOrFailOnUnresolvableLayout = async (
 
 export const testForFallback: V2077TestFunc = (
   _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  log(`debug`, `Fallback installer received Files: `, files);
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
-};
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: true,
+  requiredFiles: [],
+});
 
 export const installFallback: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
     api,

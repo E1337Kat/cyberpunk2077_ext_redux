@@ -5,6 +5,7 @@ import {
   findDirectSubdirsWithSome,
   filesUnder,
   Glob,
+  sourcePaths,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import {
@@ -17,14 +18,15 @@ import {
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
+import { Features } from "./features";
 
 const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
@@ -104,9 +106,7 @@ export const cetCanonLayout = (
 // Archives: both canonical
 
 export const testForCetMod: V2077TestFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  _files: string[],
+  api: VortexApi,
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const hasCetFilesInANamedModDir = detectCetCanonLayout(fileTree);
@@ -115,7 +115,7 @@ export const testForCetMod: V2077TestFunc = (
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
 
-  log(`info`, `Matching CET installer: ${hasCetFilesInANamedModDir}`);
+  api.log(`info`, `Matching CET installer: ${hasCetFilesInANamedModDir}`);
 
   return Promise.resolve({
     supported: hasCetFilesInANamedModDir,
@@ -126,11 +126,13 @@ export const testForCetMod: V2077TestFunc = (
 // Install the CET stuff, as well as any archives we find
 export const installCetMod: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
+  const files =
+    sourcePaths(fileTree);
+
   const cetFiles = allCanonicalCetFiles(files);
 
   if (cetFiles.length === 0) {

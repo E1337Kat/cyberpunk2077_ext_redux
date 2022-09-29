@@ -1,9 +1,7 @@
 import path from "path";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
@@ -34,10 +32,12 @@ import {
 } from "./installers.shared";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { Features } from "./features";
 
 // Recognizers
 
@@ -161,8 +161,6 @@ const configXmlTopevelLayout = (
 
 export const testForConfigXmlMod: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({
@@ -178,11 +176,9 @@ export const testForConfigXmlMod: V2077TestFunc = (
 
 export const installConfigXmlMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const allPossibleConfigXmlLayouts = [
     configXmlProtectedLayout,

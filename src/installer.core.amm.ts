@@ -1,3 +1,4 @@
+import { Features } from "./features";
 import {
   FileTree,
   pathInTree,
@@ -15,15 +16,14 @@ import {
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
 } from "./vortex-wrapper";
 
 const findRequiredCoreAmmFiles = (fileTree: FileTree): string[] =>
@@ -40,19 +40,15 @@ const detectCoreAmm = (fileTree: FileTree): boolean =>
 
 export const testForCoreAmm: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreAmm(fileTree), requiredFiles: [] });
 
 export const installCoreAmm: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   const allCoreAmmFiles = findAllCoreAmmFiles(fileTree);
 

@@ -1,6 +1,5 @@
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
@@ -24,6 +23,7 @@ import {
 } from "./installers.shared";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
@@ -31,6 +31,7 @@ import {
   showManualStepRequiredForToolInfo,
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
+import { Features } from "./features";
 
 const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
   CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) =>
@@ -42,19 +43,19 @@ const detectCoreCyberCat = (fileTree: FileTree): boolean =>
 
 export const testForCyberCatCore: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreCyberCat(fileTree), requiredFiles: [] });
 
 export const installCoreCyberCat: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
+  const files =
+    sourcePaths(fileTree);
+
   const missingRequiredCoreCyberCatFiles =
     findRequiredCoreCyberCatFiles(fileTree).length !==
     CYBERCAT_CORE_REQUIRED_FILES.length;

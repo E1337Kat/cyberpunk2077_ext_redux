@@ -1,8 +1,6 @@
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
@@ -13,6 +11,7 @@ import {
 } from "./filetree";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
@@ -21,6 +20,7 @@ import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   TWEAK_XL_CORE_FILES,
 } from "./installers.layouts";
+import { Features } from "./features";
 
 const coreTweakXLInstructions: VortexInstruction[] = [
   {
@@ -48,19 +48,15 @@ const detectCoreTweakXL = (fileTree: FileTree): boolean =>
 
 export const testForCoreTweakXL: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreTweakXL(fileTree), requiredFiles: [] });
 
 export const installCoreTweakXL: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   if (
     fileCount(fileTree) !== TWEAK_XL_CORE_FILES.length ||

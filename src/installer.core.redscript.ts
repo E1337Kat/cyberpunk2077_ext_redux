@@ -20,14 +20,13 @@ import {
 import {
   InstallDecision,
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
 } from "./vortex-wrapper";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -37,6 +36,7 @@ import {
   promptUserToInstallOrCancelOnDeprecatedCoreMod,
   showWarningForUnrecoverableStructureError,
 } from './ui.dialogs';
+import { Features } from './features';
 
 // Recognizers
 
@@ -107,14 +107,11 @@ const deprecatedCoreRedscriptLayout = (
 // testSupported
 
 export const testForCoreRedscript: V2077TestFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
+  _api: VortexApi,
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({
-    supported:
-          detectCoreRedscript(fileTree),
+    supported: detectCoreRedscript(fileTree),
     requiredFiles: [],
   });
 
@@ -122,11 +119,9 @@ export const testForCoreRedscript: V2077TestFunc = (
 
 export const installCoreRedscript: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   //
   const me = InstallerType.CoreRedscript;

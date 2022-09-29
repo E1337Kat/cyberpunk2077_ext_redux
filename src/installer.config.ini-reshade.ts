@@ -1,6 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { FileTree } from "./filetree";
+import {
+  FileTree,
+  sourcePaths,
+} from "./filetree";
 import {
   CONFIG_INI_MOD_EXTENSION,
   CET_MOD_CANONICAL_INIT_FILE,
@@ -17,20 +20,23 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
+import { Features } from "./features";
+import { modInfoToVortexInstallingDir } from "./installers.shared";
 
 const testForReshadeFile = (
   log: VortexLogFunc,
   files: string[],
-  folder: string,
+  installingDir: string,
 ): boolean => {
   // We're going to make a reasonable assumption here that reshades will
   // only have reshade ini's, so we only need to check the first one
 
   const fileToExamine = path.join(
-    folder,
+    installingDir,
     files.find((file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION),
   );
 
@@ -55,16 +61,17 @@ const testForReshadeFile = (
 // INI (includes Reshade?)
 export const testForIniMod: V2077TestFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
+  const files =
+    sourcePaths(fileTree);
+
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === CONFIG_INI_MOD_EXTENSION,
   );
 
   if (filtered.length === 0) {
-    log(`info`, `No INI files.`);
+    api.log(`info`, `No INI files.`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -79,14 +86,14 @@ export const testForIniMod: V2077TestFunc = (
     )
   ) {
     // These should  actually error out, we should not get here
-    log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
+    api.log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
   if (files.includes(CET_GLOBAL_INI)) {
-    log(`error`, `CET Installer detected, not processing as INI`);
+    api.log(`error`, `CET Installer detected, not processing as INI`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -100,22 +107,26 @@ export const testForIniMod: V2077TestFunc = (
 
 export const installIniMod: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   // This installer gets called for both reshade and "normal" ini mods
+  const files =
+    sourcePaths(fileTree);
 
   const allIniModFiles = files.filter(
     (file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION,
   );
 
-  const reshade = testForReshadeFile(log, allIniModFiles, _destinationPath);
+  const installingPath =
+    modInfoToVortexInstallingDir(modInfo);
+
+  const reshade = testForReshadeFile(api.log, allIniModFiles, installingPath);
 
   // Set destination depending on file type
 
-  log(`info`, `Installing ini files: `, allIniModFiles);
+  api.log(`info`, `Installing ini files: `, allIniModFiles);
   const iniFileInstructions = allIniModFiles.map((file: string) => {
     const fileName = path.basename(file);
     const dest = reshade
@@ -137,7 +148,7 @@ export const installIniMod: V2077InstallFunc = (
   let shaderInstructions = [];
 
   if (reshade && shaderFiles.length !== 0) {
-    log(`info`, `Installing shader files: `, shaderFiles);
+    api.log(`info`, `Installing shader files: `, shaderFiles);
     shaderInstructions = shaderFiles.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, CONFIG_RESHADE_MOD_SHADER_DIRNAME);
@@ -151,8 +162,10 @@ export const installIniMod: V2077InstallFunc = (
       };
     });
   }
+
   const instructions = [].concat(iniFileInstructions, shaderInstructions);
-  log(`debug`, `Installing ini files with instructions: `, instructions);
+
+  api.log(`debug`, `Installing ini files with instructions: `, instructions);
 
   return Promise.resolve({ instructions });
 };

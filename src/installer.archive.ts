@@ -15,6 +15,7 @@ import {
   fileTreeFromPaths,
   subdirsIn,
   filesIn,
+  sourcePaths,
 } from "./filetree";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
@@ -51,10 +52,8 @@ import {
 } from "./installers.types";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-  VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
@@ -485,14 +484,15 @@ const transformAndValidateAndFinalizeInstructions = (
 //
 
 export const testForArchiveMod: V2077TestFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
+  api: VortexApi,
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   if (detectArchiveCanonWithXLLayout(fileTree)) {
     return Promise.resolve({ supported: true, requiredFiles: [] });
   }
+
+  const files =
+    sourcePaths(fileTree);
 
   let supported: boolean;
   const filtered = files.filter(
@@ -500,7 +500,6 @@ export const testForArchiveMod: V2077TestFunc = (
   );
 
   if (filtered.length === 0) {
-    log(`info`, `No archives.`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -519,7 +518,7 @@ export const testForArchiveMod: V2077TestFunc = (
 
     // there is a base folder for non archive mods, so why bother.
     if (hasNonArchive) {
-      log(`info`, `Other mod folder exist... probably an archive as part of those.`);
+      api.log(`info`, `Other mod folder exist... probably an archive as part of those.`);
       return Promise.resolve({
         supported: false,
         requiredFiles: [],
@@ -532,14 +531,14 @@ export const testForArchiveMod: V2077TestFunc = (
     supported = true;
   } else {
     supported = false;
-    log(
+    api.log(
       `error`,
       `I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.`,
     );
   }
 
   if (supported !== undefined && supported) {
-    log(`info`, `Only archive files, so installing them should be easy peasy.`);
+    api.log(`info`, `Only archive files, so installing them should be easy peasy.`);
   } else {
     supported = false;
   }
@@ -556,27 +555,23 @@ export const testForArchiveMod: V2077TestFunc = (
 
 export const installArchiveMod: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
-  _sourceDirPathForMod: string,
-  _stagingDirPathForMod: string,
-  _modName: string,
   modInfo: ModInfo,
   features: Features,
 ): Promise<VortexInstallResult> => {
   const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
 
+  const files =
+    sourcePaths(fileTree);
+
   if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `${InstallerType.Archive} installer failed to generate any instructions!`;
-    log(`error`, message, files);
+    api.log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
   if (chosenInstructions === InvalidLayout.Conflict) {
-    log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
+    api.log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
 
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
