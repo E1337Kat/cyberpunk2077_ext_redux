@@ -3,7 +3,10 @@ import { partitionMap } from 'fp-ts/ReadonlyArray';
 import { pipe } from "fp-ts/lib/function";
 import { match } from 'fp-ts/lib/Either';
 import { right as rights } from 'fp-ts/lib/Separated';
-import { modInfoFromArchiveName } from "../../src/installers.shared";
+import {
+  modInfoFromArchiveName,
+  modInfoToVortexInstallingDir,
+} from "../../src/installers.shared";
 import { ModInfo } from '../../src/installers.types';
 
 const fakeDate = new Date(2021, 1, 1);
@@ -36,7 +39,7 @@ describe(`Parsing mod info from archive name`, () => {
 
     const testCases: [string, ModInfo][] = [
       [
-        path.join(fakeStagingDirPrefix, `Limited HUD-2592-2-5-${fakeDateMs}`),
+        path.join(fakeStagingDirPrefix, `Limited HUD-2592-2-5-${fakeDateMs}.installing`),
         {
           name: `Limited HUD`,
           id: `2592`,
@@ -53,7 +56,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Appearance Menu Mod-790-1-14-4-${fakeDateMs}`),
+        path.join(fakeStagingDirPrefix, `Appearance Menu Mod-790-1-14-4-${fakeDateMs}.installing`),
         {
           name: `Appearance Menu Mod`,
           id: `790`,
@@ -70,7 +73,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `HairMaterialRetouch-2577-1-0a-${fakeDateMs}`),
+        path.join(fakeStagingDirPrefix, `HairMaterialRetouch-2577-1-0a-${fakeDateMs}.installing`),
         {
           name: `HairMaterialRetouch`,
           id: `2577`,
@@ -87,7 +90,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Appearance Previews-718-v0-09a-${fakeDateMs}`),
+        path.join(fakeStagingDirPrefix, `Appearance Previews-718-v0-09a-${fakeDateMs}.installing`),
         {
           name: `Appearance Previews`,
           id: `718`,
@@ -104,7 +107,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Cap colors-4293-1-${fakeDateMs}(2)+darkpurple vanilla`),
+        path.join(fakeStagingDirPrefix, `Cap colors-4293-1-${fakeDateMs}(2)+darkpurple vanilla.installing`),
         {
           name: `Cap colors`,
           id: `4293`,
@@ -121,7 +124,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Vanilla Billboard LOD Improved-3184-1-6-1-${fakeDateMs}.1`),
+        path.join(fakeStagingDirPrefix, `Vanilla Billboard LOD Improved-3184-1-6-1-${fakeDateMs}.1.installing`),
         {
           name: `Vanilla Billboard LOD Improved`,
           id: `3184`,
@@ -138,7 +141,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeDateMs}+medium-full1-full2`),
+        path.join(fakeStagingDirPrefix, `Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeDateMs}+medium-full1-full2.installing`),
         {
           name: `Body_Suit_with_Gun_Harness_FemV`,
           id: `3041`,
@@ -155,7 +158,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `WLW Nails - All Colors-4733-1-1656366854+gold`),
+        path.join(fakeStagingDirPrefix, `WLW Nails - All Colors-4733-1-1656366854+gold.installing`),
         {
           name: `WLW Nails - All Colors`,
           id: `4733`,
@@ -172,7 +175,7 @@ describe(`Parsing mod info from archive name`, () => {
         },
       ],
       [
-        path.join(fakeStagingDirPrefix, `Fake (1) . - (best) Mod -4252525252-versionX-${fakeDateMs}`),
+        path.join(fakeStagingDirPrefix, `Fake (1) . - (best) Mod -4252525252-versionX-${fakeDateMs}.installing`),
         {
           name: `Fake (1) . - (best) Mod `,
           id: `4252525252`,
@@ -190,12 +193,15 @@ describe(`Parsing mod info from archive name`, () => {
       ],
     ];
 
-    testCases.forEach(([archiveName, expected]) => {
+    testCases.forEach(([archiveInstallingPath, expected]) => {
       pipe(
-        modInfoFromArchiveName(archiveName),
+        modInfoFromArchiveName(archiveInstallingPath),
         match(
           (failure) => fail(failure),
-          (actual) => { expect(actual).toEqual(expected); },
+          (actual) => {
+            expect(actual).toEqual(expected);
+            expect(modInfoToVortexInstallingDir(actual)).toEqual(archiveInstallingPath);
+          },
         ),
       );
     });

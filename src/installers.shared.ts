@@ -92,6 +92,8 @@ type ModInfoRaw =
 
 const V2077_GENERATED_MODNAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
 
+const VORTEX_INSTALLING_DIR_SUFFIX = `.installing`;
+
 const dateToSeconds = (date: Date): string => (date.getTime() / 1000).toString();
 const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);
 
@@ -224,7 +226,11 @@ export const modInfoToVortexArchiveName = (modInfo: ModInfo): string =>
   (modInfo.copy ? modInfo.copy : ``) +
   (modInfo.variant ? `+${modInfo.variant}` : ``);
 
-//
+
+export const modInfoToVortexInstallingDir = (modInfo: ModInfo): string =>
+  path.join(modInfo.stagingDirPrefix, `${modInfoToVortexArchiveName(modInfo)}${VORTEX_INSTALLING_DIR_SUFFIX}`);
+
+
 export const modInfoToREDmodModuleName = (modInfo: ModInfo): string =>
   `${modInfo.name}-${modInfo.version.v}`;
 

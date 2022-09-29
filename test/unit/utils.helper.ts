@@ -114,7 +114,7 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
 // Mod path stuff
 //
 
-const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`];
+const FAKE_STAGING_DIR_PREFIXES = [`some`, `dirs`, `to`, `stage`];
 
 export const FAKE_MOD_INFO: ModInfo = {
   name: `Fake Mod For Examples`,
@@ -126,7 +126,7 @@ export const FAKE_MOD_INFO: ModInfo = {
     patch: undefined,
   },
   createTime: new Date(),
-  stagingDirPrefix: path.join(...FAKE_STAGING_DIRS),
+  stagingDirPrefix: path.join(...FAKE_STAGING_DIR_PREFIXES),
   copy: undefined,
   variant: `varianttag`,
 };
@@ -135,7 +135,8 @@ const FAKE_MOD_ARCHIVE_NAME = modInfoToVortexArchiveName(FAKE_MOD_INFO);
 export const FAKE_MOD_NAME = FAKE_MOD_INFO.name;
 
 const FAKE_MOD_INSTALL_DIRNAME = `${FAKE_MOD_ARCHIVE_NAME}.installing`;
-export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, FAKE_MOD_INSTALL_DIRNAME, path.sep);
+const FAKE_STAGING_DIRS = [...FAKE_STAGING_DIR_PREFIXES, FAKE_MOD_INSTALL_DIRNAME];
+export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
 
 //
 // Test support functions, mocks
