@@ -31,16 +31,17 @@ import {
 } from "./installers.shared";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import { Features } from "./features";
 
 // REDmod
 //
@@ -156,8 +157,6 @@ export const canonREDmodLayout = (
 
 export const testForREDmod: V2077TestFunc = (
   _api: VortexApi,
-  log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => Promise.resolve({
   supported: detectREDmodLayout(fileTree),
@@ -171,10 +170,9 @@ export const testForREDmod: V2077TestFunc = (
 // Install the REDmod stuff, as well as any archives we find
 export const installREDmod: V2077InstallFunc = async (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   //
   const allPossibleRedmodLayouts = [

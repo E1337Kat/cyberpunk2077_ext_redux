@@ -82,7 +82,7 @@ export const fileToInstruction = (movedFile: FileMove): VortexInstruction => ({
 type SemanticVersionRaw = Omit<SemanticVersion, `v` | `prerelease`>;
 
 type ModInfoRaw =
-  Omit<ModInfo, `version` | `createTime`> &
+  Omit<ModInfo, `version` | `createTime` | `installingDir`> &
   { version: SemanticVersionRaw } &
   { createTime: string };
 
@@ -152,17 +152,6 @@ export const tagModInfoAsAutoconverted = (modInfo: ModInfo): ModInfo => {
   });
 };
 
-// For a synthetic mod name when one is not provided
-//
-// TODO: this should be changed to try to parse using ModInfo
-//       and only use the synthetic name if we can't parse the
-//       the real mod info.
-//
-// TODO https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/241
-//
-export const makeSyntheticName = (vortexStagingDirPath: string): string =>
-  `${EXTENSION_NAME_INTERNAL}-${path.basename(vortexStagingDirPath, `.installing`)}`;
-
 //
 // Parsing
 //
@@ -207,14 +196,14 @@ export const modInfoFromArchiveName = (archiveName: string): Either<ModInfo, Mod
   return right(modInfo);
 };
 
-//
+
 export const modInfoFromArchiveNameOrSynthetic = (archiveName: string): ModInfo =>
   pipe(
     modInfoFromArchiveName(archiveName),
     fold(identity, identity),
   );
 
-//
+
 export const modInfoToVortexArchiveName = (modInfo: ModInfo): string =>
   // eslint-disable-next-line prefer-template
   `${modInfo.name}` +

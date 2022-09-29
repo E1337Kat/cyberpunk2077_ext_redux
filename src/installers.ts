@@ -10,7 +10,6 @@ import {
 } from "./filetree";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
   VortexProgressDelegate,
@@ -144,23 +143,12 @@ const PRIORITY_STARTING_NUMBER = PRIORITY_FOR_PIPELINE_INSTALLER + 1;
 
 // testSupported that always fails
 //
-export const notSupportedModType: V2077TestFunc = (
-  _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => Promise.resolve({ supported: false, requiredFiles: [] });
+export const notSupportedModType: V2077TestFunc = (): Promise<VortexTestResult> =>
+  Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
 //
-export const notInstallableMod: V2077InstallFunc = (
-  _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
-) => {
+export const notInstallableMod: V2077InstallFunc = () => {
   throw new Error(`Should never get here`);
 };
 
@@ -494,9 +482,10 @@ export const wrapTestSupported =
     vortexApiThing,
     installer: Installer,
   ): VortexTestSupportedFunc =>
+    //
+    // This is the function that Vortex calls.
     (files: string[], gameId: string) => {
     //
-      const vortexLog: VortexLogFunc = vortexApiThing.log;
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       if (gameId !== GAME_ID) {
@@ -512,8 +501,6 @@ export const wrapTestSupported =
       // Unlike in `install`, Vortex doesn't supply us the mod's disk path
       return installer.testSupported(
         vortexApi,
-        vortexLog,
-        sourcePaths(treeForTesting.fileTree),
         treeForTesting.fileTree,
       );
     };
@@ -537,15 +524,16 @@ export const wrapInstall =
     installer: Installer,
     features: Features,
   ): VortexInstallFunc =>
+    //
+    // This is the function that Vortex calls
     async (
       files: string[],
       destinationPath: string,
       _gameId: string,
-      progressDelegate: VortexProgressDelegate,
+      _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
     //
-      const vortexLog: VortexLogFunc = vortexApiThing.log;
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexLog };
+      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
       vortexApi.log(`debug`, `Input files:`, files);
@@ -553,14 +541,8 @@ export const wrapInstall =
       const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
       const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-      const stagingDirPathForMod = path.join(
-        path.dirname(destinationPath),
-        path.basename(destinationPath, `.installing`),
-      );
-
-      const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
-
-      const modInfo = modInfoFromArchiveNameOrSynthetic(stagingDirPathForMod);
+      const modInfo = modInfoFromArchiveNameOrSynthetic(destinationPath);
+      vortexApi.log(`info`, `Extracted mod info from path: ${destinationPath}`);
       vortexApi.log(`info`, `Parsed or generated mod info: `, modInfo);
 
       const modName =
@@ -568,14 +550,7 @@ export const wrapInstall =
 
       const instructionsFromInstaller = await installer.install(
         vortexApi,
-        vortexLog,
-        sourcePaths(treeForInstallers.fileTree),
         treeForInstallers.fileTree,
-        destinationPath,
-        progressDelegate,
-        sourceDirPathForMod,
-        stagingDirPathForMod,
-        modName,
         modInfo,
         features,
       );
@@ -623,14 +598,7 @@ export const wrapInstall =
         : (
           await fallbackInstaller.install(
             vortexApi,
-            vortexApi.log,
-            sourcePaths(treeForInstallers.fileTree),
             treeForInstallers.fileTree,
-            destinationPath,
-            progressDelegate,
-            sourceDirPathForMod,
-            stagingDirPathForMod,
-            modName,
             modInfo,
             features,
           )
@@ -665,8 +633,6 @@ export const wrapInstall =
 // do that, then.
 const testUsingPipelineOfInstallers: V2077TestFunc = async (
   _vortexApi: VortexApi,
-  _vortexLog: VortexLogFunc,
-  _files: string[],
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => Promise.resolve({ supported: true, requiredFiles: [] });
 
@@ -677,14 +643,7 @@ const testUsingPipelineOfInstallers: V2077TestFunc = async (
 //
 const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  destinationPath: string,
-  progressDelegate: VortexProgressDelegate,
-  sourceDirPathForMod: string,
-  stagingDirPathForMod: string,
-  modName: string,
   modInfo: ModInfo,
   features: Features,
 ): Promise<VortexInstallResult> => {
@@ -702,13 +661,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
     // eslint-disable-next-line no-await-in-loop
     const testResult = await candidateInstaller.testSupported(
       vortexApi,
-      vortexLog,
-      sourcePaths(fileTree),
       fileTree,
-      destinationPath,
-      sourceDirPathForMod,
-      stagingDirPathForMod,
-      modName,
       modInfo,
       features,
     );
@@ -730,14 +683,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
 
   const selectedInstructions = await matchingInstaller.install(
     vortexApi,
-    vortexLog,
-    sourcePaths(fileTree),
     fileTree,
-    sourceDirPathForMod,
-    progressDelegate,
-    sourceDirPathForMod,
-    stagingDirPathForMod,
-    modName,
     modInfo,
     features,
   );

@@ -1,4 +1,5 @@
 import path from "path";
+import { Features } from "./features";
 import {
   filesIn,
   filesUnder,
@@ -31,12 +32,12 @@ import {
 } from "./installers.shared";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
@@ -135,8 +136,6 @@ const configJsonTopevelLayout: LayoutToInstructions = (
 
 export const testForJsonMod: V2077TestFunc = async (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const foundJsonToHandle =
@@ -156,10 +155,9 @@ export const testForJsonMod: V2077TestFunc = async (
 
 export const installJsonMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.ConfigJson;
 

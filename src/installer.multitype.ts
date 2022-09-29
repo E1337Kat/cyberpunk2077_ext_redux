@@ -30,19 +30,16 @@ import {
   LayoutToInstructions,
   NotAllowed,
 } from "./installers.layouts";
-import {
-  makeSyntheticName,
-  useAllMatchingLayouts,
-} from "./installers.shared";
+import { useAllMatchingLayouts } from "./installers.shared";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import { trueish } from "./installers.utils";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
@@ -50,11 +47,10 @@ import {
   configJsonAllowedInMultiInstructions,
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
+import { Features } from "./features";
 
 export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
@@ -104,10 +100,9 @@ export const testForMultiTypeMod: V2077TestFunc = (
 
 export const installMultiTypeMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  destinationPath: string,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.MultiType;
 
@@ -141,8 +136,6 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     (result) => result.instructions,
   );
 
-  const modName = makeSyntheticName(destinationPath);
-
   // This should be made more robust, and much clearer.
   // Currently we rely on these layouts to be exclusive
   // or unlikely to break because of the order chosen
@@ -163,7 +156,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
 
   const allInstructionsPerLayout = useAllMatchingLayouts(
     api,
-    modName,
+    modInfo.name,
     fileTree,
     allInstructionSets,
   );
@@ -177,7 +170,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
 
   const redscriptInstructions = redscriptAllowedInMultiInstructions(
     api,
-    modName,
+    modInfo.name,
     fileTree,
   );
 

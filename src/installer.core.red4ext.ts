@@ -25,14 +25,13 @@ import {
 import {
   InstallDecision,
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
 } from "./vortex-wrapper";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -43,6 +42,7 @@ import {
   promptUserToInstallOrCancelOnDeprecatedCoreMod,
   showWarningForUnrecoverableStructureError,
 } from './ui.dialogs';
+import { Features } from './features';
 
 // Recognizers
 
@@ -76,14 +76,11 @@ const detectCoreRed4ext = (fileTree: FileTree): boolean =>
   detectDeprecatedCoreRed4extLayout(fileTree);
 
 export const testRed4ExtCore: V2077TestFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
+  _api: VortexApi,
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({
-    supported:
-          detectCoreRed4ext(fileTree),
+    supported: detectCoreRed4ext(fileTree),
     requiredFiles: [],
   });
 
@@ -224,11 +221,9 @@ export const coreRed4extInstructions = async (
 
 export const installRed4ExtCore: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   //
   const selectedInstructions = await coreRed4extInstructions(

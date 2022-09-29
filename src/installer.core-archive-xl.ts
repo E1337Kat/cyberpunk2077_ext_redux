@@ -1,8 +1,6 @@
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
@@ -13,11 +11,13 @@ import {
 } from "./filetree";
 import {
   InstallerType,
+  ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
+import { Features } from "./features";
 
 const coreArchiveXLInstructions: VortexInstruction[] = [
   {
@@ -36,19 +36,15 @@ const detectCoreArchiveXL = (fileTree: FileTree): boolean =>
 
 export const testForCoreArchiveXL: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreArchiveXL(fileTree), requiredFiles: [] });
 
 export const installCoreArchiveXL: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   if (
     fileCount(fileTree) !== ARCHIVE_XL_CORE_FILES.length ||

@@ -2,9 +2,7 @@ import { Features } from "./features";
 import { FileTree } from "./filetree";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
 
@@ -78,13 +76,7 @@ export interface ModInfo {
 // Vortex.TestSupported
 export type V2077TestFunc = (
   vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  destinationPath?: string,
-  sourceDirPathForMod?: string,
-  stagingDirPathForMod?: string,
-  modName?: string,
   modInfo?: ModInfo,
   features?: Features,
 ) => Promise<VortexTestResult>;
@@ -92,14 +84,7 @@ export type V2077TestFunc = (
 // Vortex.InstallFunc
 export type V2077InstallFunc = (
   vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  destinationPath: string,
-  progressDelegate: VortexProgressDelegate,
-  sourceDirPathForMod: string,
-  stagingDirPathForMod: string,
-  modName: string,
   modInfo: ModInfo,
   features: Features,
 ) => Promise<VortexInstallResult>;
