@@ -16,12 +16,12 @@ import {
   pathInTree,
 } from "./filetree";
 import {
-  REDMOD_CANONICAL_INFO_FILE,
+  REDMOD_INFO_FILENAME,
   MaybeInstructions,
   NoInstructions,
   REDmodLayout,
   InvalidLayout,
-  REDMOD_CANONICAL_BASEDIR,
+  REDMOD_BASEDIR,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -53,62 +53,62 @@ import { Features } from "./features";
 // Fixable: no
 
 const matchREDmodInfoJson = (f: string): boolean =>
-  path.basename(f) === REDMOD_CANONICAL_INFO_FILE;
+  path.basename(f) === REDMOD_INFO_FILENAME;
 
-const findBasedirREDmodDirs = (fileTree: FileTree): string[] =>
+const findNamedREDmodDirs = (fileTree: FileTree): string[] =>
   findDirectSubdirsWithSome(FILETREE_ROOT, matchREDmodInfoJson, fileTree);
 
 const findAllREDmodLookingDirs = (fileTree: FileTree): string[] =>
-  subdirsIn(REDMOD_CANONICAL_BASEDIR, fileTree);
+  subdirsIn(REDMOD_BASEDIR, fileTree);
 
 const findValidCanonicalREDmodDirs = (fileTree: FileTree): string[] =>
-  findDirectSubdirsWithSome(REDMOD_CANONICAL_BASEDIR, matchREDmodInfoJson, fileTree);
+  findDirectSubdirsWithSome(REDMOD_BASEDIR, matchREDmodInfoJson, fileTree);
 
-export const detectBasedirREDmodLayout = (fileTree: FileTree): boolean =>
-  findBasedirREDmodDirs(fileTree).length > 0;
+export const detectNamedREDmodLayout = (fileTree: FileTree): boolean =>
+  findNamedREDmodDirs(fileTree).length > 0;
 
 export const detectCanonREDmodLayout = (fileTree: FileTree): boolean =>
-  pathInTree(REDMOD_CANONICAL_BASEDIR, fileTree);
+  pathInTree(REDMOD_BASEDIR, fileTree);
 
 export const detectREDmodLayout = (fileTree: FileTree): boolean =>
-  detectCanonREDmodLayout(fileTree) || detectBasedirREDmodLayout(fileTree);
+  detectCanonREDmodLayout(fileTree) || detectNamedREDmodLayout(fileTree);
 
 //
 // Layouts
 //
 
-export const basedirREDmodLayout = (
+export const namedREDmodLayout = (
   api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const hasBasedirREDmods = detectBasedirREDmodLayout(fileTree);
+  const hasNamedREDmods = detectNamedREDmodLayout(fileTree);
 
-  if (!hasBasedirREDmods) {
+  if (!hasNamedREDmods) {
     return NoInstructions.NoMatch;
   }
 
-  const allBasedirREDmodDirsInCaseThereIsExtraStuff = findBasedirREDmodDirs(fileTree);
+  const allNamedREDmodDirsInCaseThereIsExtraStuff = findNamedREDmodDirs(fileTree);
 
-  const allBasedirREDmodFiles =
+  const allNamedREDmodFiles =
     pipe(
-      allBasedirREDmodDirsInCaseThereIsExtraStuff,
+      allNamedREDmodDirsInCaseThereIsExtraStuff,
       map((namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree)),
       flatten,
     );
 
-  const allToBasedirWithSubdirAsModname =
+  const allToNamedWithSubdirAsModname =
     pipe(
-      allBasedirREDmodFiles,
-      map(moveFromTo(FILETREE_ROOT, REDMOD_CANONICAL_BASEDIR)),
+      allNamedREDmodFiles,
+      map(moveFromTo(FILETREE_ROOT, REDMOD_BASEDIR)),
     );
 
-  const allBasedirInstructions =
-    instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname);
+  const allNamedInstructions =
+    instructionsForSourceToDestPairs(allToNamedWithSubdirAsModname);
 
   return {
-    kind: REDmodLayout.Basedir,
-    instructions: allBasedirInstructions,
+    kind: REDmodLayout.Named,
+    instructions: allNamedInstructions,
   };
 };
 
@@ -136,7 +136,7 @@ export const canonREDmodLayout = (
   }
 
   const allCanonAndSubdirFiles =
-    filesUnder(REDMOD_CANONICAL_BASEDIR, Glob.Any, fileTree);
+    filesUnder(REDMOD_BASEDIR, Glob.Any, fileTree);
 
   const allCanonInstructions =
     instructionsForSameSourceAndDestPaths(allCanonAndSubdirFiles);
@@ -176,7 +176,7 @@ export const installREDmod: V2077InstallFunc = async (
 ): Promise<VortexInstallResult> => {
   //
   const allPossibleRedmodLayouts = [
-    basedirREDmodLayout,
+    namedREDmodLayout,
     canonREDmodLayout,
   ];
 

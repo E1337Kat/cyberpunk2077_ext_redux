@@ -678,26 +678,67 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 //
 
 export const enum REDmodLayout {
-  Canon = `.\\mods\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
-  Basedir = `.\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
+  Canon = `
+          One or more mods in the form of
+
+          - .\\mods\\[modname]\\info.json { name: modname, ... }
+          - .\\mods\\[modname]\\archives\\*.archive
+          - .\\mods\\[modname]\\customSounds\\*.archive
+          - .\\mods\\[modname]\\scripts\\*.script
+          - .\\mods\\[modname]\\scripts\\**\\*.script
+          - .\\mods\\[modname]\\tweaks\\*.tweak
+          `,
+  Named = `
+          One or more mods in the form of
+
+          - .\\[modname]\\info.json { name: modname, ... }
+          - .\\[modname]\\archives\\*.archive
+          - .\\[modname]\\customSounds\\*.archive
+          - .\\[modname]\\scripts\\*.script
+          - .\\[modname]\\scripts\\**\\*.script
+          - .\\[modname]\\tweaks\\*.tweak
+          `,
+  Toplevel = `
+          Single mod in the form of
+
+          - .\\info.json { name: modname, ... }
+          - .\\archives\\*.archive
+          - .\\customSounds\\*.archive
+          - .\\scripts\\*.script
+          - .\\scripts\\**\\*.script
+          - .\\tweaks\\*.tweak
+          `,
 }
 
 export const enum REDmodTransformedLayout {
-  Canon = `Archive layout transformed to REDmod Canon`,
+  Archive = `Archive layout transformed to REDmod Canon`,
 }
 
 export interface REDmodInfo {
   name: string;
   version: string;
+  description?: string;
+  customSounds?: string[];
 }
 
-export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
+export const REDMOD_BASEDIR = path.normalize(`mods/`);
 
-export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
+export const REDMOD_ARCHIVES_DIRNAME = `archives`;
+export const REDMOD_CUSTOMSOUNDS_DIRNAME = `customSounds`;
+export const REDMOD_SCRIPTS_DIRNAME = `scripts`;
+export const REDMOD_TWEAKS_DIRNAME = `tweaks`;
+
+export const REDMOD_INFO_FILENAME = `info.json`;
 
 export const REDMOD_INFO_FILE_REQUIRED_KEYS: (keyof REDmodInfo)[] = [
   `name`,
   `version`,
+];
+
+export const REDMOD_INFO_FILE_ALLOWED_KEYS: (keyof REDmodInfo)[] = [
+  ...REDMOD_INFO_FILE_REQUIRED_KEYS,
+  `description`,
+  `customSounds`,
 ];
 
 export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
@@ -953,8 +994,8 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.REDmod,
     `
     - \`${REDmodLayout.Canon}\` (Canonical)
-    - \`${REDmodLayout.Basedir}\` (Can be fixed to canonical)
-    | - (No other files allowed)
+    - \`${REDmodLayout.Named}\` (Can be fixed to canonical)
+    - \`${REDmodLayout.Toplevel}\` (Can be fixed to canonical)
     `,
   ],
   [
