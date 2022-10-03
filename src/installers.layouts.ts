@@ -1,4 +1,5 @@
 import path from "path";
+import * as t from "io-ts";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
@@ -714,11 +715,20 @@ export const enum REDmodTransformedLayout {
   Archive = `Archive layout transformed to REDmod Canon`,
 }
 
-export interface REDmodInfo {
-  name: string;
-  version: string;
-  description?: string;
-  customSounds?: string[];
+export const REDmodInfoType =
+  t.intersection([
+    t.type({
+      name: t.string,
+      version: t.string,
+    }),
+    t.partial({
+      description: t.string,
+      customSounds: t.array(t.string),
+    }),
+  ], `REDmodInfoType`);
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {
 }
 
 export const REDMOD_BASEDIR = path.normalize(`mods/`);
@@ -727,6 +737,13 @@ export const REDMOD_ARCHIVES_DIRNAME = `archives`;
 export const REDMOD_CUSTOMSOUNDS_DIRNAME = `customSounds`;
 export const REDMOD_SCRIPTS_DIRNAME = `scripts`;
 export const REDMOD_TWEAKS_DIRNAME = `tweaks`;
+
+export const REDMOD_SUBTYPE_DIRNAMES = [
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_TWEAKS_DIRNAME,
+];
 
 export const REDMOD_INFO_FILENAME = `info.json`;
 

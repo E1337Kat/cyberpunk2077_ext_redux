@@ -14,7 +14,10 @@ import {
 } from "fp-ts/lib/function";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
-
+import {
+  TaskEither,
+  tryCatch,
+} from "fp-ts/lib/TaskEither";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
   FileTree,
@@ -54,9 +57,19 @@ export interface FileMove extends File {
   readonly originalRelativePath: string;
 }
 
+//
+// Filesystem abstraction
+//
+
 export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
   T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
     fs.readFile(pathOnDisk, `utf8`));
+
+export const fileFromDiskTE = (pathOnDisk: string, relativePath: string): TaskEither<Error, File> =>
+  tryCatch(
+    fileFromDisk(pathOnDisk, relativePath),
+    (reason) => new Error(`Failed to read file ${pathOnDisk}: ${reason}`),
+  );
 
 export const fileMove = (to: string, file: File): FileMove => ({
   relativePath: path.join(to, path.basename(file.relativePath)),
