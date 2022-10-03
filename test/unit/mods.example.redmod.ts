@@ -23,7 +23,12 @@ const myRedModCompleteInfoJson = JSON.stringify({
   name: `myRedMod`,
   version: `1.0.0`,
   description: `This is a description I guess`,
-  customSounds: [`dunno what goes here but who cares`],
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_skip`, // This doesn't make sense with a file, but let's leave it until we need to validate
+    },
+  ],
 });
 
 const mySoundModWithoutCustomSoundsFieldJson = JSON.stringify({
@@ -87,11 +92,11 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${REDMOD_BASEDIR}/myRedMod/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
       ],
       outInstructions: [
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
       ],
     },
   ],
@@ -153,7 +158,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/`),
@@ -164,7 +169,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       outInstructions: [
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/tweak_tweak_baby.tweak`),
@@ -261,7 +266,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`myRedMod/archives/`),
         path.join(`myRedMod/archives/cool_stuff.archive`),
         path.join(`myRedMod/customSounds/`),
-        path.join(`myRedMod/customSounds/cool_sound.archive`),
+        path.join(`myRedMod/customSounds/cool_sound.wav`),
         path.join(`myRedMod/scripts/`),
         path.join(`myRedMod/scripts/cool_scripts.script`),
         path.join(`myRedMod/scripts/woah/`),
@@ -279,8 +284,8 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         movedFromTo(
-          path.join(`myRedMod/customSounds/cool_sound.archive`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.archive`),
+          path.join(`myRedMod/customSounds/cool_sound.wav`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         ),
         movedFromTo(
           path.join(`myRedMod/scripts/cool_scripts.script`),
@@ -337,7 +342,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`archives/`),
         path.join(`archives/cool_stuff.archive`),
         path.join(`customSounds/`),
-        path.join(`customSounds/cool_sound.archive`),
+        path.join(`customSounds/cool_sound.wav`),
         path.join(`scripts/`),
         path.join(`scripts/cool_scripts.script`),
         path.join(`scripts/woah/`),
@@ -355,8 +360,8 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         movedFromTo(
-          path.join(`customSounds/cool_sound.archive`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.archive`),
+          path.join(`customSounds/cool_sound.wav`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         ),
         movedFromTo(
           path.join(`scripts/cool_scripts.script`),

@@ -684,7 +684,7 @@ export const enum REDmodLayout {
 
           - .\\mods\\[modname]\\info.json { name: modname, ... }
           - .\\mods\\[modname]\\archives\\*.archive
-          - .\\mods\\[modname]\\customSounds\\*.archive
+          - .\\mods\\[modname]\\customSounds\\*.wav
           - .\\mods\\[modname]\\scripts\\*.script
           - .\\mods\\[modname]\\scripts\\**\\*.script
           - .\\mods\\[modname]\\tweaks\\*.tweak
@@ -694,7 +694,7 @@ export const enum REDmodLayout {
 
           - .\\[modname]\\info.json { name: modname, ... }
           - .\\[modname]\\archives\\*.archive
-          - .\\[modname]\\customSounds\\*.archive
+          - .\\[modname]\\customSounds\\*.wav
           - .\\[modname]\\scripts\\*.script
           - .\\[modname]\\scripts\\**\\*.script
           - .\\[modname]\\tweaks\\*.tweak
@@ -704,7 +704,7 @@ export const enum REDmodLayout {
 
           - .\\info.json { name: modname, ... }
           - .\\archives\\*.archive
-          - .\\customSounds\\*.archive
+          - .\\customSounds\\*.wav
           - .\\scripts\\*.script
           - .\\scripts\\**\\*.script
           - .\\tweaks\\*.tweak
@@ -771,9 +771,13 @@ export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {}
 export const REDMOD_BASEDIR = path.normalize(`mods/`);
 
 export const REDMOD_ARCHIVES_DIRNAME = `archives`;
+export const REDMOD_ARCHIVES_VALID_EXTENSIONS = [`.archive`];
 export const REDMOD_CUSTOMSOUNDS_DIRNAME = `customSounds`;
+export const REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS = [`.wav`];
 export const REDMOD_SCRIPTS_DIRNAME = `scripts`;
+export const REDMOD_SCRIPTS_VALID_EXTENSIONS = [`.script`];
 export const REDMOD_TWEAKS_DIRNAME = `tweaks`;
+export const REDMOD_TWEAKS_VALID_EXTENSIONS = [`.tweak`];
 
 export const REDMOD_SUBTYPE_DIRNAMES = [
   REDMOD_ARCHIVES_DIRNAME,
