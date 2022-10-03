@@ -715,6 +715,42 @@ export const enum REDmodTransformedLayout {
   Archive = `Archive layout transformed to REDmod Canon`,
 }
 
+// REDmod type info
+
+// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#parameters
+
+export const REDmodAudioType =
+  t.keyof({
+    mod_skip: null,
+    mod_sfx_2d: null,
+    mod_sfx_city: null,
+    mod_sfx_low_occlusion: null,
+    mod_sfx_occlusion: null,
+    mod_sfx_radio: null,
+    mod_sfx_room: null,
+    mod_sfx_street: null,
+  }, `REDmodAudioType`);
+
+export type REDmodAudio = t.TypeOf<typeof REDmodAudioType>;
+
+export const REDmodCustomSoundType =
+  t.intersection([
+    t.type({
+      name: t.string,
+      type: REDmodAudioType,
+    }),
+    t.partial({
+      file: t.string,
+      gain: t.number,
+      pitch: t.number,
+    }),
+  ]);
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface REDmodCustomSound extends t.TypeOf<typeof REDmodCustomSoundType> {}
+
+// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#info.json
+
 export const REDmodInfoType =
   t.intersection([
     t.type({
@@ -723,13 +759,14 @@ export const REDmodInfoType =
     }),
     t.partial({
       description: t.string,
-      customSounds: t.array(t.string),
+      customSounds: t.array(REDmodCustomSoundType),
     }),
   ], `REDmodInfoType`);
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {
-}
+export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {}
+
+// Consts
 
 export const REDMOD_BASEDIR = path.normalize(`mods/`);
 
@@ -746,17 +783,6 @@ export const REDMOD_SUBTYPE_DIRNAMES = [
 ];
 
 export const REDMOD_INFO_FILENAME = `info.json`;
-
-export const REDMOD_INFO_FILE_REQUIRED_KEYS: (keyof REDmodInfo)[] = [
-  `name`,
-  `version`,
-];
-
-export const REDMOD_INFO_FILE_ALLOWED_KEYS: (keyof REDmodInfo)[] = [
-  ...REDMOD_INFO_FILE_REQUIRED_KEYS,
-  `description`,
-  `customSounds`,
-];
 
 export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
 export const REDMOD_AUTOCONVERTED_VERSION_TAG = `V2077RED`;
