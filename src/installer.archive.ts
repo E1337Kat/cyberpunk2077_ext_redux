@@ -36,6 +36,7 @@ import {
   REDMOD_BASEDIR,
   REDMOD_INFO_FILENAME,
   REDMOD_ARCHIVES_DIRNAME,
+  REDmodInfo,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -405,14 +406,14 @@ const transformToREDmodInstructions = (
 
   // This should really be handled through fp-ts/json, but
   // for now I can't be bothered..
-  const infoJson = JSON.stringify({
+  const infoJson: REDmodInfo = {
     name: redmodModuleName,
     version: redmodVersion,
-  });
+  };
 
   const generateInfoJsonInstruction: VortexInstruction = {
     type: `generatefile`,
-    data: infoJson,
+    data: JSON.stringify(infoJson),
     destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
   };
 

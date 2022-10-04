@@ -1,20 +1,27 @@
+import path from "path";
 import {
   some as any,
   map,
   filter,
   flatten,
+  traverse,
 } from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import { not } from "fp-ts/lib/Predicate";
-import path from "path";
 import {
+  ApplicativePar,
   chainEitherKW,
   mapLeft,
 } from "fp-ts/lib/TaskEither";
 import * as J from "fp-ts/lib/Json";
 import {
+  chain,
   Either,
   isLeft,
+  left,
+  right,
+  map as mapRight,
+  traverseArray,
 } from "fp-ts/lib/Either";
 import {
   FileTree,
@@ -24,11 +31,11 @@ import {
   FILETREE_ROOT,
   sourcePaths,
   subdirNamesIn,
-  pathInTree,
   subdirsIn,
   pathEq,
   pathIn,
   dirWithSomeIn,
+  dirInTree,
 } from "./filetree";
 import {
   REDMOD_INFO_FILENAME,
@@ -38,10 +45,11 @@ import {
   InvalidLayout,
   REDMOD_BASEDIR,
   REDMOD_SUBTYPE_DIRNAMES,
-  REDmodInfoType,
   REDmodInfo,
+  decodeREDmodInfo,
 } from "./installers.layouts";
 import {
+  File,
   fileFromDiskTE,
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
@@ -67,13 +75,50 @@ import { Features } from "./features";
 //
 
 
-const tryReadInfoJson = async (pathOnDisk: string, relativePath: string)
-: Promise<Either<Error, REDmodInfo>> =>
+type ValidInfoFile = [File, REDmodInfo];
+
+const NoAdditionalValidations = [];
+
+const modNameMustMatchDirname =
+  (file: File, redmodInfo: REDmodInfo): Either<Error, REDmodInfo> => {
+    const dirname = path.basename(path.dirname(file.relativePath));
+
+    const hasMatchingName =
+      pathEq(dirname)(redmodInfo.name);
+
+    return hasMatchingName
+      ? right(redmodInfo)
+      : left(new Error(`REDmod directory ${dirname} does not match mod name ${redmodInfo.name} in ${REDMOD_INFO_FILENAME}`));
+  };
+
+const tryReadAndValidateInfoJsons = (
+  installingDir: string,
+  relativeREDmodDirs: readonly string[],
+  semanticValidations: ((file: File, redmodInfo: REDmodInfo) => Either<Error, REDmodInfo>)[],
+): Promise<Either<Error, readonly ValidInfoFile[]>> =>
   pipe(
-    fileFromDiskTE(pathOnDisk, relativePath),
-    chainEitherKW((file) => J.parse(file.content)),
-    chainEitherKW((json) => REDmodInfoType.decode(json)),
-    mapLeft((err) => new Error(`Error parsing ${relativePath}: ${err}`)),
+    relativeREDmodDirs,
+    traverse(ApplicativePar)((relative) =>
+      pipe(
+        fileFromDiskTE(
+          path.join(installingDir, relative, REDMOD_INFO_FILENAME),
+          path.join(relative, REDMOD_INFO_FILENAME),
+        ),
+        chainEitherKW((file) =>
+          pipe(
+            file.content,
+            J.parse,
+            chain(decodeREDmodInfo),
+            chain((redmodInfo) =>
+              pipe(
+                semanticValidations,
+                traverseArray((validate) => validate(file, redmodInfo)),
+                mapRight(() => redmodInfo),
+              )),
+            mapRight((redmodInfo): ValidInfoFile => [file, redmodInfo]),
+          )),
+        mapLeft((err) => new Error(`Error validating ${path.join(relative, REDMOD_INFO_FILENAME)}: ${err}`)),
+      )),
   )();
 
 
@@ -104,7 +149,7 @@ const findNamedREDmodDirs = (fileTree: FileTree): readonly string[] =>
   );
 
 const detectCanonREDmodLayout = (fileTree: FileTree): boolean =>
-  pathInTree(REDMOD_BASEDIR, fileTree);
+  dirInTree(REDMOD_BASEDIR, fileTree);
 
 const detectNamedREDmodLayout = (fileTree: FileTree): boolean =>
   findNamedREDmodDirs(fileTree).length > 0;
@@ -122,11 +167,12 @@ export const detectREDmodLayout = (fileTree: FileTree): boolean =>
 // Layouts
 //
 
-export const canonREDmodLayout = (
+export const canonREDmodLayout = async (
   api: VortexApi,
   _modName: string,
   fileTree: FileTree,
-): MaybeInstructions => {
+  installingDir: string,
+): Promise<MaybeInstructions> => {
   if (!detectCanonREDmodLayout(fileTree)) {
     return NoInstructions.NoMatch;
   }
@@ -140,7 +186,15 @@ export const canonREDmodLayout = (
       filter(not(pathIn(allValidCanonicalREDmodDirs))),
     );
 
-    api.log(`error`, `${InstallerType.REDmod}: these directories don't look like valid REDmods: ${invalidDirs.join(`, `)}`);
+    api.log(`error`, `${InstallerType.REDmod}: Canon Layout: these directories don't look like valid REDmods: ${invalidDirs.join(`, `)}`);
+    return InvalidLayout.Conflict;
+  }
+
+  const maybeAllREDmodInfoJsons =
+    await tryReadAndValidateInfoJsons(installingDir, allValidCanonicalREDmodDirs, [modNameMustMatchDirname]);
+
+  if (isLeft(maybeAllREDmodInfoJsons)) {
+    api.log(`error`, `${InstallerType.REDmod}: Canon Layout: error trying to validate ${REDMOD_INFO_FILENAME} files ${maybeAllREDmodInfoJsons.left.message}`);
     return InvalidLayout.Conflict;
   }
 
@@ -156,21 +210,29 @@ export const canonREDmodLayout = (
   };
 };
 
-export const namedREDmodLayout = (
-  _api: VortexApi,
+export const namedREDmodLayout = async (
+  api: VortexApi,
   _modName: string,
   fileTree: FileTree,
-): MaybeInstructions => {
+  installingDir: string,
+): Promise<MaybeInstructions> => {
   if (!detectNamedREDmodLayout(fileTree)) {
     return NoInstructions.NoMatch;
   }
 
-  // This should be caught in multitype, but..
-  const allNamedREDmodDirsInCaseThereIsExtraStuff = findNamedREDmodDirs(fileTree);
+  const allNamedREDmodDirs = findNamedREDmodDirs(fileTree);
+
+  const maybeAllREDmodInfoJsons =
+    await tryReadAndValidateInfoJsons(installingDir, allNamedREDmodDirs, [modNameMustMatchDirname]);
+
+  if (isLeft(maybeAllREDmodInfoJsons)) {
+    api.log(`error`, `${InstallerType.REDmod}: Named Layout: error trying to validate ${REDMOD_INFO_FILENAME} files ${maybeAllREDmodInfoJsons.left.message}`);
+    return InvalidLayout.Conflict;
+  }
 
   const allNamedREDmodFiles =
     pipe(
-      allNamedREDmodDirsInCaseThereIsExtraStuff,
+      allNamedREDmodDirs,
       map((namedSubdir) => filesUnder(namedSubdir, Glob.Any, fileTree)),
       flatten,
     );
@@ -200,17 +262,15 @@ export const toplevelREDmodLayout = async (
     return NoInstructions.NoMatch;
   }
 
-  const manifestFilePath =
-    path.join(installingDir, REDMOD_INFO_FILENAME);
-
-  const maybeManifest = await tryReadInfoJson(manifestFilePath, REDMOD_INFO_FILENAME);
+  const maybeManifest =
+    await tryReadAndValidateInfoJsons(installingDir, [FILETREE_ROOT], NoAdditionalValidations);
 
   if (isLeft(maybeManifest)) {
-    api.log(`info`, `${InstallerType.REDmod}: Couldn't parse info.json: ${maybeManifest.left}`);
+    api.log(`info`, `${InstallerType.REDmod}: Couldn't parse info.json: ${maybeManifest.left.message}`);
     return InvalidLayout.Conflict;
   }
 
-  const manifestData = maybeManifest.right;
+  const manifestData = maybeManifest.right[0][1];
 
   const allToplevelREDmodFiles =
     filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
@@ -299,3 +359,4 @@ export const installREDmod: V2077InstallFunc = async (
 
   return Promise.resolve({ instructions: selectedInstructions.instructions });
 };
+

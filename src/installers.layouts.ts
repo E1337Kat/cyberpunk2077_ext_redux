@@ -1,5 +1,13 @@
 import path from "path";
 import * as t from "io-ts";
+import * as J from "fp-ts/lib/Json";
+import {
+  Either,
+  left,
+  match,
+  right,
+} from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
@@ -766,9 +774,19 @@ export const REDmodInfoType =
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {}
 
+export const decodeREDmodInfo = (json: J.Json): Either<Error, REDmodInfo> => pipe(
+  json,
+  REDmodInfoType.decode,
+  match(
+    (errors) => left(new Error(`Failed to decode REDmod info: ${errors}`)),
+    (info) => right(info),
+  ),
+);
+
+
 // Consts
 
-export const REDMOD_BASEDIR = path.normalize(`mods/`);
+export const REDMOD_BASEDIR = path.normalize(`mods`);
 
 export const REDMOD_ARCHIVES_DIRNAME = `archives`;
 export const REDMOD_ARCHIVES_VALID_EXTENSIONS = [`.archive`];
@@ -1177,12 +1195,14 @@ export type PromptedOptionalInstructions = Instructions | NotAllowed;
 export type LayoutToInstructions = (
   api: VortexApi,
   modName: string,
+  // modInfo: ModInfo,
   fileTree: FileTree,
 ) => MaybeInstructions;
 
 export type LayoutToInstructionsAsync = (
   api: VortexApi,
   modName: string,
+  // modInfo: ModInfo,
   fileTree: FileTree,
   sourceDirPathForMod: string,
 ) => Promise<MaybeInstructions>;

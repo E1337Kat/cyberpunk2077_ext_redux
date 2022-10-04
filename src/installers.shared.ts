@@ -22,6 +22,7 @@ import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
   FileTree,
   FILETREE_ROOT,
+  normalizeDir,
 } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
@@ -63,7 +64,7 @@ export interface FileMove extends File {
 
 export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
   T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
-    fs.readFile(pathOnDisk, `utf8`));
+    fs.readFile(pathOnDisk, { encoding: `utf-8` }));
 
 export const fileFromDiskTE = (pathOnDisk: string, relativePath: string): TaskEither<Error, File> =>
   tryCatch(
@@ -124,6 +125,8 @@ export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
   ...rawModInfo,
   version: makeSemanticVersion(rawModInfo.version),
   createTime: secondsToDate(rawModInfo.createTime),
+  stagingDirPrefix: normalizeDir(rawModInfo.stagingDirPrefix),
+  installingDir: normalizeDir(rawModInfo.installingDir),
 });
 
 //
@@ -286,6 +289,7 @@ export const instructionsToGenerateDirs = (
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   possibleLayouts: LayoutToInstructions[],
@@ -298,6 +302,7 @@ export const useFirstMatchingLayoutForInstructions = (
 
 export const useFirstMatchingLayoutForInstructionsAsync = async (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   sourceDirPathForMod: string,
@@ -318,6 +323,7 @@ export const useFirstMatchingLayoutForInstructionsAsync = async (
 
 export const useAllMatchingLayouts = (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   layoutsToTry: LayoutToInstructions[],

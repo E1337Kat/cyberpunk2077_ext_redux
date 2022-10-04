@@ -115,14 +115,6 @@ const stripTrailingSeparator = (path: string): string =>
   path.replace(looksLikeADirectory, ``);
 
 
-// Annoyingly all three mechanisms behave subtly differently wrt. paths.
-// get() does one thing, getSub() another, and _getNode() a third..
-// Need to unify them (or, really, just write the damn tree) but for
-// now be careful where you use which normalization.
-const normalizeDir = (dir: string): string =>
-  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
-
-
 //
 //
 //
@@ -134,6 +126,13 @@ const normalizeDir = (dir: string): string =>
 //
 
 // Helpers
+
+// Annoyingly all three mechanisms behave subtly differently wrt. paths.
+// get() does one thing, getSub() another, and _getNode() a third..
+// Need to unify them (or, really, just write the damn tree) but for
+// now be careful where you use which normalization.
+export const normalizeDir = (dir: string): string =>
+  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
 
 // Safe path or path component comparison (case-insensitive on Windows)
 const pathEqual = (a: string, b: string): boolean =>

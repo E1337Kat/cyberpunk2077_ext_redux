@@ -40,6 +40,7 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 const DEFAULT_FEATURES = CurrentFeatureSet;
 
 describe(`Transforming modules to instructions`, () => {
+  beforeEach(() => { mockFs.restore(); });
   afterEach(() => { mockFs.restore(); });
 
   AllExpectedSuccesses.forEach((examples, set) => {
@@ -49,6 +50,7 @@ describe(`Transforming modules to instructions`, () => {
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
+            console.log(`mockFs:`, JSON.stringify(mod.fsMocked, null, 2));
           }
           //
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;

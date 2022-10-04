@@ -31,10 +31,8 @@ const myRedModCompleteInfoJson = JSON.stringify({
   ],
 });
 
-const mySoundModWithoutCustomSoundsFieldJson = JSON.stringify({
+const invalidREDmodInfoJson = JSON.stringify({
   name: `myRedMod`,
-  version: `1.0.0`,
-  description: `For some reason I left out the required customSounds field`,
 });
 
 const NOTmyRedModInfoJson = JSON.stringify({
@@ -145,9 +143,6 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
             myRedMod: {
               [REDMOD_INFO_FILENAME]: myRedModInfoJson,
             },
-            myRedModNumber2: {
-              [REDMOD_INFO_FILENAME]: myRedModNumber2InfoJson,
-            },
           },
         },
       ),
@@ -224,10 +219,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`myRedMod/info.json`),
         path.join(`myRedMod/archives/`),
         path.join(`myRedMod/archives/cool_stuff.archive`),
-        path.join(`myRedModNumber4/`),
-        path.join(`myRedModNumber4/info.json`),
-        path.join(`myRedModNumber4/archives/`),
-        path.join(`myRedModNumber4/archives/4d.archive`),
+        path.join(`myRedModNumber2/`),
+        path.join(`myRedModNumber2/info.json`),
+        path.join(`myRedModNumber2/archives/`),
+        path.join(`myRedModNumber2/archives/4d.archive`),
       ],
       outInstructions: [
         movedFromTo(
@@ -239,12 +234,12 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         movedFromTo(
-          path.join(`myRedModNumber4/info.json`),
-          path.join(`${REDMOD_BASEDIR}/myRedModNumber4/info.json`),
+          path.join(`myRedModNumber2/info.json`),
+          path.join(`${REDMOD_BASEDIR}/myRedModNumber2/info.json`),
         ),
         movedFromTo(
-          path.join(`myRedModNumber4/archives/4d.archive`),
-          path.join(`${REDMOD_BASEDIR}/myRedModNumber4/archives/4d.archive`),
+          path.join(`myRedModNumber2/archives/4d.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedModNumber2/archives/4d.archive`),
         ),
       ],
     },
@@ -394,6 +389,61 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         path.join(`${REDMOD_BASEDIR}/myRedModBad/`),
         path.join(`${REDMOD_BASEDIR}/myRedModBad/archives/`),
         path.join(`${REDMOD_BASEDIR}/myRedModBad/archives/wouldbesupercool.archive`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `basedir REDmod without a module-named dir`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/info.json`),
+        path.join(`${REDMOD_BASEDIR}/archives/`),
+        path.join(`${REDMOD_BASEDIR}/archives/cool_stuff.archive`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with dir NOT matching mod name`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          myRedMod: {
+            [REDMOD_INFO_FILENAME]: NOTmyRedModInfoJson,
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff.archive`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with invalid info.json`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          myRedMod: {
+            [REDMOD_INFO_FILENAME]: invalidREDmodInfoJson,
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`myRedMod/`),
+        path.join(`myRedMod/info.json`),
+        path.join(`myRedMod/archives/`),
+        path.join(`myRedMod/archives/cool_stuff.archive`),
       ],
       failure: `Didn't Find Expected REDmod Installation!`,
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
