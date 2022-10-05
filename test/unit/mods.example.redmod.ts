@@ -155,19 +155,22 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/deepScripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/tweak_tweak_baby.tweak`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
       outInstructions: [
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/deepScripts.script`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/tweak_tweak_baby.tweak`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
     },
   ],
@@ -263,11 +266,12 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`myRedMod/customSounds/`),
         path.join(`myRedMod/customSounds/cool_sound.wav`),
         path.join(`myRedMod/scripts/`),
-        path.join(`myRedMod/scripts/cool_scripts.script`),
-        path.join(`myRedMod/scripts/woah/`),
-        path.join(`myRedMod/scripts/woah/deepScripts.script`),
+        path.join(`myRedMod/scripts/exec/`),
+        path.join(`myRedMod/scripts/exec/cool_scripts.script`),
+        path.join(`myRedMod/scripts/core/ai/`),
+        path.join(`myRedMod/scripts/core/ai/deepScripts.script`),
         path.join(`myRedMod/tweaks/`),
-        path.join(`myRedMod/tweaks/tweak_tweak_baby.tweak`),
+        path.join(`myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
       outInstructions: [
         movedFromTo(
@@ -283,16 +287,16 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         ),
         movedFromTo(
-          path.join(`myRedMod/scripts/cool_scripts.script`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
+          path.join(`myRedMod/scripts/exec/cool_scripts.script`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
         ),
         movedFromTo(
-          path.join(`myRedMod/scripts/woah/deepScripts.script`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/deepScripts.script`),
+          path.join(`myRedMod/scripts/core/ai/deepScripts.script`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         ),
         movedFromTo(
-          path.join(`myRedMod/tweaks/tweak_tweak_baby.tweak`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/tweak_tweak_baby.tweak`),
+          path.join(`myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         ),
       ],
     },
@@ -339,11 +343,12 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`customSounds/`),
         path.join(`customSounds/cool_sound.wav`),
         path.join(`scripts/`),
-        path.join(`scripts/cool_scripts.script`),
-        path.join(`scripts/woah/`),
-        path.join(`scripts/woah/deepScripts.script`),
+        path.join(`scripts/exec/`),
+        path.join(`scripts/exec/cool_scripts.script`),
+        path.join(`scripts/core/ai/`),
+        path.join(`scripts/core/ai/deepScripts.script`),
         path.join(`tweaks/`),
-        path.join(`tweaks/tweak_tweak_baby.tweak`),
+        path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
       outInstructions: [
         movedFromTo(
@@ -359,16 +364,16 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
         ),
         movedFromTo(
-          path.join(`scripts/cool_scripts.script`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/cool_scripts.script`),
+          path.join(`scripts/exec/cool_scripts.script`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
         ),
         movedFromTo(
-          path.join(`scripts/woah/deepScripts.script`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/deepScripts.script`),
+          path.join(`scripts/core/ai/deepScripts.script`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         ),
         movedFromTo(
-          path.join(`tweaks/tweak_tweak_baby.tweak`),
-          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/tweak_tweak_baby.tweak`),
+          path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         ),
       ],
     },
@@ -380,12 +385,21 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
     `Canonical REDmod with one or more of the moddirs missing a required file`,
     {
       expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      ),
       inFiles: [
         path.join(`${REDMOD_BASEDIR}/`),
-        path.join(`${REDMOD_BASEDIR}/myRedModGood/`),
-        path.join(`${REDMOD_BASEDIR}/myRedModGood/info.json`),
-        path.join(`${REDMOD_BASEDIR}/myRedModGood/archives/`),
-        path.join(`${REDMOD_BASEDIR}/myRedModGood/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         path.join(`${REDMOD_BASEDIR}/myRedModBad/`),
         path.join(`${REDMOD_BASEDIR}/myRedModBad/archives/`),
         path.join(`${REDMOD_BASEDIR}/myRedModBad/archives/wouldbesupercool.archive`),
@@ -398,6 +412,13 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
     `basedir REDmod without a module-named dir`,
     {
       expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+          },
+        },
+      ),
       inFiles: [
         path.join(`${REDMOD_BASEDIR}/`),
         path.join(`${REDMOD_BASEDIR}/info.json`),
@@ -420,9 +441,9 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         },
       ),
       inFiles: [
-        path.join(`info.json`),
-        path.join(`archives/`),
-        path.join(`archives/cool_stuff.archive`),
+        path.join(`myRedMod/info.json`),
+        path.join(`myRedMod/archives/`),
+        path.join(`myRedMod/archives/cool_stuff.archive`),
       ],
       failure: `Didn't Find Expected REDmod Installation!`,
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
@@ -444,6 +465,80 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         path.join(`myRedMod/info.json`),
         path.join(`myRedMod/archives/`),
         path.join(`myRedMod/archives/cool_stuff.archive`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with *.tweak outside expected additional prefix inside tweaks/`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/mytweak.tweak`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with a *.script outside the top-level script subdirs`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/nope.script`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with a *.script in an unknown top-level script subdir`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/thisoneisgood.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/woah/nope.script`),
       ],
       failure: `Didn't Find Expected REDmod Installation!`,
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,

@@ -50,7 +50,6 @@ describe(`Transforming modules to instructions`, () => {
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
-            console.log(`mockFs:`, JSON.stringify(mod.fsMocked, null, 2));
           }
           //
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
