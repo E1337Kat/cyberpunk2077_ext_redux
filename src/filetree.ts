@@ -134,17 +134,21 @@ const stripTrailingSeparator = (path: string): string =>
 export const normalizeDir = (dir: string): string =>
   (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
 
-// Safe path or path component comparison (case-insensitive on Windows)
+// Safe path comparison (case-insensitive on Windows)
 const pathEqual = (a: string, b: string): boolean =>
-  nodejsPath.normalize(a).toLowerCase() === nodejsPath.normalize(b).toLowerCase();
+  nodejsPath.normalize(a).toLocaleLowerCase() === nodejsPath.normalize(b).toLocaleLowerCase();
 
 export const pathEq = (a: string) => (b: string): boolean => pathEqual(a, b);
 
-// Safe path or path component inclusion in a set (case-sensitive on Windows)
+// Safe path set membership
 const pathInclude = (paths: readonly string[], path: string): boolean =>
   pipe(paths, any(pathEq(path)));
 
 export const pathIn = (paths: readonly string[]) => (path: string): boolean => pathInclude(paths, path);
+
+// Safe subpath check
+export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
+  pathThatShouldContain.toLocaleLowerCase().includes(path.toLocaleLowerCase());
 
 //
 // Creation
