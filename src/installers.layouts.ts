@@ -724,6 +724,8 @@ export const enum REDmodTransformedLayout {
 
 // https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#parameters
 
+// We still need to figure out if there's a need to model `mod_skip`
+// at the type level rather than just in logic.
 export const REDmodAudioType =
   t.keyof({
     mod_skip: null,
@@ -795,7 +797,7 @@ export const REDMOD_TWEAKS_DIRNAME = `tweaks`;
 export const REDMOD_TWEAKS_VALID_EXTENSIONS = [`.tweak`];
 
 // Some extra rules for these, since they are required to retain the paths
-export const REDMOD_SCRIPTS_VALID_SUBDIRS = [`core`, `cyberpunk`, `exec`, `samples`, `tests`];
+export const REDMOD_SCRIPTS_VALID_SUBDIR_NAMES = [`core`, `cyberpunk`, `exec`, `samples`, `tests`];
 export const REDMOD_TWEAKS_VALID_SUBDIR = path.join(`base\\gameplay\\static_data`);
 
 export const REDMOD_SUBTYPE_DIRNAMES = [

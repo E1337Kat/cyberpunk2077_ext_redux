@@ -60,8 +60,14 @@ import {
   decodeREDmodInfo,
   REDMOD_ARCHIVES_DIRNAME,
   REDMOD_CUSTOMSOUNDS_DIRNAME,
-  REDMOD_SCRIPTS_DIRNAME,
   REDMOD_TWEAKS_DIRNAME,
+  REDMOD_TWEAKS_VALID_SUBDIR,
+  REDMOD_ARCHIVES_VALID_EXTENSIONS,
+  REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS,
+  REDMOD_SCRIPTS_VALID_EXTENSIONS,
+  REDMOD_TWEAKS_VALID_EXTENSIONS,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
@@ -151,6 +157,19 @@ const instructionsToMoveAllFromSourceToDestination = (
 
 const matchREDmodInfoJson = (p: string): boolean =>
   pathEq(REDMOD_INFO_FILENAME)(path.basename(p));
+
+const matchREDmodArchive = (p: string): boolean =>
+  pathIn(REDMOD_ARCHIVES_VALID_EXTENSIONS)(path.extname(p));
+
+const matchREDmodCustomSound = (p: string): boolean =>
+  pathIn(REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS)(path.extname(p));
+
+const matchREDmodScript = (p: string): boolean =>
+  pathIn(REDMOD_SCRIPTS_VALID_EXTENSIONS)(path.extname(p));
+
+const matchREDmodTweak = (p: string): boolean =>
+  pathIn(REDMOD_TWEAKS_VALID_EXTENSIONS)(path.extname(p));
+
 
 const matchAnyREDmodSubtypeDir = (fileTree: FileTree) =>
   (inDir: string): boolean =>
@@ -289,7 +308,7 @@ const archiveLayoutAndValidation = (
     path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
 
   const allArchiveFilesForMod =
-    filesUnder(archiveDir, Glob.Any, fileTree);
+    filesUnder(archiveDir, matchREDmodArchive, fileTree);
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
@@ -307,18 +326,33 @@ const customSoundLayoutAndValidation = (
     relativeSourceDir,
     relativeDestDir,
     fileTree,
+    redmodInfo,
   }: REDmodInfoAndPathDetes,
 ): Either<Error, readonly VortexInstruction[]> => {
   const customSoundsDir =
     path.join(relativeSourceDir, REDMOD_CUSTOMSOUNDS_DIRNAME);
 
-  const allArchiveFilesForMod =
-    filesUnder(customSoundsDir, Glob.Any, fileTree);
+  const allCustomSoundFiles =
+    filesUnder(customSoundsDir, matchREDmodCustomSound, fileTree);
+
+  const soundFilesRequiredPresent = pipe(
+    redmodInfo.customSounds || [],
+    any((soundDecl) => soundDecl.type !== `mod_skip`),
+  );
+
+  const hasSoundFiles =
+    allCustomSoundFiles.length > 0;
+
+  // This isn't /exactly/ an exhaustive check...
+  if ((soundFilesRequiredPresent && !hasSoundFiles) ||
+      (!soundFilesRequiredPresent && hasSoundFiles)) {
+    return left(new Error(`Custom Sound sublayout: there are sound files but ${REDMOD_INFO_FILENAME} doesn't declare customSounds!`));
+  }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
-    allArchiveFilesForMod,
+    allCustomSoundFiles,
   );
 
   return right(instructions);
@@ -336,13 +370,28 @@ const scriptLayoutAndValidation = (
   const scriptsDir =
     path.join(relativeSourceDir, REDMOD_SCRIPTS_DIRNAME);
 
-  const allArchiveFilesForMod =
-    filesUnder(scriptsDir, Glob.Any, fileTree);
+  const allScriptFiles =
+    filesUnder(scriptsDir, matchREDmodScript, fileTree);
+
+  const allScriptFilesInValidBasedir = pipe(
+    REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
+    map((validScriptSubdir) => filesUnder(path.join(scriptsDir, validScriptSubdir), matchREDmodScript, fileTree)),
+    flatten,
+  );
+
+  if (allScriptFiles.length !== allScriptFilesInValidBasedir.length) {
+    const invalidScriptFiles = pipe(
+      allScriptFiles,
+      filter(not(pathIn(allScriptFilesInValidBasedir))),
+    );
+
+    return left(new Error(`Script sublayout: these files don't look like valid REDmod tweaks: ${invalidScriptFiles.join(`, `)}`));
+  }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
-    allArchiveFilesForMod,
+    allScriptFiles,
   );
 
   return right(instructions);
@@ -360,13 +409,28 @@ const tweakLayoutAndValidation = (
   const tweaksDir =
     path.join(relativeSourceDir, REDMOD_TWEAKS_DIRNAME);
 
-  const allArchiveFilesForMod =
-    filesUnder(tweaksDir, Glob.Any, fileTree);
+  const tweaksDirWithValidBasedir =
+    path.join(tweaksDir, REDMOD_TWEAKS_VALID_SUBDIR);
+
+  const allTweakFiles =
+    filesUnder(tweaksDir, matchREDmodTweak, fileTree);
+
+  const allTweakFilesInValidBasedir =
+    filesUnder(tweaksDirWithValidBasedir, matchREDmodTweak, fileTree);
+
+  if (allTweakFiles.length !== allTweakFilesInValidBasedir.length) {
+    const invalidTweakFiles = pipe(
+      allTweakFiles,
+      filter(not(pathIn(allTweakFilesInValidBasedir))),
+    );
+
+    return left(new Error(`Tweak Layout: these files don't look like valid REDmod tweaks: ${invalidTweakFiles.join(`, `)}`));
+  }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
-    allArchiveFilesForMod,
+    allTweakFiles,
   );
 
   return right(instructions);
