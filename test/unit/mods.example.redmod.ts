@@ -12,6 +12,7 @@ import {
   movedFromTo,
   copiedToSamePath,
   mockedFsLayout,
+  mergeOrFailOnConflict,
 } from "./utils.helper";
 
 const myRedModInfoJson = JSON.stringify({
@@ -26,7 +27,20 @@ const myRedModCompleteInfoJson = JSON.stringify({
   customSounds: [
     {
       name: `mySound`,
-      type: `mod_skip`, // This doesn't make sense with a file, but let's leave it until we need to validate
+      type: `mod_sfx_2d`,
+      path: `mySound.wav`,
+    },
+  ],
+});
+
+const myRedModWithSkipSoundInfoJson = JSON.stringify({
+  name: `myRedMod`,
+  version: `1.0.0`,
+  description: `This is a description I guess`,
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_skip`,
     },
   ],
 });
@@ -141,7 +155,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
             },
           },
         },
@@ -254,7 +268,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       fsMocked: mockedFsLayout(
         {
           myRedMod: {
-            [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
           },
         },
       ),
@@ -333,7 +347,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+          [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
         },
       ),
       inFiles: [
@@ -379,6 +393,39 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
     },
   ],
 ]);
+
+const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
+  [
+    `REDmod without sound files if info customSounds only has skip files`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`info.json`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        ),
+        movedFromTo(
+          path.join(`archives/cool_stuff.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
+      ],
+    },
+  ],
+]);
+
+//
+// Fails
+//
 
 const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
   [
@@ -544,10 +591,63 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
     },
   ],
+  [
+    `REDmod with sound files but no customSounds in info.json`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff.archive`),
+        path.join(`customSounds/`),
+        path.join(`customSounds/cool_sound.wav`),
+        path.join(`scripts/`),
+        path.join(`scripts/exec/`),
+        path.join(`scripts/exec/cool_scripts.script`),
+        path.join(`scripts/core/ai/`),
+        path.join(`scripts/core/ai/deepScripts.script`),
+        path.join(`tweaks/`),
+        path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with non-skip customSounds decl, but no sound files`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff.archive`),
+        path.join(`customSounds/`),
+        path.join(`scripts/`),
+        path.join(`scripts/exec/`),
+        path.join(`scripts/exec/cool_scripts.script`),
+        path.join(`scripts/core/ai/`),
+        path.join(`scripts/core/ai/deepScripts.script`),
+        path.join(`tweaks/`),
+        path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
 ]);
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: REDmodSucceeds,
+  AllExpectedSuccesses: mergeOrFailOnConflict(REDmodSucceeds, REDmodSpecialValidationSucceeds),
   AllExpectedDirectFailures: REDmodDirectFailures,
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
