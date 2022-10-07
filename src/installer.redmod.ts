@@ -5,34 +5,38 @@ import {
 } from "fp-ts/lib/function";
 import { not } from "fp-ts/lib/Predicate";
 import {
-  some as any,
   map,
   filter,
   flatten,
-  traverse,
-  findFirst,
+  some as any,
   toArray as toMutableArray,
+  findFirstMap,
 } from "fp-ts/ReadonlyArray";
 import {
-  chain as chainTE,
-  map as mapTE,
-  ApplicativePar,
-  chainEitherKW,
-  fromEither as fromEitherTE,
-  mapLeft as mapLeftTE,
   TaskEither,
+  chainEitherKW,
+  map as mapTE,
+  mapLeft as mapLeftTE,
   fromOption as fromOptionTE,
+  chain,
+  traverseArray as traverseArrayTE,
+  chainEitherK,
 } from "fp-ts/lib/TaskEither";
 import * as J from "fp-ts/lib/Json";
 import {
-  chain as chainE,
   Either,
   isLeft,
   left,
   right,
+  chain as chainE,
   map as mapE,
   traverseArray as traverseArrayE,
 } from "fp-ts/lib/Either";
+import {
+  none,
+  some,
+  Option,
+} from "fp-ts/lib/Option";
 import {
   FileTree,
   findDirectSubdirsWithSome,
@@ -46,6 +50,7 @@ import {
   pathIn,
   dirWithSomeIn,
   dirInTree,
+  filesIn,
 } from "./filetree";
 import {
   REDMOD_INFO_FILENAME,
@@ -53,9 +58,12 @@ import {
   REDMOD_SUBTYPE_DIRNAMES,
   REDmodInfo,
   decodeREDmodInfo,
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_TWEAKS_DIRNAME,
 } from "./installers.layouts";
 import {
-  File,
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
   moveFromTo,
@@ -80,24 +88,12 @@ import { Features } from "./features";
 //
 
 
-// These guys help us thread the data through the pipeline
-interface ValidInfoFile {
-  file: File;
+interface REDmodInfoAndPathDetes {
   redmodInfo: REDmodInfo;
-}
-
-interface DirWithModInfo {
   relativeSourceDir: string;
-  redmodInfo: REDmodInfo;
-}
-interface DirWithInfoAndFsDetes extends DirWithModInfo {
   relativeDestDir: string;
   fileTree: FileTree;
 }
-
-// Helps inference a bit earlier
-type DirWithInfoFunc =
-  (fileTree: FileTree, installingDir: string) => TaskEither<Error, readonly DirWithModInfo[]>;
 
 
 //
@@ -107,7 +103,7 @@ type DirWithInfoFunc =
 const tryReadInfoJson = (
   installingDir: string,
   relativeREDmodDir: string,
-): TaskEither<Error, ValidInfoFile> =>
+): TaskEither<Error, REDmodInfo> =>
   pipe(
     fileFromDiskTE(
       path.join(installingDir, relativeREDmodDir, REDMOD_INFO_FILENAME),
@@ -118,41 +114,24 @@ const tryReadInfoJson = (
         file.content,
         J.parse,
         chainE(decodeREDmodInfo),
-        mapE((redmodInfo) => ({ file, redmodInfo })),
       )),
     mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
 
-const validateModnameMatchesDir =
-  ({ file, redmodInfo }: ValidInfoFile): Either<Error, ValidInfoFile> => {
-    const dirname = path.basename(path.dirname(file.relativePath));
+const validateDeclaredModnameMatchesDir =
+  (infoAndPath: REDmodInfoAndPathDetes): Either<Error, REDmodInfoAndPathDetes> => {
+    const dirname = path.basename(infoAndPath.relativeSourceDir);
 
-    const hasMatchingName =
-      pathEq(dirname)(redmodInfo.name);
+    // Don't like this even though it's correct.
+    // We probably need to carry the layout type.
+    const hasMatchingNameOrItsToplevel =
+      infoAndPath.relativeSourceDir === `` ||
+      pathEq(dirname)(infoAndPath.redmodInfo.name);
 
-    return hasMatchingName
-      ? right({ file, redmodInfo })
-      : left(new Error(`REDmod directory ${dirname} does not match mod name ${redmodInfo.name} in ${REDMOD_INFO_FILENAME}`));
+    return hasMatchingNameOrItsToplevel
+      ? right(infoAndPath)
+      : left(new Error(`REDmod directory '${dirname}' does not match mod name '${infoAndPath.redmodInfo.name}' in ${REDMOD_INFO_FILENAME}`));
   };
-
-
-const validateInfoJson = (detes: DirWithModInfo): Either<Error, DirWithModInfo> => right(detes);
-
-const multipleNamedModsWithInfo =
-  (splitter: (fileTree: FileTree) => Either<Error, readonly string[]>): DirWithInfoFunc =>
-    (fileTree: FileTree, installingDir: string): TaskEither<Error, readonly DirWithModInfo[]> =>
-      pipe(
-        splitter(fileTree),
-        fromEitherTE,
-        chainTE(flow(
-          traverse(ApplicativePar)((relative) =>
-            pipe(
-              tryReadInfoJson(installingDir, relative),
-              chainEitherKW(validateModnameMatchesDir),
-              mapTE(({ redmodInfo }) => ({ relativeSourceDir: relative, redmodInfo })),
-            )),
-        )),
-      );
 
 const instructionsToMoveAllFromSourceToDestination = (
   sourceDirPrefix: string,
@@ -231,49 +210,17 @@ const splitCanonREDmodsIfTheresMultiple = (fileTree: FileTree): Either<Error, re
 const splitNamedREDmodsIfTheresMultiple = (fileTree: FileTree): Either<Error, readonly string[]> =>
   right(findNamedREDmodDirs(fileTree));
 
-const dirAndInfoForCanon: DirWithInfoFunc = multipleNamedModsWithInfo(splitCanonREDmodsIfTheresMultiple);
-const namedModsWithInfo: DirWithInfoFunc = multipleNamedModsWithInfo(splitNamedREDmodsIfTheresMultiple);
-
-const toplevelModWithInfo: DirWithInfoFunc = (
+const collectPathDetesForInstructions = (
+  relativeSourceDir: string,
+  redmodInfo: REDmodInfo,
   fileTree: FileTree,
-  installingDir: string,
-): TaskEither<Error, readonly DirWithModInfo[]> =>
-  pipe(
-    tryReadInfoJson(installingDir, FILETREE_ROOT),
-    mapTE((validInfo) => ([{ relativeSourceDir: FILETREE_ROOT, redmodInfo: validInfo.redmodInfo }])),
-  );
-
-const archiveLayout = (
-  _api: VortexApi,
-  {
+): Either<Error, REDmodInfoAndPathDetes> =>
+  right({
+    redmodInfo,
     relativeSourceDir,
-    relativeDestDir,
+    relativeDestDir: path.join(REDMOD_BASEDIR, redmodInfo.name),
     fileTree,
-  }: DirWithInfoAndFsDetes,
-): Either<Error, readonly VortexInstruction[]> => {
-  const archiveDir =
-    relativeSourceDir;
-    // path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
-
-  const allArchiveFilesForMod =
-    filesUnder(archiveDir, Glob.Any, fileTree);
-
-  const instructions = instructionsToMoveAllFromSourceToDestination(
-    relativeSourceDir,
-    relativeDestDir,
-    allArchiveFilesForMod,
-  );
-
-  return right(instructions);
-};
-
-const collectFSDetesForInstructions =
-  (dirWithModInfo: DirWithModInfo, fileTree: FileTree): Either<Error, DirWithInfoAndFsDetes> =>
-    right({
-      ...dirWithModInfo,
-      fileTree,
-      relativeDestDir: path.join(REDMOD_BASEDIR, dirWithModInfo.redmodInfo.name),
-    });
+  });
 
 
 const returnInstructionsAndLogEtc = (
@@ -311,6 +258,151 @@ const failAfterWarningUserAndLogging = (
   return Promise.reject(new Error(errorMessage));
 };
 
+//
+// Layouts for REDmod subtypes
+//
+
+const initJsonLayoutAndValidation = (
+  api: VortexApi,
+  infoAndPaths: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> =>
+  pipe(
+    validateDeclaredModnameMatchesDir(infoAndPaths),
+    mapE(({ relativeSourceDir, relativeDestDir }) =>
+      instructionsToMoveAllFromSourceToDestination(
+        relativeSourceDir,
+        relativeDestDir,
+        [path.join(relativeSourceDir, REDMOD_INFO_FILENAME)],
+      )),
+  );
+
+
+const archiveLayoutAndValidation = (
+  _api: VortexApi,
+  {
+    relativeSourceDir,
+    relativeDestDir,
+    fileTree,
+  }: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> => {
+  const archiveDir =
+    path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
+
+  const allArchiveFilesForMod =
+    filesUnder(archiveDir, Glob.Any, fileTree);
+
+  const instructions = instructionsToMoveAllFromSourceToDestination(
+    relativeSourceDir,
+    relativeDestDir,
+    allArchiveFilesForMod,
+  );
+
+  return right(instructions);
+};
+
+
+const customSoundLayoutAndValidation = (
+  _api: VortexApi,
+  {
+    relativeSourceDir,
+    relativeDestDir,
+    fileTree,
+  }: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> => {
+  const customSoundsDir =
+    path.join(relativeSourceDir, REDMOD_CUSTOMSOUNDS_DIRNAME);
+
+  const allArchiveFilesForMod =
+    filesUnder(customSoundsDir, Glob.Any, fileTree);
+
+  const instructions = instructionsToMoveAllFromSourceToDestination(
+    relativeSourceDir,
+    relativeDestDir,
+    allArchiveFilesForMod,
+  );
+
+  return right(instructions);
+};
+
+
+const scriptLayoutAndValidation = (
+  _api: VortexApi,
+  {
+    relativeSourceDir,
+    relativeDestDir,
+    fileTree,
+  }: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> => {
+  const scriptsDir =
+    path.join(relativeSourceDir, REDMOD_SCRIPTS_DIRNAME);
+
+  const allArchiveFilesForMod =
+    filesUnder(scriptsDir, Glob.Any, fileTree);
+
+  const instructions = instructionsToMoveAllFromSourceToDestination(
+    relativeSourceDir,
+    relativeDestDir,
+    allArchiveFilesForMod,
+  );
+
+  return right(instructions);
+};
+
+
+const tweakLayoutAndValidation = (
+  _api: VortexApi,
+  {
+    relativeSourceDir,
+    relativeDestDir,
+    fileTree,
+  }: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> => {
+  const tweaksDir =
+    path.join(relativeSourceDir, REDMOD_TWEAKS_DIRNAME);
+
+  const allArchiveFilesForMod =
+    filesUnder(tweaksDir, Glob.Any, fileTree);
+
+  const instructions = instructionsToMoveAllFromSourceToDestination(
+    relativeSourceDir,
+    relativeDestDir,
+    allArchiveFilesForMod,
+  );
+
+  return right(instructions);
+};
+
+
+const extraFilesLayoutAndValidation = (
+  api: VortexApi,
+  {
+    relativeSourceDir,
+    relativeDestDir,
+    fileTree,
+  }: REDmodInfoAndPathDetes,
+): Either<Error, readonly VortexInstruction[]> => {
+  const filesInSubdirsNotHandled = pipe(
+    subdirNamesIn(relativeSourceDir, fileTree),
+    filter(not(pathIn(REDMOD_SUBTYPE_DIRNAMES))),
+    map((subdir) => filesUnder(path.join(relativeSourceDir, subdir), Glob.Any, fileTree)),
+    flatten,
+  );
+
+  const allRemainingFiles = [
+    ...filesIn(relativeSourceDir, not(matchREDmodInfoJson), fileTree),
+    ...filesInSubdirsNotHandled,
+  ];
+
+  api.log(`warn`, `Found some extra files in mod root, installing them too:`, allRemainingFiles);
+
+  const instructions = instructionsToMoveAllFromSourceToDestination(
+    relativeSourceDir,
+    relativeDestDir,
+    allRemainingFiles,
+  );
+
+  return right(instructions);
+};
 
 //
 // Vortex
@@ -332,43 +424,74 @@ export const testForREDmod: V2077TestFunc = (
 // install
 //
 
+const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
+
+type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
+
+const canonLayoutModDirs = flow(splitCanonREDmodsIfTheresMultiple);
+const namedLayoutModDirs = flow(splitNamedREDmodsIfTheresMultiple);
+const toplevelLayoutDir = (_fileTree: FileTree): Either<Error, readonly string[]> => right([FILETREE_ROOT]);
+
+const canonLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc> =>
+  (detectCanonREDmodLayout(fileTree)
+    ? some(canonLayoutModDirs)
+    : none);
+
+const namedLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc> =>
+  (detectNamedREDmodLayout(fileTree)
+    ? some(namedLayoutModDirs)
+    : none);
+
+const toplevelLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc> =>
+  (detectToplevelREDmodLayout(fileTree)
+    ? some(toplevelLayoutDir)
+    : none);
+
+
 export const installREDmod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
   features: Features,
 ): Promise<VortexInstallResult> => {
-  const allInstructionsForEverySubmodInside = await pipe(
-    [
-      { detectLayout: detectCanonREDmodLayout, getModsWithInfo: dirAndInfoForCanon },
-      { detectLayout: detectNamedREDmodLayout, getModsWithInfo: namedModsWithInfo },
-      { detectLayout: detectToplevelREDmodLayout, getModsWithInfo: toplevelModWithInfo },
-    ],
-    findFirst(({ detectLayout }) => detectLayout(fileTree)),
-    fromOptionTE(() => new Error(`No REDmod layout detected`)),
-    chainTE(({ getModsWithInfo }) => getModsWithInfo(fileTree, modInfo.installingDir)),
-    chainEitherKW(flow(
-      traverseArrayE(flow(
-        validateInfoJson,
-        chainE((myInfo) => collectFSDetesForInstructions(myInfo, fileTree)),
-        chainE((myInfoAndFsDetes) => pipe(
-          [
-            archiveLayout,
-            // customSoundLayout,
-            // scriptLayout,
-            // tweakLayout,
-            // initJsonLayout,
-            // extraFilesLayout,
-          ],
-          traverseArrayE((layout) => layout(api, myInfoAndFsDetes)),
+  const singleModPipeline =
+    (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
+      pipe(
+        tryReadInfoJson(modInfo.installingDir, relativeModDir),
+        chainEitherKW((redmodInfo) => pipe(
+          collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
+          chainE((modInfoAndPathDetes) => pipe(
+            [
+              initJsonLayoutAndValidation,
+              archiveLayoutAndValidation,
+              customSoundLayoutAndValidation,
+              scriptLayoutAndValidation,
+              tweakLayoutAndValidation,
+              extraFilesLayoutAndValidation,
+            ],
+            traverseArrayE((layout) => layout(api, modInfoAndPathDetes)),
+          )),
+          mapE(flatten),
         )),
-        mapE(flatten),
-      )),
-      mapE(flatten),
+      );
+
+  const allModsForLayoutPipeline = pipe(
+    [
+      canonLayoutMatches,
+      namedLayoutMatches,
+      toplevelLayoutMatches,
+    ],
+    findFirstMap((allModDirsForLayoutIfMatch) => allModDirsForLayoutIfMatch(fileTree)),
+    fromOptionTE(knownError(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
+    chainEitherK((allModDirsForLayout) => allModDirsForLayout(fileTree)),
+    chain(flow(
+      traverseArrayTE(singleModPipeline),
+      mapTE(flatten),
     )),
-  )();
+  );
 
   // At this point we have to break out to interop with the rest..
+  const allInstructionsForEverySubmodInside = await allModsForLayoutPipeline();
 
   return isLeft(allInstructionsForEverySubmodInside)
     ? failAfterWarningUserAndLogging(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.left)
