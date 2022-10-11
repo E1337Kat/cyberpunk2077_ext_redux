@@ -33,8 +33,10 @@ import {
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
   REDmodTransformedLayout,
-  REDMOD_CANONICAL_BASEDIR,
-  REDMOD_CANONICAL_INFO_FILE,
+  REDMOD_BASEDIR,
+  REDMOD_INFO_FILENAME,
+  REDMOD_ARCHIVES_DIRNAME,
+  REDmodInfo,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -142,6 +144,7 @@ const warnUserIfArchivesMightNeedManualReview = (
   if (requiresWarning) {
     showArchiveInstallWarning(
       api,
+      InstallerType.Archive,
       warnAboutSubdirs,
       warnAboutToplevel,
       warnAboutXLs,
@@ -397,19 +400,22 @@ const transformToREDmodInstructions = (
     redmodInfoWithAutoconvertTag.version.v;
 
   const destinationDirWithModnamePrefix =
-    path.join(REDMOD_CANONICAL_BASEDIR, redmodModuleName, path.sep);
+    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
+
+  const destinationArchiveDirWithModnamePrefix =
+    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
 
   // This should really be handled through fp-ts/json, but
   // for now I can't be bothered..
-  const infoJson = JSON.stringify({
+  const infoJson: REDmodInfo = {
     name: redmodModuleName,
     version: redmodVersion,
-  });
+  };
 
   const generateInfoJsonInstruction: VortexInstruction = {
     type: `generatefile`,
-    data: infoJson,
-    destination: path.join(destinationDirWithModnamePrefix, REDMOD_CANONICAL_INFO_FILE),
+    data: JSON.stringify(infoJson),
+    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
   };
 
   api.log(`debug`, `Transforming Archive instructions to REDmod`);
@@ -424,7 +430,7 @@ const transformToREDmodInstructions = (
           ...instruction,
           destination: instruction.destination.replace(
             ARCHIVE_MOD_CANONICAL_PREFIX,
-            destinationDirWithModnamePrefix,
+            destinationArchiveDirWithModnamePrefix,
           ),
         }
       )),
@@ -443,7 +449,7 @@ const transformToREDmodInstructions = (
   );
 
   return {
-    kind: REDmodTransformedLayout.Canon,
+    kind: REDmodTransformedLayout.Archive,
     instructions: allREDmodTransformedInstructions,
   };
 };

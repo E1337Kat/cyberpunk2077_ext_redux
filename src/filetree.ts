@@ -1,6 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import nodejsPath from "path";
 import KeyTree from "key-tree";
+import { pipe } from "fp-ts/lib/function";
+import { some as any } from "fp-ts/lib/ReadonlyArray";
 import { negate } from "./installers.utils";
 
 /*
@@ -112,12 +114,6 @@ const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 const stripTrailingSeparator = (path: string): string =>
   path.replace(looksLikeADirectory, ``);
 
-// Annoyingly all three mechanisms behave subtly differently wrt. paths.
-// get() does one thing, getSub() another, and _getNode() a third..
-// Need to unify them (or, really, just write the damn tree) but for
-// now be careful where you use which normalization.
-const normalizeDir = (dir: string): string =>
-  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
 
 //
 //
@@ -129,7 +125,34 @@ const normalizeDir = (dir: string): string =>
 //
 //
 
+// Helpers
+
+// Annoyingly all three mechanisms behave subtly differently wrt. paths.
+// get() does one thing, getSub() another, and _getNode() a third..
+// Need to unify them (or, really, just write the damn tree) but for
+// now be careful where you use which normalization.
+export const normalizeDir = (dir: string): string =>
+  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
+
+// Safe path comparison (case-insensitive on Windows)
+const pathEqual = (a: string, b: string): boolean =>
+  nodejsPath.normalize(a).toLocaleLowerCase() === nodejsPath.normalize(b).toLocaleLowerCase();
+
+export const pathEq = (a: string) => (b: string): boolean => pathEqual(a, b);
+
+// Safe path set membership
+const pathInclude = (paths: readonly string[], path: string): boolean =>
+  pipe(paths, any(pathEq(path)));
+
+export const pathIn = (paths: readonly string[]) => (path: string): boolean => pathInclude(paths, path);
+
+// Safe subpath check
+export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
+  pathThatShouldContain.toLocaleLowerCase().includes(path.toLocaleLowerCase());
+
+//
 // Creation
+//
 
 /**
  * Convert an array of paths to a file tree for easier parsing of the directory tree.
@@ -179,7 +202,7 @@ export const subdirNamesIn = (dir: string, tree: FileTree): string[] => {
     return [];
   }
 
-  return node.children.map((c) => c.key);
+  return node.children.map((c) => c.key).filter((c) => c !== FILETREE_TOPLEVEL);
 };
 
 /**

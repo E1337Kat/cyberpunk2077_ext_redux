@@ -40,6 +40,7 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 const DEFAULT_FEATURES = CurrentFeatureSet;
 
 describe(`Transforming modules to instructions`, () => {
+  beforeEach(() => { mockFs.restore(); });
   afterEach(() => { mockFs.restore(); });
 
   AllExpectedSuccesses.forEach((examples, set) => {

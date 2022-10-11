@@ -20,7 +20,8 @@
         "pack": "npm run build && powershell.exe ./script/package.ps1",
         "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
         "pack-linux": "npm run build && bash ./script/package.sh",
-        "pack-dev-linux": "npm run build && bash ./script/package.sh -dev"
+        "pack-dev-linux": "npm run build && bash ./script/package.sh -dev",
+        "dump-schemas": "npx ts-node -T ./script/dump-schemas.ts"
     },
     "author": "KellieAtTheLab",
     "contributors": [
@@ -52,6 +53,7 @@
         "glob": "^8.0.3",
         "husky": "^7.0.0",
         "i18next": "^21.0.0",
+        "io-ts-schema": "^0.1.1",
         "jest": "^27.5.1",
         "jest-expect-message": "^1.0.2",
         "jest-mock-extended": "^2.0.4",
@@ -71,6 +73,7 @@
     },
     "dependencies": {
         "fp-ts": "^2.12.1",
+        "io-ts": "^2.2.18",
         "key-tree": "^1.0.3",
         "patch-package": "^6.4.7"
     }

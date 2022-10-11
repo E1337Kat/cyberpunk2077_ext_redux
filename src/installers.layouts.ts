@@ -1,4 +1,13 @@
 import path from "path";
+import * as t from "io-ts";
+import * as J from "fp-ts/lib/Json";
+import {
+  Either,
+  left,
+  match,
+  right,
+} from "fp-ts/lib/Either";
+import { pipe } from "fp-ts/lib/function";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
@@ -678,27 +687,127 @@ export const RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS = [path.join(`bin\\x64\\`)];
 //
 
 export const enum REDmodLayout {
-  Canon = `.\\mods\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
-  Basedir = `.\\[modname]\\info.json + [any files + subdirs] (multiple mods allowed)`,
+  Canon = `
+          One or more mods in the form of
+
+          - .\\mods\\[modname]\\info.json { name: modname, ... }
+          - .\\mods\\[modname]\\archives\\*.archive
+          - .\\mods\\[modname]\\customSounds\\*.wav
+          - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          `,
+  Named = `
+          One or more mods in the form of
+
+          - .\\[modname]\\info.json { name: modname, ... }
+          - .\\[modname]\\archives\\*.archive
+          - .\\[modname]\\customSounds\\*.wav
+          - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          `,
+  Toplevel = `
+          Single mod in the form of
+
+          - .\\info.json { name: modname, ... }
+          - .\\archives\\*.archive
+          - .\\customSounds\\*.wav
+          - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          `,
 }
 
 export const enum REDmodTransformedLayout {
-  Canon = `Archive layout transformed to REDmod Canon`,
+  Archive = `Archive layout transformed to REDmod Canon`,
 }
 
-export interface REDmodInfo {
-  name: string;
-  version: string;
-}
+// REDmod type info
 
-export const REDMOD_CANONICAL_BASEDIR = path.normalize(`mods/`);
+// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#parameters
 
-export const REDMOD_CANONICAL_INFO_FILE = `info.json`;
+// We still need to figure out if there's a need to model `mod_skip`
+// at the type level rather than just in logic.
+export const REDmodAudioType =
+  t.keyof({
+    mod_skip: null,
+    mod_sfx_2d: null,
+    mod_sfx_city: null,
+    mod_sfx_low_occlusion: null,
+    mod_sfx_occlusion: null,
+    mod_sfx_radio: null,
+    mod_sfx_room: null,
+    mod_sfx_street: null,
+  }, `REDmodAudioType`);
 
-export const REDMOD_INFO_FILE_REQUIRED_KEYS: (keyof REDmodInfo)[] = [
-  `name`,
-  `version`,
+export type REDmodAudio = t.TypeOf<typeof REDmodAudioType>;
+
+export const REDmodCustomSoundType =
+  t.intersection([
+    t.type({
+      name: t.string,
+      type: REDmodAudioType,
+    }),
+    t.partial({
+      file: t.string,
+      gain: t.number,
+      pitch: t.number,
+    }),
+  ]);
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface REDmodCustomSound extends t.TypeOf<typeof REDmodCustomSoundType> {}
+
+// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#info.json
+
+export const REDmodInfoType =
+  t.intersection([
+    t.type({
+      name: t.string,
+      version: t.string,
+    }),
+    t.partial({
+      description: t.string,
+      customSounds: t.array(REDmodCustomSoundType),
+    }),
+  ], `REDmodInfoType`);
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {}
+
+export const decodeREDmodInfo = (json: J.Json): Either<Error, REDmodInfo> => pipe(
+  json,
+  REDmodInfoType.decode,
+  match(
+    (errors) => left(new Error(`Failed to decode REDmod info: ${errors}`)),
+    (info) => right(info),
+  ),
+);
+
+
+// Consts
+
+export const REDMOD_BASEDIR = path.normalize(`mods`);
+
+export const REDMOD_ARCHIVES_DIRNAME = `archives`;
+export const REDMOD_ARCHIVES_VALID_EXTENSIONS = [`.archive`];
+export const REDMOD_CUSTOMSOUNDS_DIRNAME = `customSounds`;
+export const REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS = [`.wav`];
+export const REDMOD_SCRIPTS_DIRNAME = `scripts`;
+export const REDMOD_SCRIPTS_VALID_EXTENSIONS = [`.script`, `.ws`];
+export const REDMOD_TWEAKS_DIRNAME = `tweaks`;
+export const REDMOD_TWEAKS_VALID_EXTENSIONS = [`.tweak`];
+
+// Some extra rules for these, since they are required to retain the paths
+export const REDMOD_SCRIPTS_VALID_SUBDIR_NAMES = [`core`, `cyberpunk`, `exec`, `samples`, `tests`];
+export const REDMOD_TWEAKS_VALID_SUBDIR = path.join(`base\\gameplay\\static_data`);
+
+export const REDMOD_SUBTYPE_DIRNAMES = [
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_TWEAKS_DIRNAME,
 ];
+
+export const REDMOD_INFO_FILENAME = `info.json`;
 
 export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
 export const REDMOD_AUTOCONVERTED_VERSION_TAG = `V2077RED`;
@@ -953,8 +1062,8 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.REDmod,
     `
     - \`${REDmodLayout.Canon}\` (Canonical)
-    - \`${REDmodLayout.Basedir}\` (Can be fixed to canonical)
-    | - (No other files allowed)
+    - \`${REDmodLayout.Named}\` (Can be fixed to canonical)
+    - \`${REDmodLayout.Toplevel}\` (Can be fixed to canonical)
     `,
   ],
   [
@@ -1089,12 +1198,14 @@ export type PromptedOptionalInstructions = Instructions | NotAllowed;
 export type LayoutToInstructions = (
   api: VortexApi,
   modName: string,
+  // modInfo: ModInfo,
   fileTree: FileTree,
 ) => MaybeInstructions;
 
 export type LayoutToInstructionsAsync = (
   api: VortexApi,
   modName: string,
+  // modInfo: ModInfo,
   fileTree: FileTree,
   sourceDirPathForMod: string,
 ) => Promise<MaybeInstructions>;

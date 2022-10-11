@@ -14,11 +14,15 @@ import {
 } from "fp-ts/lib/function";
 import { Task } from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
-
+import {
+  TaskEither,
+  tryCatch,
+} from "fp-ts/lib/TaskEither";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
   FileTree,
   FILETREE_ROOT,
+  normalizeDir,
 } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
@@ -54,9 +58,19 @@ export interface FileMove extends File {
   readonly originalRelativePath: string;
 }
 
+//
+// Filesystem abstraction
+//
+
 export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
   T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
-    fs.readFile(pathOnDisk, `utf8`));
+    fs.readFile(pathOnDisk, { encoding: `utf-8` }));
+
+export const fileFromDiskTE = (pathOnDisk: string, relativePath: string): TaskEither<Error, File> =>
+  tryCatch(
+    fileFromDisk(pathOnDisk, relativePath),
+    (reason) => new Error(`Failed to read file ${pathOnDisk}: ${reason}`),
+  );
 
 export const fileMove = (to: string, file: File): FileMove => ({
   relativePath: path.join(to, path.basename(file.relativePath)),
@@ -111,6 +125,8 @@ export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
   ...rawModInfo,
   version: makeSemanticVersion(rawModInfo.version),
   createTime: secondsToDate(rawModInfo.createTime),
+  stagingDirPrefix: normalizeDir(rawModInfo.stagingDirPrefix),
+  installingDir: normalizeDir(rawModInfo.installingDir),
 });
 
 //
@@ -273,6 +289,7 @@ export const instructionsToGenerateDirs = (
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   possibleLayouts: LayoutToInstructions[],
@@ -285,6 +302,7 @@ export const useFirstMatchingLayoutForInstructions = (
 
 export const useFirstMatchingLayoutForInstructionsAsync = async (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   sourceDirPathForMod: string,
@@ -305,6 +323,7 @@ export const useFirstMatchingLayoutForInstructionsAsync = async (
 
 export const useAllMatchingLayouts = (
   api: VortexApi,
+  // modInfo: ModInfo,
   modName: string,
   fileTree: FileTree,
   layoutsToTry: LayoutToInstructions[],

@@ -7,8 +7,9 @@ import {
 import {
   ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
   REDMOD_AUTOCONVERTED_NAME_TAG,
-  REDMOD_CANONICAL_BASEDIR,
-  REDMOD_CANONICAL_INFO_FILE,
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_BASEDIR,
+  REDMOD_INFO_FILENAME,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import { InstallChoices } from "../../src/ui.dialogs";
@@ -429,11 +430,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_CANONICAL_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_CANONICAL_INFO_FILE}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
         ),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
