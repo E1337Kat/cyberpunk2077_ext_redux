@@ -421,6 +421,71 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       ],
     },
   ],
+  [
+    `REDmod with archives in subdirectories, with a warning message`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff.archive`),
+        path.join(`archives/isntreallyvalid/`),
+        path.join(`archives/isntreallyvalid/cool_stuff.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`info.json`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        ),
+        movedFromTo(
+          path.join(`archives/cool_stuff.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
+        movedFromTo(
+          path.join(`archives/isntreallyvalid/cool_stuff.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/isntreallyvalid/cool_stuff.archive`),
+        ),
+      ],
+      infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
+    },
+  ],
+  [
+    `REDmod with multiple .archive files in correct dir (which may indicate optionals), with a warning message`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+        },
+      ),
+      inFiles: [
+        path.join(`info.json`),
+        path.join(`archives/`),
+        path.join(`archives/cool_stuff_option0.archive`),
+        path.join(`archives/cool_stuff_option1.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`info.json`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        ),
+        movedFromTo(
+          path.join(`archives/cool_stuff_option0.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_option0.archive`),
+        ),
+        movedFromTo(
+          path.join(`archives/cool_stuff_option1.archive`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_option1.archive`),
+        ),
+      ],
+      infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
+    },
+  ],
 ]);
 
 //
