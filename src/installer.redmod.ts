@@ -86,7 +86,10 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import {
+  showArchiveInstallWarning,
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
 import { Features } from "./features";
 
 //
@@ -297,7 +300,7 @@ const initJsonLayoutAndValidation = (
 
 
 const archiveLayoutAndValidation = (
-  _api: VortexApi,
+  api: VortexApi,
   {
     relativeSourceDir,
     relativeDestDir,
@@ -307,13 +310,35 @@ const archiveLayoutAndValidation = (
   const archiveDir =
     path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
 
-  const allArchiveFilesForMod =
+  const correctlyPlacedArchiveFiles =
+    filesIn(archiveDir, matchREDmodArchive, fileTree);
+
+  const allArchiveFilesInArchivePath =
     filesUnder(archiveDir, matchREDmodArchive, fileTree);
+
+  const hasArchivesInSubdirs =
+    allArchiveFilesInArchivePath.length !== correctlyPlacedArchiveFiles.length;
+
+  const hasMultipleArchives =
+    correctlyPlacedArchiveFiles.length > 1;
+
+  if (hasArchivesInSubdirs || hasMultipleArchives) {
+    api.log(`warn`, `Archive sublayout may require manual fixing, showing warning but continuing:`, { hasArchivesInSubdirs, hasMultipleArchives });
+
+    showArchiveInstallWarning(
+      api,
+      InstallerType.REDmod,
+      hasArchivesInSubdirs,
+      hasMultipleArchives,
+      false,
+      allArchiveFilesInArchivePath,
+    );
+  }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
-    allArchiveFilesForMod,
+    allArchiveFilesInArchivePath,
   );
 
   return right(instructions);
@@ -457,7 +482,7 @@ const extraFilesLayoutAndValidation = (
     ...filesInSubdirsNotHandled,
   ];
 
-  api.log(`warn`, `Found some extra files in mod root, installing them too:`, allRemainingFiles);
+  api.log(`info`, `Found some extra files in mod root, installing them too:`, allRemainingFiles);
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,

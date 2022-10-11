@@ -144,6 +144,7 @@ const warnUserIfArchivesMightNeedManualReview = (
   if (requiresWarning) {
     showArchiveInstallWarning(
       api,
+      InstallerType.Archive,
       warnAboutSubdirs,
       warnAboutToplevel,
       warnAboutXLs,
