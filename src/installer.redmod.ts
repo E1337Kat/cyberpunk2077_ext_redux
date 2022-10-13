@@ -127,21 +127,6 @@ const tryReadInfoJson = (
     mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
 
-const validateDeclaredModnameMatchesDir =
-  (infoAndPath: REDmodInfoAndPathDetes): Either<Error, REDmodInfoAndPathDetes> => {
-    const dirname = path.basename(infoAndPath.relativeSourceDir);
-
-    // Don't like this even though it's correct.
-    // We probably need to carry the layout type.
-    const hasMatchingNameOrItsToplevel =
-      infoAndPath.relativeSourceDir === `` ||
-      pathEq(dirname)(infoAndPath.redmodInfo.name);
-
-    return hasMatchingNameOrItsToplevel
-      ? right(infoAndPath)
-      : left(new Error(`REDmod directory '${dirname}' does not match mod name '${infoAndPath.redmodInfo.name}' in ${REDMOD_INFO_FILENAME}`));
-  };
-
 const instructionsToMoveAllFromSourceToDestination = (
   sourceDirPrefix: string,
   destinationDirPrefix: string,
@@ -289,7 +274,7 @@ const initJsonLayoutAndValidation = (
   infoAndPaths: REDmodInfoAndPathDetes,
 ): Either<Error, readonly VortexInstruction[]> =>
   pipe(
-    validateDeclaredModnameMatchesDir(infoAndPaths),
+    right(infoAndPaths),
     mapE(({ relativeSourceDir, relativeDestDir }) =>
       instructionsToMoveAllFromSourceToDestination(
         relativeSourceDir,
