@@ -7,6 +7,9 @@ import {
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_JSON_MOD_BASEDIR_SETTINGS,
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
+  REDMOD_BASEDIR,
+  REDMOD_SCRIPTS_MODDED_DIR,
+  REDMOD_INFO_FILENAME,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
@@ -31,7 +34,30 @@ import {
   ExampleFailingMod,
   expectedUserCancelMessageForHittingFallback,
   movedFromTo,
+  createdDirectory,
+  mockedFsLayout,
+  mergeOrFailOnConflict,
 } from "./utils.helper";
+
+
+const myRedModInfoJson = JSON.stringify({
+  name: `myRedMod`,
+  version: `1.0.0`,
+});
+
+
+const myRedModCompleteInfoJson = JSON.stringify({
+  name: `myRedMod`,
+  version: `1.0.0`,
+  description: `This is a description I guess`,
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_sfx_2d`,
+      path: `mySound.wav`,
+    },
+  ],
+});
 
 //
 const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
@@ -371,6 +397,74 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
+const MultiTypeWithREDmodSuccesses = new Map<string, ExampleSucceedingMod>([
+  [
+    `MultiType: REDmod installable with other types except old-style archives`,
+    {
+      expectedInstallerType: InstallerType.MultiType,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/script.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        movedFromTo(
+          path.join(`${RED4EXT_PREFIX}/script.dll`),
+          path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+        ),
+        copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+      ],
+    },
+  ],
+]);
+
 const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstallableMod>(
   Object.entries({
     "MultiType: XML Config should prompt, w/ CET, Reds, Red4ext, Archive + XL, TweakXL, JSON":
@@ -531,9 +625,84 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
   }),
 );
 
+const MultiTypeDirectFailures = new Map<string, ExampleFailingMod>([
+  [
+    `Invalid REDmod will cause the entire install to fail directly`,
+    {
+      expectedInstallerType: InstallerType.MultiType,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
+        ...TWEAK_XL_PATHS,
+        path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
+        //
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/thisiswrong.script`),
+        //
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+      ],
+      failure: `MultiType Mod Installer: REDmod instructions failed, canceling installation: Error: Script sublayout: these files don't look like valid REDmod scripts: mods\\myRedMod\\scripts\\thisiswrong.script`,
+      errorDialogTitle: `Can't Install MultiType Mod when the REDmod Part Fails!`,
+    },
+  ],
+  [
+    `REDmod MultiType will fail if it contains both REDmod and old style archives`,
+    {
+      expectedInstallerType: InstallerType.MultiType,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+      ],
+      errorDialogTitle: `Can't Install Both REDmod and Old-Style Archive in the Same Mod!`,
+      failure: `MultiType Mod Installer: Can't install REDmod and Old-Style Archive at the same time, canceling installation`,
+    },
+  ],
+]);
+
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: ValidTypeCombinations,
-  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
+  AllExpectedSuccesses: mergeOrFailOnConflict(ValidTypeCombinations, MultiTypeWithREDmodSuccesses),
+  AllExpectedDirectFailures: MultiTypeDirectFailures,
   AllExpectedPromptInstalls: MultiTypeModShouldPromptForInstall,
 };
 
