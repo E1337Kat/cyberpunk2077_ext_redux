@@ -423,7 +423,6 @@ const MultiTypeWithREDmodSuccesses = new Map<string, ExampleSucceedingMod>([
         path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
         ...RED4EXT_PREFIXES,
         path.join(`${RED4EXT_PREFIX}/script.dll`),
-        ...ARCHIVE_PREFIXES,
         path.join(`${REDMOD_BASEDIR}/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
