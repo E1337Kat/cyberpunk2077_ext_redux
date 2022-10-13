@@ -3,6 +3,7 @@ import {
   REDMOD_ARCHIVES_DIRNAME,
   REDMOD_BASEDIR,
   REDMOD_INFO_FILENAME,
+  REDMOD_SCRIPTS_MODDED_DIR,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
@@ -25,6 +26,7 @@ import {
   mockedFsLayout,
   movedFromTo,
   FAKE_STAGING_PATH,
+  createdDirectory,
 } from "./utils.helper";
 
 
@@ -103,6 +105,7 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>([
           path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
           path.join(`${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
       ],
     },
   ],
