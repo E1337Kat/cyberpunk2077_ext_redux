@@ -49,10 +49,11 @@ const invalidREDmodInfoJson = JSON.stringify({
   name: `myRedMod`,
 });
 
-const NOTmyRedModInfoJson = JSON.stringify({
+const NOTmyRedModInfo = {
   name: `NOTmyRedMod`,
   version: `1.0.0`,
-});
+};
+const NOTmyRedModInfoJson = JSON.stringify(NOTmyRedModInfo);
 
 const myRedModNumber2InfoJson = JSON.stringify({
   name: `myRedModNumber2`,
@@ -406,6 +407,34 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
 
 const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
+    `REDmod with dir NOT matching mod name goes to dir named after mod name`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          myRedMod: {
+            [REDMOD_INFO_FILENAME]: NOTmyRedModInfoJson,
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`myRedMod/info.json`),
+        path.join(`myRedMod/archives/`),
+        path.join(`myRedMod/archives/cool_stuff.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`myRedMod/info.json`),
+          path.join(`${REDMOD_BASEDIR}/${NOTmyRedModInfo.name}/info.json`),
+        ),
+        movedFromTo(
+          path.join(`myRedMod/archives/cool_stuff.archive`),
+          path.join(`${REDMOD_BASEDIR}/${NOTmyRedModInfo.name}/archives/cool_stuff.archive`),
+        ),
+      ],
+    },
+  ],
+  [
     `REDmod without sound files if info customSounds only has skip files`,
     {
       expectedInstallerType: InstallerType.REDmod,
@@ -546,26 +575,6 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         path.join(`${REDMOD_BASEDIR}/info.json`),
         path.join(`${REDMOD_BASEDIR}/archives/`),
         path.join(`${REDMOD_BASEDIR}/archives/cool_stuff.archive`),
-      ],
-      failure: `Didn't Find Expected REDmod Installation!`,
-      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
-    },
-  ],
-  [
-    `REDmod with dir NOT matching mod name`,
-    {
-      expectedInstallerType: InstallerType.REDmod,
-      fsMocked: mockedFsLayout(
-        {
-          myRedMod: {
-            [REDMOD_INFO_FILENAME]: NOTmyRedModInfoJson,
-          },
-        },
-      ),
-      inFiles: [
-        path.join(`myRedMod/info.json`),
-        path.join(`myRedMod/archives/`),
-        path.join(`myRedMod/archives/cool_stuff.archive`),
       ],
       failure: `Didn't Find Expected REDmod Installation!`,
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
