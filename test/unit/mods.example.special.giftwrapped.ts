@@ -1,4 +1,9 @@
 import path from "path";
+import {
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_BASEDIR,
+  REDMOD_INFO_FILENAME,
+} from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
@@ -17,11 +22,21 @@ import {
   mergeOrFailOnConflict,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
+  mockedFsLayout,
+  movedFromTo,
+  FAKE_STAGING_PATH,
 } from "./utils.helper";
 
-const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
-  Object.entries({
-    multipleModtypesWrappedAreUnwrappedFixable: {
+
+const myRedModInfoJson = JSON.stringify({
+  name: `myRedMod`,
+  version: `1.0.0`,
+});
+
+const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>([
+  [
+    `known subdirs inside an unknown 'giftwrap' top-level directory`,
+    {
       expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_GIFTWRAPS,
@@ -56,8 +71,42 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>(
         },
       ],
     },
-  }),
-);
+  ],
+  [
+    `REDmod-looking mods inside a 'giftwrap' top-level directory`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      stagingPath: path.join(FAKE_STAGING_PATH, GIFTWRAP_PREFIX, path.sep),
+      fsMocked: mockedFsLayout({
+        [GIFTWRAP_PREFIX]: {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            },
+          },
+        },
+      }),
+      inFiles: [
+        path.join(`${GIFTWRAP_PREFIX}`),
+        path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\`),
+        path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\`),
+        path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_INFO_FILENAME}`),
+        path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\`),
+        path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_INFO_FILENAME}`),
+        ),
+        movedFromTo(
+          path.join(`${GIFTWRAP_PREFIX}\\${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+      ],
+    },
+  ],
+]);
 
 const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(GiftwrappedModsFixable),

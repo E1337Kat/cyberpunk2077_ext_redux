@@ -24,6 +24,7 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
+import { normalizeDir } from "../../src/filetree";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -59,6 +60,7 @@ export interface MockFsDirItems {
 interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
+  stagingPath?: string;
   fsMocked?: MockFsDirItems;
   features?: Features;
 }
@@ -137,8 +139,8 @@ export const FAKE_MOD_INFO: ModInfo = {
   createTime: new Date(1664414660000),
   stagingDirPrefix: path.join(...FAKE_STAGING_DIR_PREFIXES),
   installingDir: {
-    relativePath: path.join(...FAKE_STAGING_DIRS),
-    pathOnDisk: path.join(...FAKE_STAGING_DIRS),
+    relativePath: normalizeDir(FAKE_STAGING_PATH),
+    pathOnDisk: normalizeDir(FAKE_DISK_PATH_FOR_STAGING_PATH),
   },
   copy: undefined,
   variant: `varianttag`,
