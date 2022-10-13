@@ -399,7 +399,7 @@ const scriptLayoutAndValidation = (
       filter(not(pathIn(allScriptFilesInValidBasedir))),
     );
 
-    return left(new Error(`Script sublayout: these files don't look like valid REDmod tweaks: ${invalidScriptFiles.join(`, `)}`));
+    return left(new Error(`Script sublayout: these files don't look like valid REDmod scripts: ${invalidScriptFiles.join(`, `)}`));
   }
 
   const allInstructions = instructionsToMoveAllFromSourceToDestination(
@@ -567,6 +567,9 @@ const allAllowedLayouts = [
   toplevelLayoutMatches,
 ];
 
+const layoutsAllowedInMultitype = [
+  canonLayoutMatches,
+];
 
 //
 // Vortex
@@ -597,4 +600,32 @@ export const installREDmod: V2077InstallFunc = async (
   return isLeft(allInstructionsForEverySubmodInside)
     ? failAfterWarningUserAndLogging(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.left)
     : returnInstructionsAndLogEtc(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.right);
+};
+
+
+//
+// External use (MultiType mainly)
+//
+
+export const detectAllowedREDmodLayoutsForMultitype =
+  (fileTree: FileTree): boolean => detectCanonREDmodLayout(fileTree);
+
+export const redmodAllowedInstructionsForMultitype = async (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Promise<Either<Error, readonly VortexInstruction[]>> => {
+  if (!detectAllowedREDmodLayoutsForMultitype(fileTree)) {
+    return right([]);
+  }
+
+  const pipelineForInstructions =
+    instructionsForLayoutsPipeline(api, fileTree, modInfo, features, layoutsAllowedInMultitype);
+
+  // At this point we have to break out to interface with everything else
+
+  const allInstructionsForEverySubmodInside = await pipelineForInstructions();
+
+  return allInstructionsForEverySubmodInside;
 };
