@@ -2,7 +2,7 @@
 import path from 'path';
 import { pipe } from "fp-ts/lib/function";
 import { match } from 'fp-ts/lib/Either';
-import { modInfoFromArchiveName } from "../../src/installers.shared";
+import { modInfoFromArchivePath } from "../../src/installers.shared";
 import { ModInfo } from '../../src/installers.types';
 
 const fakeDate = new Date(2021, 1, 1);
@@ -10,6 +10,8 @@ const fakeTimestamp = fakeDate.getTime() / 1000;
 
 const INSTALLING_SUFFIX = `.installing`;
 const INSTALLING_BASEDIR = path.join(`fake\\staging`);
+
+const DISKPREFIX = `diskydisk`;
 
 describe(`Parsing mod info from archive name`, () => {
   beforeAll(() => {
@@ -38,7 +40,12 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `hi` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `hi` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `hi` + INSTALLING_SUFFIX),
+          },
+          copy: undefined,
+          variant: undefined,
         },
       ],
       [
@@ -55,7 +62,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Some Directly Installed Mod.zip` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Some Directly Installed Mod.zip` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Some Directly Installed Mod.zip` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -74,7 +84,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `000_ this was (just) an Archive.archive` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `000_ this was (just) an Archive.archive` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `000_ this was (just) an Archive.archive` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -93,7 +106,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `thesecanalsohave v1.0 - things+variantfakes` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `thesecanalsohave v1.0 - things+variantfakes` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `thesecanalsohave v1.0 - things+variantfakes` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -102,12 +118,12 @@ describe(`Parsing mod info from archive name`, () => {
 
     testCases.forEach(([archiveInstallingPath, expected]) => {
       pipe(
-        modInfoFromArchiveName(archiveInstallingPath),
+        modInfoFromArchivePath({
+          relativePath: archiveInstallingPath,
+          pathOnDisk: `${DISKPREFIX}\\${archiveInstallingPath}`,
+        }),
         match(
-          (syntheticOnFail) => {
-            expect(syntheticOnFail).toEqual(expected);
-            expect(syntheticOnFail.installingDir).toEqual(archiveInstallingPath);
-          },
+          (syntheticOnFail) => { expect(syntheticOnFail).toEqual(expected); },
           (incorrectlySucceeded) => { expect(incorrectlySucceeded).toBeUndefined(); },
         ),
       );
@@ -129,7 +145,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Limited HUD-2592-2-5-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Limited HUD-2592-2-5-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Limited HUD-2592-2-5-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -147,7 +166,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Appearance Menu Mod-790-1-14-4-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Appearance Menu Mod-790-1-14-4-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Appearance Menu Mod-790-1-14-4-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -165,7 +187,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `HairMaterialRetouch-2577-1-0a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `HairMaterialRetouch-2577-1-0a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `HairMaterialRetouch-2577-1-0a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -183,7 +208,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Appearance Previews-718-v0-09a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Appearance Previews-718-v0-09a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Appearance Previews-718-v0-09a-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -201,7 +229,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Cap colors-4293-1-${fakeTimestamp}(2)+darkpurple vanilla` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Cap colors-4293-1-${fakeTimestamp}(2)+darkpurple vanilla` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Cap colors-4293-1-${fakeTimestamp}(2)+darkpurple vanilla` + INSTALLING_SUFFIX),
+          },
           copy: `(2)`,
           variant: `darkpurple vanilla`,
         },
@@ -219,7 +250,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Vanilla Billboard LOD Improved-3184-1-6-1-${fakeTimestamp}.1` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Vanilla Billboard LOD Improved-3184-1-6-1-${fakeTimestamp}.1` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Vanilla Billboard LOD Improved-3184-1-6-1-${fakeTimestamp}.1` + INSTALLING_SUFFIX),
+          },
           copy: `.1`,
           variant: undefined,
         },
@@ -237,7 +271,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: `medium-full1-full2`,
         },
@@ -255,7 +292,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `1 - Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `1 - Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `1 - Body_Suit_with_Gun_Harness_FemV-3041-1-3-${fakeTimestamp}+medium-full1-full2` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: `medium-full1-full2`,
         },
@@ -273,7 +313,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: new Date(1656366854 * 1000),
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `WLW Nails - All Colors-4733-1-1656366854+gold` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `WLW Nails - All Colors-4733-1-1656366854+gold` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `WLW Nails - All Colors-4733-1-1656366854+gold` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: `gold`,
         },
@@ -291,7 +334,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `Fake (1) . - (best) Mod -4252525252-versionX-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `Fake (1) . - (best) Mod -4252525252-versionX-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `Fake (1) . - (best) Mod -4252525252-versionX-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -310,7 +356,10 @@ describe(`Parsing mod info from archive name`, () => {
           },
           createTime: fakeDate,
           stagingDirPrefix: INSTALLING_BASEDIR,
-          installingDir: path.join(INSTALLING_BASEDIR, `1-3844-1-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          installingDir: {
+            relativePath: path.join(INSTALLING_BASEDIR, `1-3844-1-${fakeTimestamp}` + INSTALLING_SUFFIX),
+            pathOnDisk: path.join(DISKPREFIX, INSTALLING_BASEDIR, `1-3844-1-${fakeTimestamp}` + INSTALLING_SUFFIX),
+          },
           copy: undefined,
           variant: undefined,
         },
@@ -319,13 +368,13 @@ describe(`Parsing mod info from archive name`, () => {
 
     testCases.forEach(([archiveInstallingPath, expected]) => {
       pipe(
-        modInfoFromArchiveName(archiveInstallingPath),
+        modInfoFromArchivePath({
+          relativePath: archiveInstallingPath,
+          pathOnDisk: `${DISKPREFIX}\\${archiveInstallingPath}`,
+        }),
         match(
           (couldNotParse) => { expect(couldNotParse).toBeUndefined(); },
-          (parsedModInfo) => {
-            expect(parsedModInfo).toEqual(expected);
-            expect(parsedModInfo.installingDir).toEqual(archiveInstallingPath);
-          },
+          (parsedModInfo) => { expect(parsedModInfo).toEqual(expected); },
         ),
       );
     });

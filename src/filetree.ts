@@ -2,8 +2,29 @@
 import nodejsPath from "path";
 import KeyTree from "key-tree";
 import { pipe } from "fp-ts/lib/function";
-import { some as any } from "fp-ts/lib/ReadonlyArray";
-import { negate } from "./installers.utils";
+import {
+  filter,
+  map,
+  some as any,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  alwaysTrue,
+  negate,
+} from "./installers.utils";
+
+
+export interface Path {
+  readonly relativePath: string;
+  readonly pathOnDisk: string;
+}
+
+export interface File extends Path {
+  readonly content: string;
+}
+
+export interface FileMove extends File {
+  readonly originalRelativePath: string;
+}
 
 /*
 export type FileTree = {

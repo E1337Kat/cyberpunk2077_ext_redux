@@ -110,14 +110,14 @@ interface REDmodInfoAndPathDetes {
 //
 
 const tryReadInfoJson = (
-  installingDir: string,
+  modInfo: ModInfo,
   relativeREDmodDir: string,
 ): TaskEither<Error, REDmodInfo> =>
   pipe(
-    fileFromDiskTE(
-      path.join(installingDir, relativeREDmodDir, REDMOD_INFO_FILENAME),
-      path.join(relativeREDmodDir, REDMOD_INFO_FILENAME),
-    ),
+    fileFromDiskTE({
+      pathOnDisk: path.join(modInfo.installingDir.pathOnDisk, relativeREDmodDir, REDMOD_INFO_FILENAME),
+      relativePath: path.join(relativeREDmodDir, REDMOD_INFO_FILENAME),
+    }),
     chainEitherKW((file) =>
       pipe(
         file.content,
@@ -546,7 +546,7 @@ export const installREDmod: V2077InstallFunc = async (
   const singleModPipeline =
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
-        tryReadInfoJson(modInfo.installingDir, relativeModDir),
+        tryReadInfoJson(modInfo, relativeModDir),
         chainEitherKW((redmodInfo) => pipe(
           collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
           chainE((modInfoAndPathDetes) => pipe(

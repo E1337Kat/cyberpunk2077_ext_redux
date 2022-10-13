@@ -118,7 +118,7 @@ export const installIniMod: V2077InstallFunc = (
     (file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION,
   );
 
-  const reshade = testForReshadeFile(api.log, allIniModFiles, modInfo.installingDir);
+  const reshade = testForReshadeFile(api.log, allIniModFiles, modInfo.installingDir.pathOnDisk);
 
   // Set destination depending on file type
 

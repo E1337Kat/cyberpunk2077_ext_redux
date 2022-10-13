@@ -120,6 +120,9 @@ const FAKE_MOD_INFO_INSTALLING_DIRNAME =
 const FAKE_STAGING_DIRS = [...FAKE_STAGING_DIR_PREFIXES, FAKE_MOD_INFO_INSTALLING_DIRNAME];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
+export const FAKE_DISK_DIR = `this-simulates-different-ondisk-dir`;
+export const FAKE_DISK_PATH_FOR_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, FAKE_DISK_DIR, path.sep);
+
 export const FAKE_MOD_NAME = `Fake Mod For Examples`;
 
 export const FAKE_MOD_INFO: ModInfo = {
@@ -133,7 +136,10 @@ export const FAKE_MOD_INFO: ModInfo = {
   },
   createTime: new Date(1664414660000),
   stagingDirPrefix: path.join(...FAKE_STAGING_DIR_PREFIXES),
-  installingDir: path.join(...FAKE_STAGING_DIRS),
+  installingDir: {
+    relativePath: path.join(...FAKE_STAGING_DIRS),
+    pathOnDisk: path.join(...FAKE_STAGING_DIRS),
+  },
   copy: undefined,
   variant: `varianttag`,
 };
@@ -256,6 +262,7 @@ export const ASI_PREFIX = ASI_MOD_PATH;
 export const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
 export const GIFTWRAP_PREFIX = `some-dirname`;
+
 export const CET_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${CET_PREFIX}`);
 export const REDS_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${REDS_PREFIX}`);
 export const RED4EXT_GIFTWRAPS = pathHierarchyFor(

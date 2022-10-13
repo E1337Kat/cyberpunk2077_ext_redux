@@ -492,7 +492,7 @@ export const wrapTestSupported =
   ): VortexTestSupportedFunc =>
     //
     // This is the function that Vortex calls.
-    (files: string[], gameId: string) => {
+    (filesRelativePaths: string[], gameId: string) => {
     //
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
@@ -502,9 +502,9 @@ export const wrapTestSupported =
       }
 
       vortexApi.log(`info`, `Testing for ${installer.type}`);
-      vortexApi.log(`debug`, `Input files: `, files);
+      vortexApi.log(`debug`, `Input files: `, filesRelativePaths);
 
-      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
 
       // Unlike in `install`, Vortex doesn't supply us the mod's disk path
       return installer.testSupported(
@@ -535,8 +535,8 @@ export const wrapInstall =
     //
     // This is the function that Vortex calls
     async (
-      files: string[],
-      destinationPath: string,
+      filesRelativePaths: string[],
+      destinationDirPath: string,
       _gameId: string,
       _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
@@ -544,13 +544,32 @@ export const wrapInstall =
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
-      vortexApi.log(`debug`, `Input files:`, files);
+      vortexApi.log(`debug`, `Input files:`, filesRelativePaths);
 
-      const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+
+      const treeForInstallers =
+        unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
+
       const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-      const modInfo = modInfoFromArchiveNameOrSynthetic(destinationPath);
-      vortexApi.log(`info`, `Extracted mod info from path: ${destinationPath}`);
+      const archivePathOnDisk = destinationDirPath;
+
+      const archivePath =
+        treeForInstallers.transform !== Transform.Unwrapped
+          ? archivePathOnDisk
+          : pipe(
+            archivePathOnDisk.split(path.sep),
+            filter(not(pathEq(treeForInstallers.wrapperDir))),
+            (parts) => path.join(...parts),
+          );
+
+      const modInfo =
+        modInfoFromArchiveNameOrSynthetic({
+          relativePath: archivePath,
+          pathOnDisk: archivePathOnDisk,
+        });
+
+      vortexApi.log(`info`, `Extracted mod info from path: ${destinationDirPath}`);
       vortexApi.log(`info`, `Parsed or generated mod info: `, modInfo);
 
       const modName =

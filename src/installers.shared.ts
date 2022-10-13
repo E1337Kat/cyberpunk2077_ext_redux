@@ -20,6 +20,9 @@ import {
 } from "fp-ts/lib/TaskEither";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
+  Path,
+  File,
+  FileMove,
   FileTree,
   FILETREE_ROOT,
   normalizeDir,
@@ -47,29 +50,19 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 
-// Types
-export interface File {
-  readonly relativePath: string;
-  readonly pathOnDisk: string;
-  readonly content: string;
-}
-
-export interface FileMove extends File {
-  readonly originalRelativePath: string;
-}
 
 //
 // Filesystem abstraction
 //
 
-export const fileFromDisk = (pathOnDisk: string, relativePath: string): Task<File> =>
+export const fileFromDisk = ({ relativePath, pathOnDisk }: Path): Task<File> =>
   T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
     fs.readFile(pathOnDisk, { encoding: `utf-8` }));
 
-export const fileFromDiskTE = (pathOnDisk: string, relativePath: string): TaskEither<Error, File> =>
+export const fileFromDiskTE = ({ relativePath, pathOnDisk }: Path): TaskEither<Error, File> =>
   tryCatch(
-    fileFromDisk(pathOnDisk, relativePath),
-    (reason) => new Error(`Failed to read file ${pathOnDisk}: ${reason}`),
+    fileFromDisk({ relativePath, pathOnDisk }),
+    (reason) => new Error(`Failed to read file ${relativePath} (on disk ${pathOnDisk}): ${reason}`),
   );
 
 export const fileMove = (to: string, file: File): FileMove => ({
@@ -126,21 +119,25 @@ export const makeModInfo = (rawModInfo: ModInfoRaw): ModInfo => ({
   version: makeSemanticVersion(rawModInfo.version),
   createTime: secondsToDate(rawModInfo.createTime),
   stagingDirPrefix: normalizeDir(rawModInfo.stagingDirPrefix),
-  installingDir: normalizeDir(rawModInfo.installingDir),
+  installingDir: {
+    relativePath: normalizeDir(rawModInfo.installingDir.relativePath),
+    pathOnDisk: normalizeDir(rawModInfo.installingDir.pathOnDisk),
+  },
 });
 
 //
-export const makeSyntheticModInfo = (modName: string, stagingDirPrefix: string, installingDir): ModInfo =>
-  makeModInfo({
-    name: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`,
-    id: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`, // Vortex uses the mod name as is
-    version: makeSemanticVersion({
-      major: `0`, minor: `0`, patch: `1`, prerelease: V2077_GENERATED_MOD_VERSION_PRERELEASE,
-    }),
-    createTime: dateToSeconds(new Date()),
-    stagingDirPrefix,
-    installingDir,
-  });
+export const makeSyntheticModInfo =
+ (modName: string, stagingDirPrefix: string, installingDir: Path): ModInfo =>
+   makeModInfo({
+     name: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`,
+     id: `${modName}${V2077_GENERATED_MOD_NAME_TAG}`, // Vortex uses the mod name as is
+     version: makeSemanticVersion({
+       major: `0`, minor: `0`, patch: `1`, prerelease: V2077_GENERATED_MOD_VERSION_PRERELEASE,
+     }),
+     createTime: dateToSeconds(new Date()),
+     stagingDirPrefix,
+     installingDir,
+   });
 
 //
 export const modInfoTaggedAsAutoconverted = (modInfo: ModInfo): ModInfo => {
@@ -179,12 +176,12 @@ const ModInfoFormatParser =
   /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
 
 //
-export const modInfoFromArchiveName = (installingDir: string): Either<ModInfo, ModInfo> => {
+export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, ModInfo> => {
   const stagingDirPrefix =
-    path.dirname(installingDir);
+    path.dirname(installingDir.relativePath);
 
   const cleanedArchiveName =
-    path.basename(installingDir, `.installing`);
+    path.basename(installingDir.relativePath, `.installing`);
 
   const infoSuccessfullyParsed = ModInfoFormatParser.exec(cleanedArchiveName);
 
@@ -216,9 +213,9 @@ export const modInfoFromArchiveName = (installingDir: string): Either<ModInfo, M
 };
 
 
-export const modInfoFromArchiveNameOrSynthetic = (archiveName: string): ModInfo =>
+export const modInfoFromArchiveNameOrSynthetic = (archivePath: Path): ModInfo =>
   pipe(
-    modInfoFromArchiveName(archiveName),
+    modInfoFromArchivePath(archivePath),
     fold(identity, identity),
   );
 
