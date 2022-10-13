@@ -492,6 +492,7 @@ const ensureModdedDirExistsInstructions = (): readonly VortexInstruction[] =>
 const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
 type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
+type LayoutMatcherFunc = (FileTree) => Option<ModDirsForLayoutFunc>;
 
 const canonLayoutModDirs = flow(splitCanonREDmodsIfTheresMultiple);
 const namedLayoutModDirs = flow(splitNamedREDmodsIfTheresMultiple);
@@ -513,32 +514,16 @@ const toplevelLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc>
     : none);
 
 //
-// Vortex
+// Actual instruction generation
 //
 
-//
-// testSupported
-//
-
-export const testForREDmod: V2077TestFunc = (
-  _api: VortexApi,
-  fileTree: FileTree,
-): Promise<VortexTestResult> => Promise.resolve({
-  supported: detectREDmodLayout(fileTree),
-  requiredFiles: [],
-});
-
-//
-// install
-//
-
-
-export const installREDmod: V2077InstallFunc = async (
+export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
   features: Features,
-): Promise<VortexInstallResult> => {
+  allowedLayouts: readonly LayoutMatcherFunc[],
+): TaskEither<Error, readonly VortexInstruction[]> => {
   const singleModPipeline =
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
@@ -561,11 +546,7 @@ export const installREDmod: V2077InstallFunc = async (
       );
 
   const allModsForLayoutPipeline = pipe(
-    [
-      canonLayoutMatches,
-      namedLayoutMatches,
-      toplevelLayoutMatches,
-    ],
+    allowedLayouts,
     findFirstMap((allModDirsForLayoutIfMatch) => allModDirsForLayoutIfMatch(fileTree)),
     fromOptionTE(knownError(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
     chainEitherK((allModDirsForLayout) => allModDirsForLayout(fileTree)),
@@ -576,8 +557,42 @@ export const installREDmod: V2077InstallFunc = async (
     )),
   );
 
-  // At this point we have to break out to interop with the rest..
-  const allInstructionsForEverySubmodInside = await allModsForLayoutPipeline();
+  return allModsForLayoutPipeline;
+};
+
+
+const allAllowedLayouts = [
+  canonLayoutMatches,
+  namedLayoutMatches,
+  toplevelLayoutMatches,
+];
+
+
+//
+// Vortex
+//
+
+export const testForREDmod: V2077TestFunc = (
+  _api: VortexApi,
+  fileTree: FileTree,
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: detectREDmodLayout(fileTree),
+  requiredFiles: [],
+});
+
+
+export const installREDmod: V2077InstallFunc = async (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Promise<VortexInstallResult> => {
+  const pipelineForInstructions =
+    instructionsForLayoutsPipeline(api, fileTree, modInfo, features, allAllowedLayouts);
+
+  // At this point we have to break out to interface with everything else
+
+  const allInstructionsForEverySubmodInside = await pipelineForInstructions();
 
   return isLeft(allInstructionsForEverySubmodInside)
     ? failAfterWarningUserAndLogging(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.left)
