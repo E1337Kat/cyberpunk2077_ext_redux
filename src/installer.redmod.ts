@@ -11,6 +11,7 @@ import {
   some as any,
   toArray as toMutableArray,
   findFirstMap,
+  concat,
 } from "fp-ts/ReadonlyArray";
 import {
   TaskEither,
@@ -68,10 +69,12 @@ import {
   REDMOD_TWEAKS_VALID_EXTENSIONS,
   REDMOD_SCRIPTS_DIRNAME,
   REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
+  REDMOD_SCRIPTS_MODDED_DIR,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
+  instructionsToGenerateDirs,
   moveFromTo,
 } from "./installers.shared";
 import {
@@ -91,6 +94,7 @@ import {
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
 import { Features } from "./features";
+import { S } from "./installers.utils";
 
 //
 // Types
@@ -345,7 +349,7 @@ const customSoundLayoutAndValidation = (
   const allCustomSoundFiles =
     filesUnder(customSoundsDir, matchREDmodCustomSound, fileTree);
 
-  const soundFilesRequiredPresent = pipe(
+  const infoJsonRequiresSoundFiles = pipe(
     redmodInfo.customSounds || [],
     any((soundDecl) => soundDecl.type !== `mod_skip`),
   );
@@ -354,9 +358,9 @@ const customSoundLayoutAndValidation = (
     allCustomSoundFiles.length > 0;
 
   // This isn't /exactly/ an exhaustive check...
-  if ((soundFilesRequiredPresent && !hasSoundFiles) ||
-      (!soundFilesRequiredPresent && hasSoundFiles)) {
-    return left(new Error(`Custom Sound sublayout: there are sound files but ${REDMOD_INFO_FILENAME} doesn't declare customSounds!`));
+  if ((infoJsonRequiresSoundFiles && !hasSoundFiles) ||
+      (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
+    return left(new Error(`customSounds sublayout: ${S({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
@@ -398,13 +402,13 @@ const scriptLayoutAndValidation = (
     return left(new Error(`Script sublayout: these files don't look like valid REDmod tweaks: ${invalidScriptFiles.join(`, `)}`));
   }
 
-  const instructions = instructionsToMoveAllFromSourceToDestination(
+  const allInstructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
     allScriptFiles,
   );
 
-  return right(instructions);
+  return right(allInstructions);
 };
 
 
@@ -446,7 +450,6 @@ const tweakLayoutAndValidation = (
   return right(instructions);
 };
 
-
 const extraFilesLayoutAndValidation = (
   api: VortexApi,
   {
@@ -477,6 +480,14 @@ const extraFilesLayoutAndValidation = (
 
   return right(instructions);
 };
+
+// …Let's just always do this?
+const ensureModdedDirExistsInstructions = (): readonly VortexInstruction[] =>
+  instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
+
+//
+// Layout pipeline helpers
+//
 
 const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
@@ -561,6 +572,7 @@ export const installREDmod: V2077InstallFunc = async (
     chain(flow(
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
+      mapTE(concat(ensureModdedDirExistsInstructions())),
     )),
   );
 
