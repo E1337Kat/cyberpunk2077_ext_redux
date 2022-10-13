@@ -89,7 +89,7 @@ const findFilesRecursive = (predicate: PathFilter, node): string[] => {
  * @param node A node in the FileTree
  * @returns An Array of paths that match on the PathFilter recursively
  */
-const findDirsRecursive = (
+const findInDirsRecursive = (
   breakEarly: boolean,
   predicate: PathFilter,
   node,
@@ -101,7 +101,7 @@ const findDirsRecursive = (
   }
 
   const subMatches: string[] = node.children.flatMap((c) =>
-    findDirsRecursive(breakEarly, predicate, c));
+    findInDirsRecursive(breakEarly, predicate, c));
 
   return subMatches.concat(selfMaybe);
 };
@@ -148,7 +148,8 @@ export const pathIn = (paths: readonly string[]) => (path: string): boolean => p
 
 // Safe subpath check
 export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
-  pathThatShouldContain.toLocaleLowerCase().includes(path.toLocaleLowerCase());
+  // eslint-disable-next-line max-len
+  nodejsPath.normalize(pathThatShouldContain).toLocaleLowerCase().includes(nodejsPath.normalize(path).toLocaleLowerCase());
 
 //
 // Creation
@@ -209,10 +210,15 @@ export const subdirNamesIn = (dir: string, tree: FileTree): string[] => {
  * Finds a list of paths (rather than just a directory) directly within the given directory.
  * @param dir a directory to look in
  * @param tree a FileTree
+ * @optional predicate a PathFilter to filter on
  * @returns an Array of paths to the subdirectories under the given directory, or an empty array if the directory is not found
  */
-export const subdirsIn = (dir: string, tree: FileTree): string[] =>
-  subdirNamesIn(dir, tree).map((subdir) => nodejsPath.join(dir, subdir));
+export const subdirsIn = (dir: string, tree: FileTree, predicate: PathFilter = alwaysTrue): readonly string[] =>
+  pipe(
+    subdirNamesIn(dir, tree),
+    map((subdir) => nodejsPath.join(dir, subdir)),
+    filter(predicate),
+  );
 
 /**
  * Find if a given directory exists in the tree at some given point.
@@ -323,7 +329,7 @@ export const findAllSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(false, predicate, sub));
+    findInDirsRecursive(false, predicate, sub));
 
 /**
  * Find a subdirectory at the top level from the starting `dir` with some files matching the predicate. Generally used to find a named directory on a path that we do not know before hand.
@@ -338,7 +344,7 @@ export const findTopmostSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(true, predicate, sub));
+    findInDirsRecursive(true, predicate, sub));
 
 /**
  * Get all of the filepaths the exist under the direct subdirectories of the given directory, and optionally filter the results.

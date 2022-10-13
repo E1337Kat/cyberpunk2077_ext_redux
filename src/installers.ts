@@ -1,11 +1,19 @@
 import { win32 } from "path";
+import { pipe } from "fp-ts/lib/function";
+import { filter } from "fp-ts/lib/ReadonlyArray";
+import { not } from "fp-ts/lib/Predicate";
 import {
   fileCount,
+  filesIn,
   FileTree,
   fileTreeFromPaths,
   FILETREE_ROOT,
+  pathContains,
+  pathEq,
+  pathIn,
   sourcePaths,
   subdirNamesIn,
+  subdirsIn,
   subtreeFrom,
 } from "./filetree";
 import {
