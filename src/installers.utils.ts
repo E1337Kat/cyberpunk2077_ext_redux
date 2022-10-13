@@ -1,6 +1,11 @@
-export const identity = <T>(i: T): T => i;
-export const trueish = <T>(i: T): boolean => !!i;
+export const identity = <T>(t: T): T => t;
+export const trueish = <T>(t: T): boolean => !!t;
 export const negate = (b: boolean): boolean => !b;
+
+export const alwaysTrue = (): boolean => true;
+export const alwaysFalse = (): boolean => false;
+
+export const noop = (): void => undefined;
 
 // Haha you have to do this yourself
 export const exhaustiveMatchFailure = (_: never): never => {

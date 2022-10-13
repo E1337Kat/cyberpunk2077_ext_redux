@@ -113,6 +113,7 @@ export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
 
 // Prompts
 
+// Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
 const warnUserIfArchivesMightNeedManualReview = (
   api: VortexApi,
   chosenInstructions: Instructions,
@@ -464,16 +465,9 @@ const transformAndValidateAndFinalizeInstructions = (
   // This needs to be moved after the finalization but needs logic changes?
   //
 
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
-
   if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
     return originalInstructions;
   }
 

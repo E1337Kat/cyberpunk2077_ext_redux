@@ -81,7 +81,7 @@ import {
 //
 // Common stuff
 
-export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`];
+export const KNOWN_TOPLEVEL_DIRS = [`archive`, `bin`, `engine`, `r6`, `red4ext`, `mods`];
 
 export const isKnownToplevelDir = (filePath: string): boolean =>
   KNOWN_TOPLEVEL_DIRS.includes(filePath.split(path.sep)[0]);
@@ -120,7 +120,10 @@ export const enum ExtraFilesLayout {
 // Giftwrapped
 
 export const enum GiftwrapLayout {
-  ExtraToplevelDir = `.\\**\\[any dir that should be toplevel: archive, bin, engine, r6, red4ext]`,
+  ExtraToplevelDir = `Either
+                      | - .\\[dirname]\\[any dir that should be toplevel: archive, bin, engine, r6, red4ext]
+                      | - .\\[dirname]\\mods\\[modname]\\info.json {name: modname...} + [any REDmod subdirs]
+                    `,
 }
 
 //
@@ -690,29 +693,29 @@ export const enum REDmodLayout {
   Canon = `
           One or more mods in the form of
 
-          - .\\mods\\[modname]\\info.json { name: modname, ... }
-          - .\\mods\\[modname]\\archives\\*.archive
-          - .\\mods\\[modname]\\customSounds\\*.wav
-          - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          | - .\\mods\\[modname]\\info.json { name: modname, ... }
+          | - .\\mods\\[modname]\\archives\\*.archive
+          | - .\\mods\\[modname]\\customSounds\\*.wav
+          | - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          | - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
   Named = `
           One or more mods in the form of
 
-          - .\\[modname]\\info.json { name: modname, ... }
-          - .\\[modname]\\archives\\*.archive
-          - .\\[modname]\\customSounds\\*.wav
-          - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          | - .\\[modname]\\info.json { name: modname, ... }
+          | - .\\[modname]\\archives\\*.archive
+          | - .\\[modname]\\customSounds\\*.wav
+          | - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          | - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
   Toplevel = `
           Single mod in the form of
 
-          - .\\info.json { name: modname, ... }
-          - .\\archives\\*.archive
-          - .\\customSounds\\*.wav
-          - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          | - .\\info.json { name: modname, ... }
+          | - .\\archives\\*.archive
+          | - .\\customSounds\\*.wav
+          | - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          | - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
 }
 

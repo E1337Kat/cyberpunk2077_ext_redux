@@ -493,26 +493,6 @@ const extraFilesLayoutAndValidation = (
   return right(instructions);
 };
 
-//
-// Vortex
-//
-
-//
-// testSupported
-//
-
-export const testForREDmod: V2077TestFunc = (
-  _api: VortexApi,
-  fileTree: FileTree,
-): Promise<VortexTestResult> => Promise.resolve({
-  supported: detectREDmodLayout(fileTree),
-  requiredFiles: [],
-});
-
-//
-// install
-//
-
 const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
 type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
@@ -535,6 +515,26 @@ const toplevelLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc>
   (detectToplevelREDmodLayout(fileTree)
     ? some(toplevelLayoutDir)
     : none);
+
+//
+// Vortex
+//
+
+//
+// testSupported
+//
+
+export const testForREDmod: V2077TestFunc = (
+  _api: VortexApi,
+  fileTree: FileTree,
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: detectREDmodLayout(fileTree),
+  requiredFiles: [],
+});
+
+//
+// install
+//
 
 
 export const installREDmod: V2077InstallFunc = async (
