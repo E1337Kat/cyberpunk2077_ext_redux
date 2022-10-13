@@ -1,11 +1,21 @@
 import { win32 } from "path";
+import { pipe } from "fp-ts/lib/function";
+import {
+  filter,
+  map,
+  toArray,
+} from "fp-ts/lib/ReadonlyArray";
+import { not } from "fp-ts/lib/Predicate";
 import {
   fileCount,
   FileTree,
   fileTreeFromPaths,
   FILETREE_ROOT,
+  pathEq,
+  pathIn,
   sourcePaths,
   subdirNamesIn,
+  subdirsIn,
   subtreeFrom,
 } from "./filetree";
 import {
@@ -366,34 +376,28 @@ if (fallbackInstaller.type !== InstallerType.Fallback) {
 }
 
 //
-// Install nonsense
+// Installation stuff
 //
 
+// This should probably be moved
 const detectGiftwrapLayout = (fileTree: FileTree) : boolean => {
-  const toplevelDirs = subdirNamesIn(FILETREE_ROOT, fileTree);
+  const toplevelDirs = subdirsIn(FILETREE_ROOT, fileTree);
 
   if (toplevelDirs.length !== 1) {
     return false;
   }
 
-  const toplevelDir = toplevelDirs[0];
+  const giftwrapperDir = toplevelDirs[0];
 
-  const allFirstLevelSubdirs = subdirNamesIn(toplevelDir, fileTree);
+  const allValidWrappableSubdirs = pipe(
+    subdirNamesIn(giftwrapperDir, fileTree),
+    filter(pathIn(KNOWN_TOPLEVEL_DIRS)),
+  );
 
-  if (allFirstLevelSubdirs.length < 1) {
-    return false;
-  }
-
-  const subdirsMatchingKnownToplevelSubdirs = allFirstLevelSubdirs.filter((dir) =>
-    KNOWN_TOPLEVEL_DIRS.includes(dir));
-
-  if (allFirstLevelSubdirs.length === subdirsMatchingKnownToplevelSubdirs.length) {
+  if (allValidWrappableSubdirs.length > 0) {
     return true;
   }
 
-  // For now, we’ll allow files to exist at toplevel
-  // since we do have a reasonable indication the
-  // top of the mod is a wrapper
   return false;
 };
 
@@ -420,51 +424,58 @@ interface UnwrappedFileTree {
 
 type ProcessedFileTree = NotModifiedFileTree | UnwrappedFileTree;
 
-const unwrapTreeIfNecessary = (api: VortexApi, fileTree: FileTree): ProcessedFileTree => {
-  const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
+const unwrapTreeIfNecessary =
+  (api: VortexApi, fileTree: FileTree): ProcessedFileTree => {
+    const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
 
-  const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
+    const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
 
-  const transformedTree = haveGiftwrappedMod
-    ? subtreeFrom(wrapperDir, fileTree)
-    : fileTree;
+    const transformedTree = haveGiftwrappedMod
+      ? subtreeFrom(wrapperDir, fileTree)
+      : fileTree;
 
-  const unwrappedPaths = sourcePaths(transformedTree);
+    const unwrappedPaths = sourcePaths(transformedTree);
 
-  if (haveGiftwrappedMod) {
-    api.log(`info`, `Mod was giftwrapped, unwrapped it for install.`);
-    api.log(`debug`, `Using unwrapped filetree: `, unwrappedPaths);
+    if (haveGiftwrappedMod) {
+      api.log(`info`, `Mod was giftwrapped, unwrapped it for install.`);
+      api.log(`debug`, `Using unwrapped filetree: `, unwrappedPaths);
 
-    const unwrappedTree : UnwrappedFileTree = {
-      transform: Transform.Unwrapped,
-      fileTree: transformedTree,
-      originalTree: fileTree,
-      wrapperDir,
+      const unwrappedTree : UnwrappedFileTree = {
+        transform: Transform.Unwrapped,
+        fileTree: transformedTree,
+        originalTree: fileTree,
+        wrapperDir,
+      };
+
+      return unwrappedTree;
+    }
+
+    const unmodifiedTree: NotModifiedFileTree = {
+      transform: undefined,
+      fileTree,
     };
 
-    return unwrappedTree;
-  }
-
-  const unmodifiedTree: NotModifiedFileTree = {
-    transform: undefined,
-    fileTree,
+    return unmodifiedTree;
   };
-
-  return unmodifiedTree;
-};
 
 const giftwrapSourcesAgainIfNecessary = (
   api: VortexApi,
   treeInUse: ProcessedFileTree,
   instructions: VortexInstruction[],
-): VortexInstruction[] =>
-  (treeInUse.transform === Transform.Unwrapped
-    ? instructions.map(({ type, source, destination }: VortexInstruction) => ({
-      type,
-      source: path.join(treeInUse.wrapperDir, source),
-      destination,
-    }))
-    : instructions);
+): readonly VortexInstruction[] =>
+  (treeInUse.transform !== Transform.Unwrapped
+    ? instructions
+    : pipe(
+      instructions,
+      map((instruction) => (
+        instruction.source
+          ? {
+            ...instruction,
+            source: path.join(treeInUse.wrapperDir, instruction.source),
+          }
+          : instruction
+      )),
+    ));
 
 //
 // (wrap) `testSupported`
@@ -484,7 +495,7 @@ export const wrapTestSupported =
   ): VortexTestSupportedFunc =>
     //
     // This is the function that Vortex calls.
-    (files: string[], gameId: string) => {
+    (filesRelativePaths: string[], gameId: string) => {
     //
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
@@ -494,9 +505,9 @@ export const wrapTestSupported =
       }
 
       vortexApi.log(`info`, `Testing for ${installer.type}`);
-      vortexApi.log(`debug`, `Input files: `, files);
+      vortexApi.log(`debug`, `Input files: `, filesRelativePaths);
 
-      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
 
       // Unlike in `install`, Vortex doesn't supply us the mod's disk path
       return installer.testSupported(
@@ -527,8 +538,8 @@ export const wrapInstall =
     //
     // This is the function that Vortex calls
     async (
-      files: string[],
-      destinationPath: string,
+      filesRelativePaths: string[],
+      destinationDirPath: string,
       _gameId: string,
       _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
@@ -536,13 +547,32 @@ export const wrapInstall =
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
-      vortexApi.log(`debug`, `Input files:`, files);
+      vortexApi.log(`debug`, `Input files:`, filesRelativePaths);
 
-      const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+
+      const treeForInstallers =
+        unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
+
       const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-      const modInfo = modInfoFromArchiveNameOrSynthetic(destinationPath);
-      vortexApi.log(`info`, `Extracted mod info from path: ${destinationPath}`);
+      const archivePathOnDisk = destinationDirPath;
+
+      const archivePath =
+        treeForInstallers.transform !== Transform.Unwrapped
+          ? archivePathOnDisk
+          : pipe(
+            archivePathOnDisk.split(path.sep),
+            filter(not(pathEq(treeForInstallers.wrapperDir))),
+            (parts) => path.join(...parts),
+          );
+
+      const modInfo =
+        modInfoFromArchiveNameOrSynthetic({
+          relativePath: archivePath,
+          pathOnDisk: archivePathOnDisk,
+        });
+
+      vortexApi.log(`info`, `Extracted mod info from path: ${destinationDirPath}`);
       vortexApi.log(`info`, `Parsed or generated mod info: `, modInfo);
 
       const modName =
@@ -593,16 +623,17 @@ export const wrapInstall =
         vortexApi.log(`info`, `instructions generated by ${installer.type}`);
       }
 
-      const finalInstructions = !stillMissingSourceFiles
-        ? allInstructionsWeKnowHowToGenerate
-        : (
-          await fallbackInstaller.install(
-            vortexApi,
-            treeForInstallers.fileTree,
-            modInfo,
-            features,
-          )
-        ).instructions;
+      const finalInstructions =
+        !stillMissingSourceFiles
+          ? allInstructionsWeKnowHowToGenerate
+          : (
+            await fallbackInstaller.install(
+              vortexApi,
+              treeForInstallers.fileTree,
+              modInfo,
+              features,
+            )
+          ).instructions;
 
       const instructionsFromFullyResolvedSources = giftwrapSourcesAgainIfNecessary(
         vortexApi,
@@ -617,7 +648,7 @@ export const wrapInstall =
       }
 
       return Promise.resolve({
-        instructions: instructionsFromFullyResolvedSources,
+        instructions: toArray(instructionsFromFullyResolvedSources),
       });
     };
 

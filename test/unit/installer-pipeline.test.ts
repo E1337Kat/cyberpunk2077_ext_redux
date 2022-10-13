@@ -94,7 +94,7 @@ describe(`Transforming modules to instructions`, () => {
 
           const installResult = await wrappedInstall(
             mod.inFiles,
-            FAKE_STAGING_PATH,
+            mod.stagingPath ?? FAKE_STAGING_PATH,
             GAME_ID,
             null,
           );
@@ -160,7 +160,7 @@ describe(`Transforming modules to instructions`, () => {
 
           const installResult = await wrappedInstall(
             mod.inFiles,
-            FAKE_STAGING_PATH,
+            mod.stagingPath ?? FAKE_STAGING_PATH,
             GAME_ID,
             null,
           );
@@ -206,7 +206,12 @@ describe(`Transforming modules to instructions`, () => {
           );
 
           const expectation = expect(
-            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
+            wrappedInstall(
+              mod.inFiles,
+              mod.stagingPath ?? FAKE_STAGING_PATH,
+              GAME_ID,
+              null,
+            ),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
@@ -247,7 +252,12 @@ describe(`Transforming modules to instructions`, () => {
           );
 
           const expectation = expect(
-            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
+            wrappedInstall(
+              mod.inFiles,
+              mod.stagingPath ?? FAKE_STAGING_PATH,
+              GAME_ID,
+              null,
+            ),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.failure));

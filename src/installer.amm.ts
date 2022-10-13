@@ -14,6 +14,7 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
+  File,
   FileTree,
   filesUnder,
   findDirectSubdirsWithSome,
@@ -24,6 +25,7 @@ import {
   PathFilter,
   FILETREE_ROOT,
   filesIn,
+  FileMove,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -51,9 +53,7 @@ import {
   AMM_MOD_THEME_REQUIRED_KEYS,
 } from "./installers.layouts";
 import {
-  File,
   fileFromDisk,
-  FileMove,
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
@@ -225,7 +225,10 @@ const ammToplevelLayout = async (
   const allToplevelCandidates: File[] = await pipe(
     filesIn(FILETREE_ROOT, matchAmmExt, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(installingDir, filePath), filePath)),
+      fileFromDisk({
+        pathOnDisk: path.join(installingDir, filePath),
+        relativePath: filePath,
+      })),
   )();
 
   const toplevelAmmInstructions: VortexInstruction[] = pipe(
@@ -285,7 +288,7 @@ export const testForAmmMod: V2077TestFunc = async (
   // could appear toplevel. And then we duplicate this in install..
   const maybeToplevelAmmInstructions = await ammToplevelLayout(
     api,
-    modInfo.installingDir,
+    modInfo.installingDir.pathOnDisk,
     undefined,
     fileTree,
   );
@@ -322,7 +325,7 @@ export const installAmmMod: V2077InstallFunc = async (
   const selectedInstructions =
     pathBasedMatchInstructions === NoInstructions.NoMatch ||
     pathBasedMatchInstructions === InvalidLayout.Conflict
-      ? await ammToplevelLayout(api, modInfo.installingDir, undefined, fileTree)
+      ? await ammToplevelLayout(api, modInfo.installingDir.pathOnDisk, undefined, fileTree)
       : pathBasedMatchInstructions;
 
   if (

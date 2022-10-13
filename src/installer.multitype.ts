@@ -1,4 +1,8 @@
-import { FileTree } from "./filetree";
+import { isLeft } from "fp-ts/lib/Either";
+import {
+  FileTree,
+  sourcePaths,
+} from "./filetree";
 import {
   detectExtraArchiveLayouts,
   extraCanonArchiveInstructions,
@@ -48,6 +52,11 @@ import {
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
 import { Features } from "./features";
+import {
+  detectAllowedREDmodLayoutsForMultitype,
+  redmodAllowedInstructionsForMultitype,
+} from "./installer.redmod";
+import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
 export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,
@@ -57,6 +66,7 @@ export const testForMultiTypeMod: V2077TestFunc = (
   const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
+  const hasAllowedREDmods = detectAllowedREDmodLayoutsForMultitype(fileTree);
   const hasAllowedRedscript = detectAllowedRedscriptLayouts(fileTree);
   const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
@@ -64,19 +74,32 @@ export const testForMultiTypeMod: V2077TestFunc = (
 
   const hasExtraArchives = detectExtraArchiveLayouts(fileTree);
 
-  // The Onlys may need better naming.. they already check that
-  // there's no basedir stuff, so we can use both here without
-  // additional checks.
   const hasAtLeastTwoTypes =
     [
       hasAllowedConfigJson,
       hasAllowedConfigXml,
       hasCanonCet,
+      hasAllowedREDmods,
       hasAllowedRedscript,
       hasCanonRed4Ext,
       hasBasedirRed4Ext,
       hasAllowedTweakXL,
     ].filter(trueish).length > 1;
+
+  // This would be a mess to handle later
+  if (hasExtraArchives && hasAllowedREDmods) {
+    const errorMessage = `${InstallerType.MultiType}: Can't install REDmod and Old-Style Archive at the same time, canceling installation`;
+
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.MultiType,
+      `Can't Install Both REDmod and Old-Style Archive in the Same Mod!`,
+      sourcePaths(fileTree),
+    );
+
+    api.log(`error`, errorMessage);
+    return Promise.reject(new Error(errorMessage));
+  }
 
   // For now, let's define these specifically. Should also move
   // the special handling in CET and Reds to this mode (and then
@@ -102,7 +125,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.MultiType;
 
@@ -174,12 +197,30 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     fileTree,
   );
 
+  const maybeREDmodInstructions = await redmodAllowedInstructionsForMultitype(api, fileTree, modInfo, features);
+
+  // Imperative and redundant but oh well
+  if (isLeft(maybeREDmodInstructions)) {
+    const errorMessage = `${me}: REDmod instructions failed, canceling installation: ${maybeREDmodInstructions.left}`;
+
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.MultiType,
+      `Can't Install MultiType Mod when the REDmod Part Fails!`,
+      sourcePaths(fileTree),
+    );
+
+    api.log(`error`, errorMessage);
+    return Promise.reject(new Error(errorMessage));
+  }
+
   const allInstructions = [
     ...allPromptedInstructions,
     ...allInstructionsDirectedByUs,
     ...archiveInstructions.instructions,
     ...tweakXLInstructions.instructions,
     ...redscriptInstructions.instructions,
+    ...maybeREDmodInstructions.right,
   ];
 
   if (allInstructions.length < 1) {

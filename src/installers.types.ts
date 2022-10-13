@@ -1,5 +1,8 @@
 import { Features } from "./features";
-import { FileTree } from "./filetree";
+import {
+  FileTree,
+  Path,
+} from "./filetree";
 import {
   VortexApi,
   VortexTestResult,
@@ -65,7 +68,7 @@ export interface ModInfo {
   version: SemanticVersion;
   createTime: Date;
   stagingDirPrefix: string;
-  installingDir: string;
+  installingDir: Path;
   copy?: string;
   variant?: string;
 }

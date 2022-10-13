@@ -17,6 +17,8 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
+  File,
+  FileMove,
   FileTree,
   FILETREE_ROOT,
   filesIn,
@@ -37,9 +39,7 @@ import {
   PRESET_MOD_UNLOCKER_MASCDIR,
 } from "./installers.layouts";
 import {
-  File,
   fileFromDisk,
-  FileMove,
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
@@ -114,7 +114,10 @@ const presetInstructionsFromDecodingUnknownPresets = async (
   const allCandidates: File[] = await pipe(
     findPresetFilesIn(dir, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(installingDir, filePath), filePath)),
+      fileFromDisk({
+        pathOnDisk: path.join(installingDir, filePath),
+        relativePath: filePath,
+      })),
   )();
 
   const presetInstructions: VortexInstruction[] = pipe(
@@ -231,7 +234,7 @@ export const installPresetMod: V2077InstallFunc = async (
     api,
     undefined,
     fileTree,
-    modInfo.installingDir,
+    modInfo.installingDir.pathOnDisk,
     [
       presetCanonCyberCatLayout,
       presetCanonUnlockerLayout,

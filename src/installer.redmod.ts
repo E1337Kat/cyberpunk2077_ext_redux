@@ -11,6 +11,7 @@ import {
   some as any,
   toArray as toMutableArray,
   findFirstMap,
+  concat,
 } from "fp-ts/ReadonlyArray";
 import {
   TaskEither,
@@ -68,10 +69,12 @@ import {
   REDMOD_TWEAKS_VALID_EXTENSIONS,
   REDMOD_SCRIPTS_DIRNAME,
   REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
+  REDMOD_SCRIPTS_MODDED_DIR,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
+  instructionsToGenerateDirs,
   moveFromTo,
 } from "./installers.shared";
 import {
@@ -91,6 +94,7 @@ import {
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
 import { Features } from "./features";
+import { S } from "./installers.utils";
 
 //
 // Types
@@ -110,14 +114,14 @@ interface REDmodInfoAndPathDetes {
 //
 
 const tryReadInfoJson = (
-  installingDir: string,
+  modInfo: ModInfo,
   relativeREDmodDir: string,
 ): TaskEither<Error, REDmodInfo> =>
   pipe(
-    fileFromDiskTE(
-      path.join(installingDir, relativeREDmodDir, REDMOD_INFO_FILENAME),
-      path.join(relativeREDmodDir, REDMOD_INFO_FILENAME),
-    ),
+    fileFromDiskTE({
+      pathOnDisk: path.join(modInfo.installingDir.pathOnDisk, relativeREDmodDir, REDMOD_INFO_FILENAME),
+      relativePath: path.join(relativeREDmodDir, REDMOD_INFO_FILENAME),
+    }),
     chainEitherKW((file) =>
       pipe(
         file.content,
@@ -126,21 +130,6 @@ const tryReadInfoJson = (
       )),
     mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
-
-const validateDeclaredModnameMatchesDir =
-  (infoAndPath: REDmodInfoAndPathDetes): Either<Error, REDmodInfoAndPathDetes> => {
-    const dirname = path.basename(infoAndPath.relativeSourceDir);
-
-    // Don't like this even though it's correct.
-    // We probably need to carry the layout type.
-    const hasMatchingNameOrItsToplevel =
-      infoAndPath.relativeSourceDir === `` ||
-      pathEq(dirname)(infoAndPath.redmodInfo.name);
-
-    return hasMatchingNameOrItsToplevel
-      ? right(infoAndPath)
-      : left(new Error(`REDmod directory '${dirname}' does not match mod name '${infoAndPath.redmodInfo.name}' in ${REDMOD_INFO_FILENAME}`));
-  };
 
 const instructionsToMoveAllFromSourceToDestination = (
   sourceDirPrefix: string,
@@ -289,7 +278,7 @@ const initJsonLayoutAndValidation = (
   infoAndPaths: REDmodInfoAndPathDetes,
 ): Either<Error, readonly VortexInstruction[]> =>
   pipe(
-    validateDeclaredModnameMatchesDir(infoAndPaths),
+    right(infoAndPaths),
     mapE(({ relativeSourceDir, relativeDestDir }) =>
       instructionsToMoveAllFromSourceToDestination(
         relativeSourceDir,
@@ -360,7 +349,7 @@ const customSoundLayoutAndValidation = (
   const allCustomSoundFiles =
     filesUnder(customSoundsDir, matchREDmodCustomSound, fileTree);
 
-  const soundFilesRequiredPresent = pipe(
+  const infoJsonRequiresSoundFiles = pipe(
     redmodInfo.customSounds || [],
     any((soundDecl) => soundDecl.type !== `mod_skip`),
   );
@@ -369,9 +358,9 @@ const customSoundLayoutAndValidation = (
     allCustomSoundFiles.length > 0;
 
   // This isn't /exactly/ an exhaustive check...
-  if ((soundFilesRequiredPresent && !hasSoundFiles) ||
-      (!soundFilesRequiredPresent && hasSoundFiles)) {
-    return left(new Error(`Custom Sound sublayout: there are sound files but ${REDMOD_INFO_FILENAME} doesn't declare customSounds!`));
+  if ((infoJsonRequiresSoundFiles && !hasSoundFiles) ||
+      (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
+    return left(new Error(`customSounds sublayout: ${S({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
@@ -410,16 +399,16 @@ const scriptLayoutAndValidation = (
       filter(not(pathIn(allScriptFilesInValidBasedir))),
     );
 
-    return left(new Error(`Script sublayout: these files don't look like valid REDmod tweaks: ${invalidScriptFiles.join(`, `)}`));
+    return left(new Error(`Script sublayout: these files don't look like valid REDmod scripts: ${invalidScriptFiles.join(`, `)}`));
   }
 
-  const instructions = instructionsToMoveAllFromSourceToDestination(
+  const allInstructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
     allScriptFiles,
   );
 
-  return right(instructions);
+  return right(allInstructions);
 };
 
 
@@ -461,7 +450,6 @@ const tweakLayoutAndValidation = (
   return right(instructions);
 };
 
-
 const extraFilesLayoutAndValidation = (
   api: VortexApi,
   {
@@ -493,29 +481,18 @@ const extraFilesLayoutAndValidation = (
   return right(instructions);
 };
 
-//
-// Vortex
-//
+// …Let's just always do this?
+const ensureModdedDirExistsInstructions = (): readonly VortexInstruction[] =>
+  instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
 
 //
-// testSupported
-//
-
-export const testForREDmod: V2077TestFunc = (
-  _api: VortexApi,
-  fileTree: FileTree,
-): Promise<VortexTestResult> => Promise.resolve({
-  supported: detectREDmodLayout(fileTree),
-  requiredFiles: [],
-});
-
-//
-// install
+// Layout pipeline helpers
 //
 
 const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
 type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
+type LayoutMatcherFunc = (FileTree) => Option<ModDirsForLayoutFunc>;
 
 const canonLayoutModDirs = flow(splitCanonREDmodsIfTheresMultiple);
 const namedLayoutModDirs = flow(splitNamedREDmodsIfTheresMultiple);
@@ -536,17 +513,21 @@ const toplevelLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc>
     ? some(toplevelLayoutDir)
     : none);
 
+//
+// Actual instruction generation
+//
 
-export const installREDmod: V2077InstallFunc = async (
+export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
   features: Features,
-): Promise<VortexInstallResult> => {
+  allowedLayouts: readonly LayoutMatcherFunc[],
+): TaskEither<Error, readonly VortexInstruction[]> => {
   const singleModPipeline =
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
-        tryReadInfoJson(modInfo.installingDir, relativeModDir),
+        tryReadInfoJson(modInfo, relativeModDir),
         chainEitherKW((redmodInfo) => pipe(
           collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
           chainE((modInfoAndPathDetes) => pipe(
@@ -565,24 +546,86 @@ export const installREDmod: V2077InstallFunc = async (
       );
 
   const allModsForLayoutPipeline = pipe(
-    [
-      canonLayoutMatches,
-      namedLayoutMatches,
-      toplevelLayoutMatches,
-    ],
+    allowedLayouts,
     findFirstMap((allModDirsForLayoutIfMatch) => allModDirsForLayoutIfMatch(fileTree)),
     fromOptionTE(knownError(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
     chainEitherK((allModDirsForLayout) => allModDirsForLayout(fileTree)),
     chain(flow(
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
+      mapTE(concat(ensureModdedDirExistsInstructions())),
     )),
   );
 
-  // At this point we have to break out to interop with the rest..
-  const allInstructionsForEverySubmodInside = await allModsForLayoutPipeline();
+  return allModsForLayoutPipeline;
+};
+
+
+const allAllowedLayouts = [
+  canonLayoutMatches,
+  namedLayoutMatches,
+  toplevelLayoutMatches,
+];
+
+const layoutsAllowedInMultitype = [
+  canonLayoutMatches,
+];
+
+//
+// Vortex
+//
+
+export const testForREDmod: V2077TestFunc = (
+  _api: VortexApi,
+  fileTree: FileTree,
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: detectREDmodLayout(fileTree),
+  requiredFiles: [],
+});
+
+
+export const installREDmod: V2077InstallFunc = async (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Promise<VortexInstallResult> => {
+  const pipelineForInstructions =
+    instructionsForLayoutsPipeline(api, fileTree, modInfo, features, allAllowedLayouts);
+
+  // At this point we have to break out to interface with everything else
+
+  const allInstructionsForEverySubmodInside = await pipelineForInstructions();
 
   return isLeft(allInstructionsForEverySubmodInside)
     ? failAfterWarningUserAndLogging(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.left)
     : returnInstructionsAndLogEtc(api, fileTree, modInfo, features, allInstructionsForEverySubmodInside.right);
+};
+
+
+//
+// External use (MultiType mainly)
+//
+
+export const detectAllowedREDmodLayoutsForMultitype =
+  (fileTree: FileTree): boolean => detectCanonREDmodLayout(fileTree);
+
+export const redmodAllowedInstructionsForMultitype = async (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Promise<Either<Error, readonly VortexInstruction[]>> => {
+  if (!detectAllowedREDmodLayoutsForMultitype(fileTree)) {
+    return right([]);
+  }
+
+  const pipelineForInstructions =
+    instructionsForLayoutsPipeline(api, fileTree, modInfo, features, layoutsAllowedInMultitype);
+
+  // At this point we have to break out to interface with everything else
+
+  const allInstructionsForEverySubmodInside = await pipelineForInstructions();
+
+  return allInstructionsForEverySubmodInside;
 };
