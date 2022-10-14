@@ -1,9 +1,4 @@
 import path from "path";
-import { pipe } from "fp-ts/lib/function";
-import {
-  map,
-  toArray,
-} from "fp-ts/lib/ReadonlyArray";
 import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
@@ -32,17 +27,11 @@ import {
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
-  REDmodTransformedLayout,
-  REDMOD_BASEDIR,
-  REDMOD_INFO_FILENAME,
-  REDMOD_ARCHIVES_DIRNAME,
-  REDmodInfo,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
   moveFromTo,
-  modInfoTaggedAsAutoconverted,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import {
@@ -55,16 +44,12 @@ import {
   VortexApi,
   VortexTestResult,
   VortexInstallResult,
-  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   Feature,
   Features,
 } from "./features";
-import {
-  InfoNotification,
-  showInfoNotification,
-} from "./ui.notifications";
+import { transformToREDmodArchiveInstructions } from "./installer.redmod";
 
 //
 
@@ -380,80 +365,6 @@ const instructionsForToplevelExtras = (
 // REDmod stuff
 //
 
-const transformToREDmodInstructions = (
-  api: VortexApi,
-  features: Features,
-  modInfo: ModInfo,
-  originalInstructions: Instructions,
-): Instructions => {
-  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    api.log(`error`, `${InstallerType.Archive}: REDmod transform function called but feature is disabled`);
-    return originalInstructions;
-  }
-
-  const redmodInfoWithAutoconvertTag =
-    modInfoTaggedAsAutoconverted(modInfo);
-
-  const redmodModuleName =
-    redmodInfoWithAutoconvertTag.name;
-
-  const redmodVersion =
-    redmodInfoWithAutoconvertTag.version.v;
-
-  const destinationDirWithModnamePrefix =
-    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
-
-  const destinationArchiveDirWithModnamePrefix =
-    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
-
-  // This should really be handled through fp-ts/json, but
-  // for now I can't be bothered..
-  const infoJson: REDmodInfo = {
-    name: redmodModuleName,
-    version: redmodVersion,
-  };
-
-  const generateInfoJsonInstruction: VortexInstruction = {
-    type: `generatefile`,
-    data: JSON.stringify(infoJson),
-    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
-  };
-
-  api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
-
-  const instructionsWithDestinationSwitchedToREDmodDir = pipe(
-    originalInstructions.instructions,
-    map((instruction) =>
-      (!instruction.destination
-        ? instruction
-        : {
-          ...instruction,
-          destination: instruction.destination.replace(
-            ARCHIVE_MOD_CANONICAL_PREFIX,
-            destinationArchiveDirWithModnamePrefix,
-          ),
-        }
-      )),
-    toArray,
-  );
-
-  const allREDmodTransformedInstructions = [
-    generateInfoJsonInstruction,
-    ...instructionsWithDestinationSwitchedToREDmodDir,
-  ];
-
-  showInfoNotification(
-    api,
-    InfoNotification.REDmodArchiveAutoconverted,
-    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
-  );
-
-  return {
-    kind: REDmodTransformedLayout.Archive,
-    instructions: allREDmodTransformedInstructions,
-  };
-};
 
 const transformAndValidateAndFinalizeInstructions = (
   api: VortexApi,
@@ -461,17 +372,13 @@ const transformAndValidateAndFinalizeInstructions = (
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Instructions => {
-  //
-  // This needs to be moved after the finalization but needs logic changes?
-  //
-
-  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
-
-    return originalInstructions;
+  if (features.REDmodAutoconvertArchives === Feature.Enabled) {
+    return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
   }
 
-  return transformToREDmodInstructions(api, features, modInfo, originalInstructions);
+  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
+  return originalInstructions;
 };
 
 //

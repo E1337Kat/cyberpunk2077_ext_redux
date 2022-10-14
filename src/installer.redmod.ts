@@ -12,6 +12,7 @@ import {
   toArray as toMutableArray,
   findFirstMap,
   concat,
+  toArray,
 } from "fp-ts/ReadonlyArray";
 import {
   TaskEither,
@@ -70,11 +71,15 @@ import {
   REDMOD_SCRIPTS_DIRNAME,
   REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
   REDMOD_SCRIPTS_MODDED_DIR,
+  ARCHIVE_MOD_CANONICAL_PREFIX,
+  Instructions,
+  REDmodTransformedLayout,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
   instructionsToGenerateDirs,
+  modInfoTaggedAsAutoconverted,
   moveFromTo,
 } from "./installers.shared";
 import {
@@ -93,8 +98,15 @@ import {
   showArchiveInstallWarning,
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
-import { Features } from "./features";
+import {
+  Feature,
+  Features,
+} from "./features";
 import { S } from "./installers.utils";
+import {
+  showInfoNotification,
+  InfoNotification,
+} from "./ui.notifications";
 
 //
 // Types
@@ -628,4 +640,78 @@ export const redmodAllowedInstructionsForMultitype = async (
   const allInstructionsForEverySubmodInside = await pipelineForInstructions();
 
   return allInstructionsForEverySubmodInside;
+};
+
+
+export const transformToREDmodArchiveInstructions = (
+  api: VortexApi,
+  features: Features,
+  modInfo: ModInfo,
+  originalInstructions: Instructions,
+): Instructions => {
+  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    api.log(`error`, `${InstallerType.REDmod}: REDmod transform function called but feature is disabled`);
+    return originalInstructions;
+  }
+
+  const redmodInfoWithAutoconvertTag =
+    modInfoTaggedAsAutoconverted(modInfo);
+
+  const redmodModuleName =
+    redmodInfoWithAutoconvertTag.name;
+
+  const redmodVersion =
+    redmodInfoWithAutoconvertTag.version.v;
+
+  const destinationDirWithModnamePrefix =
+    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
+
+  const destinationArchiveDirWithModnamePrefix =
+    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
+
+  const infoJson: REDmodInfo = {
+    name: redmodModuleName,
+    version: redmodVersion,
+  };
+
+  const generateInfoJsonInstruction: VortexInstruction = {
+    type: `generatefile`,
+    data: JSON.stringify(infoJson),
+    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
+  };
+
+  api.log(`debug`, `Transforming Archive instructions to REDmod`);
+  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
+
+  const instructionsWithDestinationSwitchedToREDmodDir = pipe(
+    originalInstructions.instructions,
+    map((instruction) =>
+      (!instruction.destination
+        ? instruction
+        : {
+          ...instruction,
+          destination: instruction.destination.replace(
+            ARCHIVE_MOD_CANONICAL_PREFIX,
+            destinationArchiveDirWithModnamePrefix,
+          ),
+        }
+      )),
+    toArray,
+  );
+
+  const allREDmodTransformedInstructions = [
+    generateInfoJsonInstruction,
+    ...instructionsWithDestinationSwitchedToREDmodDir,
+  ];
+
+  showInfoNotification(
+    api,
+    InfoNotification.REDmodArchiveAutoconverted,
+    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
+  );
+
+  return {
+    kind: REDmodTransformedLayout.Archive,
+    instructions: allREDmodTransformedInstructions,
+  };
 };

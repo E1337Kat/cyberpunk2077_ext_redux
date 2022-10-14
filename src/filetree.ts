@@ -18,6 +18,15 @@ export interface Path {
   readonly pathOnDisk: string;
 }
 
+export interface PathChange {
+  originalPath: Path,
+  newPath: Path,
+}
+
+export interface PathHistory {
+  : File;
+}
+
 export interface File extends Path {
   readonly content: string;
 }
@@ -25,6 +34,8 @@ export interface File extends Path {
 export interface FileMove extends File {
   readonly originalRelativePath: string;
 }
+
+type FSObject = File | Directory;
 
 /*
 export type FileTree = {
