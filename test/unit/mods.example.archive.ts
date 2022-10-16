@@ -1,19 +1,7 @@
 import path from "path";
-import {
-  CurrentFeatureSet,
-  Feature,
-  Features,
-} from "../../src/features";
-import {
-  ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
-  REDMOD_AUTOCONVERTED_NAME_TAG,
-  REDMOD_ARCHIVES_DIRNAME,
-  REDMOD_BASEDIR,
-  REDMOD_INFO_FILENAME,
-} from "../../src/installers.layouts";
+import { ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import { InstallChoices } from "../../src/ui.dialogs";
-import { InfoNotification } from "../../src/ui.notifications";
 import {
   ExampleSucceedingMod,
   ARCHIVE_PREFIXES,
@@ -29,9 +17,6 @@ import {
   ExamplesForType,
   mergeOrFailOnConflict,
   ExampleFailingMod,
-  movedFromTo,
-  generatedFile,
-  FAKE_MOD_INFO,
 } from "./utils.helper";
 
 const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
@@ -399,54 +384,10 @@ const ValidExtraArchivesWithTypeSucceeds = new Map<string, ExampleSucceedingMod>
   }),
 );
 
-//
-// REDmodding
-//
-
-const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: Features = {
-  ...CurrentFeatureSet,
-  REDmodAutoconvertArchives: Feature.Enabled,
-};
-
-const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
-const AUTOCONVERT_MOD_DIR = AUTOCONVERT_MOD_NAME;
-const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
-
-const REDMOD_FAKE_INFO_JSON = JSON.stringify({
-  name: AUTOCONVERT_MOD_NAME,
-  version: AUTOCONVERT_MOD_VERSION,
-});
-
-const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
-  [
-    `Canonical with single archive migrated to REDmod`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
-      expectedInstallerType: InstallerType.Archive,
-      inFiles: [
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/first.archive`),
-      ],
-      outInstructions: [
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
-        ),
-        generatedFile(
-          REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
-        ),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
-    },
-  ],
-]);
-
 const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(
     ArchiveModSucceeds,
     ValidExtraArchivesWithTypeSucceeds,
-    ArchiveModToREDmodMigrationSucceeds,
   ),
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: mergeOrFailOnConflict(ArchiveOnlyModShouldPromptForInstall),
