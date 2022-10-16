@@ -9,5 +9,9 @@ export interface Features {
 }
 
 export const CurrentFeatureSet: Features = {
+  REDmodAutoconvertArchives: Feature.Enabled,
+};
+
+export const DefaultFeatureSetForTesting: Features = {
   REDmodAutoconvertArchives: Feature.Disabled,
 };
