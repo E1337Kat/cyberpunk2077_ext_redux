@@ -653,7 +653,7 @@ export const transformToREDmodArchiveInstructions = (
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Either<Error, Instructions> => {
-  const me = `REDmod Autoconversion (InstallerType.REDmod)`;
+  const me = InstallerType.SpecialREDmodAutoconversion;
 
   if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
     api.log(`error`, `${me}: REDmod transform function called but feature is disabled`);

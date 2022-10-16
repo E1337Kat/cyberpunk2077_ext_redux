@@ -37,6 +37,7 @@ export enum InstallerType {
   Redscript = `Redscript Mod Installer`,
   Red4Ext = `RED4ext Mod Installer`,
   REDmod = `REDmod Installer`,
+  SpecialREDmodAutoconversion = `(Special) REDmod Autoconversion Installer`,
   TweakDB = `(DEPRECATED - USE TweakXL) TweakDB Mod Installer`,
   TweakXL = `TweakXL Mod Installer`,
   INI = `INI Mod Installer`,
