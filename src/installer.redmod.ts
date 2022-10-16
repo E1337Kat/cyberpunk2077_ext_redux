@@ -104,8 +104,8 @@ import {
   Features,
 } from "./features";
 import {
-  s,
-  S,
+  jsonp,
+  jsonpp,
 } from "./installers.utils";
 import {
   showInfoNotification,
@@ -376,7 +376,7 @@ const customSoundLayoutAndValidation = (
   // This isn't /exactly/ an exhaustive check...
   if ((infoJsonRequiresSoundFiles && !hasSoundFiles) ||
       (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
-    return left(new Error(`customSounds sublayout: ${S({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
+    return left(new Error(`customSounds sublayout: ${jsonp({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
@@ -695,12 +695,12 @@ export const transformToREDmodArchiveInstructions = (
 
   const generateInfoJsonInstruction: VortexInstruction = {
     type: `generatefile`,
-    data: JSON.stringify(infoJson),
+    data: jsonpp(infoJson),
     destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
   };
 
   api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
+  api.log(`debug`, `Original instructions: ${jsonpp(originalInstructions)}`);
 
   const realSourceAndVirtualSourcePairs = pipe(
     originalInstructions.instructions,
@@ -764,7 +764,7 @@ export const transformToREDmodArchiveInstructions = (
     instructions: allREDmodInstructions,
   };
 
-  api.log(`info`, `${me}: Generated REDmod instructions for archive`, s(instructionsToInstallArchiveAsREDmod));
+  api.log(`info`, `${me}: Generated REDmod instructions for archive`, jsonpp(instructionsToInstallArchiveAsREDmod));
 
   showInfoNotification(
     api,

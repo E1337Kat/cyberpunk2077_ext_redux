@@ -13,6 +13,7 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
+import { jsonpp } from "../../src/installers.utils";
 import { InfoNotification } from "../../src/ui.notifications";
 import {
   FAKE_MOD_INFO,
@@ -47,7 +48,7 @@ const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_
 const AUTOCONVERT_MOD_DIR = AUTOCONVERT_MOD_NAME;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
-const REDMOD_FAKE_INFO_JSON = JSON.stringify({
+const REDMOD_FAKE_INFO_JSON = jsonpp({
   name: AUTOCONVERT_MOD_NAME,
   version: AUTOCONVERT_MOD_VERSION,
 });
