@@ -1,5 +1,13 @@
 import path from "path";
-import { FileTree, filesIn, filesUnder, Glob, fileCount } from "./filetree";
+import { Features } from "./features";
+import {
+  FileTree,
+  filesIn,
+  filesUnder,
+  Glob,
+  fileCount,
+  sourcePaths,
+} from "./filetree";
 import {
   ASI_MOD_PATH,
   LayoutToInstructions,
@@ -9,16 +17,15 @@ import {
   InvalidLayout,
   ASI_MOD_EXT,
 } from "./installers.layouts";
+import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
 import {
-  instructionsForSameSourceAndDestPaths,
-  makeSyntheticName,
-} from "./installers.shared";
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
-  VortexWrappedTestSupportedFunc,
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
 
@@ -33,18 +40,9 @@ const detectASICanonLayout = (fileTree: FileTree): boolean =>
 const findCanonicalAsiFiles = (fileTree: FileTree): string[] =>
   filesUnder(ASI_MOD_PATH, Glob.Any, fileTree);
 
-export const testForAsiMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  if (!detectASICanonLayout(fileTree)) {
-    return Promise.resolve({ supported: false, requiredFiles: [] });
-  }
-
-  return Promise.resolve({ supported: true, requiredFiles: [] });
-};
+//
+// Layouts
+//
 
 const asiCanonLayout: LayoutToInstructions = (
   _api: VortexApi,
@@ -69,23 +67,38 @@ const asiCanonLayout: LayoutToInstructions = (
   };
 };
 
-export const installAsiMod: VortexWrappedInstallFunc = (
-  api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  destinationPath: string,
-): Promise<VortexInstallResult> => {
-  const modname = makeSyntheticName(destinationPath);
+//
+// API
+//
 
-  const chosenInstructions = asiCanonLayout(api, modname, fileTree);
+// test
+export const testForAsiMod: V2077TestFunc = (
+  _api: VortexApi,
+  fileTree: FileTree,
+): Promise<VortexTestResult> =>
+  Promise.resolve({
+    supported: detectASICanonLayout(fileTree),
+    requiredFiles: [],
+  });
+
+// install
+export const installAsiMod: V2077InstallFunc = (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  _features: Features,
+): Promise<VortexInstallResult> => {
+  const files =
+    sourcePaths(fileTree);
+
+  const chosenInstructions = asiCanonLayout(api, modInfo.name, fileTree);
 
   if (
     chosenInstructions === NoInstructions.NoMatch ||
     chosenInstructions === InvalidLayout.Conflict
   ) {
-    const message = "ASI installer failed to generate instructions";
-    log("error", message, files);
+    const message = `ASI installer failed to generate instructions`;
+    api.log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
@@ -96,12 +109,12 @@ export const installAsiMod: VortexWrappedInstallFunc = (
 
   if (haveFilesOutsideSelectedInstructions) {
     const message = `Too many files in ASI Mod! ${instructions.length}`;
-    log("error", message, files);
+    api.log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
-  log("info", "ASI installer installing files.");
-  log("debug", "ASI instructions: ", instructions);
+  api.log(`info`, `ASI installer installing files.`);
+  api.log(`debug`, `ASI instructions: `, instructions);
 
   return Promise.resolve({ instructions });
 };

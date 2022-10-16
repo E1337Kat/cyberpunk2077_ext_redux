@@ -1,19 +1,20 @@
 import path from "path";
 import * as A from "fp-ts/Array";
-import { Option, some, none } from "fp-ts/Option";
+import {
+  Option,
+  some,
+  none,
+} from "fp-ts/Option";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/function";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
-  VortexProgressDelegate,
   VortexInstallResult,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
+  File,
   FileTree,
   filesUnder,
   findDirectSubdirsWithSome,
@@ -24,6 +25,7 @@ import {
   PathFilter,
   FILETREE_ROOT,
   filesIn,
+  FileMove,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -51,9 +53,7 @@ import {
   AMM_MOD_THEME_REQUIRED_KEYS,
 } from "./installers.layouts";
 import {
-  File,
   fileFromDisk,
-  FileMove,
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
@@ -61,17 +61,23 @@ import {
   moveFromTo,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   extraCanonArchiveInstructions,
   extraToplevelArchiveInstructions,
 } from "./installer.archive";
+import { Features } from "./features";
 
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
 const matchAmmExt = (filePath: string): boolean =>
-  [".json", ".lua"].includes(path.extname(filePath));
+  [`.json`, `.lua`].includes(path.extname(filePath));
 
 const findAmmFiles = (
   ammDir: string,
@@ -79,8 +85,7 @@ const findAmmFiles = (
   fileTree: FileTree,
 ): string[] =>
   findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
-    filesUnder(dir, Glob.Any, fileTree),
-  );
+    filesUnder(dir, Glob.Any, fileTree));
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
   ...findAmmFiles(AMM_MOD_CUSTOMS_CANON_DIR, matchAmmLua, fileTree),
@@ -123,10 +128,10 @@ const canonPrefixedPathByTypeIfActualAmmMod = (file: File): Option<FileMove> => 
 
     const jsonKeyMatcher = A.findFirstMap<[string[], string], FileMove>(
       ([requiredKeys, canonDirForType]) =>
-        keysInData.length >= requiredKeys.length &&
+        (keysInData.length >= requiredKeys.length &&
         requiredKeys.every((key) => keysInData.includes(key))
           ? some(fileMove(canonDirForType, file))
-          : none,
+          : none),
     );
 
     return jsonKeyMatcher(ammJsonContentToPath);
@@ -135,9 +140,9 @@ const canonPrefixedPathByTypeIfActualAmmMod = (file: File): Option<FileMove> => 
   if (kind === `.lua`) {
     const luaContentMatcher = A.findFirstMap<[RegExp[], string], FileMove>(
       ([requiredMatches, canonDirForType]) =>
-        requiredMatches.every((required) => file.content.match(required))
+        (requiredMatches.every((required) => file.content.match(required))
           ? some(fileMove(canonDirForType, file))
-          : none,
+          : none),
     );
 
     return luaContentMatcher(ammLuaContentToPath);
@@ -213,15 +218,17 @@ const ammToplevelCanonSubdirLayout = (
 
 const ammToplevelLayout = async (
   api: VortexApi,
-  sourceDirPathForMod: string,
+  installingDir: string,
   _modName: string,
   fileTree: FileTree,
 ): Promise<MaybeInstructions> => {
   const allToplevelCandidates: File[] = await pipe(
     filesIn(FILETREE_ROOT, matchAmmExt, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
-    ),
+      fileFromDisk({
+        pathOnDisk: path.join(installingDir, filePath),
+        relativePath: filePath,
+      })),
   )();
 
   const toplevelAmmInstructions: VortexInstruction[] = pipe(
@@ -253,15 +260,11 @@ const ammToplevelLayout = async (
 
 // testSupport
 
-export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
+export const testForAmmMod: V2077TestFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  sourceDirPathForMod: string,
-  _stagingDirPathForMod: string,
-  _modName: string,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexTestResult> => {
   const looksLikeAmm = dirInTree(AMM_BASEDIR_PATH, fileTree);
 
@@ -285,7 +288,7 @@ export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
   // could appear toplevel. And then we duplicate this in install..
   const maybeToplevelAmmInstructions = await ammToplevelLayout(
     api,
-    sourceDirPathForMod,
+    modInfo.installingDir.pathOnDisk,
     undefined,
     fileTree,
   );
@@ -306,13 +309,11 @@ export const testForAmmMod: VortexWrappedTestSupportedFunc = async (
 
 // install
 
-export const installAmmMod: VortexWrappedInstallFunc = async (
+export const installAmmMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  stagingDirPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const pathBasedMatchInstructions = useFirstMatchingLayoutForInstructions(
     api,
@@ -324,7 +325,7 @@ export const installAmmMod: VortexWrappedInstallFunc = async (
   const selectedInstructions =
     pathBasedMatchInstructions === NoInstructions.NoMatch ||
     pathBasedMatchInstructions === InvalidLayout.Conflict
-      ? await ammToplevelLayout(api, stagingDirPath, undefined, fileTree)
+      ? await ammToplevelLayout(api, modInfo.installingDir.pathOnDisk, undefined, fileTree)
       : pathBasedMatchInstructions;
 
   if (

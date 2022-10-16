@@ -1,48 +1,61 @@
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
-import { FileTree, FILETREE_ROOT, pathInTree, sourcePaths } from "./filetree";
+import {
+  FileTree,
+  FILETREE_ROOT,
+  pathInTree,
+  sourcePaths,
+} from "./filetree";
 import {
   CYBERCAT_CORE_BASEDIR,
   CYBERCAT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
-import { showInfoNotification, InfoNotification } from "./ui.notifications";
-import { instructionsForSourceToDestPairs, moveFromTo } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  showInfoNotification,
+  InfoNotification,
+} from "./ui.notifications";
+import {
+  instructionsForSourceToDestPairs,
+  moveFromTo,
+} from "./installers.shared";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   showManualStepRequiredForToolInfo,
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
+import { Features } from "./features";
 
 const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
   CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) =>
-    pathInTree(requiredFile, fileTree),
-  );
+    pathInTree(requiredFile, fileTree));
 
 const detectCoreCyberCat = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   CYBERCAT_CORE_REQUIRED_FILES.some((requiredFile) => pathInTree(requiredFile, fileTree));
 
-export const testForCyberCatCore: VortexWrappedTestSupportedFunc = (
+export const testForCyberCatCore: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreCyberCat(fileTree), requiredFiles: [] });
 
-export const installCoreCyberCat: VortexWrappedInstallFunc = (
+export const installCoreCyberCat: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
+  const files =
+    sourcePaths(fileTree);
+
   const missingRequiredCoreCyberCatFiles =
     findRequiredCoreCyberCatFiles(fileTree).length !==
     CYBERCAT_CORE_REQUIRED_FILES.length;

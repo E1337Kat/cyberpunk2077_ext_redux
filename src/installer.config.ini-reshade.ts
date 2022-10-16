@@ -1,6 +1,9 @@
 import path from "path";
 import fs from "fs";
-import { FileTree } from "./filetree";
+import {
+  FileTree,
+  sourcePaths,
+} from "./filetree";
 import {
   CONFIG_INI_MOD_EXTENSION,
   CET_MOD_CANONICAL_INIT_FILE,
@@ -12,38 +15,42 @@ import {
 } from "./installers.layouts";
 import {
   VortexLogFunc,
-  VortexWrappedTestSupportedFunc,
   VortexApi,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
+import {
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
+import { Features } from "./features";
 
 const testForReshadeFile = (
   log: VortexLogFunc,
   files: string[],
-  folder: string,
+  installingDir: string,
 ): boolean => {
   // We're going to make a reasonable assumption here that reshades will
   // only have reshade ini's, so we only need to check the first one
 
   const fileToExamine = path.join(
-    folder,
+    installingDir,
     files.find((file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION),
   );
 
-  const data = fs.readFileSync(fileToExamine, { encoding: "utf8" });
+  const data = fs.readFileSync(fileToExamine, { encoding: `utf8` });
 
   if (data === undefined) {
-    log("error", "unable to read contents of ", fileToExamine);
+    log(`error`, `unable to read contents of `, fileToExamine);
     return false;
   }
   data.slice(0, 80);
   // eslint-disable-next-line no-useless-escape
   const regex = /^[\[#].+/;
-  const testString = data.replace(regex, "");
+  const testString = data.replace(regex, ``);
   if (testString === data) {
-    log("info", "Reshade file located.");
+    log(`info`, `Reshade file located.`);
     return true;
   }
 
@@ -51,18 +58,19 @@ const testForReshadeFile = (
 };
 
 // INI (includes Reshade?)
-export const testForIniMod: VortexWrappedTestSupportedFunc = (
+export const testForIniMod: V2077TestFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
+  const files =
+    sourcePaths(fileTree);
+
   const filtered = files.filter(
     (file: string) => path.extname(file).toLowerCase() === CONFIG_INI_MOD_EXTENSION,
   );
 
   if (filtered.length === 0) {
-    log("info", "No INI files.");
+    api.log(`info`, `No INI files.`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -77,14 +85,14 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
     )
   ) {
     // These should  actually error out, we should not get here
-    log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
+    api.log(`error`, `INI file detected within a CET or Redscript mod, aborting`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
   if (files.includes(CET_GLOBAL_INI)) {
-    log(`error`, `CET Installer detected, not processing as INI`);
+    api.log(`error`, `CET Installer detected, not processing as INI`);
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
@@ -96,24 +104,25 @@ export const testForIniMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
-export const installIniMod: VortexWrappedInstallFunc = (
+export const installIniMod: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   // This installer gets called for both reshade and "normal" ini mods
+  const files =
+    sourcePaths(fileTree);
 
   const allIniModFiles = files.filter(
     (file: string) => path.extname(file) === CONFIG_INI_MOD_EXTENSION,
   );
 
-  const reshade = testForReshadeFile(log, allIniModFiles, _destinationPath);
+  const reshade = testForReshadeFile(api.log, allIniModFiles, modInfo.installingDir.pathOnDisk);
 
   // Set destination depending on file type
 
-  log("info", "Installing ini files: ", allIniModFiles);
+  api.log(`info`, `Installing ini files: `, allIniModFiles);
   const iniFileInstructions = allIniModFiles.map((file: string) => {
     const fileName = path.basename(file);
     const dest = reshade
@@ -121,7 +130,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
       : path.join(CONFIG_INI_MOD_BASEDIR, fileName);
 
     return {
-      type: "copy",
+      type: `copy`,
       source: file,
       destination: dest,
     };
@@ -135,7 +144,7 @@ export const installIniMod: VortexWrappedInstallFunc = (
   let shaderInstructions = [];
 
   if (reshade && shaderFiles.length !== 0) {
-    log("info", "Installing shader files: ", shaderFiles);
+    api.log(`info`, `Installing shader files: `, shaderFiles);
     shaderInstructions = shaderFiles.map((file: string) => {
       const regex = /.*reshade-shaders/;
       const fileName = file.replace(regex, CONFIG_RESHADE_MOD_SHADER_DIRNAME);
@@ -143,14 +152,16 @@ export const installIniMod: VortexWrappedInstallFunc = (
       const dest = path.join(CONFIG_RESHADE_MOD_BASEDIR, fileName);
       // log("debug", "Shader file: ", dest);
       return {
-        type: "copy",
+        type: `copy`,
         source: file,
         destination: dest,
       };
     });
   }
+
   const instructions = [].concat(iniFileInstructions, shaderInstructions);
-  log("debug", "Installing ini files with instructions: ", instructions);
+
+  api.log(`debug`, `Installing ini files with instructions: `, instructions);
 
   return Promise.resolve({ instructions });
 };

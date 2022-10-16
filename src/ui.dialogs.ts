@@ -1,12 +1,24 @@
 /* eslint-disable prefer-template */
+import path from "path";
 import {
   EXTENSION_NAME_NEXUS,
   EXTENSION_URL_GITHUB,
   EXTENSION_URL_NEXUS,
 } from "./index.metadata";
-import { ARCHIVE_MOD_CANONICAL_PREFIX, LayoutDescriptions } from "./installers.layouts";
-import { InstallDecision, InstallerType } from "./installers.types";
-import { VortexApi, VortexDialogResult } from "./vortex-wrapper";
+import {
+  ARCHIVE_MOD_CANONICAL_PREFIX,
+  LayoutDescriptions,
+  REDMOD_ARCHIVES_DIRNAME,
+  REDMOD_BASEDIR,
+} from "./installers.layouts";
+import {
+  InstallDecision,
+  InstallerType,
+} from "./installers.types";
+import {
+  VortexApi,
+  VortexDialogResult,
+} from "./vortex-wrapper";
 
 export const enum InstallChoices {
   Proceed = `Yes, Install To Staging Anyway`,
@@ -232,17 +244,23 @@ export const promptUserToInstallOrCancelOnReachingFallback = (
 
 export const showArchiveInstallWarning = (
   api: VortexApi,
+  installer: InstallerType,
   warnAboutSubdirs: boolean,
   warnAboutToplevel: boolean,
   warnAboutXLs: boolean,
   files: string[],
 ): void => {
+  const canonicalDirForType =
+    installer === InstallerType.REDmod
+      ? path.join(REDMOD_BASEDIR, `[mod name]`, REDMOD_ARCHIVES_DIRNAME)
+      : ARCHIVE_MOD_CANONICAL_PREFIX;
+
   const subdirWarning = warnAboutSubdirs
     ? `
       - There are \`*.archive\` files in subdirectories
 
       The game does not read archives in subdirectories. You may be expected
-      to pick some of these to place into \`${ARCHIVE_MOD_CANONICAL_PREFIX}\`.
+      to pick some of these to place into \`${canonicalDirForType}\`.
       `
     : `\n`;
 
@@ -252,11 +270,15 @@ export const showArchiveInstallWarning = (
 
       This might be intentional, it's perfectly OK to have multiple archives if
       they do different things. However, it could also be an oversight, or you
-      might be expected to pick only some of these to place into \`${ARCHIVE_MOD_CANONICAL_PREFIX}\`
+      might be expected to pick only some of these to place into \`${canonicalDirForType}\`
       `
     : `\n`;
 
-  const xlWarning = warnAboutXLs
+  if (warnAboutXLs && installer === InstallerType.REDmod) {
+    api.log(`warn`, `XL archives are not supported by REDmod, we should not get here!`, files);
+  }
+
+  const xlWarning = warnAboutXLs && installer === InstallerType.Archive
     ? `
       - There are \`*.xl\` files in subdirectories
 
@@ -267,6 +289,7 @@ export const showArchiveInstallWarning = (
 
       `
     : `\n`;
+
 
   api.showDialog(
     `info`,

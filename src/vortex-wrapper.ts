@@ -63,33 +63,7 @@ export interface VortexApi extends Vortex.IExtensionApi {
 export type VortexTestResult = Vortex.ISupportedResult;
 export type VortexTestSupportedFunc = Vortex.TestSupported;
 
-// Vortex.TestSupported
-export type VortexWrappedTestSupportedFunc = (
-  vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  destinationPath?: string,
-  sourceDirPathForMod?: string,
-  stagingDirPathForMod?: string,
-  modName?: string,
-) => Promise<VortexTestResult>;
-
 export type VortexInstallFunc = Vortex.InstallFunc;
 export type VortexInstallResult = Vortex.IInstallResult;
 export type VortexInstruction = Vortex.IInstruction;
-
-// Vortex.InstallFunc
-export type VortexWrappedInstallFunc = (
-  vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-  destinationPath: string,
-  progressDelegate: VortexProgressDelegate,
-  sourceDirPathForMod: string,
-  stagingDirPathForMod: string,
-  modName: string,
-  choices?: unknown,
-  unattended?: boolean,
-) => Promise<VortexInstallResult>;
+export type VortexInstructionType = Vortex.InstructionType;

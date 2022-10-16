@@ -1,13 +1,29 @@
 import path from "path";
 import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { CurrentFeatureSet } from "./features";
 
 // Our stuff
 import {
-  EPICAPP_ID, GAME_ID, GOGAPP_ID, STEAMAPP_ID,
+  EPICAPP_ID,
+  GAME_ID,
+  GOGAPP_ID,
+  STEAMAPP_ID,
 } from "./index.metadata";
-import { wrapTestSupported, wrapInstall, internalPipelineInstaller } from "./installers";
-import { internalLoadOrderer, wrapDeserialize, wrapSerialize, wrapValidate } from "./load_order";
-import { VortexExtensionContext, VortexGameStoreEntry } from "./vortex-wrapper";
+import {
+  wrapTestSupported,
+  wrapInstall,
+  internalPipelineInstaller,
+} from "./installers";
+import {
+  internalLoadOrderer,
+  wrapDeserialize,
+  wrapSerialize,
+  wrapValidate
+} from "./load_order";
+import {
+  VortexExtensionContext,
+  VortexGameStoreEntry,
+} from "./vortex-wrapper";
 
 const moddingTools = [
   {
@@ -69,7 +85,7 @@ const main = (vortex: VortexExtensionContext) => {
     internalPipelineInstaller.id,
     internalPipelineInstaller.priority,
     wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
-    wrapInstall(vortex, vortexApi, internalPipelineInstaller),
+    wrapInstall(vortex, vortexApi, internalPipelineInstaller, CurrentFeatureSet),
   );
 
   vortex.registerLoadOrder({

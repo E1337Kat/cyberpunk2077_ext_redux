@@ -1,18 +1,33 @@
-import { notEmpty, mockDeep, DeepMockProxy } from "jest-mock-extended";
+import {
+  notEmpty,
+  mockDeep,
+  DeepMockProxy,
+} from "jest-mock-extended";
 import mockFs from "mock-fs";
 import { IState } from "vortex-api/lib/types/IState";
 import { InstallChoices } from "../../src/ui.dialogs";
 import { GAME_ID } from "../../src/index.metadata";
-import { internalPipelineInstaller, wrapInstall } from "../../src/installers";
-import { VortexDialogResult, VortexExtensionContext } from "../../src/vortex-wrapper";
+import {
+  internalPipelineInstaller,
+  wrapInstall,
+} from "../../src/installers";
+import {
+  VortexDialogResult,
+  VortexExtensionContext,
+} from "../../src/vortex-wrapper";
 
-import { FAKE_STAGING_PATH, getMockVortexLog, sortByDestination } from "./utils.helper";
+import {
+  FAKE_STAGING_PATH,
+  getMockVortexLog,
+  sortByDestination,
+} from "./utils.helper";
 
 import {
   AllExpectedDirectFailures,
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
 } from "./mods.example";
+import { CurrentFeatureSet } from "../../src/features";
 
 // Should switch this to compute the path in case changed, but eh..
 /*
@@ -22,7 +37,10 @@ const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<ob
 );
 */
 
+const DEFAULT_FEATURES = CurrentFeatureSet;
+
 describe(`Transforming modules to instructions`, () => {
+  beforeEach(() => { mockFs.restore(); });
   afterEach(() => { mockFs.restore(); });
 
   AllExpectedSuccesses.forEach((examples, set) => {
@@ -34,6 +52,8 @@ describe(`Transforming modules to instructions`, () => {
             mockFs(mod.fsMocked);
           }
           //
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           const mockVortexExtensionContext: DeepMockProxy<VortexExtensionContext> =
             mockDeep<VortexExtensionContext>();
 
@@ -69,11 +89,12 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            defaultOrOverriddenFeatures,
           );
 
           const installResult = await wrappedInstall(
             mod.inFiles,
-            FAKE_STAGING_PATH,
+            mod.stagingPath ?? FAKE_STAGING_PATH,
             GAME_ID,
             null,
           );
@@ -106,6 +127,8 @@ describe(`Transforming modules to instructions`, () => {
     describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -132,11 +155,12 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            defaultOrOverriddenFeatures,
           );
 
           const installResult = await wrappedInstall(
             mod.inFiles,
-            FAKE_STAGING_PATH,
+            mod.stagingPath ?? FAKE_STAGING_PATH,
             GAME_ID,
             null,
           );
@@ -150,6 +174,8 @@ describe(`Transforming modules to instructions`, () => {
         });
 
         test(`rejects the install when choosing to cancel on ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -176,10 +202,16 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            defaultOrOverriddenFeatures,
           );
 
           const expectation = expect(
-            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
+            wrappedInstall(
+              mod.inFiles,
+              mod.stagingPath ?? FAKE_STAGING_PATH,
+              GAME_ID,
+              null,
+            ),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.cancelErrorMessage));
@@ -192,6 +224,8 @@ describe(`Transforming modules to instructions`, () => {
     describe(`mods that installers reject without prompt, ${set}`, () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
+          const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
+
           if (mod.fsMocked) {
             mockFs.restore();
             mockFs(mod.fsMocked);
@@ -214,10 +248,16 @@ describe(`Transforming modules to instructions`, () => {
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            defaultOrOverriddenFeatures,
           );
 
           const expectation = expect(
-            wrappedInstall(mod.inFiles, FAKE_STAGING_PATH, GAME_ID, null),
+            wrappedInstall(
+              mod.inFiles,
+              mod.stagingPath ?? FAKE_STAGING_PATH,
+              GAME_ID,
+              null,
+            ),
           );
 
           await expectation.rejects.toThrowError(new Error(mod.failure));

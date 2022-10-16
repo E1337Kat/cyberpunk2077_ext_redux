@@ -12,14 +12,14 @@ describe(`heredoc formatting`, () => {
             `;
 
     const cleanedUpDoc =
-      "\n" +
-      "- weeble\n" +
-      "    - + beep\n" +
-      "    - + baz\n" +
-      "- quux\n" +
-      "    - + foo\n" +
-      "    - + bar" +
-      "\n";
+      `\n` +
+      `- weeble\n` +
+      `    - + beep\n` +
+      `    - + baz\n` +
+      `- quux\n` +
+      `    - + foo\n` +
+      `    - + bar` +
+      `\n`;
 
     expect(heredoc(testDoc)).toEqual(cleanedUpDoc);
   });

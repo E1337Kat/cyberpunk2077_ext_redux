@@ -1,7 +1,30 @@
 /* eslint-disable no-underscore-dangle */
 import nodejsPath from "path";
 import KeyTree from "key-tree";
-import { negate } from "./installers.utils";
+import { pipe } from "fp-ts/lib/function";
+import {
+  filter,
+  map,
+  some as any,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  alwaysTrue,
+  negate,
+} from "./installers.utils";
+
+
+export interface Path {
+  readonly relativePath: string;
+  readonly pathOnDisk: string;
+}
+
+export interface File extends Path {
+  readonly content: string;
+}
+
+export interface FileMove extends File {
+  readonly originalRelativePath: string;
+}
 
 /*
 export type FileTree = {
@@ -87,7 +110,7 @@ const findFilesRecursive = (predicate: PathFilter, node): string[] => {
  * @param node A node in the FileTree
  * @returns An Array of paths that match on the PathFilter recursively
  */
-const findDirsRecursive = (
+const findInDirsRecursive = (
   breakEarly: boolean,
   predicate: PathFilter,
   node,
@@ -99,7 +122,7 @@ const findDirsRecursive = (
   }
 
   const subMatches: string[] = node.children.flatMap((c) =>
-    findDirsRecursive(breakEarly, predicate, c));
+    findInDirsRecursive(breakEarly, predicate, c));
 
   return subMatches.concat(selfMaybe);
 };
@@ -112,12 +135,6 @@ const looksLikeADirectory = new RegExp(`${regexpEscape(nodejsPath.sep)}$`);
 const stripTrailingSeparator = (path: string): string =>
   path.replace(looksLikeADirectory, ``);
 
-// Annoyingly all three mechanisms behave subtly differently wrt. paths.
-// get() does one thing, getSub() another, and _getNode() a third..
-// Need to unify them (or, really, just write the damn tree) but for
-// now be careful where you use which normalization.
-const normalizeDir = (dir: string): string =>
-  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
 
 //
 //
@@ -129,7 +146,35 @@ const normalizeDir = (dir: string): string =>
 //
 //
 
+// Helpers
+
+// Annoyingly all three mechanisms behave subtly differently wrt. paths.
+// get() does one thing, getSub() another, and _getNode() a third..
+// Need to unify them (or, really, just write the damn tree) but for
+// now be careful where you use which normalization.
+export const normalizeDir = (dir: string): string =>
+  (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
+
+// Safe path comparison (case-insensitive on Windows)
+const pathEqual = (a: string, b: string): boolean =>
+  nodejsPath.normalize(a).toLocaleLowerCase() === nodejsPath.normalize(b).toLocaleLowerCase();
+
+export const pathEq = (a: string) => (b: string): boolean => pathEqual(a, b);
+
+// Safe path set membership
+const pathInclude = (paths: readonly string[], path: string): boolean =>
+  pipe(paths, any(pathEq(path)));
+
+export const pathIn = (paths: readonly string[]) => (path: string): boolean => pathInclude(paths, path);
+
+// Safe subpath check
+export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
+  // eslint-disable-next-line max-len
+  nodejsPath.normalize(pathThatShouldContain).toLocaleLowerCase().includes(nodejsPath.normalize(path).toLocaleLowerCase());
+
+//
 // Creation
+//
 
 /**
  * Convert an array of paths to a file tree for easier parsing of the directory tree.
@@ -179,17 +224,22 @@ export const subdirNamesIn = (dir: string, tree: FileTree): string[] => {
     return [];
   }
 
-  return node.children.map((c) => c.key);
+  return node.children.map((c) => c.key).filter((c) => c !== FILETREE_TOPLEVEL);
 };
 
 /**
  * Finds a list of paths (rather than just a directory) directly within the given directory.
  * @param dir a directory to look in
  * @param tree a FileTree
+ * @optional predicate a PathFilter to filter on
  * @returns an Array of paths to the subdirectories under the given directory, or an empty array if the directory is not found
  */
-export const subdirsIn = (dir: string, tree: FileTree): string[] =>
-  subdirNamesIn(dir, tree).map((subdir) => nodejsPath.join(dir, subdir));
+export const subdirsIn = (dir: string, tree: FileTree, predicate: PathFilter = alwaysTrue): readonly string[] =>
+  pipe(
+    subdirNamesIn(dir, tree),
+    map((subdir) => nodejsPath.join(dir, subdir)),
+    filter(predicate),
+  );
 
 /**
  * Find if a given directory exists in the tree at some given point.
@@ -300,7 +350,7 @@ export const findAllSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(false, predicate, sub));
+    findInDirsRecursive(false, predicate, sub));
 
 /**
  * Find a subdirectory at the top level from the starting `dir` with some files matching the predicate. Generally used to find a named directory on a path that we do not know before hand.
@@ -315,7 +365,7 @@ export const findTopmostSubdirsWithSome = (
   tree: FileTree,
 ): string[] =>
   actualChildren(tree._kt._getNode(stripTrailingSeparator(dir))).flatMap((sub) =>
-    findDirsRecursive(true, predicate, sub));
+    findInDirsRecursive(true, predicate, sub));
 
 /**
  * Get all of the filepaths the exist under the direct subdirectories of the given directory, and optionally filter the results.

@@ -1,5 +1,8 @@
 import path from "path";
-import { RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS, RED4EXT_KNOWN_NONOVERRIDABLE_DLLS } from "../../src/installers.layouts";
+import {
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
+  RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
+} from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import { InstallChoices } from "../../src/ui.dialogs";
 import {

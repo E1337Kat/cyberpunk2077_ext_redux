@@ -1,4 +1,5 @@
 import path from "path";
+import { Features } from "./features";
 import {
   FileTree,
   dirWithSomeIn,
@@ -6,6 +7,7 @@ import {
   findTopmostSubdirsWithSome,
   Glob,
   FILETREE_ROOT,
+  sourcePaths,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -23,16 +25,17 @@ import {
   moveFromTo,
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
-  makeSyntheticName,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
 
@@ -145,13 +148,11 @@ export const redscriptCanonLayout = (
 // testSupport
 //
 
-export const testForRedscriptMod: VortexWrappedTestSupportedFunc = async (
+export const testForRedscriptMod: V2077TestFunc = async (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  const redscriptFiles = allRedscriptFiles(files);
+  const redscriptFiles = allRedscriptFiles(sourcePaths(fileTree));
 
   if (redscriptFiles.length < 1) {
     return { supported: false, requiredFiles: [] };
@@ -164,18 +165,15 @@ export const testForRedscriptMod: VortexWrappedTestSupportedFunc = async (
 // install
 //
 
-export const installRedscriptMod: VortexWrappedInstallFunc = async (
+export const installRedscriptMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  destinationPath: string,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
-  const modName = makeSyntheticName(destinationPath);
-
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
     api,
-    modName,
+    modInfo.name,
     fileTree,
     // Order is significant here.
     [redscriptBasedirLayout, redscriptCanonLayout, redscriptToplevelLayout],

@@ -1,14 +1,14 @@
 import path from "path";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
-  VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { FileTree, pathInTree, filesUnder } from "./filetree";
+import {
+  FileTree,
+  pathInTree,
+  filesUnder,
+} from "./filetree";
 import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS,
@@ -20,8 +20,14 @@ import {
   NoLayout,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { Features } from "./features";
 
 const matchTweakYaml = (filePath: string): boolean =>
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS.includes(path.extname(filePath));
@@ -52,23 +58,19 @@ const tweakXLCanonLayout = (
 
 // testSupport
 
-export const testForTweakXLMod: VortexWrappedTestSupportedFunc = (
+export const testForTweakXLMod: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectTweakXLCanonLayout(fileTree), requiredFiles: [] });
 
 // install
 
-export const installTweakXLMod: VortexWrappedInstallFunc = async (
+export const installTweakXLMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   // This is the only thing supported, so let's hold modders to it
   const selectedInstructions = tweakXLCanonLayout(api, undefined, fileTree);

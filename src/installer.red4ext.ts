@@ -10,6 +10,7 @@ import {
   FILETREE_ROOT,
   findAllSubdirsWithSome,
   pathInTree,
+  sourcePaths,
 } from "./filetree";
 import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
@@ -28,18 +29,20 @@ import {
   moveFromTo,
   instructionsForSourceToDestPairs,
   instructionsForSameSourceAndDestPaths,
-  makeSyntheticName,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
+import { Features } from "./features";
 
 const matchDll = (file: string) => path.extname(file) === `.dll`;
 const reservedDllDir = (dir: string) =>
@@ -184,10 +187,8 @@ const red4extModnamedToplevelLayout: LayoutToInstructions = (
   };
 };
 
-export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
+export const testForRed4ExtMod: V2077TestFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const allDllSubdirs = findAllSubdirsWithSome(FILETREE_ROOT, matchDll, fileTree);
@@ -212,7 +213,7 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
 
   if (dangerPaths.length !== 0) {
     const message = `Red4Ext Mod Installation Canceled, Dangerous DLL paths!`;
-    log(`error`, message, dangerPaths);
+    api.log(`error`, message, dangerPaths);
     showRed4ExtReservedDllErrorDialog(api, message, dangerPaths);
     return Promise.reject(new Error(message));
   }
@@ -222,15 +223,12 @@ export const testForRed4ExtMod: VortexWrappedTestSupportedFunc = (
   return Promise.resolve({ supported: true, requiredFiles: [] });
 };
 
-export const installRed4ExtMod: VortexWrappedInstallFunc = (
+export const installRed4ExtMod: V2077InstallFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  destinationPath: string,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
-  const modName = makeSyntheticName(destinationPath);
-
   // At this point we know from the test that none of
   // these are in dangerous locations
 
@@ -247,14 +245,14 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
 
   const chosenInstructions = useFirstMatchingLayoutForInstructions(
     api,
-    modName,
+    modInfo.name,
     fileTree,
     possibleLayoutsToTryInOrder,
   );
 
   if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `Red4Ext installer failed to generate any instructions!`;
-    log(`error`, message, files);
+    api.log(`error`, message, sourcePaths(fileTree));
     return Promise.reject(new Error(message));
   }
 
@@ -275,8 +273,8 @@ export const installRed4ExtMod: VortexWrappedInstallFunc = (
     ]
     : chosenInstructions.instructions;
 
-  log(`info`, `Red4Ext installer installing files.`);
-  log(`debug`, `Red4Ext instructions: `, allInstructions);
+  api.log(`info`, `Red4Ext installer installing files.`);
+  api.log(`debug`, `Red4Ext instructions: `, allInstructions);
 
   return Promise.resolve({ instructions: allInstructions });
 };

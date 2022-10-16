@@ -2,7 +2,13 @@ import {
   promptUserOnUnresolvableLayout,
   promptUserToInstallOrCancelOnReachingFallback,
 } from "./ui.dialogs";
-import { filesUnder, FileTree, FILETREE_ROOT, Glob, sourcePaths } from "./filetree";
+import {
+  filesUnder,
+  FileTree,
+  FILETREE_ROOT,
+  Glob,
+  sourcePaths,
+} from "./filetree";
 import {
   FallbackLayout,
   InvalidLayout,
@@ -11,16 +17,20 @@ import {
   NoInstructions,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
-import { InstallerType, InstallDecision } from "./installers.types";
+import {
+  InstallerType,
+  InstallDecision,
+  V2077InstallFunc,
+  V2077TestFunc,
+  ModInfo,
+} from "./installers.types";
 import { exhaustiveMatchFailure } from "./installers.utils";
 import {
   VortexApi,
   VortexInstallResult,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
+import { Features } from "./features";
 
 export const findFallbackFiles = (fileTree: FileTree): string[] =>
   filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
@@ -33,7 +43,7 @@ export const fallbackLayout: LayoutToInstructions = (
   fileTree: FileTree,
 ): MaybeInstructions => {
   if (!detectFallbackLayout(fileTree)) {
-    throw new Error("Should never get here");
+    throw new Error(`Should never get here`);
   }
 
   const allTheFiles = findFallbackFiles(fileTree);
@@ -101,25 +111,19 @@ export const promptToFallbackOrFailOnUnresolvableLayout = async (
   return useFallbackOrFail(api, installerType, fileTree, installDecision);
 };
 
-export const testForFallback: VortexWrappedTestSupportedFunc = (
+export const testForFallback: V2077TestFunc = (
   _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   _fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  log("debug", "Fallback installer received Files: ", files);
-  return Promise.resolve({
-    supported: true,
-    requiredFiles: [],
-  });
-};
+): Promise<VortexTestResult> => Promise.resolve({
+  supported: true,
+  requiredFiles: [],
+});
 
-export const installFallback: VortexWrappedInstallFunc = async (
+export const installFallback: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
     api,

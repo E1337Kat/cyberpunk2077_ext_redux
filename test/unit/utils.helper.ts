@@ -5,8 +5,10 @@ import { Console } from "console";
 import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import { VortexInstruction } from "../../src/vortex-wrapper";
-import { InstallerType } from "../../src/installers.types";
-import { EXTENSION_NAME_INTERNAL } from "../../src/index.metadata";
+import {
+  InstallerType,
+  ModInfo,
+} from "../../src/installers.types";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CET_MOD_CANONICAL_PATH_PREFIX,
@@ -16,11 +18,34 @@ import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   ARCHIVE_MOD_CANONICAL_PREFIX,
   ASI_MOD_PATH,
-  REDMOD_CANONICAL_BASEDIR,
+  REDMOD_BASEDIR,
   REDSCRIPT_CORE_FILES,
   DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
+import { Features } from "../../src/features";
+import { normalizeDir } from "../../src/filetree";
+
+// This is the most nonsense of all nonsense, but under some
+// conditions it seems to be possible for jest to override
+// `console`...
+//
+// eslint-disable-next-line no-global-assign
+console = new Console(process.stdout, process.stderr);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getMockVortexLog = () => {
+  const mockLog = jest.fn();
+
+  if (process.env.DEBUG) {
+    mockLog.mockImplementation((...args) => {
+      // eslint-disable-next-line no-console
+      console.log(`vortex.log():`, args);
+    });
+  }
+
+  return mockLog;
+};
 
 //
 // Types
@@ -35,7 +60,9 @@ export interface MockFsDirItems {
 interface ExampleMod {
   expectedInstallerType: InstallerType;
   inFiles: InFiles;
+  stagingPath?: string;
   fsMocked?: MockFsDirItems;
+  features?: Features;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {
@@ -83,38 +110,42 @@ export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
     return new Map([...mergedMap, ...map]);
   }, new Map<K, V>());
 
-// This is the most nonsense of all nonsense, but under some
-// conditions it seems to be possible for jest to override
-// `console`...
-//
-// eslint-disable-next-line no-global-assign
-console = new Console(process.stdout, process.stderr);
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const getMockVortexLog = () => {
-  const mockLog = jest.fn();
-
-  // if (process.env.DEBUG || true) {
-  if (process.env.DEBUG) {
-    mockLog.mockImplementation((...args) => {
-      // eslint-disable-next-line no-console
-      console.log(`vortex.log():`, args);
-    });
-  }
-
-  return mockLog;
-};
-
 //
 // Mod path stuff
 //
 
-const FAKE_STAGING_ZIPFILE = path.normalize(`vortexusesthezipfileandmodidasdir-7536`);
-const FAKE_STAGING_DIRS = [`some`, `dirs`, `to`, `stage`, FAKE_STAGING_ZIPFILE];
+const FAKE_STAGING_DIR_PREFIXES = [`some`, `dirs`, `to`, `stage`];
+
+const FAKE_MOD_INFO_INSTALLING_DIRNAME =
+  `Fake Mod For Examples-8279-v1-0a-1664414660+varianttag.installing`;
+
+const FAKE_STAGING_DIRS = [...FAKE_STAGING_DIR_PREFIXES, FAKE_MOD_INFO_INSTALLING_DIRNAME];
 
 export const FAKE_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, path.sep);
-// This will be derived from the staging path
-export const FAKE_MOD_NAME = `${EXTENSION_NAME_INTERNAL}-${FAKE_STAGING_ZIPFILE}`;
+export const FAKE_DISK_DIR = `this-simulates-different-ondisk-dir`;
+export const FAKE_DISK_PATH_FOR_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, FAKE_DISK_DIR, path.sep);
+
+export const FAKE_MOD_NAME = `Fake Mod For Examples`;
+
+export const FAKE_MOD_INFO: ModInfo = {
+  name: `Fake Mod For Examples`,
+  id: `8279`,
+  version: {
+    v: `v1.0a`,
+    major: `v1`,
+    minor: `0a`,
+    patch: undefined,
+  },
+  createTime: new Date(1664414660000),
+  stagingDirPrefix: path.join(...FAKE_STAGING_DIR_PREFIXES),
+  installingDir: {
+    relativePath: normalizeDir(FAKE_STAGING_PATH),
+    pathOnDisk: normalizeDir(FAKE_DISK_PATH_FOR_STAGING_PATH),
+  },
+  copy: undefined,
+  variant: `varianttag`,
+};
+
 
 //
 // Test support functions, mocks
@@ -163,7 +194,7 @@ export const createdDirectory = (...args: string[]): VortexInstruction => ({
   destination: path.join(...args),
 });
 
-export const createdFile = (contents: string, ...dest: string[]): VortexInstruction => ({
+export const generatedFile = (contents: string, ...dest: string[]): VortexInstruction => ({
   type: `generatefile`,
   data: contents,
   destination: path.join(...dest),
@@ -220,7 +251,7 @@ export const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
 export const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 export const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
 
-export const REDMOD_PREFIX = REDMOD_CANONICAL_BASEDIR;
+export const REDMOD_PREFIX = REDMOD_BASEDIR;
 export const REDMOD_PREFIXES = pathHierarchyFor(REDMOD_PREFIX);
 
 export const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
@@ -233,6 +264,7 @@ export const ASI_PREFIX = ASI_MOD_PATH;
 export const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
 export const GIFTWRAP_PREFIX = `some-dirname`;
+
 export const CET_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${CET_PREFIX}`);
 export const REDS_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${REDS_PREFIX}`);
 export const RED4EXT_GIFTWRAPS = pathHierarchyFor(

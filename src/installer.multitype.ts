@@ -1,9 +1,16 @@
-import { FileTree } from "./filetree";
+import { isLeft } from "fp-ts/lib/Either";
+import {
+  FileTree,
+  sourcePaths,
+} from "./filetree";
 import {
   detectExtraArchiveLayouts,
   extraCanonArchiveInstructions,
 } from "./installer.archive";
-import { detectCetCanonLayout, cetCanonLayout } from "./installer.cet";
+import {
+  detectCetCanonLayout,
+  cetCanonLayout,
+} from "./installer.cet";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   detectRed4ExtCanonOnlyLayout,
@@ -23,33 +30,43 @@ import {
   configXmlAllowedInMultiInstructions,
   detectAllowedConfigXmlLayouts,
 } from "./installer.config.xml";
-import { LayoutToInstructions, NotAllowed } from "./installers.layouts";
-import { makeSyntheticName, useAllMatchingLayouts } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  LayoutToInstructions,
+  NotAllowed,
+} from "./installers.layouts";
+import { useAllMatchingLayouts } from "./installers.shared";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { trueish } from "./installers.utils";
 import {
-  VortexWrappedTestSupportedFunc,
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
   configJsonAllowedInMultiInstructions,
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
+import { Features } from "./features";
+import {
+  detectAllowedREDmodLayoutsForMultitype,
+  redmodAllowedInstructionsForMultitype,
+} from "./installer.redmod";
+import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 
-export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
+export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> => {
   const hasCanonCet = detectCetCanonLayout(fileTree);
   const hasCanonRed4Ext = detectRed4ExtCanonOnlyLayout(fileTree);
   const hasBasedirRed4Ext = detectRed4ExtBasedirLayout(fileTree);
 
+  const hasAllowedREDmods = detectAllowedREDmodLayoutsForMultitype(fileTree);
   const hasAllowedRedscript = detectAllowedRedscriptLayouts(fileTree);
   const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
@@ -57,19 +74,32 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
 
   const hasExtraArchives = detectExtraArchiveLayouts(fileTree);
 
-  // The Onlys may need better naming.. they already check that
-  // there's no basedir stuff, so we can use both here without
-  // additional checks.
   const hasAtLeastTwoTypes =
     [
       hasAllowedConfigJson,
       hasAllowedConfigXml,
       hasCanonCet,
+      hasAllowedREDmods,
       hasAllowedRedscript,
       hasCanonRed4Ext,
       hasBasedirRed4Ext,
       hasAllowedTweakXL,
     ].filter(trueish).length > 1;
+
+  // This would be a mess to handle later
+  if (hasExtraArchives && hasAllowedREDmods) {
+    const errorMessage = `${InstallerType.MultiType}: Can't install REDmod and Old-Style Archive at the same time, canceling installation`;
+
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.MultiType,
+      `Can't Install Both REDmod and Old-Style Archive in the Same Mod!`,
+      sourcePaths(fileTree),
+    );
+
+    api.log(`error`, errorMessage);
+    return Promise.reject(new Error(errorMessage));
+  }
 
   // For now, let's define these specifically. Should also move
   // the special handling in CET and Reds to this mode (and then
@@ -91,12 +121,11 @@ export const testForMultiTypeMod: VortexWrappedTestSupportedFunc = (
   });
 };
 
-export const installMultiTypeMod: VortexWrappedInstallFunc = async (
+export const installMultiTypeMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  destinationPath: string,
+  modInfo: ModInfo,
+  features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.MultiType;
 
@@ -130,8 +159,6 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
     (result) => result.instructions,
   );
 
-  const modName = makeSyntheticName(destinationPath);
-
   // This should be made more robust, and much clearer.
   // Currently we rely on these layouts to be exclusive
   // or unlikely to break because of the order chosen
@@ -152,7 +179,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
 
   const allInstructionsPerLayout = useAllMatchingLayouts(
     api,
-    modName,
+    modInfo.name,
     fileTree,
     allInstructionSets,
   );
@@ -166,9 +193,26 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
 
   const redscriptInstructions = redscriptAllowedInMultiInstructions(
     api,
-    modName,
+    modInfo.name,
     fileTree,
   );
+
+  const maybeREDmodInstructions = await redmodAllowedInstructionsForMultitype(api, fileTree, modInfo, features);
+
+  // Imperative and redundant but oh well
+  if (isLeft(maybeREDmodInstructions)) {
+    const errorMessage = `${me}: REDmod instructions failed, canceling installation: ${maybeREDmodInstructions.left}`;
+
+    showWarningForUnrecoverableStructureError(
+      api,
+      InstallerType.MultiType,
+      `Can't Install MultiType Mod when the REDmod Part Fails!`,
+      sourcePaths(fileTree),
+    );
+
+    api.log(`error`, errorMessage);
+    return Promise.reject(new Error(errorMessage));
+  }
 
   const allInstructions = [
     ...allPromptedInstructions,
@@ -176,6 +220,7 @@ export const installMultiTypeMod: VortexWrappedInstallFunc = async (
     ...archiveInstructions.instructions,
     ...tweakXLInstructions.instructions,
     ...redscriptInstructions.instructions,
+    ...maybeREDmodInstructions.right,
   ];
 
   if (allInstructions.length < 1) {

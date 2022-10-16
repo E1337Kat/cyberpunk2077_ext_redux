@@ -1,4 +1,9 @@
 import path from "path";
+import { pipe } from "fp-ts/lib/function";
+import {
+  map,
+  toArray,
+} from "fp-ts/lib/ReadonlyArray";
 import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
@@ -10,6 +15,7 @@ import {
   fileTreeFromPaths,
   subdirsIn,
   filesIn,
+  sourcePaths,
 } from "./filetree";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
@@ -26,22 +32,39 @@ import {
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
+  REDmodTransformedLayout,
+  REDMOD_BASEDIR,
+  REDMOD_INFO_FILENAME,
+  REDMOD_ARCHIVES_DIRNAME,
+  REDmodInfo,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
   moveFromTo,
+  modInfoTaggedAsAutoconverted,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   VortexApi,
-  VortexWrappedTestSupportedFunc,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
   VortexInstallResult,
+  VortexInstruction,
 } from "./vortex-wrapper";
+import {
+  Feature,
+  Features,
+} from "./features";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
 
 //
 
@@ -83,12 +106,18 @@ const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
 const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
   findArchiveHeritageFiles(fileTree).length > 0;
 
+export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
+  detectArchiveCanonWithXLLayout(fileTree) ||
+  detectArchiveCanonLayout(fileTree) ||
+  detectArchiveHeritageLayout(fileTree);
+
 // Prompts
 
+// Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
 const warnUserIfArchivesMightNeedManualReview = (
   api: VortexApi,
   chosenInstructions: Instructions,
-) => {
+): boolean => {
   // Trying out the tree-based approach..
   const destinationPaths = chosenInstructions.instructions.map((i) => i.destination);
   const newTree = fileTreeFromPaths(destinationPaths);
@@ -108,17 +137,23 @@ const warnUserIfArchivesMightNeedManualReview = (
     matchArchiveXL,
     newTree,
   );
+
   const warnAboutXLs = xlsInSubdirs.length > 0;
 
-  if (warnAboutSubdirs || warnAboutToplevel || warnAboutXLs) {
+  const requiresWarning = warnAboutSubdirs || warnAboutToplevel || warnAboutXLs;
+
+  if (requiresWarning) {
     showArchiveInstallWarning(
       api,
+      InstallerType.Archive,
       warnAboutSubdirs,
       warnAboutToplevel,
       warnAboutXLs,
       filesUnder(FILETREE_ROOT, Glob.Any, newTree),
     );
   }
+
+  return requiresWarning;
 };
 
 // Layouts
@@ -235,15 +270,13 @@ const archiveOtherDirsToCanonLayout = (
   );
 
   const allFiles = allDirsWithArchives.flatMap((dir: string) =>
-    filesUnder(dir, Glob.Any, fileTree),
-  );
+    filesUnder(dir, Glob.Any, fileTree));
 
   const allToPrefixedMap: string[][] = allFiles.map((f: string) =>
     // There may be some non-canonical layouts in the basedir
-    f.startsWith(ARCHIVE_MOD_CANONICAL_PREFIX)
+    (f.startsWith(ARCHIVE_MOD_CANONICAL_PREFIX)
       ? [f, f]
-      : [f, path.join(ARCHIVE_MOD_CANONICAL_PREFIX, f)],
-  );
+      : [f, path.join(ARCHIVE_MOD_CANONICAL_PREFIX, f)]));
 
   return {
     kind: ArchiveLayout.Other,
@@ -273,92 +306,14 @@ const archiveExtraToplevelLayout = (
 };
 
 //
-// Vortex API
+// Instruction generators
 //
 
-//
-// testSupport
-//
-
-export const testForArchiveMod: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  if (detectArchiveCanonWithXLLayout(fileTree)) {
-    return Promise.resolve({ supported: true, requiredFiles: [] });
-  }
-
-  let supported: boolean;
-  const filtered = files.filter(
-    (file: string) => path.extname(file).toLowerCase() === ARCHIVE_MOD_FILE_EXTENSION,
-  );
-
-  if (filtered.length === 0) {
-    log("info", "No archives.");
-    return Promise.resolve({
-      supported: false,
-      requiredFiles: [],
-    });
-  }
-
-  if (files.length > filtered.length) {
-    // Figure out what the leftovers are and if they matter
-    // such as readmes, usage text, etc.
-    const unfiltered = files.filter((f: string) => !filtered.includes(f));
-
-    const importantBaseDirs = ["bin", "r6", "red4ext"];
-    const hasNonArchive =
-      unfiltered.find((f: string) =>
-        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0]),
-      ) !== undefined;
-
-    // there is a base folder for non archive mods, so why bother.
-    if (hasNonArchive) {
-      log("info", "Other mod folder exist... probably an archive as part of those.");
-      return Promise.resolve({
-        supported: false,
-        requiredFiles: [],
-      });
-    }
-
-    supported = true;
-  } else if (files.length === filtered.length) {
-    // all files are archives
-    supported = true;
-  } else {
-    supported = false;
-    log(
-      "error",
-      "I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.",
-    );
-  }
-
-  if (supported !== undefined && supported) {
-    log("info", "Only archive files, so installing them should be easy peasy.");
-  } else {
-    supported = false;
-  }
-
-  return Promise.resolve({
-    supported,
-    requiredFiles: [],
-  });
-};
-
-//
-// install
-//
-
-export const installArchiveMod: VortexWrappedInstallFunc = (
+// Once again we could get fancy, but let's not
+const instructionsForStandaloneMod = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-): Promise<VortexInstallResult> => {
-  // Once again we could get fancy, but let's not
+): MaybeInstructions => {
   const possibleLayoutsToTryInOrder: LayoutToInstructions[] = [
     archiveCanonWithXLLayout,
     archiveCanonLayout,
@@ -373,14 +328,249 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
     possibleLayoutsToTryInOrder,
   );
 
+  return chosenInstructions;
+};
+
+const instructionsForCanonicalExtras = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const extraCanonArchiveLayoutsAllowedInOtherModTypes = [
+    archiveCanonWithXLLayout,
+    archiveCanonLayout,
+    archiveHeritageLayout,
+  ];
+
+  const chosenInstructions = useFirstMatchingLayoutForInstructions(
+    api,
+    undefined,
+    fileTree,
+    extraCanonArchiveLayoutsAllowedInOtherModTypes,
+  );
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return chosenInstructions;
+};
+
+const instructionsForToplevelExtras = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Instructions => {
+  const chosenInstructions = archiveExtraToplevelLayout(api, undefined, fileTree);
+
+  if (
+    chosenInstructions === NoInstructions.NoMatch ||
+    chosenInstructions === InvalidLayout.Conflict
+  ) {
+    api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
+    return { kind: NoLayout.Optional, instructions: [] };
+  }
+
+  return chosenInstructions;
+};
+
+//
+// REDmod stuff
+//
+
+const transformToREDmodInstructions = (
+  api: VortexApi,
+  features: Features,
+  modInfo: ModInfo,
+  originalInstructions: Instructions,
+): Instructions => {
+  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    api.log(`error`, `${InstallerType.Archive}: REDmod transform function called but feature is disabled`);
+    return originalInstructions;
+  }
+
+  const redmodInfoWithAutoconvertTag =
+    modInfoTaggedAsAutoconverted(modInfo);
+
+  const redmodModuleName =
+    redmodInfoWithAutoconvertTag.name;
+
+  const redmodVersion =
+    redmodInfoWithAutoconvertTag.version.v;
+
+  const destinationDirWithModnamePrefix =
+    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
+
+  const destinationArchiveDirWithModnamePrefix =
+    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
+
+  // This should really be handled through fp-ts/json, but
+  // for now I can't be bothered..
+  const infoJson: REDmodInfo = {
+    name: redmodModuleName,
+    version: redmodVersion,
+  };
+
+  const generateInfoJsonInstruction: VortexInstruction = {
+    type: `generatefile`,
+    data: JSON.stringify(infoJson),
+    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
+  };
+
+  api.log(`debug`, `Transforming Archive instructions to REDmod`);
+  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
+
+  const instructionsWithDestinationSwitchedToREDmodDir = pipe(
+    originalInstructions.instructions,
+    map((instruction) =>
+      (!instruction.destination
+        ? instruction
+        : {
+          ...instruction,
+          destination: instruction.destination.replace(
+            ARCHIVE_MOD_CANONICAL_PREFIX,
+            destinationArchiveDirWithModnamePrefix,
+          ),
+        }
+      )),
+    toArray,
+  );
+
+  const allREDmodTransformedInstructions = [
+    generateInfoJsonInstruction,
+    ...instructionsWithDestinationSwitchedToREDmodDir,
+  ];
+
+  showInfoNotification(
+    api,
+    InfoNotification.REDmodArchiveAutoconverted,
+    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
+  );
+
+  return {
+    kind: REDmodTransformedLayout.Archive,
+    instructions: allREDmodTransformedInstructions,
+  };
+};
+
+const transformAndValidateAndFinalizeInstructions = (
+  api: VortexApi,
+  features: Features,
+  modInfo: ModInfo,
+  originalInstructions: Instructions,
+): Instructions => {
+  //
+  // This needs to be moved after the finalization but needs logic changes?
+  //
+
+  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+    warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
+    return originalInstructions;
+  }
+
+  return transformToREDmodInstructions(api, features, modInfo, originalInstructions);
+};
+
+//
+// Vortex API
+//
+
+//
+// testSupport
+//
+
+export const testForArchiveMod: V2077TestFunc = (
+  api: VortexApi,
+  fileTree: FileTree,
+): Promise<VortexTestResult> => {
+  if (detectArchiveCanonWithXLLayout(fileTree)) {
+    return Promise.resolve({ supported: true, requiredFiles: [] });
+  }
+
+  const files =
+    sourcePaths(fileTree);
+
+  let supported: boolean;
+  const filtered = files.filter(
+    (file: string) => path.extname(file).toLowerCase() === ARCHIVE_MOD_FILE_EXTENSION,
+  );
+
+  if (filtered.length === 0) {
+    return Promise.resolve({
+      supported: false,
+      requiredFiles: [],
+    });
+  }
+
+  if (files.length > filtered.length) {
+    // Figure out what the leftovers are and if they matter
+    // such as readmes, usage text, etc.
+    const unfiltered = files.filter((f: string) => !filtered.includes(f));
+
+    const importantBaseDirs = [`bin`, `r6`, `red4ext`];
+    const hasNonArchive =
+      unfiltered.find((f: string) =>
+        importantBaseDirs.includes(path.dirname(f).split(path.sep)[0])) !== undefined;
+
+    // there is a base folder for non archive mods, so why bother.
+    if (hasNonArchive) {
+      api.log(`info`, `Other mod folder exist... probably an archive as part of those.`);
+      return Promise.resolve({
+        supported: false,
+        requiredFiles: [],
+      });
+    }
+
+    supported = true;
+  } else if (files.length === filtered.length) {
+    // all files are archives
+    supported = true;
+  } else {
+    supported = false;
+    api.log(
+      `error`,
+      `I have no idea why filtering created more files than already existed. Needless to say, this can not be installed.`,
+    );
+  }
+
+  if (supported !== undefined && supported) {
+    api.log(`info`, `Only archive files, so installing them should be easy peasy.`);
+  } else {
+    supported = false;
+  }
+
+  return Promise.resolve({
+    supported,
+    requiredFiles: [],
+  });
+};
+
+//
+// install
+//
+
+export const installArchiveMod: V2077InstallFunc = (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Promise<VortexInstallResult> => {
+  const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
+
+  const files =
+    sourcePaths(fileTree);
+
   if (chosenInstructions === NoInstructions.NoMatch) {
     const message = `${InstallerType.Archive} installer failed to generate any instructions!`;
-    log("error", message, files);
+    api.log(`error`, message, files);
     return Promise.reject(new Error(message));
   }
 
   if (chosenInstructions === InvalidLayout.Conflict) {
-    log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
+    api.log(`debug`, `${InstallerType.Archive}: conflicting archive layouts`);
 
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
@@ -389,79 +579,37 @@ export const installArchiveMod: VortexWrappedInstallFunc = (
     );
   }
 
-  warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
+  const finalInstructions =
+    transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
 
-  return Promise.resolve({ instructions: chosenInstructions.instructions });
+  return Promise.resolve({ instructions: finalInstructions.instructions });
 };
 
 //
-// Including Archives with other stuff
+// Internal API for including in other installers
 //
-
-const extraCanonArchiveLayoutsAllowedInOtherModTypes = [
-  archiveCanonWithXLLayout,
-  archiveCanonLayout,
-  archiveHeritageLayout,
-];
-
-export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
-  detectArchiveCanonWithXLLayout(fileTree) ||
-  detectArchiveCanonLayout(fileTree) ||
-  detectArchiveHeritageLayout(fileTree);
 
 export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveInstructionsToUse = useFirstMatchingLayoutForInstructions(
-    api,
-    undefined,
-    fileTree,
-    extraCanonArchiveLayoutsAllowedInOtherModTypes,
-  );
+  const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
 
-  if (
-    archiveInstructionsToUse === NoInstructions.NoMatch ||
-    archiveInstructionsToUse === InvalidLayout.Conflict
-  ) {
-    api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
+  /*
+  const transformedInstructions =
+    maybeTransformToREDmod(api, canonicalInstructions, fileTree);
+    */
+  warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
-
-  return archiveInstructionsToUse;
+  return canonicalInstructions;
 };
 
 export const extraToplevelArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const archiveInstructionsToUse = archiveExtraToplevelLayout(api, undefined, fileTree);
+  const toplevelInstructions = instructionsForToplevelExtras(api, fileTree);
+  warnUserIfArchivesMightNeedManualReview(api, toplevelInstructions);
 
-  if (
-    archiveInstructionsToUse === NoInstructions.NoMatch ||
-    archiveInstructionsToUse === InvalidLayout.Conflict
-  ) {
-    api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
-    return { kind: NoLayout.Optional, instructions: [] };
-  }
-
-  // We should handle the potentially-conflicting archives case here,
-  // but it requires some extra logic (which we should do, just not now)
-  // and most likely most real mods do the right thing here and this won't
-  // be much of a problem in practice. But we should still fix it because
-  // it'll be a better design in addition to the robustness.
-  //
-  // Improvement/defect: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/74
-  warnUserIfArchivesMightNeedManualReview(api, archiveInstructionsToUse);
-
-  return archiveInstructionsToUse;
+  return toplevelInstructions;
 };

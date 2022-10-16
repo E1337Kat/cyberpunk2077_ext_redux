@@ -1,10 +1,6 @@
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
-  VortexProgressDelegate,
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
@@ -13,12 +9,18 @@ import {
   pathInTree,
   sourcePaths,
 } from "./filetree";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
   INPUT_LOADER_CORE_FILES,
 } from "./installers.layouts";
+import { Features } from "./features";
 
 const CoreInputLoaderInstructions: VortexInstruction[] = [
   {
@@ -49,21 +51,17 @@ const detectCoreInputLoader = (fileTree: FileTree): boolean =>
   // We just need to know this looks right, not that it is
   findCoreInputLoaderFiles(fileTree).length > 0;
 
-export const testForCoreInputLoader: VortexWrappedTestSupportedFunc = (
+export const testForCoreInputLoader: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreInputLoader(fileTree), requiredFiles: [] });
 
-export const installCoreInputLoader: VortexWrappedInstallFunc = async (
+export const installCoreInputLoader: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ) => {
   if (
     fileCount(fileTree) !== INPUT_LOADER_CORE_FILES.length ||

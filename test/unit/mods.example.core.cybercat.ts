@@ -7,7 +7,10 @@ import {
   ExamplePromptInstallableMod,
   movedFromTo,
 } from "./utils.helper";
-import { CYBERCAT_CORE_BASEDIR, CYBERCAT_CORE_REQUIRED_FILES } from "../../src/installers.layouts";
+import {
+  CYBERCAT_CORE_BASEDIR,
+  CYBERCAT_CORE_REQUIRED_FILES,
+} from "../../src/installers.layouts";
 
 const CoreCyberCatInstall = new Map<string, ExampleSucceedingMod>([
   [
@@ -34,10 +37,10 @@ const CoreCyberCatInstall = new Map<string, ExampleSucceedingMod>([
         movedFromTo(`vcruntime140_cor3.dll`, path.join(CYBERCAT_CORE_BASEDIR, `vcruntime140_cor3.dll`)),
         movedFromTo(`wpfgfx_cor3.dll`, path.join(CYBERCAT_CORE_BASEDIR, `wpfgfx_cor3.dll`)),
         movedFromTo(`licenses/CyberCAT.Core.LICENSE.txt`, path.join(CYBERCAT_CORE_BASEDIR, `licenses/CyberCAT.Core.LICENSE.txt`)),
-        movedFromTo(`previews/BodyGender/00.jpg`,path.join(CYBERCAT_CORE_BASEDIR, `previews/BodyGender/00.jpg`)),
+        movedFromTo(`previews/BodyGender/00.jpg`, path.join(CYBERCAT_CORE_BASEDIR, `previews/BodyGender/00.jpg`)),
       ],
     },
-  ]
+  ],
 ]);
 
 
@@ -56,8 +59,8 @@ const CoreCyberCatFailsDirectly = new Map<string, ExampleFailingMod>([
       ].map(path.normalize),
       failure: `CyberCAT archive seems to be missing required files!`,
       errorDialogTitle: `CyberCAT archive seems to be missing required files!`,
-    }
-  ]
+    },
+  ],
 ]);
 
 const examples: ExamplesForType = {

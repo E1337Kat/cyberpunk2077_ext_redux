@@ -1,49 +1,52 @@
 import { win32 } from "path";
-import { FileTree } from "./filetree";
-import { InstallerType } from "./installers.types";
+import {
+  FileTree,
+  sourcePaths,
+} from "./filetree";
+import {
+  InstallerType,
+  V2077TestFunc,
+} from "./installers.types";
 import {
   showErrorForDeprecatedModTool,
   wolvenKitDesktopFoundErrorDialog,
 } from "./ui.dialogs";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedTestSupportedFunc,
 } from "./vortex-wrapper";
 
 const path = win32;
 
-const CSVMERGE_UNIQUE_FILE = path.normalize("csvmerge/CSVMerge.cmd");
+const CSVMERGE_UNIQUE_FILE = path.normalize(`csvmerge/CSVMerge.cmd`);
 
-const WOLVENKIT_UNIQUE_FILE = path.normalize("WolvenKit CLI/WolvenKit.CLI.exe");
+const WOLVENKIT_UNIQUE_FILE = path.normalize(`WolvenKit CLI/WolvenKit.CLI.exe`);
 
-export const testCoreCsvMerge: VortexWrappedTestSupportedFunc = (
+export const testCoreCsvMerge: V2077TestFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  if (!files.includes(CSVMERGE_UNIQUE_FILE)) {
+  if (!sourcePaths(fileTree).includes(CSVMERGE_UNIQUE_FILE)) {
     return Promise.resolve({
       supported: false,
       requiredFiles: [],
     });
   }
 
-  const message = "CSVMerge has been deprecated.";
+  const message = `CSVMerge has been deprecated.`;
   showErrorForDeprecatedModTool(api, InstallerType.CoreCSVMerge, message);
   return Promise.reject(new Error(message));
 };
 
-export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
+export const testCoreWolvenKitCli: V2077TestFunc = (
   api: VortexApi,
-  log: VortexLogFunc,
-  files: string[],
-  _fileTree: FileTree,
+  fileTree: FileTree,
 ): Promise<VortexTestResult> => {
-  if (files.some((file: string) => file.toLowerCase().startsWith("wolvenkit desktop"))) {
-    const message = "WolvenKit Desktop is not able to be installed with Vortex.";
+  const files =
+    sourcePaths(fileTree);
+
+  if (files.some((file: string) => file.toLowerCase().startsWith(`wolvenkit desktop`))) {
+    const message = `WolvenKit Desktop is not able to be installed with Vortex.`;
     wolvenKitDesktopFoundErrorDialog(api, message);
     return Promise.reject(new Error(message));
   }
@@ -55,7 +58,7 @@ export const testCoreWolvenKitCli: VortexWrappedTestSupportedFunc = (
     });
   }
 
-  const message = "WolvenKit installation has been deprecated.";
+  const message = `WolvenKit installation has been deprecated.`;
   showErrorForDeprecatedModTool(api, InstallerType.CoreWolvenKit, message);
   return Promise.reject(new Error(message));
 };

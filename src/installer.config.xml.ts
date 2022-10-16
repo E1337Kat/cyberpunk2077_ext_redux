@@ -1,14 +1,14 @@
 import path from "path";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
-  VortexProgressDelegate,
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { FileTree, filesIn, FILETREE_ROOT } from "./filetree";
+import {
+  FileTree,
+  filesIn,
+  FILETREE_ROOT,
+} from "./filetree";
 import {
   MaybeInstructions,
   NoInstructions,
@@ -30,8 +30,14 @@ import {
   promptBeforeContinuingWithProtectedInstructions,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { Features } from "./features";
 
 // Recognizers
 
@@ -40,8 +46,7 @@ const matchConfigXml = (filePath: string): boolean =>
 
 export const findConfigXmlProtectedFiles = (fileTree: FileTree): string[] =>
   filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXml, fileTree).filter((xml) =>
-    CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)),
-  );
+    CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)));
 
 export const findConfigXmlCanonFiles = (fileTree: FileTree): string[] =>
   filesIn(CONFIG_XML_MOD_BASEDIR, matchConfigXml, fileTree).filter(
@@ -53,8 +58,7 @@ export const findConfigXmlMergeableFiles = (fileTree: FileTree): string[] =>
 
 export const findConfigXmlToplevelFiles = (fileTree: FileTree): string[] =>
   filesIn(FILETREE_ROOT, matchConfigXml, fileTree).filter((xml) =>
-    CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)),
-  );
+    CONFIG_XML_MOD_PROTECTED_FILENAMES.includes(path.basename(xml)));
 
 export const detectConfigXmlProtectedLayout = (fileTree: FileTree): boolean =>
   findConfigXmlProtectedFiles(fileTree).length > 0;
@@ -155,10 +159,8 @@ const configXmlTopevelLayout = (
 
 // testSupport
 
-export const testForConfigXmlMod: VortexWrappedTestSupportedFunc = (
+export const testForConfigXmlMod: V2077TestFunc = (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
 ): Promise<VortexTestResult> =>
   Promise.resolve({
@@ -172,13 +174,11 @@ export const testForConfigXmlMod: VortexWrappedTestSupportedFunc = (
 
 // install
 
-export const installConfigXmlMod: VortexWrappedInstallFunc = async (
+export const installConfigXmlMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  _modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const allPossibleConfigXmlLayouts = [
     configXmlProtectedLayout,

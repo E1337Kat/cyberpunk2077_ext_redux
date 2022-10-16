@@ -3,20 +3,27 @@ import * as A from "fp-ts/Array";
 import * as E from "fp-ts/Either";
 import * as J from "fp-ts/Json";
 import * as O from "fp-ts/Option";
-import { Option, some, none } from "fp-ts/Option";
+import {
+  Option,
+  some,
+  none,
+} from "fp-ts/Option";
 import * as T from "fp-ts/Task";
 import { pipe } from "fp-ts/lib/function";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
-  VortexProgressDelegate,
   VortexInstallResult,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { FileTree, FILETREE_ROOT, filesIn, dirWithSomeUnder } from "./filetree";
+import {
+  File,
+  FileMove,
+  FileTree,
+  FILETREE_ROOT,
+  filesIn,
+  dirWithSomeUnder,
+} from "./filetree";
 import {
   MaybeInstructions,
   NoInstructions,
@@ -32,16 +39,20 @@ import {
   PRESET_MOD_UNLOCKER_MASCDIR,
 } from "./installers.layouts";
 import {
-  File,
   fileFromDisk,
-  FileMove,
   fileMove,
   fileToInstruction,
   instructionsForSameSourceAndDestPaths,
   useFirstMatchingLayoutForInstructionsAsync,
 } from "./installers.shared";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import { Features } from "./features";
 
 const matchPresetExt = (filePath: string): boolean =>
   path.extname(filePath) === PRESET_MOD_EXTENSION;
@@ -66,24 +77,22 @@ const detectPresetLayout = (fileTree: FileTree): boolean =>
 
 const canonPrefixedPathByTypeIfActualPresetMod = (file: File): Option<FileMove> => {
   const cyberCatJsonMatcher = (keysInData: string[]) =>
-    keysInData.length >= PRESET_MOD_CYBERCAT_REQUIRED_KEYS.length &&
+    (keysInData.length >= PRESET_MOD_CYBERCAT_REQUIRED_KEYS.length &&
     PRESET_MOD_CYBERCAT_REQUIRED_KEYS.every((key) => keysInData.includes(key))
       ? some(fileMove(PRESET_MOD_CYBERCAT_BASEDIR, file))
-      : none;
+      : none);
 
   const unlockerStringContentMatcherFem = (): Option<FileMove> =>
-    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST.every((required) =>
-      file.content.match(required),
-    )
+    (PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_FEM_MUST_MATCH_FIRST.every((required) =>
+      file.content.match(required))
       ? some(fileMove(PRESET_MOD_UNLOCKER_FEMDIR, file))
-      : none;
+      : none);
 
   const unlockerStringContentMatcherMasc = (): Option<FileMove> =>
-    PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC.every((required) =>
-      file.content.match(required),
-    )
+    (PRESET_MOD_UNLOCKER_REQUIRED_MATCHES_MASC.every((required) =>
+      file.content.match(required))
       ? some(fileMove(PRESET_MOD_UNLOCKER_MASCDIR, file))
-      : none;
+      : none);
 
   const maybeRealPreset = pipe(
     J.parse(file.content),
@@ -98,15 +107,17 @@ const canonPrefixedPathByTypeIfActualPresetMod = (file: File): Option<FileMove> 
 
 const presetInstructionsFromDecodingUnknownPresets = async (
   layoutTypeIfMatch: PresetLayout,
-  sourceDirPathForMod: string,
+  installingDir: string,
   dir: string,
   fileTree: FileTree,
 ): Promise<MaybeInstructions> => {
   const allCandidates: File[] = await pipe(
     findPresetFilesIn(dir, fileTree),
     A.traverse(T.ApplicativePar)((filePath) =>
-      fileFromDisk(path.join(sourceDirPathForMod, filePath), filePath),
-    ),
+      fileFromDisk({
+        pathOnDisk: path.join(installingDir, filePath),
+        relativePath: filePath,
+      })),
   )();
 
   const presetInstructions: VortexInstruction[] = pipe(
@@ -134,7 +145,7 @@ const presetInstructionsFromDecodingUnknownPresets = async (
 //
 
 const presetCanonCyberCatLayout = (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
@@ -155,7 +166,7 @@ const presetCanonCyberCatLayout = (
 };
 
 const presetCanonUnlockerLayout = (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
@@ -176,42 +187,36 @@ const presetCanonUnlockerLayout = (
 };
 
 const presetLegacyUnlockerLayout = async (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
-  sourceDirPathForMod: string,
+  installingDir: string,
 ): Promise<MaybeInstructions> =>
   presetInstructionsFromDecodingUnknownPresets(
     PresetLayout.ACLegacy,
-    sourceDirPathForMod,
+    installingDir,
     PRESET_MOD_UNLOCKER_BASEDIR,
     fileTree,
   );
 
 const presetToplevelLayout = async (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
-  sourceDirPathForMod: string,
+  installingDir: string,
 ): Promise<MaybeInstructions> =>
   presetInstructionsFromDecodingUnknownPresets(
     PresetLayout.Toplevel,
-    sourceDirPathForMod,
+    installingDir,
     FILETREE_ROOT,
     fileTree,
   );
 
 // testSupport
 
-export const testForPresetMod: VortexWrappedTestSupportedFunc = async (
+export const testForPresetMod: V2077TestFunc = async (
   _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  _destinationPath: string,
-  _sourceDirPathForMod: string,
-  _stagingDirPathForMod: string,
-  _modName: string,
 ): Promise<VortexTestResult> => ({
   supported: detectPresetLayout(fileTree),
   requiredFiles: [],
@@ -219,19 +224,17 @@ export const testForPresetMod: VortexWrappedTestSupportedFunc = async (
 
 // install
 
-export const installPresetMod: VortexWrappedInstallFunc = async (
+export const installPresetMod: V2077InstallFunc = async (
   api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  stagingDirPath: string,
-  _progressDelegate: VortexProgressDelegate,
+  modInfo: ModInfo,
+  _features: Features,
 ): Promise<VortexInstallResult> => {
   const selectedInstructions = await useFirstMatchingLayoutForInstructionsAsync(
     api,
     undefined,
     fileTree,
-    stagingDirPath,
+    modInfo.installingDir.pathOnDisk,
     [
       presetCanonCyberCatLayout,
       presetCanonUnlockerLayout,

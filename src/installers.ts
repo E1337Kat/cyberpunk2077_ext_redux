@@ -1,54 +1,128 @@
 import { win32 } from "path";
+import { pipe } from "fp-ts/lib/function";
+import {
+  filter,
+  map,
+  toArray,
+} from "fp-ts/lib/ReadonlyArray";
+import { not } from "fp-ts/lib/Predicate";
 import {
   fileCount,
   FileTree,
   fileTreeFromPaths,
   FILETREE_ROOT,
+  pathEq,
+  pathIn,
   sourcePaths,
   subdirNamesIn,
+  subdirsIn,
   subtreeFrom,
 } from "./filetree";
 import {
   VortexApi,
-  VortexLogFunc,
   VortexTestResult,
   VortexInstallResult,
   VortexProgressDelegate,
-  VortexWrappedInstallFunc,
-  VortexWrappedTestSupportedFunc,
   VortexExtensionContext,
   VortexTestSupportedFunc,
   VortexInstallFunc,
   VortexInstruction,
 } from "./vortex-wrapper";
-import { KNOWN_TOPLEVEL_DIRS, NoLayout } from "./installers.layouts";
+import {
+  KNOWN_TOPLEVEL_DIRS,
+  NoLayout,
+} from "./installers.layouts";
 import {
   testForCetCore,
   installCetCore,
 } from "./installer.core";
 import { GAME_ID } from "./index.metadata";
-import { Installer, InstallerType, InstallerWithPriority } from "./installers.types";
-import { installCoreTweakXL, testForCoreTweakXL } from "./installer.core-tweak-xl";
-import { testForFallback, installFallback } from "./installer.fallback";
-import { installTweakXLMod, testForTweakXLMod } from "./installer.tweak-xl";
-import { installCoreArchiveXL, testForCoreArchiveXL } from "./installer.core-archive-xl";
-import { testForArchiveMod, installArchiveMod } from "./installer.archive";
-import { testForMultiTypeMod, installMultiTypeMod } from "./installer.multitype";
-import { testForAsiMod, installAsiMod } from "./installer.asi";
-import { testForCetMod, installCetMod } from "./installer.cet";
-import { testForIniMod, installIniMod } from "./installer.config.ini-reshade";
-import { testForJsonMod, installJsonMod } from "./installer.config.json";
-import { installConfigXmlMod, testForConfigXmlMod } from "./installer.config.xml";
-import { testForRed4ExtMod, installRed4ExtMod } from "./installer.red4ext";
-import { testForRedscriptMod, installRedscriptMod } from "./installer.redscript";
-import { makeSyntheticName } from "./installers.shared";
+import {
+  Installer,
+  InstallerType,
+  InstallerWithPriority,
+  ModInfo,
+  V2077InstallFunc,
+  V2077TestFunc,
+} from "./installers.types";
+import {
+  installCoreTweakXL,
+  testForCoreTweakXL,
+} from "./installer.core-tweak-xl";
+import {
+  testForFallback,
+  installFallback,
+} from "./installer.fallback";
+import {
+  installTweakXLMod,
+  testForTweakXLMod,
+} from "./installer.tweak-xl";
+import {
+  installCoreArchiveXL,
+  testForCoreArchiveXL,
+} from "./installer.core-archive-xl";
+import {
+  testForArchiveMod,
+  installArchiveMod,
+} from "./installer.archive";
+import {
+  testForMultiTypeMod,
+  installMultiTypeMod,
+} from "./installer.multitype";
+import {
+  testForAsiMod,
+  installAsiMod,
+} from "./installer.asi";
+import {
+  testForCetMod,
+  installCetMod,
+} from "./installer.cet";
+import {
+  testForIniMod,
+  installIniMod,
+} from "./installer.config.ini-reshade";
+import {
+  testForJsonMod,
+  installJsonMod,
+} from "./installer.config.json";
+import {
+  installConfigXmlMod,
+  testForConfigXmlMod,
+} from "./installer.config.xml";
+import {
+  testForRed4ExtMod,
+  installRed4ExtMod,
+} from "./installer.red4ext";
+import {
+  testForRedscriptMod,
+  installRedscriptMod,
+} from "./installer.redscript";
+import { modInfoFromArchiveNameOrSynthetic } from "./installers.shared";
 import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
-import { InfoNotification, showInfoNotification } from "./ui.notifications";
-import { installCoreAmm, testForCoreAmm } from "./installer.core.amm";
-import { installCoreCyberCat, testForCyberCatCore } from "./installer.core.cybercat";
-import { installAmmMod, testForAmmMod } from "./installer.amm";
-import { installPresetMod, testForPresetMod } from "./installer.preset";
-import { testCoreCsvMerge, testCoreWolvenKitCli } from "./installer.special.deprecated";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
+import {
+  installCoreAmm,
+  testForCoreAmm,
+} from "./installer.core.amm";
+import {
+  installCoreCyberCat,
+  testForCyberCatCore,
+} from "./installer.core.cybercat";
+import {
+  installAmmMod,
+  testForAmmMod,
+} from "./installer.amm";
+import {
+  installPresetMod,
+  testForPresetMod,
+} from "./installer.preset";
+import {
+  testCoreCsvMerge,
+  testCoreWolvenKitCli,
+} from "./installer.special.deprecated";
 import {
   installCoreInputLoader,
   testForCoreInputLoader,
@@ -57,9 +131,19 @@ import {
   installCoreCyberScript,
   testForCoreCyberScript,
 } from "./installer.core.cyberscript";
-import { installRed4ExtCore, testRed4ExtCore } from "./installer.core.red4ext";
-import { installREDmod, testForREDmod } from "./installer.redmod";
-import { installCoreRedscript, testForCoreRedscript } from "./installer.core.redscript";
+import {
+  installRed4ExtCore,
+  testRed4ExtCore,
+} from "./installer.core.red4ext";
+import {
+  installREDmod,
+  testForREDmod,
+} from "./installer.redmod";
+import {
+  installCoreRedscript,
+  testForCoreRedscript,
+} from "./installer.core.redscript";
+import { Features } from "./features";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -69,23 +153,12 @@ const PRIORITY_STARTING_NUMBER = PRIORITY_FOR_PIPELINE_INSTALLER + 1;
 
 // testSupported that always fails
 //
-export const notSupportedModType: VortexWrappedTestSupportedFunc = (
-  _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
-  _fileTree: FileTree,
-): Promise<VortexTestResult> => Promise.resolve({ supported: false, requiredFiles: [] });
+export const notSupportedModType: V2077TestFunc = (): Promise<VortexTestResult> =>
+  Promise.resolve({ supported: false, requiredFiles: [] });
 
 // install that always fails
 //
-export const notInstallableMod: VortexWrappedInstallFunc = (
-  _api: VortexApi,
-  _log: VortexLogFunc,
-  _files: string[],
-  _fileTree: FileTree,
-  _destinationPath: string,
-  _progressDelegate: VortexProgressDelegate,
-) => {
+export const notInstallableMod: V2077InstallFunc = () => {
   throw new Error(`Should never get here`);
 };
 
@@ -297,35 +370,34 @@ const installerPipeline: InstallerWithPriority[] = installers.reduce(
 
 const fallbackInstaller = installerPipeline[installerPipeline.length - 1];
 
+// Let's be cautious
+if (fallbackInstaller.type !== InstallerType.Fallback) {
+  throw new Error(`Fallback installer not found in pipeline`);
+}
+
 //
-// Install nonsense
+// Installation stuff
 //
 
+// This should probably be moved
 const detectGiftwrapLayout = (fileTree: FileTree) : boolean => {
-  const toplevelDirs = subdirNamesIn(FILETREE_ROOT, fileTree);
+  const toplevelDirs = subdirsIn(FILETREE_ROOT, fileTree);
 
   if (toplevelDirs.length !== 1) {
     return false;
   }
 
-  const toplevelDir = toplevelDirs[0];
+  const giftwrapperDir = toplevelDirs[0];
 
-  const allFirstLevelSubdirs = subdirNamesIn(toplevelDir, fileTree);
+  const allValidWrappableSubdirs = pipe(
+    subdirNamesIn(giftwrapperDir, fileTree),
+    filter(pathIn(KNOWN_TOPLEVEL_DIRS)),
+  );
 
-  if (allFirstLevelSubdirs.length < 1) {
-    return false;
-  }
-
-  const subdirsMatchingKnownToplevelSubdirs = allFirstLevelSubdirs.filter((dir) =>
-    KNOWN_TOPLEVEL_DIRS.includes(dir));
-
-  if (allFirstLevelSubdirs.length === subdirsMatchingKnownToplevelSubdirs.length) {
+  if (allValidWrappableSubdirs.length > 0) {
     return true;
   }
 
-  // For now, we’ll allow files to exist at toplevel
-  // since we do have a reasonable indication the
-  // top of the mod is a wrapper
   return false;
 };
 
@@ -352,51 +424,58 @@ interface UnwrappedFileTree {
 
 type ProcessedFileTree = NotModifiedFileTree | UnwrappedFileTree;
 
-const unwrapTreeIfNecessary = (api: VortexApi, fileTree: FileTree): ProcessedFileTree => {
-  const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
+const unwrapTreeIfNecessary =
+  (api: VortexApi, fileTree: FileTree): ProcessedFileTree => {
+    const haveGiftwrappedMod = detectGiftwrapLayout(fileTree);
 
-  const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
+    const wrapperDir = subdirNamesIn(FILETREE_ROOT, fileTree)[0];
 
-  const transformedTree = haveGiftwrappedMod
-    ? subtreeFrom(wrapperDir, fileTree)
-    : fileTree;
+    const transformedTree = haveGiftwrappedMod
+      ? subtreeFrom(wrapperDir, fileTree)
+      : fileTree;
 
-  const unwrappedPaths = sourcePaths(transformedTree);
+    const unwrappedPaths = sourcePaths(transformedTree);
 
-  if (haveGiftwrappedMod) {
-    api.log(`info`, `Mod was giftwrapped, unwrapped it for install.`);
-    api.log(`debug`, `Using unwrapped filetree: `, unwrappedPaths);
+    if (haveGiftwrappedMod) {
+      api.log(`info`, `Mod was giftwrapped, unwrapped it for install.`);
+      api.log(`debug`, `Using unwrapped filetree: `, unwrappedPaths);
 
-    const unwrappedTree : UnwrappedFileTree = {
-      transform: Transform.Unwrapped,
-      fileTree: transformedTree,
-      originalTree: fileTree,
-      wrapperDir,
+      const unwrappedTree : UnwrappedFileTree = {
+        transform: Transform.Unwrapped,
+        fileTree: transformedTree,
+        originalTree: fileTree,
+        wrapperDir,
+      };
+
+      return unwrappedTree;
+    }
+
+    const unmodifiedTree: NotModifiedFileTree = {
+      transform: undefined,
+      fileTree,
     };
 
-    return unwrappedTree;
-  }
-
-  const unmodifiedTree: NotModifiedFileTree = {
-    transform: undefined,
-    fileTree,
+    return unmodifiedTree;
   };
-
-  return unmodifiedTree;
-};
 
 const giftwrapSourcesAgainIfNecessary = (
   api: VortexApi,
   treeInUse: ProcessedFileTree,
   instructions: VortexInstruction[],
-): VortexInstruction[] =>
-  (treeInUse.transform === Transform.Unwrapped
-    ? instructions.map(({ type, source, destination }: VortexInstruction) => ({
-      type,
-      source: path.join(treeInUse.wrapperDir, source),
-      destination,
-    }))
-    : instructions);
+): readonly VortexInstruction[] =>
+  (treeInUse.transform !== Transform.Unwrapped
+    ? instructions
+    : pipe(
+      instructions,
+      map((instruction) => (
+        instruction.source
+          ? {
+            ...instruction,
+            source: path.join(treeInUse.wrapperDir, instruction.source),
+          }
+          : instruction
+      )),
+    ));
 
 //
 // (wrap) `testSupported`
@@ -414,9 +493,10 @@ export const wrapTestSupported =
     vortexApiThing,
     installer: Installer,
   ): VortexTestSupportedFunc =>
-    (files: string[], gameId: string) => {
     //
-      const vortexLog: VortexLogFunc = vortexApiThing.log;
+    // This is the function that Vortex calls.
+    (filesRelativePaths: string[], gameId: string) => {
+    //
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       if (gameId !== GAME_ID) {
@@ -425,15 +505,13 @@ export const wrapTestSupported =
       }
 
       vortexApi.log(`info`, `Testing for ${installer.type}`);
-      vortexApi.log(`debug`, `Input files: `, files);
+      vortexApi.log(`debug`, `Input files: `, filesRelativePaths);
 
-      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+      const treeForTesting = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
 
       // Unlike in `install`, Vortex doesn't supply us the mod's disk path
       return installer.testSupported(
         vortexApi,
-        vortexLog,
-        sourcePaths(treeForTesting.fileTree),
         treeForTesting.fileTree,
       );
     };
@@ -455,46 +533,56 @@ export const wrapInstall =
     vortex: VortexExtensionContext,
     vortexApiThing,
     installer: Installer,
+    features: Features,
   ): VortexInstallFunc =>
+    //
+    // This is the function that Vortex calls
     async (
-      files: string[],
-      destinationPath: string,
+      filesRelativePaths: string[],
+      destinationDirPath: string,
       _gameId: string,
-      progressDelegate: VortexProgressDelegate,
-      choices?: unknown,
-      unattended?: boolean,
+      _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
     //
-      const vortexLog: VortexLogFunc = vortexApiThing.log;
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexLog };
+      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
-      vortexApi.log(`debug`, `Input files:`, files);
+      vortexApi.log(`debug`, `Input files:`, filesRelativePaths);
 
-      const treeForInstallers = unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(files));
+
+      const treeForInstallers =
+        unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
+
       const sourceFileCount = fileCount(treeForInstallers.fileTree);
 
-      const stagingDirPathForMod = path.join(
-        path.dirname(destinationPath),
-        path.basename(destinationPath, `.installing`),
-      );
+      const archivePathOnDisk = destinationDirPath;
 
-      const sourceDirPathForMod = destinationPath; // Seriously wtf Vortex
+      const archivePath =
+        treeForInstallers.transform !== Transform.Unwrapped
+          ? archivePathOnDisk
+          : pipe(
+            archivePathOnDisk.split(path.sep),
+            filter(not(pathEq(treeForInstallers.wrapperDir))),
+            (parts) => path.join(...parts),
+          );
 
-      const modName = makeSyntheticName(stagingDirPathForMod);
+      const modInfo =
+        modInfoFromArchiveNameOrSynthetic({
+          relativePath: archivePath,
+          pathOnDisk: archivePathOnDisk,
+        });
+
+      vortexApi.log(`info`, `Extracted mod info from path: ${destinationDirPath}`);
+      vortexApi.log(`info`, `Parsed or generated mod info: `, modInfo);
+
+      const modName =
+        modInfo.name;
 
       const instructionsFromInstaller = await installer.install(
         vortexApi,
-        vortexLog,
-        sourcePaths(treeForInstallers.fileTree),
         treeForInstallers.fileTree,
-        destinationPath,
-        progressDelegate,
-        sourceDirPathForMod,
-        stagingDirPathForMod,
-        modName,
-        choices,
-        unattended,
+        modInfo,
+        features,
       );
 
       const allSourceFilesAccountedFor =
@@ -535,23 +623,17 @@ export const wrapInstall =
         vortexApi.log(`info`, `instructions generated by ${installer.type}`);
       }
 
-      const finalInstructions = !stillMissingSourceFiles
-        ? allInstructionsWeKnowHowToGenerate
-        : (
-          await fallbackInstaller.install(
-            vortexApi,
-            vortexApi.log,
-            sourcePaths(treeForInstallers.fileTree),
-            treeForInstallers.fileTree,
-            destinationPath,
-            progressDelegate,
-            sourceDirPathForMod,
-            stagingDirPathForMod,
-            modName,
-            choices,
-            unattended,
-          )
-        ).instructions;
+      const finalInstructions =
+        !stillMissingSourceFiles
+          ? allInstructionsWeKnowHowToGenerate
+          : (
+            await fallbackInstaller.install(
+              vortexApi,
+              treeForInstallers.fileTree,
+              modInfo,
+              features,
+            )
+          ).instructions;
 
       const instructionsFromFullyResolvedSources = giftwrapSourcesAgainIfNecessary(
         vortexApi,
@@ -566,7 +648,7 @@ export const wrapInstall =
       }
 
       return Promise.resolve({
-        instructions: instructionsFromFullyResolvedSources,
+        instructions: toArray(instructionsFromFullyResolvedSources),
       });
     };
 
@@ -580,10 +662,8 @@ export const wrapInstall =
 // Doing this avoids having to match the installer twice,
 // but if it turns out to be necessary... well, we can just
 // do that, then.
-const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
+const testUsingPipelineOfInstallers: V2077TestFunc = async (
   _vortexApi: VortexApi,
-  _vortexLog: VortexLogFunc,
-  _files: string[],
   _fileTree: FileTree,
 ): Promise<VortexTestResult> => Promise.resolve({ supported: true, requiredFiles: [] });
 
@@ -592,18 +672,11 @@ const testUsingPipelineOfInstallers: VortexWrappedTestSupportedFunc = async (
 // turn (by priority) for `testSupport` on the mod. If an installer
 // is found, it's used to get the instructions. If not: error.
 //
-const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
+const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   vortexApi: VortexApi,
-  vortexLog: VortexLogFunc,
-  _files: string[],
   fileTree: FileTree,
-  destinationPath: string,
-  progressDelegate: VortexProgressDelegate,
-  sourceDirPathForMod: string,
-  stagingDirPathForMod: string,
-  modName: string,
-  choices?: unknown,
-  unattended?: boolean,
+  modInfo: ModInfo,
+  features: Features,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
 
@@ -619,13 +692,9 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
     // eslint-disable-next-line no-await-in-loop
     const testResult = await candidateInstaller.testSupported(
       vortexApi,
-      vortexLog,
-      sourcePaths(fileTree),
       fileTree,
-      destinationPath,
-      sourceDirPathForMod,
-      stagingDirPathForMod,
-      modName,
+      modInfo,
+      features,
     );
 
     if (testResult.supported === true) {
@@ -645,16 +714,9 @@ const installUsingPipelineOfInstallers: VortexWrappedInstallFunc = async (
 
   const selectedInstructions = await matchingInstaller.install(
     vortexApi,
-    vortexLog,
-    sourcePaths(fileTree),
     fileTree,
-    sourceDirPathForMod,
-    progressDelegate,
-    sourceDirPathForMod,
-    stagingDirPathForMod,
-    modName,
-    choices,
-    unattended,
+    modInfo,
+    features,
   );
 
   vortexApi.log(`info`, `${me}: instructions generated by ${matchingInstaller.type}`);

@@ -21,7 +21,7 @@ import {
 const minimalPresetForCyberCat = JSON.stringify({
   DataExists: true,
   Unknown1: 0,
-  UnknownFirstBytes: "FUBARO",
+  UnknownFirstBytes: `FUBARO`,
   FirstSection: {
     AppearanceSections: [] as string[],
   },
@@ -33,9 +33,9 @@ const minimalPresetForCyberCat = JSON.stringify({
   },
   StringTriples: [
     {
-      FirstString: "",
-      SecondString: "",
-      ThirdString: "",
+      FirstString: ``,
+      SecondString: ``,
+      ThirdString: ``,
     },
   ],
 } as PresetModCyberCatJson);
