@@ -164,6 +164,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
@@ -185,6 +186,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
         ),
       ],
+      infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],

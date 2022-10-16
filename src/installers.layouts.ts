@@ -120,9 +120,8 @@ export const enum ExtraFilesLayout {
 // Giftwrapped
 
 export const enum GiftwrapLayout {
-  ExtraToplevelDir = `Either
+  ExtraToplevelDir = `
                       | - .\\[dirname]\\[any dir that should be toplevel: archive, bin, engine, r6, red4ext]
-                      | - .\\[dirname]\\mods\\[modname]\\info.json {name: modname...} + [any REDmod subdirs]
                     `,
 }
 
@@ -1073,6 +1072,10 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     - \`${REDmodLayout.Canon}\` (Canonical)
     - \`${REDmodLayout.Named}\` (Can be fixed to canonical)
     - \`${REDmodLayout.Toplevel}\` (Can be fixed to canonical)
+
+    Additionally
+
+    - \`${REDmodTransformedLayout.Archive}\`
     `,
   ],
   [

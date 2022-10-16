@@ -20,6 +20,7 @@ export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
   REDmodArchiveAutoconverted = `V2077-notify-info-redmod-archive-autoconverted`,
+  REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
 }
 
 //
@@ -49,9 +50,18 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     InfoNotification.REDmodArchiveAutoconverted,
     {
       id: InfoNotification.REDmodArchiveAutoconverted,
-      type: `info`,
+      type: `success`,
       title: `Mod Autoconverted to REDmod`,
       message: `The mod was automatically converted and will be installed as a REDmod`,
+    },
+  ],
+  [
+    InfoNotification.REDmodArchiveNOTautoconverted,
+    {
+      id: InfoNotification.REDmodArchiveNOTautoconverted,
+      type: `info`,
+      title: `Mod NOT Autoconverted to REDmod`,
+      message: `The mod was NOT automatically converted and will be installed as a regular mod`,
     },
   ],
 ]);

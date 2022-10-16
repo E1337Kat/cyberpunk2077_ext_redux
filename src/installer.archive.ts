@@ -1,9 +1,9 @@
 import path from "path";
-import { pipe } from "fp-ts/lib/function";
 import {
-  map,
-  toArray,
-} from "fp-ts/lib/ReadonlyArray";
+  Either,
+  isLeft,
+  right,
+} from "fp-ts/lib/Either";
 import { showArchiveInstallWarning } from "./ui.dialogs";
 import {
   PathFilter,
@@ -32,17 +32,11 @@ import {
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
-  REDmodTransformedLayout,
-  REDMOD_BASEDIR,
-  REDMOD_INFO_FILENAME,
-  REDMOD_ARCHIVES_DIRNAME,
-  REDmodInfo,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
   instructionsForSourceToDestPairs,
   moveFromTo,
-  modInfoTaggedAsAutoconverted,
   useFirstMatchingLayoutForInstructions,
 } from "./installers.shared";
 import {
@@ -55,16 +49,14 @@ import {
   VortexApi,
   VortexTestResult,
   VortexInstallResult,
-  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   Feature,
   Features,
 } from "./features";
-import {
-  InfoNotification,
-  showInfoNotification,
-} from "./ui.notifications";
+import { transformToREDmodArchiveInstructions } from "./installer.redmod";
+
+const me = InstallerType.Archive;
 
 //
 
@@ -380,98 +372,20 @@ const instructionsForToplevelExtras = (
 // REDmod stuff
 //
 
-const transformToREDmodInstructions = (
-  api: VortexApi,
-  features: Features,
-  modInfo: ModInfo,
-  originalInstructions: Instructions,
-): Instructions => {
-  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    api.log(`error`, `${InstallerType.Archive}: REDmod transform function called but feature is disabled`);
-    return originalInstructions;
-  }
-
-  const redmodInfoWithAutoconvertTag =
-    modInfoTaggedAsAutoconverted(modInfo);
-
-  const redmodModuleName =
-    redmodInfoWithAutoconvertTag.name;
-
-  const redmodVersion =
-    redmodInfoWithAutoconvertTag.version.v;
-
-  const destinationDirWithModnamePrefix =
-    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
-
-  const destinationArchiveDirWithModnamePrefix =
-    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
-
-  // This should really be handled through fp-ts/json, but
-  // for now I can't be bothered..
-  const infoJson: REDmodInfo = {
-    name: redmodModuleName,
-    version: redmodVersion,
-  };
-
-  const generateInfoJsonInstruction: VortexInstruction = {
-    type: `generatefile`,
-    data: JSON.stringify(infoJson),
-    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
-  };
-
-  api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
-
-  const instructionsWithDestinationSwitchedToREDmodDir = pipe(
-    originalInstructions.instructions,
-    map((instruction) =>
-      (!instruction.destination
-        ? instruction
-        : {
-          ...instruction,
-          destination: instruction.destination.replace(
-            ARCHIVE_MOD_CANONICAL_PREFIX,
-            destinationArchiveDirWithModnamePrefix,
-          ),
-        }
-      )),
-    toArray,
-  );
-
-  const allREDmodTransformedInstructions = [
-    generateInfoJsonInstruction,
-    ...instructionsWithDestinationSwitchedToREDmodDir,
-  ];
-
-  showInfoNotification(
-    api,
-    InfoNotification.REDmodArchiveAutoconverted,
-    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
-  );
-
-  return {
-    kind: REDmodTransformedLayout.Archive,
-    instructions: allREDmodTransformedInstructions,
-  };
-};
 
 const transformAndValidateAndFinalizeInstructions = (
   api: VortexApi,
   features: Features,
   modInfo: ModInfo,
   originalInstructions: Instructions,
-): Instructions => {
-  //
-  // This needs to be moved after the finalization but needs logic changes?
-  //
-
-  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
-
-    return originalInstructions;
+): Either<Error, Instructions> => {
+  if (features.REDmodAutoconvertArchives === Feature.Enabled) {
+    return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
   }
 
-  return transformToREDmodInstructions(api, features, modInfo, originalInstructions);
+  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
+  return right(originalInstructions);
 };
 
 //
@@ -582,33 +496,63 @@ export const installArchiveMod: V2077InstallFunc = (
   const finalInstructions =
     transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
 
-  return Promise.resolve({ instructions: finalInstructions.instructions });
+  if (isLeft(finalInstructions)) {
+    return Promise.reject(finalInstructions.left);
+  }
+
+  return Promise.resolve({ instructions: finalInstructions.right.instructions });
 };
 
 //
 // Internal API for including in other installers
 //
 
+export const extraCanonArchiveInstructionsForMultiType = (
+  api: VortexApi,
+  fileTree: FileTree,
+  modInfo: ModInfo,
+  features: Features,
+): Instructions => {
+  const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
+
+  if (canonicalInstructions.kind === NoLayout.Optional) {
+    api.log(`debug`, `${me} (MultiType): No valid canon archives found for multitype (this is ok)`);
+    return canonicalInstructions;
+  }
+
+  const finalInstructions =
+    transformAndValidateAndFinalizeInstructions(api, features, modInfo, canonicalInstructions);
+
+  if (isLeft(finalInstructions)) {
+    api.log(`warn`, `${me} (MultiType): Unable to autoconvert to REDmod, falling back to archive install: ${finalInstructions.left.message}`);
+    return canonicalInstructions;
+  }
+
+  api.log(`info`, `${me} (MultiType): Autoconverted Archive to REDmod`);
+  return finalInstructions.right;
+};
+
+// This should all be done in MultiType, not spread around
+// https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/259
 export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
   const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
 
-  /*
-  const transformedInstructions =
-    maybeTransformToREDmod(api, canonicalInstructions, fileTree);
-    */
   warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
   return canonicalInstructions;
 };
 
+// This should all be done in MultiType, not spread around
+// https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/259
 export const extraToplevelArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
   const toplevelInstructions = instructionsForToplevelExtras(api, fileTree);
+
   warnUserIfArchivesMightNeedManualReview(api, toplevelInstructions);
 
   return toplevelInstructions;
