@@ -66,3 +66,9 @@ export type VortexInstallFunc = Vortex.InstallFunc;
 export type VortexInstallResult = Vortex.IInstallResult;
 export type VortexInstruction = Vortex.IInstruction;
 export type VortexInstructionType = Vortex.InstructionType;
+
+export type VortexMod = Vortex.IMod;
+// Should really make this typesafe
+export type VortexModWithEnabledStatus = VortexMod & { enabled: boolean, enabledTime: number };
+
+export type VortexModState = { [modId: string]: VortexMod };

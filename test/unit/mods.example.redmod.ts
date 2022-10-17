@@ -2,6 +2,7 @@ import path from "path";
 import {
   REDMOD_BASEDIR,
   REDMOD_INFO_FILENAME,
+  REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
@@ -15,6 +16,7 @@ import {
   mockedFsLayout,
   mergeOrFailOnConflict,
   createdDirectory,
+  addedMetadataAttribute,
 } from "./utils.helper";
 
 const myRedModInfoJson = JSON.stringify({
@@ -62,6 +64,7 @@ const myRedModNumber2InfoJson = JSON.stringify({
   version: `1.0.1`,
 });
 
+
 const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
   [
     `canonical REDmod with dir matching mod name`,
@@ -87,6 +90,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -114,6 +118,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -150,6 +155,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedModNumber2/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedModNumber2/archives/boring_stuff.archive`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -195,6 +201,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -225,6 +232,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -270,6 +278,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedModNumber2/archives/4d.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -328,6 +337,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -355,6 +365,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -411,6 +422,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -443,6 +455,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/${NOTmyRedModInfo.name}/archives/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -470,6 +483,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],
@@ -503,6 +517,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/isntreallyvalid/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
     },
@@ -536,6 +551,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_option1.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
     },
@@ -566,6 +582,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],

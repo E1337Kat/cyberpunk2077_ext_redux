@@ -6,10 +6,14 @@ import { pipe } from "fp-ts/lib/function";
 import {
   flatten,
   map,
+  sortBy,
 } from "fp-ts/lib/ReadonlyArray";
+import { contramap } from "fp-ts/lib/Ord";
+import { Ord as StringOrd } from "fp-ts/lib/string";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import {
   InstallerType,
+  ModAttribute,
   ModInfo,
 } from "../../src/installers.types";
 import {
@@ -27,7 +31,10 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
-import { normalizeDir } from "../../src/filetree";
+import {
+  normalizeDir,
+  safeNormalizePath,
+} from "../../src/filetree";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -203,6 +210,12 @@ export const generatedFile = (contents: string, ...dest: string[]): VortexInstru
   destination: path.join(...dest),
 });
 
+export const addedMetadataAttribute = ({ key, value }: ModAttribute): VortexInstruction => ({
+  type: `attribute`,
+  key,
+  value,
+});
+
 export const expectedUserCancelMessageFor = (installerType: InstallerType): string =>
   `${installerType}: user chose to cancel installation`;
 
@@ -281,14 +294,20 @@ export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
 // Actual test helpers
 //
 
-export const compareByDestination = (a: VortexInstruction, b: VortexInstruction): number => {
-  if (!a?.destination || !b?.destination) {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    throw new Error(`null destination, shouldn't happen: ${{ a, b }}`);
-  } else {
-    return a.destination.localeCompare(b.destination);
-  }
-};
+const destinationOrd = pipe(
+  StringOrd,
+  contramap(({ destination }: VortexInstruction) =>
+    safeNormalizePath(destination ?? ``)),
+);
 
-export const sortByDestination = (instructions: VortexInstruction[]): VortexInstruction[] =>
-  instructions.sort(compareByDestination);
+const attributeOrd = pipe(
+  StringOrd,
+  contramap(({ key, value }: VortexInstruction) =>
+    `${key ?? ``}:${value ?? ``}`),
+);
+
+export const sortInstructionsForComparison =
+  (instructions: readonly VortexInstruction[]): readonly VortexInstruction[] => pipe(
+    instructions,
+    sortBy([destinationOrd, attributeOrd]),
+  );

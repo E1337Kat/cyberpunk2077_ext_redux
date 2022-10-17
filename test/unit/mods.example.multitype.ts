@@ -10,6 +10,7 @@ import {
   REDMOD_BASEDIR,
   REDMOD_SCRIPTS_MODDED_DIR,
   REDMOD_INFO_FILENAME,
+  REDMOD_MODTYPE_ATTRIBUTE,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
@@ -37,6 +38,7 @@ import {
   createdDirectory,
   mockedFsLayout,
   mergeOrFailOnConflict,
+  addedMetadataAttribute,
 } from "./utils.helper";
 
 
@@ -459,6 +461,7 @@ const MultiTypeWithREDmodSuccesses = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
       ],
     },
   ],

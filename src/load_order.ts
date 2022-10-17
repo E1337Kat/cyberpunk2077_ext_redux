@@ -8,10 +8,37 @@ import {
 } from "vortex-api";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as turbowalk from 'turbowalk';
-import { GAME_ID } from "./index.metadata";
+import { pipe } from "fp-ts/lib/function";
+import {
+  filter,
+  map,
+  partitionMap,
+  toArray as toMutableArray,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  TaskEither,
+  chainEitherK,
+} from "fp-ts/lib/TaskEither";
+import {
+  left,
+  right,
+} from "fp-ts/lib/Either";
+import {
+  mapLeft as mapLeftS,
+  right as rightS,
+} from "fp-ts/lib/Separated";
+import {
+  EXTENSION_NAME_INTERNAL,
+  GAME_ID,
+} from "./index.metadata";
 import {
   LoadOrderer,
   LoadOrderEntryREDmod,
+  LoadOrderEntry,
+  LoadOrder,
+  LOAD_ORDER_TYPE_VERSION,
+  encodeLoadOrder,
+  decodeLoadOrder,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -19,6 +46,8 @@ import {
   VortexDiscoveryResult,
   VortexExtensionContext,
   VortexLoadOrder,
+  VortexLoadOrderEntry,
+  VortexMod,
   VortexSerializeFunc,
   vortexUtil,
   VortexValidateFunc,
@@ -28,9 +57,33 @@ import {
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 import { REDMOD_INFO_FILENAME } from "./installers.layouts";
+import { jsonp } from "./installers.utils";
+import { fileFromDiskTE } from "./installers.shared";
+import {
+  ModAttributeName,
+  ModType,
+} from "./installers.types";
 
 // Ensure we're using win32 conventions
 const path = win32;
+
+
+// Defs
+
+const LOAD_ORDER_FILE_NAME =
+  `${EXTENSION_NAME_INTERNAL}-redmod-load-order.json`;
+
+const LOAD_ORDER_FILE_RELATIVE_PATH =
+  path.join(`r6\\cache\\modded\\${LOAD_ORDER_FILE_NAME}`);
+
+
+const me =
+  `${EXTENSION_NAME_INTERNAL} Load Order`;
+
+
+//
+// Vortex Load Order API Functions
+//
 
 const readDeploymentManifest = async (vortexApi: VortexApi) =>
   vortexUtil.getManifest(vortexApi, '', GAME_ID)
@@ -55,6 +108,7 @@ const fileNameToId = (filePath: string): string => {
   return id;
 };
 
+/*
 // Internal Deserializer so that we can have access to more good good information
 export const internalValidate: VortexWrappedValidateFunc = async (
   _vortexApi,
@@ -76,10 +130,26 @@ export const internalValidate: VortexWrappedValidateFunc = async (
   }));
   return Promise.resolve({ invalid: invalidEntries });
 };
+*/
+
+const LOAD_ORDER_VALIDATION_PASSED_RESULT = undefined;
+
+const validate: VortexWrappedValidateFunc = async (
+  vortexApi: VortexApi,
+  previousLoadOrder: VortexLoadOrder,
+  currentLoadOrder: VortexLoadOrder,
+): Promise<VortexValidationResult> => {
+  vortexApi.log(`info`, `${me}: Validating load order:`, { previousLoadOrder, currentLoadOrder });
+  vortexApi.log(`warn`, `${me}: LOAD ORDER VALIDATION AUTOSUCCEEDS FOR NOW`);
+
+  Promise.resolve(LOAD_ORDER_VALIDATION_PASSED_RESULT);
+};
+
 
 const getDiscoveryPath = (
   api: VortexApi,
 ): string => {
+  //
   const state = api.store.getState();
   const discovery: VortexDiscoveryResult = vortexUtil.getSafe(
     state,
@@ -101,6 +171,21 @@ const readREDmodManifest = async (
   return Promise.resolve(modList);
 };
 
+const deserializeLoadOrder = (
+  gameDirPath: string,
+): TaskEither<Error, LoadOrder> => {
+  //
+  const serializedLoadOrderFilePath =
+    path.join(gameDirPath, LOAD_ORDER_FILE_RELATIVE_PATH);
+
+  const decodedLoadOrder = pipe(
+    fileFromDiskTE({ relativePath: LOAD_ORDER_FILE_RELATIVE_PATH, pathOnDisk: serializedLoadOrderFilePath }),
+    chainEitherK(({ content }) => decodeLoadOrder(content)),
+  );
+
+  return decodedLoadOrder;
+};
+
 const getDeployedRedMods = async (
   vortexApi: VortexApi,
 ): Promise<string[]> => {
@@ -117,6 +202,48 @@ const getDeployedRedMods = async (
       ? Promise.resolve()
       : Promise.reject(err)))
     .then(() => Promise.resolve(modFiles));
+};
+
+const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
+  vortexApi: VortexApi,
+): Promise<VortexLoadOrder> => {
+  const gameDirPath = getDiscoveryPath(vortexApi);
+
+  if (gameDirPath === undefined) {
+    return Promise.reject(new vortexUtil.NotFound(`${me}: Game not found`));
+  }
+
+  const vortexState = vortexApi.store.getState();
+  const activeProfile = selectors.activeProfile(vortexState);
+
+  if (activeProfile?.gameId !== GAME_ID) {
+    return Promise.reject(new Error(`${me}: Invalid profile or wrong game, canceling: ${jsonp(activeProfile)}`));
+  }
+
+  const currentStoredLoadOrder =
+    await deserializeLoadOrder(gameDirPath);
+
+  const modEnableState =
+    activeProfile.modState;
+
+  const orderableREDmodsFromState = pipe(
+    vortexUtil.getSafe(vortexState, ['persistent', 'mods', GAME_ID], {}),
+    Object.values,
+    filter((mod: VortexMod) => mod.attributes?.[ModAttributeName.ModType] === ModType.REDmod),
+    partitionMap((mod: VortexMod) =>
+      (modEnableState[mod.id] === undefined
+        ? left(mod)
+        : right({ ...mod, ...modEnableState[mod.id] }))),
+    mapLeftS((mods) => {
+      vortexApi.log(`info`, `${me}: No enabled state for some REDmods, skipping them for load order: `, mods);
+      return mods;
+    }),
+    rightS,
+  );
+
+  vortexApi.log(`info`, `${me}: Collected detes to create load order selection: `, { orderableREDmodsFromState, currentStoredLoadOrder });
+
+  return Promise.resolve([]);
 };
 
 // Internal Deserializer so that we can have access to more good good information
@@ -155,14 +282,18 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
   const newLO = deployedModFiles.reduce((accum, file) => {
     // Check if the folder name is present inside the mods.json file for some entry
     const modFile = path.basename(file.filePath);
-    const id = fileNameToId(modFile.toLowerCase());
-    vortexApi.log(`debug`, `the LO id to use: `, id);
+
+    const deployedModId = fileNameToId(modFile.toLowerCase());
+
+    vortexApi.log(`debug`, `Trying to find scanned mod: ${deployedModId}`);
+
     const redmodEntry = modList.find((mod: LoadOrderEntryREDmod) => {
       const redmodID = nameToId(mod.folder.toLowerCase());
-      vortexApi.log(`debug`, `Current redmod to id: `, redmodID);
-      return redmodID === id;
+      vortexApi.log(`debug`, `Trying to match ${redmodID} (searching for ${deployedModId})`);
+      return redmodID === deployedModId;
     });
-    vortexApi.log(`debug`, `A REDmod entry in the LO: `, redmodEntry);
+
+    vortexApi.log(`debug`, `Found REDmod entry in the LO: `, redmodEntry);
     const isInModList = redmodEntry !== undefined && redmodEntry.enabled;
 
     // Check to see if the file has been deployed by Vortex and retrieve its modId so we can add it to our load order entry (if we manage to find it)
@@ -174,13 +305,14 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
       ? managedMods?.[modId]?.attributes?.modName
       : modFile; // Maybe???
 
-    const modIndex = modList.findIndex((mod: LoadOrderEntryREDmod) => nameToId(mod.folder.toLowerCase()) === id);
+    const modIndex =
+      modList.findIndex((mod: LoadOrderEntryREDmod) => nameToId(mod.folder.toLowerCase()) === deployedModId);
 
     // We should now have all the data we need - start populating the array.
     if (isInModList) {
       // The mod is installed and enabled.
       accum.push({
-        id,
+        id: deployedModId,
         enabled: true,
         name: modName,
         modId,
@@ -192,7 +324,7 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
     } else {
       // The mod is installed but has been disabled.
       accum.push({
-        id,
+        id: deployedModId,
         enabled: false,
         name: modName,
         modId,
@@ -217,35 +349,60 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
   return Promise.resolve(newLO);
 };
 
-// Internal Deserializer so that we can have access to more good good information
-export const internalSerializeLoadOrder: VortexWrappedSerializeFunc = (
+
+const serializeLoadOrder: VortexWrappedSerializeFunc = (
   vortexApi: VortexApi,
-  loadOrder: VortexLoadOrder,
-) => {
-  vortexApi.log(`info`, `meow`);
+  vortexLoadOrder: VortexLoadOrder,
+): Promise<void> => {
+  vortexApi.log(`debug`, `${me}: Serialize`);
+
   const discoveryPath = getDiscoveryPath(vortexApi);
+
   if (discoveryPath === undefined) {
+    vortexApi.log(`error`, `${me}: Serialize: Game not found! (discoveryPath is undefined)`);
     return Promise.reject(new vortexUtil.NotFound(`Game Not Found.`));
   }
 
-  const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
-  vortexApi.log(`debug`, `LO to write: `, loadOrder);
-  const mods: LoadOrderEntryREDmod[] = loadOrder.map((mod) => {
-    vortexApi.log(`debug`, `adding mod to write: `, mod);
-    const theRedEntry = mod.data.entry;
-    theRedEntry.enabled = mod.enabled;
-    return theRedEntry;
-  });
-  vortexApi.log(`debug`, `JSONifiable mods: `, mods);
-  const meowjson = JSON.stringify({ mods }, undefined, ' ');
-  vortexApi.log(`debug`, `stringy JSON being written: `, meowjson);
-  return fs.writeFileAsync(modListPath, meowjson, { encoding: 'utf8' });
+  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, vortexLoadOrder);
+
+  const loadOrderEntries = pipe(
+    vortexLoadOrder,
+    map((entry: VortexLoadOrderEntry): LoadOrderEntry => ({
+      id: entry.id,
+      modId: entry.modId,
+      displayName: entry.name,
+      enabledInVortex: entry.enabled,
+      dirPath: entry.data?.dirPath || `unknown path`,
+      version: entry.data?.version || `unknown version`,
+    })),
+    toMutableArray,
+  );
+
+  const loadOrder: LoadOrder = {
+    typeVersion: LOAD_ORDER_TYPE_VERSION,
+    generatedAt: new Date().toISOString(),
+    entriesInOrderWithEarlierWinning: loadOrderEntries,
+  };
+
+  const serializedLoadOrder =
+    encodeLoadOrder(loadOrder);
+
+  const loadOrderFilePath =
+    path.join(discoveryPath, LOAD_ORDER_FILE_RELATIVE_PATH);
+
+  vortexApi.log(`info`, `${me}: Serializable load order generated: `, loadOrder);
+  vortexApi.log(`info`, `${me}: Serializing load order to disk as JSON: ${loadOrderFilePath}`);
+
+  const writeTaskToReturnToVortex =
+    fs.writeFileAsync(loadOrderFilePath, serializedLoadOrder, { encoding: 'utf8' });
+
+  return writeTaskToReturnToVortex;
 };
 
 export const internalLoadOrderer: LoadOrderer = {
-  validate: internalValidate,
-  deserializeLoadOrder: internalDeserializeLoadOrder,
-  serializeLoadOrder: internalSerializeLoadOrder,
+  validate,
+  serializeLoadOrder,
+  deserializeLoadOrder: compileDetesToGenerateLoadOrderUi,
 };
 
 //

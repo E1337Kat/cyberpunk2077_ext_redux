@@ -63,6 +63,20 @@ export enum InstallerType {
 //
 // Mod Info and Name And Stuff
 //
+
+export const enum ModAttributeName {
+  ModType = `V2077_mod_type`,
+}
+
+export interface ModAttribute {
+  key: ModAttributeName;
+  value: string;
+}
+
+export const enum ModType {
+  REDmod = `V2077_REDmod`,
+}
+
 export interface SemanticVersion {
   v: string;
   major: string;

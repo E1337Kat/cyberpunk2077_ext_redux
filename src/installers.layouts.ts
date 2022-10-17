@@ -1,7 +1,12 @@
 import path from "path";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
-import { InstallerType } from "./installers.types";
+import {
+  InstallerType,
+  ModAttribute,
+  ModAttributeName,
+  ModType,
+} from "./installers.types";
 import {
   VortexApi,
   VortexInstruction,
@@ -747,6 +752,12 @@ export const REDMOD_INFO_FILENAME = `info.json`;
 
 export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
 export const REDMOD_AUTOCONVERTED_VERSION_TAG = `V2077RED`;
+
+export const REDMOD_MODTYPE = `REDmod`;
+export const REDMOD_MODTYPE_ATTRIBUTE: ModAttribute = {
+  key: ModAttributeName.ModType,
+  value: ModType.REDmod,
+};
 
 //
 // ASI

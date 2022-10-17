@@ -73,11 +73,13 @@ import {
   Instructions,
   REDmodTransformedLayout,
   ArchiveLayout,
+  REDMOD_MODTYPE_ATTRIBUTE,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
   instructionsToGenerateDirs,
+  instructionsToGenerateMetadataAttributes,
   modInfoTaggedAsAutoconverted,
   moveFromTo,
 } from "./installers.shared";
@@ -498,8 +500,11 @@ const extraFilesLayoutAndValidation = (
 };
 
 // …Let's just always do this?
-const ensureModdedDirExistsInstructions = (): readonly VortexInstruction[] =>
+const ensureModdedDirExistsInstruction = (): readonly VortexInstruction[] =>
   instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
+
+const modTypeMetadataInstruction = (): readonly VortexInstruction[] =>
+  instructionsToGenerateMetadataAttributes([REDMOD_MODTYPE_ATTRIBUTE]);
 
 //
 // Layout pipeline helpers
@@ -569,7 +574,8 @@ export const instructionsForLayoutsPipeline = (
     chain(flow(
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
-      mapTE(concat(ensureModdedDirExistsInstructions())),
+      mapTE(concat(ensureModdedDirExistsInstruction())),
+      mapTE(concat(modTypeMetadataInstruction())),
     )),
   );
 
@@ -751,13 +757,13 @@ export const transformToREDmodArchiveInstructions = (
         : redmodInstruction)),
   );
 
-  const allREDmodInstructions = pipe(
-    redmodInstructionsMappedBackToRealSources,
-    concat([
-      generateInfoJsonInstruction,
-    ]),
-    toMutableArray,
-  );
+  const allREDmodInstructions = [
+    generateInfoJsonInstruction,
+    ...redmodInstructionsMappedBackToRealSources,
+    // This should be fixed so that we can't accidentally forget stuff
+    ...ensureModdedDirExistsInstruction(),
+    ...modTypeMetadataInstruction(),
+  ];
 
   const instructionsToInstallArchiveAsREDmod = {
     kind: REDmodTransformedLayout.Archive,

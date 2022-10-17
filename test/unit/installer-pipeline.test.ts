@@ -19,7 +19,7 @@ import {
 import {
   FAKE_STAGING_PATH,
   getMockVortexLog,
-  sortByDestination,
+  sortInstructionsForComparison,
 } from "./utils.helper";
 
 import {
@@ -92,8 +92,8 @@ describe(`Transforming modules to instructions`, () => {
             null,
           );
 
-          const gotInstructionsSorted = sortByDestination(installResult.instructions);
-          const expectedInstructionsSorted = sortByDestination(mod.outInstructions);
+          const gotInstructionsSorted = sortInstructionsForComparison(installResult.instructions);
+          const expectedInstructionsSorted = sortInstructionsForComparison(mod.outInstructions);
 
           expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
 
@@ -158,8 +158,8 @@ describe(`Transforming modules to instructions`, () => {
             null,
           );
 
-          const gotInstructionsSorted = sortByDestination(installResult.instructions);
-          const expectedInstructionsSorted = sortByDestination(
+          const gotInstructionsSorted = sortInstructionsForComparison(installResult.instructions);
+          const expectedInstructionsSorted = sortInstructionsForComparison(
             mod.proceedOutInstructions,
           );
 

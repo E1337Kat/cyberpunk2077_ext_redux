@@ -18,6 +18,10 @@ import {
   TaskEither,
   tryCatch,
 } from "fp-ts/lib/TaskEither";
+import {
+  map,
+  toArray as toMutableArray,
+} from "fp-ts/lib/ReadonlyArray";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
   Path,
@@ -42,6 +46,7 @@ import {
 import {
   InstallDecision,
   InstallerType,
+  ModAttribute,
   ModInfo,
   SemanticVersion,
 } from "./installers.types";
@@ -282,6 +287,19 @@ export const instructionsToGenerateDirs = (
       type: `mkdir`,
       destination: dir,
     })),
+  );
+
+export const instructionsToGenerateMetadataAttributes = (
+  attributes: ModAttribute[],
+): VortexInstruction[] =>
+  pipe(
+    attributes,
+    map((attribute): VortexInstruction => ({
+      type: `attribute`,
+      key: attribute.key,
+      value: attribute.value,
+    })),
+    toMutableArray,
   );
 
 export const useFirstMatchingLayoutForInstructions = (

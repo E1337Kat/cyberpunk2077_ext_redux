@@ -155,9 +155,12 @@ const stripTrailingSeparator = (path: string): string =>
 export const normalizeDir = (dir: string): string =>
   (dir === FILETREE_ROOT ? FILETREE_TOPLEVEL : stripTrailingSeparator(dir));
 
+export const safeNormalizePath = (path: string): string =>
+  nodejsPath.normalize(path).toLocaleLowerCase();
+
 // Safe path comparison (case-insensitive on Windows)
 const pathEqual = (a: string, b: string): boolean =>
-  nodejsPath.normalize(a).toLocaleLowerCase() === nodejsPath.normalize(b).toLocaleLowerCase();
+  safeNormalizePath(a) === safeNormalizePath(b);
 
 export const pathEq = (a: string) => (b: string): boolean => pathEqual(a, b);
 
@@ -170,7 +173,7 @@ export const pathIn = (paths: readonly string[]) => (path: string): boolean => p
 // Safe subpath check
 export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
   // eslint-disable-next-line max-len
-  nodejsPath.normalize(pathThatShouldContain).toLocaleLowerCase().includes(nodejsPath.normalize(path).toLocaleLowerCase());
+  safeNormalizePath(pathThatShouldContain).includes(safeNormalizePath(path));
 
 //
 // Creation
