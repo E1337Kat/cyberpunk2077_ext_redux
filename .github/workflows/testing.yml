@@ -37,6 +37,12 @@ jobs:
           path: |
             node_modules
           key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies' dependencies
+        run: |
+          pushd ..
+          npm install node-gyp
+          npm install autogypi
+          popd
       - name: Install all dependencies
         if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci
