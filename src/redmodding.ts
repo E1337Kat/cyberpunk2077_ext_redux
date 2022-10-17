@@ -8,7 +8,7 @@ import {
   STEAMAPP_ID,
   EPICAPP_ID,
 } from './index.metadata';
-import { promptUserInstallREDmodDLC } from "./ui.dialogs";
+import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
@@ -17,13 +17,13 @@ import {
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
 
-interface IREDmodDetails {
+interface REDmoddingDlcDetails {
   name: string;
   url: string;
   openCommand: () => Promise<void>;
 }
 
-const getREDmodetails = (id: string): IREDmodDetails => {
+const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
 
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
@@ -32,7 +32,7 @@ const getREDmodetails = (id: string): IREDmodDetails => {
     return { name: undefined, url: genericHelpUrl, openCommand: () => VortexUtil.opn(genericHelpUrl) };
   }
 
-  const gameStoreData: { [id: string]: IREDmodDetails } = {
+  const gameStoreData: { [id: string]: REDmoddingDlcDetails } = {
     epic: {
       name: `Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
@@ -53,17 +53,17 @@ const getREDmodetails = (id: string): IREDmodDetails => {
   return gameStoreData[id];
 };
 
-const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
-  const redModDetails = getREDmodetails(gameStoreId);
+const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
+  const redModDetails = fetchREDmoddingDlcDetails(gameStoreId);
 
-  await promptUserInstallREDmodDLC(
+  await promptUserInstallREDmoddingDlc(
     vortexApi,
     redModDetails,
     () => VortexUtil.opn(redModDetails.url),
   );
 };
 
-const prepareForModding = async (
+const prepareForModdingWithREDmodding = async (
   vortexApi: VortexApi,
   discovery: VortexDiscoveryResult,
 ): Promise<void> => {
@@ -93,10 +93,10 @@ const prepareForModding = async (
     vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
   }
 
-  await promptREDmodInstall(vortexApi, game?.gameStoreId);
+  await promptREDmoddingDlcInstall(vortexApi, game?.gameStoreId);
 };
 
-export const wrappedPrepareForModding = async (
+export const wrappedPrepareForModdingWithREDmodding = async (
   vortex: VortexExtensionContext,
   vortexApiThing,
   discovery: VortexDiscoveryResult,
@@ -105,5 +105,20 @@ export const wrappedPrepareForModding = async (
 
   vortexApi.log(`info`, `Checking for REDmod install`);
 
-  return prepareForModding(vortexApi, discovery);
+  return prepareForModdingWithREDmodding(vortexApi, discovery);
 };
+
+export const REDmoddingTools = [
+  {
+    id: `REDLauncher`,
+    name: `REDLauncher`,
+    logo: `REDLauncher.png`,
+    executable: (): string => `REDprelauncher.exe`,
+    requiredFiles: [`REDprelauncher.exe`],
+    relative: true,
+  },
+];
+
+export const REDmoddingGameLaunchParameters = [
+  `-modded`,
+];

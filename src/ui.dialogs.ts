@@ -67,7 +67,7 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 // Dialog functions
 
-export const promptUserInstallREDmodDLC = async (
+export const promptUserInstallREDmoddingDlc = async (
   api: VortexApi,
   redModDetails: { name: string, url: string, openCommand: () => Promise<void> },
   fallback: () => Promise<void>,
