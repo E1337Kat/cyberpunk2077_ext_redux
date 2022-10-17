@@ -2,12 +2,17 @@
 import { win32 } from "path";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Promise from 'bluebird';
-import { fs, selectors } from "vortex-api";
+import {
+  fs,
+  selectors,
+} from "vortex-api";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as turbowalk from 'turbowalk';
 import { GAME_ID } from "./index.metadata";
-import { REDMOD_CANONICAL_INFO_FILE } from "./installers.layouts";
-import { LoadOrderer, REDmodEntry } from "./load_order.types";
+import {
+  LoadOrderer,
+  REDmodEntry,
+} from "./load_order.types";
 import {
   VortexApi,
   VortexDeserializeFunc,
@@ -22,6 +27,7 @@ import {
   VortexWrappedSerializeFunc,
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
+import { REDMOD_INFO_FILENAME } from "./installers.layouts";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -29,7 +35,7 @@ const path = win32;
 const readDeploymentManifest = async (vortexApi: VortexApi) =>
   vortexUtil.getManifest(vortexApi, '', GAME_ID)
     .then((manifest) => Promise.reduce(manifest.files, (accum, iter) => {
-      if (path.basename(iter.relPath) === REDMOD_CANONICAL_INFO_FILE) {
+      if (path.basename(iter.relPath) === REDMOD_INFO_FILENAME) {
         const modId = iter.source;
         // eslint-disable-next-line no-param-reassign
         accum[modId] = {

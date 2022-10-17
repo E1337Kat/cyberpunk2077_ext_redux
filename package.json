@@ -59,6 +59,7 @@
         "jest-mock-extended": "^2.0.4",
         "lint-staged": "^12.3.5",
         "mock-fs": "5.1.2",
+        "patch-package": "^6.4.7",
         "react": "^17.0.2",
         "react-bootstrap": "^2.2.1",
         "react-dom": "^17.0.2",
@@ -66,7 +67,6 @@
         "ts-loader": "^6.0.4",
         "ts-node": "^10.7.0",
         "tsconfig-paths": "^3.13.0",
-        "turbowalk": "Nexus-Mods/node-turbowalk",
         "typescript": "^4.5.0",
         "vortex-api": "github:Nexus-Mods/vortex-api",
         "webpack": "^4.35.0",
@@ -76,6 +76,7 @@
         "fp-ts": "^2.12.1",
         "io-ts": "^2.2.18",
         "key-tree": "^1.0.3",
-        "patch-package": "^6.4.7"
+        "turbowalk": "github:Nexus-Mods/node-turbowalk",
+        "winapi-bindings": "github:Nexus-Mods/node-winapi-bindings"
     }
 }

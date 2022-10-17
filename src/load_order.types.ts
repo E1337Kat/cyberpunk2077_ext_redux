@@ -1,5 +1,7 @@
 import {
-  VortexWrappedDeserializeFunc, VortexWrappedSerializeFunc, VortexWrappedValidateFunc,
+  VortexWrappedDeserializeFunc,
+  VortexWrappedSerializeFunc,
+  VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 
 export interface LoadOrderer {

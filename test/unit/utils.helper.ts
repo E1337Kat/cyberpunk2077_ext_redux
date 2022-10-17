@@ -2,8 +2,11 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { Console } from "console";
-import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
+import {
+  flatten,
+  map,
+} from "fp-ts/lib/ReadonlyArray";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import {
   InstallerType,
@@ -102,12 +105,12 @@ const mapHasAnySameKeys = <K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean =>
 
 // It's tests, it's ok to just raise. Don't do this in real code, kids
 export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
-  maps.reduce((mergedMap, map) => {
-    if (mapHasAnySameKeys(map, mergedMap)) {
+  maps.reduce((mergedMap, nextMap) => {
+    if (mapHasAnySameKeys(nextMap, mergedMap)) {
       // :goose-loose:
       throw new Error(`Duplicate keys in example categories, fix it first!`);
     }
-    return new Map([...mergedMap, ...map]);
+    return new Map([...mergedMap, ...nextMap]);
   }, new Map<K, V>());
 
 //
@@ -222,15 +225,15 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 export const CORE_REDSCRIPT_PREFIXES =
   pipe(
     REDSCRIPT_CORE_FILES,
-    RA.map(pathHierarchyFor),
-    RA.flatten,
+    map(pathHierarchyFor),
+    flatten,
   );
 
 export const DEPRECATED_CORE_REDSCRIPT_PREFIXES =
   pipe(
     DEPRECATED_REDSCRIPT_CORE_FILES,
-    RA.map(pathHierarchyFor),
-    RA.flatten,
+    map(pathHierarchyFor),
+    flatten,
   );
 
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
