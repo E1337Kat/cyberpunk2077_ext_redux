@@ -11,7 +11,7 @@ import * as turbowalk from 'turbowalk';
 import { GAME_ID } from "./index.metadata";
 import {
   LoadOrderer,
-  REDmodEntry,
+  LoadOrderEntryREDmod,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -92,7 +92,7 @@ const getDiscoveryPath = (
 
 const readREDmodManifest = async (
   vortexApi: VortexApi,
-): Promise<{ mods: REDmodEntry[] }> => {
+): Promise<{ mods: LoadOrderEntryREDmod[] }> => {
   const discoveryPath = getDiscoveryPath(vortexApi);
   const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
 
@@ -148,7 +148,7 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
   // Need to handle reading it as json in any special way?
   const listData = await readREDmodManifest(vortexApi);
   vortexApi.log(`debug`, `Found list data: `, listData);
-  const modList: REDmodEntry[] = listData.mods;
+  const modList: LoadOrderEntryREDmod[] = listData.mods;
   vortexApi.log(`debug`, `The Mod list: `, modList);
 
   // We iterate through all the mod files we found earlier when we scanned the game’s mods directory
@@ -157,7 +157,7 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
     const modFile = path.basename(file.filePath);
     const id = fileNameToId(modFile.toLowerCase());
     vortexApi.log(`debug`, `the LO id to use: `, id);
-    const redmodEntry = modList.find((mod: REDmodEntry) => {
+    const redmodEntry = modList.find((mod: LoadOrderEntryREDmod) => {
       const redmodID = nameToId(mod.folder.toLowerCase());
       vortexApi.log(`debug`, `Current redmod to id: `, redmodID);
       return redmodID === id;
@@ -174,7 +174,7 @@ export const internalDeserializeLoadOrder: VortexWrappedDeserializeFunc = async 
       ? managedMods?.[modId]?.attributes?.modName
       : modFile; // Maybe???
 
-    const modIndex = modList.findIndex((mod: REDmodEntry) => nameToId(mod.folder.toLowerCase()) === id);
+    const modIndex = modList.findIndex((mod: LoadOrderEntryREDmod) => nameToId(mod.folder.toLowerCase()) === id);
 
     // We should now have all the data we need - start populating the array.
     if (isInModList) {
@@ -230,7 +230,7 @@ export const internalSerializeLoadOrder: VortexWrappedSerializeFunc = (
 
   const modListPath = path.join(discoveryPath, 'r6', 'cache', 'modded', 'mods.json');
   vortexApi.log(`debug`, `LO to write: `, loadOrder);
-  const mods: REDmodEntry[] = loadOrder.map((mod) => {
+  const mods: LoadOrderEntryREDmod[] = loadOrder.map((mod) => {
     vortexApi.log(`debug`, `adding mod to write: `, mod);
     const theRedEntry = mod.data.entry;
     theRedEntry.enabled = mod.enabled;

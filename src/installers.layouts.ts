@@ -1,13 +1,4 @@
 import path from "path";
-import * as t from "io-ts";
-import * as J from "fp-ts/lib/Json";
-import {
-  Either,
-  left,
-  match,
-  right,
-} from "fp-ts/lib/Either";
-import { pipe } from "fp-ts/lib/function";
 import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import { InstallerType } from "./installers.types";
@@ -725,69 +716,6 @@ export const enum REDmodLayout {
 export const enum REDmodTransformedLayout {
   Archive = `Archive layout transformed to REDmod Canon`,
 }
-
-// REDmod type info
-
-// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#parameters
-
-// We still need to figure out if there's a need to model `mod_skip`
-// at the type level rather than just in logic.
-export const REDmodAudioType =
-  t.keyof({
-    mod_skip: null,
-    mod_sfx_2d: null,
-    mod_sfx_city: null,
-    mod_sfx_low_occlusion: null,
-    mod_sfx_occlusion: null,
-    mod_sfx_radio: null,
-    mod_sfx_room: null,
-    mod_sfx_street: null,
-  }, `REDmodAudioType`);
-
-export type REDmodAudio = t.TypeOf<typeof REDmodAudioType>;
-
-export const REDmodCustomSoundType =
-  t.intersection([
-    t.type({
-      name: t.string,
-      type: REDmodAudioType,
-    }),
-    t.partial({
-      file: t.string,
-      gain: t.number,
-      pitch: t.number,
-    }),
-  ]);
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface REDmodCustomSound extends t.TypeOf<typeof REDmodCustomSoundType> {}
-
-// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#info.json
-
-export const REDmodInfoType =
-  t.intersection([
-    t.type({
-      name: t.string,
-      version: t.string,
-    }),
-    t.partial({
-      description: t.string,
-      customSounds: t.array(REDmodCustomSoundType),
-    }),
-  ], `REDmodInfoType`);
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface REDmodInfo extends t.TypeOf<typeof REDmodInfoType> {}
-
-export const decodeREDmodInfo = (json: J.Json): Either<Error, REDmodInfo> => pipe(
-  json,
-  REDmodInfoType.decode,
-  match(
-    (errors) => left(new Error(`Failed to decode REDmod info: ${errors}`)),
-    (info) => right(info),
-  ),
-);
-
 
 // Consts
 

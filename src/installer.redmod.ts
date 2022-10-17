@@ -73,8 +73,6 @@ import {
   Instructions,
   REDmodTransformedLayout,
   ArchiveLayout,
-  decodeREDmodInfo,
-  REDmodInfo,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
@@ -90,8 +88,10 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
+  decodeREDmodInfo,
   InstallerType,
   ModInfo,
+  REDmodInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
