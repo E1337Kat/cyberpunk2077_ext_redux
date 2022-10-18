@@ -1,14 +1,8 @@
-import {
-  Either,
-  left,
-  match,
-  right,
-} from "fp-ts/lib/Either";
-import * as J from "fp-ts/lib/Json";
-import { pipe } from "fp-ts/lib/function";
 import * as t from "io-ts";
-
-import { REDmodCustomSound } from "./installers.types";
+import {
+  decodeWith,
+  REDmodCustomSound,
+} from "./installers.types";
 import { jsonpp } from "./installers.utils";
 import {
   VortexWrappedDeserializeFunc,
@@ -62,11 +56,4 @@ export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
   jsonpp(loadOrder);
 
 
-export const decodeLoadOrder = (json: J.Json): Either<Error, LoadOrder> => pipe(
-  json,
-  LoadOrderType.decode,
-  match(
-    (errors) => left(new Error(`Failed to decode load order: ${errors}`)),
-    (info) => right(info),
-  ),
-);
+export const decodeLoadOrder = decodeWith(LoadOrderType.decode);

@@ -1,11 +1,16 @@
 import {
+  chain as chainE,
   Either,
   left,
+  mapLeft,
   match,
   right,
 } from "fp-ts/lib/Either";
 import * as J from "fp-ts/lib/Json";
-import { pipe } from "fp-ts/lib/function";
+import {
+  flow,
+  pipe,
+} from "fp-ts/lib/function";
 import * as t from "io-ts";
 import { Features } from "./features";
 import {
@@ -17,6 +22,7 @@ import {
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
+import { S } from "./installers.utils";
 
 export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself
@@ -59,6 +65,31 @@ export enum InstallerType {
   // Used as a marker
   NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE SEEN OUTSIDE TESTS>`,
 }
+
+//
+// Codec helpers
+//
+
+export type DecodeFromJsonFunc<A> = (json: J.Json) => Either<unknown, A>;
+export type SafeDecodeFunc<A> = (json: string) => Either<Error, A>;
+
+export const safeDecode = <A>(decodeFromJson: DecodeFromJsonFunc<A>): SafeDecodeFunc<A> =>
+  flow(
+    decodeFromJson,
+    match(
+      (errors) => left(new Error(`Failed to decode load order: ${S(errors)}`)),
+      (ok: A) => right(ok),
+    ),
+  );
+
+export const decodeWith = <A>(decodeFromJson: DecodeFromJsonFunc<A>) =>
+  (jsonString: string): Either<Error, A> =>
+    pipe(
+      jsonString,
+      J.parse,
+      mapLeft((err) => new Error(`Failed to parse JSON: ${S(err)}`)),
+      chainE(safeDecode(decodeFromJson)),
+    );
 
 //
 // Mod Info and Name And Stuff
