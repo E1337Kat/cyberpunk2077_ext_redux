@@ -26,18 +26,24 @@ export interface LoadOrderEntryREDmod {
   customSounds: REDmodCustomSound[];
 }
 
+// We still probably want stuff like submod versions and
+// paths but have to store that stuff in attributes unless
+// we want to iterate all that stuff up every time (it doesn't
+// really belong here anyway).
 export const LoadOrderEntryType =
-  t.type(
-    {
-      id: t.string,
+  t.intersection([
+    t.type(
+      {
+        id: t.string,
+        version: t.string,
+        displayName: t.string,
+        enabledInVortex: t.boolean,
+      },
+    ),
+    t.partial({
       modId: t.string,
-      displayName: t.string,
-      version: t.string,
-      dirPath: t.string,
-      enabledInVortex: t.boolean,
-    },
-    `LoadOrderEntryVortexType`,
-  );
+    }),
+  ], `LoadOrderEntryType`);
 export type LoadOrderEntry = t.TypeOf<typeof LoadOrderEntryType>;
 
 export const LoadOrderType =

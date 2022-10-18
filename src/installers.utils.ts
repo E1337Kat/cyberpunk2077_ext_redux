@@ -14,3 +14,5 @@ export const exhaustiveMatchFailure = (_: never): never => {
 
 export const jsonp = (thing: unknown): string => JSON.stringify(thing);
 export const jsonpp = (thing: unknown): string => JSON.stringify(thing, null, 2);
+
+export const S = (thing: unknown): string => jsonp(thing).replace(/(\t|\n|\r)+/gm, ` `).replace(/\\+"/gm, `"`);

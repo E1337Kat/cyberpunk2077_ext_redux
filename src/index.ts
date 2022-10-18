@@ -126,7 +126,18 @@ const main = (vortex: VortexExtensionContext) => {
 
   vortex.registerLoadOrder({
     gameId: GAME_ID,
-    toggleableEntries: true,
+
+    // This needs to be actually implemented, it doesnt't do
+    // anything on its own, so leave it out now to avoid confusion
+    //
+    // toggleableEntries: true,
+
+    // Can add instructions to the right-hand panel. Might be useful,
+    // but on the whole I think it's probably better to reduce the
+    // amount of space the panel takes instead.
+    //
+    // usageInstructions: `Order your mods by dragging them up and down! Only REDmods and autoconverted heritage mods are orderable.`,
+
     validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
     deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
     serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
