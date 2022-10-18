@@ -60,7 +60,8 @@
     "@typescript-eslint/no-base-to-string": "warn",
     "@typescript-eslint/no-confusing-void-expression": "warn",
     "@typescript-eslint/no-inferrable-types": "off",
-    "padding-line-between-statements": "off",
+    "padding-line-between-statements": "warn",
+    "padded-blocks": "off",
     "import/prefer-default-export": "off",
     "no-debugger": "warn"
   }
