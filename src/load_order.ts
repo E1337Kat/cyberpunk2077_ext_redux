@@ -76,6 +76,7 @@ const path = win32;
 
 // Defs
 
+
 const LOAD_ORDER_FILE_NAME =
   `${EXTENSION_NAME_INTERNAL}-redmod-load-order.json`;
 
@@ -86,6 +87,18 @@ const LOAD_ORDER_FILE_RELATIVE_PATH =
 const me =
   `${EXTENSION_NAME_INTERNAL} Load Order`;
 
+
+//
+// Data defaults etc.
+//
+
+const DEFAULT_VERSION_FOR_UNVERSIONED_MODS = `0.0.1+V2077`;
+
+const ENABLED_MOD_DISPLAY_MARKER = `✅`;
+const DISABLED_MOD_DISPLAY_MARKER = `🚫`;
+
+const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
+  (mod.enabled ? ENABLED_MOD_DISPLAY_MARKER : DISABLED_MOD_DISPLAY_MARKER);
 
 //
 // Vortex Load Order API Functions
@@ -198,8 +211,6 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
     sort(byIndexOrAtEndForNew),
   );
 
-  vortexApi.log(`info`, `${me}: Collected detes to create load order selection: `, S(loadOrderableModsInCurrentOrder));
-
   const loadOrderEntriesInCurrentOrder =
     pipe(
       loadOrderableModsInCurrentOrder,
@@ -207,13 +218,16 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
         id: orderableMod.id,
         modId: orderableMod.attributes?.modId,
         enabled: orderableMod.enabled,
-        name: vortexUtil.renderModName(orderableMod),
+        name: `${enabledMarker(orderableMod)} ${vortexUtil.renderModName(orderableMod)}`,
         data: {
           index: orderableMod.index,
-          version: orderableMod.attributes?.version ?? `0.0.1+V2077`,
+          displayName: vortexUtil.renderModName(orderableMod),
+          version: orderableMod.attributes?.version ?? DEFAULT_VERSION_FOR_UNVERSIONED_MODS,
         },
       })),
     );
+
+  vortexApi.log(`info`, `${me}: Collected detes to create load order selection: `, S(loadOrderEntriesInCurrentOrder));
 
   return Promise.resolve(loadOrderEntriesInCurrentOrder);
 };
@@ -239,7 +253,7 @@ const serializeLoadOrder: VortexWrappedSerializeFunc = (
     map((entry: VortexLoadOrderEntry): LoadOrderEntry => ({
       id: entry.id,
       modId: entry.modId ? entry.modId.toString() : undefined,
-      displayName: entry.name,
+      displayName: entry.data.displayName,
       enabledInVortex: entry.enabled,
       version: entry.data.version,
     })),

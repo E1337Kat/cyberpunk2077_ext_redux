@@ -127,7 +127,7 @@ export const makeAttr = <T>(key: ModAttributeKey, data: T): ModAttribute<T> =>
 // This should probably be an Either<Error, Option<ModAttribute<T>>..
 export const attr = <T>(key: ModAttributeKey) =>
   (mod: VortexMod): Option<T> =>
-    fromNullable((mod?.attributes[key] as ModAttributeValue<T>)?.data);
+    fromNullable((mod?.attributes?.[key] as ModAttributeValue<T>)?.data);
 
 export const attrModType = flow(
   attr<ModType>(ModAttributeKey.ModType),
