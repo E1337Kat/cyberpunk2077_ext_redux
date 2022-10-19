@@ -66,7 +66,7 @@ import {
 } from "./installers.utils";
 import { fileFromDiskTE } from "./installers.shared";
 import {
-  ModAttributeName,
+  attrModType,
   ModType,
 } from "./installers.types";
 
@@ -124,6 +124,7 @@ const deserializeLoadOrder = (
 
 
 type IndexableOrderableMod = VortexModWithEnabledStatus & { index: number };
+type IdToIndex = { [id: string]: number };
 
 const byIndexOrAtEndForNew = pipe(NumericOrd, contramap((mod: IndexableOrderableMod) => mod.index));
 
@@ -143,8 +144,6 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   if (activeProfile?.gameId !== GAME_ID) {
     return Promise.reject(new Error(`${me}: Invalid profile or wrong game, canceling: ${jsonp(activeProfile)}`));
   }
-
-  type IdToIndex = { [id: string]: number };
 
   const currentLoadOrderIndexesPerModId =
     await pipe(
@@ -187,8 +186,7 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   const loadOrderableModsInCurrentOrder = pipe(
     allModsKnownToVortex,
     filterMap((mod: VortexMod): Option<IndexableOrderableMod> => {
-      if (mod.state === `installed` &&
-          mod.attributes?.[ModAttributeName.ModType] === ModType.REDmod) {
+      if (mod.state === `installed` && attrModType(mod) === ModType.REDmod) {
         return some({
           index: currentLoadOrderIndexesPerModId[mod.id] ?? indexAfterLastOrdered,
           ...mod,

@@ -3,8 +3,8 @@ import { FileTree } from "./filetree";
 import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
 import {
   InstallerType,
-  ModAttribute,
-  ModAttributeName,
+  makeAttr,
+  ModAttributeKey,
   ModType,
 } from "./installers.types";
 import {
@@ -754,10 +754,7 @@ export const REDMOD_AUTOCONVERTED_NAME_TAG = `(V2077 Autoconverted)`;
 export const REDMOD_AUTOCONVERTED_VERSION_TAG = `V2077RED`;
 
 export const REDMOD_MODTYPE = `REDmod`;
-export const REDMOD_MODTYPE_ATTRIBUTE: ModAttribute = {
-  key: ModAttributeName.ModType,
-  value: ModType.REDmod,
-};
+export const REDMOD_MODTYPE_ATTRIBUTE = makeAttr(ModAttributeKey.ModType, ModType.REDmod);
 
 //
 // ASI

@@ -18,10 +18,6 @@ import {
   TaskEither,
   tryCatch,
 } from "fp-ts/lib/TaskEither";
-import {
-  map,
-  toArray as toMutableArray,
-} from "fp-ts/lib/ReadonlyArray";
 import { promptUserOnProtectedPaths } from "./ui.dialogs";
 import {
   Path,
@@ -289,18 +285,13 @@ export const instructionsToGenerateDirs = (
     })),
   );
 
-export const instructionsToGenerateMetadataAttributes = (
-  attributes: ModAttribute[],
-): VortexInstruction[] =>
-  pipe(
-    attributes,
-    map((attribute): VortexInstruction => ({
-      type: `attribute`,
-      key: attribute.key,
-      value: attribute.value,
-    })),
-    toMutableArray,
-  );
+export const instructionToGenerateMetadataAttribute = <T>(
+  attribute: ModAttribute<T>,
+): VortexInstruction => ({
+    type: `attribute`,
+    key: attribute.key,
+    value: attribute.value,
+  });
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,

@@ -12,6 +12,11 @@ import {
   pipe,
 } from "fp-ts/lib/function";
 import * as t from "io-ts";
+import {
+  Option,
+  fromNullable,
+  getOrElse as getOrElseO,
+} from "fp-ts/lib/Option";
 import { Features } from "./features";
 import {
   FileTree,
@@ -21,6 +26,7 @@ import {
   VortexApi,
   VortexTestResult,
   VortexInstallResult,
+  VortexMod,
 } from "./vortex-wrapper";
 import { S } from "./installers.utils";
 
@@ -70,10 +76,10 @@ export enum InstallerType {
 // Codec helpers
 //
 
-export type DecodeFromJsonFunc<A> = (json: J.Json) => Either<unknown, A>;
-export type SafeDecodeFunc<A> = (json: string) => Either<Error, A>;
+type DecodeFromJsonFunc<A> = (json: J.Json) => Either<unknown, A>;
+type SafeDecodeFunc<A> = (json: string) => Either<Error, A>;
 
-export const safeDecode = <A>(decodeFromJson: DecodeFromJsonFunc<A>): SafeDecodeFunc<A> =>
+const safeDecode = <A>(decodeFromJson: DecodeFromJsonFunc<A>): SafeDecodeFunc<A> =>
   flow(
     decodeFromJson,
     match(
@@ -95,18 +101,38 @@ export const decodeWith = <A>(decodeFromJson: DecodeFromJsonFunc<A>) =>
 // Mod Info and Name And Stuff
 //
 
-export const enum ModAttributeName {
+export const enum ModAttributeKey {
   ModType = `V2077_mod_type`,
 }
 
-export interface ModAttribute {
-  key: ModAttributeName;
-  value: string;
+export interface ModAttributeValue<T> {
+  data: T;
+}
+
+export interface ModAttribute<T> {
+  key: ModAttributeKey;
+  value: ModAttributeValue<T>;
 }
 
 export const enum ModType {
+  INVALID = `INVALID mod type used as a marker`,
   REDmod = `V2077_REDmod`,
 }
+
+// Attribute helper functions
+
+export const makeAttr = <T>(key: ModAttributeKey, data: T): ModAttribute<T> =>
+  ({ key, value: { data } });
+
+// This should probably be an Either<Error, Option<ModAttribute<T>>..
+export const attr = <T>(key: ModAttributeKey) =>
+  (mod: VortexMod): Option<T> =>
+    fromNullable((mod?.attributes[key] as ModAttributeValue<T>)?.data);
+
+export const attrModType = flow(
+  attr<ModType>(ModAttributeKey.ModType),
+  getOrElseO(() => ModType.INVALID),
+);
 
 export interface SemanticVersion {
   v: string;

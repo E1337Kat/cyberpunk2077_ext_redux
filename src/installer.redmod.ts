@@ -79,7 +79,7 @@ import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
   instructionsToGenerateDirs,
-  instructionsToGenerateMetadataAttributes,
+  instructionToGenerateMetadataAttribute,
   modInfoTaggedAsAutoconverted,
   moveFromTo,
 } from "./installers.shared";
@@ -504,7 +504,7 @@ const ensureModdedDirExistsInstruction = (): readonly VortexInstruction[] =>
   instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
 
 const modTypeMetadataInstruction = (): readonly VortexInstruction[] =>
-  instructionsToGenerateMetadataAttributes([REDMOD_MODTYPE_ATTRIBUTE]);
+  [instructionToGenerateMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE)];
 
 //
 // Layout pipeline helpers

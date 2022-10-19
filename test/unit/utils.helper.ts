@@ -210,7 +210,7 @@ export const generatedFile = (contents: string, ...dest: string[]): VortexInstru
   destination: path.join(...dest),
 });
 
-export const addedMetadataAttribute = ({ key, value }: ModAttribute): VortexInstruction => ({
+export const addedMetadataAttribute = <T>({ key, value }: ModAttribute<T>): VortexInstruction => ({
   type: `attribute`,
   key,
   value,
@@ -302,8 +302,7 @@ const destinationOrd = pipe(
 
 const attributeOrd = pipe(
   StringOrd,
-  contramap(({ key, value }: VortexInstruction) =>
-    `${key ?? ``}:${value ?? ``}`),
+  contramap(({ key }: VortexInstruction) => key ?? ``),
 );
 
 export const sortInstructionsForComparison =
