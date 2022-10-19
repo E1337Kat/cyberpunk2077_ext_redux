@@ -12,15 +12,18 @@ describe(`Load Order`, () => {
 
     test(`LoadOrder encodes and decodes roundtrip`, () => {
       const loadOrder: LoadOrder = {
-        typeVersion: LOAD_ORDER_TYPE_VERSION,
+        loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
+        ownerVortexProfileId: `testprofileid`,
         generatedAt: `2021-01-01T00:00:00.000Z`,
         entriesInOrderWithEarlierWinning: [
           {
-            id: `test`,
-            version: `1.0.0`,
-            displayName: `Test`,
-            enabledInVortex: true,
-            modId: `5555`,
+            vortexId: `testvortexid`,
+            vortexModId: `testvortexmodid`,
+            vortexModVersion: `testvortexmodversion`,
+            redmodName: `testredmodname`,
+            redmodVersion: `testredmodversion`,
+            redmodPath: `testredmodpath`,
+            enabled: true,
           },
         ],
       };

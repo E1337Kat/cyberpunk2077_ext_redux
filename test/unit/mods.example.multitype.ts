@@ -12,7 +12,11 @@ import {
   REDMOD_INFO_FILENAME,
   REDMOD_MODTYPE_ATTRIBUTE,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+  REDmodInfo,
+  REDmodInfoForVortex,
+} from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
   copiedToSamePath,
@@ -39,16 +43,28 @@ import {
   mockedFsLayout,
   mergeOrFailOnConflict,
   addedMetadataAttribute,
+  FAKE_MOD_INFO,
+  addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
+import { normalizeDir } from "../../src/filetree";
+import { jsonpp } from "../../src/installers.utils";
 
 
-const myRedModInfoJson = JSON.stringify({
+const myREDmodInfo: REDmodInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
-});
+};
+/* Unused for now, this is a failing case
+const myREDmodInfoForVortex: REDmodInfoForVortex = {
+  ...myREDmodInfo,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDmodInfo.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+*/
+const myREDmodInfoJson = jsonpp(myREDmodInfo);
 
 
-const myRedModCompleteInfoJson = JSON.stringify({
+const myREDModCompleteInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
   description: `This is a description I guess`,
@@ -59,9 +75,16 @@ const myRedModCompleteInfoJson = JSON.stringify({
       path: `mySound.wav`,
     },
   ],
-});
+};
+const myREDmodCompleteInfoForVortex: REDmodInfoForVortex = {
+  name: myREDModCompleteInfo.name,
+  version: myREDModCompleteInfo.version,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDModCompleteInfo.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodCompleteInfoJson = jsonpp(myREDModCompleteInfo);
 
-//
+
 const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     cetWithRedsAndArchivesCanonical: {
@@ -408,7 +431,7 @@ const MultiTypeWithREDmodSuccesses = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodCompleteInfoJson,
             },
           },
         },
@@ -462,6 +485,7 @@ const MultiTypeWithREDmodSuccesses = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodCompleteInfoForVortex),
       ],
     },
   ],
@@ -636,7 +660,7 @@ const MultiTypeDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodCompleteInfoJson,
             },
           },
         },
@@ -677,7 +701,7 @@ const MultiTypeDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },

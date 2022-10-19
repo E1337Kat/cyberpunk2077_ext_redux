@@ -14,7 +14,9 @@ import { VortexInstruction } from "../../src/vortex-wrapper";
 import {
   InstallerType,
   ModAttribute,
+  ModAttributeKey,
   ModInfo,
+  REDmodInfoArrayForVortex,
 } from "../../src/installers.types";
 import {
   CONFIG_XML_MOD_BASEDIR,
@@ -214,6 +216,15 @@ export const addedMetadataAttribute = <T>({ key, value }: ModAttribute<T>): Vort
   type: `attribute`,
   key,
   value,
+});
+
+// Created by hand to test the format is as expected
+export const addedREDmodInfoArrayAttribute = (...infos: REDmodInfoArrayForVortex): VortexInstruction => ({
+  type: `attribute`,
+  key: ModAttributeKey.REDmodInfoArray,
+  value: {
+    data: infos,
+  },
 });
 
 export const expectedUserCancelMessageFor = (installerType: InstallerType): string =>

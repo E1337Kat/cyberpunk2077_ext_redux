@@ -5,7 +5,12 @@ import {
   REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+  REDmodInfo,
+  REDmodInfoForVortex,
+} from "../../src/installers.types";
+import { jsonpp } from "../../src/installers.utils";
 import {
   ExampleSucceedingMod,
   ExampleFailingMod,
@@ -17,14 +22,23 @@ import {
   mergeOrFailOnConflict,
   createdDirectory,
   addedMetadataAttribute,
+  FAKE_MOD_INFO,
+  addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
 
-const myRedModInfoJson = JSON.stringify({
+const myREDmodInfo: REDmodInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
-});
+};
+const myREDmodInfoForVortex: REDmodInfoForVortex = {
+  ...myREDmodInfo,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfo.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoJson = jsonpp(myREDmodInfo);
 
-const myRedModCompleteInfoJson = JSON.stringify({
+
+const myREDmodInfoWithSound: REDmodInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
   description: `This is a description I guess`,
@@ -32,12 +46,20 @@ const myRedModCompleteInfoJson = JSON.stringify({
     {
       name: `mySound`,
       type: `mod_sfx_2d`,
-      path: `mySound.wav`,
+      file: `mySound.wav`,
     },
   ],
-});
+};
+const myREDmodInfoWithSoundForVortex: REDmodInfoForVortex = {
+  name: myREDmodInfoWithSound.name,
+  version: myREDmodInfoWithSound.version,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoWithSound.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoWithSoundJson = jsonpp(myREDmodInfoWithSound);
 
-const myRedModWithSkipSoundInfoJson = JSON.stringify({
+
+const myREDmodInfoWithSkipSound: REDmodInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
   description: `This is a description I guess`,
@@ -47,23 +69,49 @@ const myRedModWithSkipSoundInfoJson = JSON.stringify({
       type: `mod_skip`,
     },
   ],
-});
+};
+const myREDmodInfoWithSkipSoundForVortex: REDmodInfoForVortex = {
+  name: myREDmodInfoWithSkipSound.name,
+  version: myREDmodInfoWithSkipSound.version,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoWithSkipSound.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoWithSkipSoundJson = jsonpp(myREDmodInfoWithSkipSound);
 
-const invalidREDmodInfoJson = JSON.stringify({
+
+const invalidREDmodInfo = {
   name: `myRedMod`,
-});
+};
+const invalidREDmodInfoJson = jsonpp(invalidREDmodInfo);
 
-const NOTmyRedModInfo = {
+
+const NOTmyREDmodInfo = {
   name: `NOTmyRedMod`,
   version: `1.0.0`,
 };
-const NOTmyRedModInfoJson = JSON.stringify(NOTmyRedModInfo);
+const NOTmyREDmodInfoForVortex: REDmodInfoForVortex = {
+  ...NOTmyREDmodInfo,
+  relativePath: path.join(REDMOD_BASEDIR, NOTmyREDmodInfo.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const NOTmyRedModInfoJson = jsonpp(NOTmyREDmodInfo);
 
-const myRedModNumber2InfoJson = JSON.stringify({
+
+const myREDmodInfoNumber2 = {
   name: `myRedModNumber2`,
   version: `1.0.1`,
-});
+};
+const myREDmodNumber2InfoForVortex: REDmodInfoForVortex = {
+  ...myREDmodInfoNumber2,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoNumber2.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodNumber2InfoJson = jsonpp(myREDmodInfoNumber2);
 
+
+//
+// Examples
+//
 
 const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -74,7 +122,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -91,6 +139,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
       ],
     },
   ],
@@ -102,7 +151,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithSoundJson,
             },
           },
         },
@@ -119,6 +168,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
       ],
     },
   ],
@@ -130,10 +180,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
             myRedModNumber2: {
-              [REDMOD_INFO_FILENAME]: myRedModNumber2InfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodNumber2InfoJson,
             },
           },
         },
@@ -156,6 +206,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedModNumber2/archives/boring_stuff.archive`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex, myREDmodNumber2InfoForVortex),
       ],
     },
   ],
@@ -167,7 +218,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithSoundJson,
             },
           },
         },
@@ -202,6 +253,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
       ],
     },
   ],
@@ -212,7 +264,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       fsMocked: mockedFsLayout(
         {
           myRedMod: {
-            [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
           },
         },
       ),
@@ -233,6 +285,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
       ],
     },
   ],
@@ -243,10 +296,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       fsMocked: mockedFsLayout(
         {
           myRedMod: {
-            [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
           },
           myRedModNumber2: {
-            [REDMOD_INFO_FILENAME]: myRedModNumber2InfoJson,
+            [REDMOD_INFO_FILENAME]: myREDmodNumber2InfoJson,
           },
         },
       ),
@@ -279,6 +332,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex, myREDmodNumber2InfoForVortex),
       ],
     },
   ],
@@ -289,7 +343,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       fsMocked: mockedFsLayout(
         {
           myRedMod: {
-            [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+            [REDMOD_INFO_FILENAME]: myREDmodInfoWithSoundJson,
           },
         },
       ),
@@ -338,6 +392,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
       ],
     },
   ],
@@ -347,7 +402,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
         },
       ),
       inFiles: [
@@ -366,6 +421,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
       ],
     },
   ],
@@ -375,7 +431,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSoundJson,
         },
       ),
       inFiles: [
@@ -423,6 +479,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
       ],
     },
   ],
@@ -448,14 +505,15 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       outInstructions: [
         movedFromTo(
           path.join(`myRedMod/info.json`),
-          path.join(`${REDMOD_BASEDIR}/${NOTmyRedModInfo.name}/info.json`),
+          path.join(`${REDMOD_BASEDIR}/${NOTmyREDmodInfo.name}/info.json`),
         ),
         movedFromTo(
           path.join(`myRedMod/archives/cool_stuff.archive`),
-          path.join(`${REDMOD_BASEDIR}/${NOTmyRedModInfo.name}/archives/cool_stuff.archive`),
+          path.join(`${REDMOD_BASEDIR}/${NOTmyREDmodInfo.name}/archives/cool_stuff.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(NOTmyREDmodInfoForVortex),
       ],
     },
   ],
@@ -465,7 +523,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
         },
       ),
       inFiles: [
@@ -484,6 +542,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSkipSoundForVortex),
       ],
     },
   ],
@@ -493,7 +552,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
         },
       ),
       inFiles: [
@@ -518,6 +577,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSkipSoundForVortex),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
     },
@@ -528,7 +588,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModWithSkipSoundInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
         },
       ),
       inFiles: [
@@ -552,6 +612,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSkipSoundForVortex),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
     },
@@ -564,7 +625,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -583,6 +644,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
       ],
     },
   ],
@@ -601,7 +663,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -627,7 +689,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
       fsMocked: mockedFsLayout(
         {
           [REDMOD_BASEDIR]: {
-            [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+            [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
           },
         },
       ),
@@ -670,7 +732,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -694,7 +756,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -718,7 +780,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -742,7 +804,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
         },
       ),
       inFiles: [
@@ -773,7 +835,7 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myRedModCompleteInfoJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSoundJson,
         },
       ),
       inFiles: [

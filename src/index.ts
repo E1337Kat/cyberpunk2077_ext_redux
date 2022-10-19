@@ -7,6 +7,7 @@ import {
   GAME_ID,
   GOGAPP_ID,
   STEAMAPP_ID,
+  V2077_DIR,
 } from "./index.metadata";
 import {
   wrapTestSupported,
@@ -14,16 +15,18 @@ import {
   internalPipelineInstaller,
 } from "./installers";
 import {
+  VortexDiscoveryResult,
   VortexExtensionContext,
   VortexGameStoreEntry,
 } from "./vortex-wrapper";
 import {
-  REDmoddingGameLaunchParameters,
+  REDlauncher,
   REDmoddingTools,
   wrappedPrepareForModdingWithREDmodding,
 } from './redmodding';
 import {
   CurrentFeatureSet,
+  Feature,
   FeatureEnabled,
 } from "./features";
 import {
@@ -45,7 +48,7 @@ const requiresGoGLauncher = () =>
 
 
 //
-// REDmodding stuff
+// REDmodding conditional stuff
 //
 
 
@@ -67,7 +70,7 @@ const moddingTools = [
         path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
         path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
       ],
-      defaultPrimary: true,
+      defaultPrimary: false,
       shell: false,
       relative: true,
     },
@@ -75,14 +78,26 @@ const moddingTools = [
 ];
 
 const setupFunctionToRunAtExtensionInit = (vortex: VortexExtensionContext) =>
-  (FeatureEnabled(CurrentFeatureSet.REDmodding)
-    ? (discovery) => { wrappedPrepareForModdingWithREDmodding(vortex, vortexApi, discovery); }
-    : (discovery) => vortexApi.fs.readdirAsync(path.join(discovery.path)));
+  async (discovery: VortexDiscoveryResult): Promise<void> => {
+    try {
+      await vortexApi.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
+      vortexApi.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
+    } catch (err) {
+    // This might be an actual problem but let's not prevent proceeding..
+      vortexApi.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
+    }
+
+    if (CurrentFeatureSet.REDmodding === Feature.Enabled) {
+      return wrappedPrepareForModdingWithREDmodding(vortex, vortexApi, discovery);
+    }
+
+    return vortexApi.fs.readdirAsync(path.join(discovery.path));
+  };
 
 
 const defaultGameLaunchParameters =
   FeatureEnabled(CurrentFeatureSet.REDmodding)
-    ? REDmoddingGameLaunchParameters
+    ? REDlauncher.parameters
     : [];
 
 //
@@ -124,24 +139,47 @@ const main = (vortex: VortexExtensionContext) => {
     wrapInstall(vortex, vortexApi, internalPipelineInstaller, CurrentFeatureSet),
   );
 
-  vortex.registerLoadOrder({
-    gameId: GAME_ID,
+  if (CurrentFeatureSet.REDmodLoadOrder === Feature.Enabled) {
+    vortex.registerLoadOrder({
+      gameId: GAME_ID,
 
-    // This needs to be actually implemented, it doesnt't do
-    // anything on its own, so leave it out now to avoid confusion
+      // This needs to be actually implemented, it doesnt't do
+      // anything on its own, so leave it out now to avoid confusion
+      //
+      // toggleableEntries: true,
+
+      // Can add instructions to the right-hand panel. Might be useful,
+      // but on the whole I think it's probably better to reduce the
+      // amount of space the panel takes instead.
+      //
+      // usageInstructions: `Order your mods by dragging them up and down! Only REDmods and autoconverted heritage mods are orderable.`,
+
+      validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
+      deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
+      serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
+    });
+
+    // This makes Vortex unable to deploy anything because the type didn't exist previously :D
     //
-    // toggleableEntries: true,
-
-    // Can add instructions to the right-hand panel. Might be useful,
-    // but on the whole I think it's probably better to reduce the
-    // amount of space the panel takes instead.
-    //
-    // usageInstructions: `Order your mods by dragging them up and down! Only REDmods and autoconverted heritage mods are orderable.`,
-
-    validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
-    deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
-    serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
-  });
+    // https://github.com/Nexus-Mods/Vortex/issues/13376
+    /*
+    vortex.registerModType(
+      ModType.REDmod,
+      100,
+      constTrue,
+      (_game: VortexGame) => ``,
+      (instructions: VortexInstruction[]) => pipe(
+        instructions,
+        filter((instruction) =>
+          instruction.key === ModAttributeKey.ModType && instruction.value?.data === ModType.REDmod),
+        isNonEmpty,
+      ),
+      {
+        name: `REDmod`,
+      },
+    );
+    */
+  }
 
   // This is additionally run when the extension is activated,
   // meant especially to set up state, listeners, reducers, etc.

@@ -105,6 +105,7 @@ export const MODS_EXTRA_BASEDIR = path.join(
   `.\\${EXTENSION_NAME_INTERNAL}\\mod-extra-files\\`,
 );
 
+
 export const enum ExtraFilesLayout {
   Toplevel = `
               - .\\[any allowed extra filetype]

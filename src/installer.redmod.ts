@@ -12,6 +12,7 @@ import {
   toArray as toMutableArray,
   findFirstMap,
   concat,
+  partition,
 } from "fp-ts/ReadonlyArray";
 import {
   TaskEither,
@@ -53,6 +54,7 @@ import {
   dirInTree,
   filesIn,
   fileTreeFromPaths,
+  normalizeDir,
 } from "./filetree";
 import {
   REDMOD_INFO_FILENAME,
@@ -92,8 +94,12 @@ import {
 import {
   decodeREDmodInfo,
   InstallerType,
+  makeAttr,
+  ModAttributeKey,
+  ModAttributeValue,
   ModInfo,
   REDmodInfo,
+  REDmodInfoForVortex,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
@@ -499,18 +505,54 @@ const extraFilesLayoutAndValidation = (
   return right(instructions);
 };
 
+const redmodInfoModAttributeInstruction =
+  (modInfo: ModInfo, detes: REDmodInfoAndPathDetes): readonly VortexInstruction[] => {
+
+    const redmodInfoForVortex: REDmodInfoForVortex = {
+      name: detes.redmodInfo.name,
+      version: detes.redmodInfo.version,
+      relativePath: normalizeDir(detes.relativeDestDir),
+      vortexModId: modInfo.id,
+    };
+
+    const redmodInfoModAttribute =
+      makeAttr(ModAttributeKey.REDmodInfo, redmodInfoForVortex);
+
+    return [instructionToGenerateMetadataAttribute(redmodInfoModAttribute)];
+  };
+
+// This is a little annoying, but it flows better with the inner loop
+const gatherAllREDmodInfoModAttributesIntoOneInstruction =
+  (instructions: readonly VortexInstruction[]): readonly VortexInstruction[] => {
+    const { right: redmodInfoInstructions, left: otherInstructions } = pipe(
+      instructions,
+      partition((instruction) => instruction.key === ModAttributeKey.REDmodInfo),
+    );
+
+    const allREDmodInfosInstruction = pipe(
+      redmodInfoInstructions,
+      map((instruction) => (instruction.value as ModAttributeValue<REDmodInfoForVortex>).data),
+      (redmodInfos) => makeAttr(ModAttributeKey.REDmodInfoArray, redmodInfos),
+    );
+
+    return [
+      ...otherInstructions,
+      instructionToGenerateMetadataAttribute(allREDmodInfosInstruction),
+    ];
+  };
+
 // …Let's just always do this?
 const ensureModdedDirExistsInstruction = (): readonly VortexInstruction[] =>
   instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
 
-const modTypeMetadataInstruction = (): readonly VortexInstruction[] =>
+const modTypeModAttributeInstruction = (): readonly VortexInstruction[] =>
   [instructionToGenerateMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE)];
 
 //
 // Layout pipeline helpers
 //
 
-const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
+const error = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
 type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
 type LayoutMatcherFunc = (FileTree) => Option<ModDirsForLayoutFunc>;
@@ -542,7 +584,7 @@ export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  _features: Features,
   allowedLayouts: readonly LayoutMatcherFunc[],
 ): TaskEither<Error, readonly VortexInstruction[]> => {
   const singleModPipeline =
@@ -561,6 +603,7 @@ export const instructionsForLayoutsPipeline = (
               extraFilesLayoutAndValidation,
             ],
             traverseArrayE((layout) => layout(api, modInfoAndPathDetes)),
+            mapE(concat([redmodInfoModAttributeInstruction(modInfo, modInfoAndPathDetes)])),
           )),
           mapE(flatten),
         )),
@@ -569,13 +612,14 @@ export const instructionsForLayoutsPipeline = (
   const allModsForLayoutPipeline = pipe(
     allowedLayouts,
     findFirstMap((allModDirsForLayoutIfMatch) => allModDirsForLayoutIfMatch(fileTree)),
-    fromOptionTE(knownError(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
+    fromOptionTE(error(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
     chainEitherK((allModDirsForLayout) => allModDirsForLayout(fileTree)),
     chain(flow(
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
       mapTE(concat(ensureModdedDirExistsInstruction())),
-      mapTE(concat(modTypeMetadataInstruction())),
+      mapTE(concat(modTypeModAttributeInstruction())),
+      mapTE(gatherAllREDmodInfoModAttributesIntoOneInstruction),
     )),
   );
 
@@ -762,7 +806,10 @@ export const transformToREDmodArchiveInstructions = (
     ...redmodInstructionsMappedBackToRealSources,
     // This should be fixed so that we can't accidentally forget stuff
     ...ensureModdedDirExistsInstruction(),
-    ...modTypeMetadataInstruction(),
+    ...modTypeModAttributeInstruction(),
+    ...gatherAllREDmodInfoModAttributesIntoOneInstruction(
+      redmodInfoModAttributeInstruction(modInfo, redmodInstallDetes),
+    ),
   ];
 
   const instructionsToInstallArchiveAsREDmod = {

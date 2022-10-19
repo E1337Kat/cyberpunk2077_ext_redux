@@ -4,6 +4,7 @@ import {
   CurrentFeatureSet,
   Feature,
 } from "../../src/features";
+import { normalizeDir } from "../../src/filetree";
 import {
   REDMOD_AUTOCONVERTED_NAME_TAG,
   REDMOD_BASEDIR,
@@ -14,7 +15,11 @@ import {
   REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+  REDmodInfo,
+  REDmodInfoForVortex,
+} from "../../src/installers.types";
 import { jsonpp } from "../../src/installers.utils";
 import { InfoNotification } from "../../src/ui.notifications";
 import {
@@ -40,6 +45,7 @@ import {
   REDS_PREFIXES,
   addedMetadataAttribute,
   createdDirectory,
+  addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
 
 
@@ -52,10 +58,17 @@ const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_
 const AUTOCONVERT_MOD_DIR = AUTOCONVERT_MOD_NAME;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
-const REDMOD_FAKE_INFO_JSON = jsonpp({
+const REDMOD_FAKE_INFO: REDmodInfo = {
   name: AUTOCONVERT_MOD_NAME,
   version: AUTOCONVERT_MOD_VERSION,
-});
+};
+const REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
+  ...REDMOD_FAKE_INFO,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, REDMOD_FAKE_INFO.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const REDMOD_FAKE_INFO_JSON = jsonpp(REDMOD_FAKE_INFO);
+
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -78,6 +91,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -102,6 +116,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -125,6 +140,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -148,6 +164,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -177,6 +194,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
@@ -202,6 +220,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
@@ -248,6 +267,7 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },

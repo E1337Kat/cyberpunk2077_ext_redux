@@ -4,8 +4,6 @@ import { Promise } from "bluebird"; // eslint-disable-line import/no-extraneous-
 
 // Plain renames
 
-export type SpecialPromise = Promise;
-
 export type VortexDiscoveryState = Vortex.IDiscoveryState;
 export type VortexDiscoveryResult = Vortex.IDiscoveryResult;
 
@@ -67,8 +65,17 @@ export type VortexInstallResult = Vortex.IInstallResult;
 export type VortexInstruction = Vortex.IInstruction;
 export type VortexInstructionType = Vortex.InstructionType;
 
-export type VortexMod = Vortex.IMod;
-// Should really make this typesafe
-export type VortexModWithEnabledStatus = VortexMod & { enabled: boolean, enabledTime: number };
+export type VortexProfile = Vortex.IProfile;
+export type VortexState = Vortex.IState;
+export type VortexGame = Vortex.IGame;
+export type VortexGameStored = Vortex.IGameStored;
+export type VortexToolStored = Vortex.IToolStored;
+export type VortexToolDiscovered = Vortex.IDiscoveredTool;
 
-export type VortexModState = { [modId: string]: VortexMod };
+export type VortexMod = Vortex.IMod;
+export type VortexProfileMod = Vortex.IProfileMod;
+// Should really make this typesafe
+export type VortexModWithEnabledStatus = VortexMod & VortexProfileMod;
+
+export type VortexModIndex = { [modId: string]: VortexMod };
+export type VortexProfileModIndex = { [modId: string]: VortexProfileMod };

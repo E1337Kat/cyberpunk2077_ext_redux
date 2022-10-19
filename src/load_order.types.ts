@@ -1,10 +1,15 @@
+import { pipe } from "fp-ts/lib/function";
+import { Ord as NumericOrd } from "fp-ts/lib/number";
+import { contramap } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import {
   decodeWith,
   REDmodCustomSound,
+  REDmodInfoForVortex,
 } from "./installers.types";
 import { jsonpp } from "./installers.utils";
 import {
+  VortexModWithEnabledStatus,
   VortexWrappedDeserializeFunc,
   VortexWrappedSerializeFunc,
   VortexWrappedValidateFunc,
@@ -26,22 +31,27 @@ export interface LoadOrderEntryREDmod {
   customSounds: REDmodCustomSound[];
 }
 
-// We still probably want stuff like submod versions and
-// paths but have to store that stuff in attributes unless
-// we want to iterate all that stuff up every time (it doesn't
-// really belong here anyway).
+export interface LoadOrderEntryDataForVortex {
+  ownerVortexProfileId: string;
+  vortexId: string;
+  vortexModId: string;
+  vortexModVersion: string;
+  vortexEnabled: boolean;
+  redmodInfo: REDmodInfoForVortex;
+}
+
 export const LoadOrderEntryType =
   t.intersection([
-    t.type(
-      {
-        id: t.string,
-        version: t.string,
-        displayName: t.string,
-        enabledInVortex: t.boolean,
-      },
-    ),
     t.partial({
-      modId: t.string,
+      vortexModId: t.string,
+    }),
+    t.type({
+      vortexId: t.string,
+      vortexModVersion: t.string,
+      redmodName: t.string,
+      redmodVersion: t.string,
+      redmodPath: t.string,
+      enabled: t.boolean,
     }),
   ], `LoadOrderEntryType`);
 export type LoadOrderEntry = t.TypeOf<typeof LoadOrderEntryType>;
@@ -49,8 +59,9 @@ export type LoadOrderEntry = t.TypeOf<typeof LoadOrderEntryType>;
 export const LoadOrderType =
   t.type(
     {
-      typeVersion: t.literal(LOAD_ORDER_TYPE_VERSION),
+      loadOrderFormatVersion: t.literal(LOAD_ORDER_TYPE_VERSION),
       generatedAt: t.string,
+      ownerVortexProfileId: t.string,
       entriesInOrderWithEarlierWinning: t.array(LoadOrderEntryType),
     },
     `LoadOrderVortexType`,
@@ -63,3 +74,15 @@ export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
 
 
 export const decodeLoadOrder = decodeWith(LoadOrderType.decode);
+
+
+export type IndexableOrderableMod = VortexModWithEnabledStatus & { index: number };
+export type IdToIndex = { [id: string]: number };
+
+export const DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP = -1;
+
+export const byIndexAndNewAtTheTop = pipe(
+  NumericOrd,
+  contramap((mod: IndexableOrderableMod) =>
+    ((mod.index || DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP) + 1)),
+);

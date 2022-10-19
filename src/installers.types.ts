@@ -102,7 +102,9 @@ export const decodeWith = <A>(decodeFromJson: DecodeFromJsonFunc<A>) =>
 //
 
 export const enum ModAttributeKey {
-  ModType = `V2077_mod_type`,
+  ModType = `V2077_mod_attr_mod_type`,
+  REDmodInfo = `V2077_mod_attr_redmod_info`,
+  REDmodInfoArray = `V2077_mod_attr_redmod_info_array`,
 }
 
 export interface ModAttributeValue<T> {
@@ -129,10 +131,12 @@ export const attr = <T>(key: ModAttributeKey) =>
   (mod: VortexMod): Option<T> =>
     fromNullable((mod?.attributes?.[key] as ModAttributeValue<T>)?.data);
 
-export const attrModType = flow(
-  attr<ModType>(ModAttributeKey.ModType),
-  getOrElseO(() => ModType.INVALID),
-);
+export const attrOrElse =
+  <T>(key: ModAttributeKey, orElse: () => T): (mod: VortexMod) => T =>
+    flow(attr<T>(key), getOrElseO(orElse));
+
+export const attrModType =
+  attrOrElse<ModType>(ModAttributeKey.ModType, () => ModType.INVALID);
 
 export interface SemanticVersion {
   v: string;
@@ -215,6 +219,16 @@ export const decodeREDmodInfo = (json: J.Json): Either<Error, REDmodInfo> => pip
     (info) => right(info),
   ),
 );
+
+export interface REDmodInfoForVortex extends Pick<REDmodInfo, `name` | `version`> {
+  relativePath: string;
+  vortexModId: string;
+}
+
+export type REDmodInfoArrayForVortex = readonly REDmodInfoForVortex[];
+
+export const attrREDmodInfos =
+  attrOrElse<REDmodInfoArrayForVortex>(ModAttributeKey.REDmodInfoArray, () => []);
 
 //
 // Installer API functions
