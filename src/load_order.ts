@@ -77,7 +77,10 @@ import {
   ModType,
   REDmodInfoForVortex,
 } from "./installers.types";
-import { V2077_LOAD_ORDER_DIR } from "./redmodding.metadata";
+import {
+  REDMODDING_RTTI_METADATA_FILE_PATH,
+  V2077_LOAD_ORDER_DIR,
+} from "./redmodding.metadata";
 import { REDmodDeploy } from "./redmodding";
 import {
   InfoNotification,
@@ -118,9 +121,8 @@ const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
 
 
 //
-// Vortex Load Order API Functions
+// Helpers
 //
-
 
 const getDiscoveryPath = (
   api: VortexApi,
@@ -135,6 +137,19 @@ const getDiscoveryPath = (
 
   return discovery?.path;
 };
+
+
+//
+//
+// Load order functions
+//
+//
+
+
+//
+// Deserialize
+//
+
 
 const deserializeLoadOrder = (vortexApi: VortexApi) =>
   (loadOrderPathForCurrentProfile: string): Task<readonly LoadOrderEntry[]> => {
@@ -333,6 +348,10 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
 };
 
 
+//
+// Serialize
+//
+
 const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrderEntry => {
   const modDetesWeNeedForLoadOrder: LoadOrderEntryDataForVortex = vortexEntry.data;
 
@@ -350,6 +369,52 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
 };
 
 
+const startREDmodDeployInTheBackgroundWithNotifications = (
+  vortexApi: VortexApi,
+  gameDirPath: string,
+  v2077LoadOrderEntries: readonly LoadOrderEntry[],
+): void => {
+  const loadOrderForREDmodDeployWithShellQuotes = pipe(
+    v2077LoadOrderEntries,
+    filterMap((mod) =>
+      (mod.enabled
+        ? some(`"${path.basename(mod.redmodPath)}"`)
+        : none)),
+  );
+
+  const redModDeployParametersToCreateNewManifest = [
+    `deploy`,
+    `-root="${gameDirPath}"`,
+    `-rttiSchemaFile="${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
+    `-mod=`,
+    ...loadOrderForREDmodDeployWithShellQuotes,
+  ];
+
+  const exePath =
+      path.join(gameDirPath, REDmodDeploy.executable());
+
+  const runOptions = {
+    cwd: path.dirname(exePath),
+    shell: true,
+  };
+
+  vortexApi.runExecutable(exePath, redModDeployParametersToCreateNewManifest, runOptions)
+    .then(() => {
+      vortexApi.log(`info`, `${me}: REDmod deployment complete!`);
+      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+    })
+    .catch((error) => {
+      vortexApi.log(`error`, `${me}: REDmod deployment failed!`, S(error));
+      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+    });
+
+  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
+  vortexApi.log(`info`, `${me}: Starting REDmod deployment!`);
+  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S({
+    loadOrderForREDmodDeployWithShellQuotes, exePath, redModDeployParametersToCreateNewManifest, runOptions,
+  }));
+};
+
 //
 // 'Serialize' is what Vortex calls this
 //
@@ -363,9 +428,9 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
   vortexApi: VortexApi,
   vortexLoadOrder: VortexLoadOrder,
 ): Promise<void> => {
-  const discoveryPath = getDiscoveryPath(vortexApi);
+  const gameDirPath = getDiscoveryPath(vortexApi);
 
-  if (discoveryPath === undefined) {
+  if (gameDirPath === undefined) {
     vortexApi.log(`error`, `${me}: Serialize: Game not found! (discoveryPath is undefined)`);
     return Promise.reject(new vortexUtil.NotFound(`Game Not Found.`));
   }
@@ -402,50 +467,14 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
     encodeLoadOrder(v2077LoadOrder);
 
   const loadOrderFilePathForThisProfile =
-    loadOrderPathFor(activeProfile, discoveryPath);
+    loadOrderPathFor(activeProfile, gameDirPath);
 
   vortexApi.log(`debug`, `${me}: New load order ready to be deployed and serialized! `, v2077LoadOrder);
-  vortexApi.log(`info`, `${me}: Saving load order to disk as JSON: ${loadOrderFilePathForThisProfile}`);
 
-  const loadOrderForREDmodDeployWithShellQuotes = pipe(
-    v2077LoadOrderEntries,
-    filterMap((mod) =>
-      (mod.enabled
-        ? some(`"${path.basename(mod.redmodPath)}"`)
-        : none)),
-  );
-
-  const redModDeployParametersToCreateNewManifest = [
-    `deploy`,
-    `--mod=`,
-    ...loadOrderForREDmodDeployWithShellQuotes,
-  ];
-
-  const exePath =
-    path.join(discoveryPath, REDmodDeploy.executable());
-
-  const runOptions = {
-    cwd: path.dirname(exePath),
-    shell: true,
-  };
-
-  vortexApi.runExecutable(exePath, redModDeployParametersToCreateNewManifest, runOptions)
-    .then(() => {
-      vortexApi.log(`info`, `${me}: REDmod deployment complete!`);
-      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-    })
-    .catch((error) => {
-      vortexApi.log(`error`, `${me}: REDmod deployment failed!`, S(error));
-      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-    });
-
-  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
-  vortexApi.log(`info`, `${me}: Starting REDmod deployment!`);
-  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S({
-    loadOrderForREDmodDeployWithShellQuotes, exePath, redModDeployParametersToCreateNewManifest, runOptions,
-  }));
+  startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, v2077LoadOrderEntries);
 
   // Finally, I guess
+  vortexApi.log(`info`, `${me}: Saving load order to disk as JSON: ${loadOrderFilePathForThisProfile}`);
   return fs.writeFileAsync(loadOrderFilePathForThisProfile, serializedLoadOrder, { encoding: `utf8` });
 };
 
@@ -467,38 +496,16 @@ const validate: VortexWrappedValidateFunc = async (
   return Promise.resolve(LOAD_ORDER_VALIDATION_PASSED_RESULT);
 };
 
+
 //
-// Wrappers
+// Wrapped functions typed for what Vortex expects
 //
+
 
 export const internalLoadOrderer: LoadOrderer = {
   validate,
   serializeLoadOrder: serializeLoadOrderToDisk,
   deserializeLoadOrder: compileDetesToGenerateLoadOrderUi,
-};
-
-//
-// (wrap) `validate`
-//
-//  Before hitting actual validation, pass in some extra data like `VortexApi`.
-//
-//  @type `VortexValidateFunc`
-//
-export const wrapValidate = (
-  vortex: VortexExtensionContext,
-  vortexApiThing,
-  loadOrderer: LoadOrderer,
-): VortexValidateFunc => (prev: VortexLoadOrder, current: VortexLoadOrder) => {
-  //
-  // const vortexLog: VortexLogFunc = vortexApiThing.log;
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-  // Unlike in `install`, Vortex doesn't supply us the mod's disk path
-  return loadOrderer.validate(
-    vortexApi,
-    prev,
-    current,
-  );
 };
 
 //
@@ -514,7 +521,6 @@ export const wrapDeserialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexDeserializeFunc => async (): Promise<VortexLoadOrder> => {
-  // const vortexLog: VortexLogFunc = vortexApiThing.log;
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
   return loadOrderer.deserializeLoadOrder(vortexApi);
@@ -533,8 +539,29 @@ export const wrapSerialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexSerializeFunc => async (loadOrder: VortexLoadOrder): Promise<void> => {
-  // const vortexLog: VortexLogFunc = vortexApiThing.log;
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
   return loadOrderer.serializeLoadOrder(vortexApi, loadOrder);
+};
+
+//
+// (wrap) `validate`
+//
+//  Before hitting actual validation, pass in some extra data like `VortexApi`.
+//
+//  @type `VortexValidateFunc`
+//
+export const wrapValidate = (
+  vortex: VortexExtensionContext,
+  vortexApiThing,
+  loadOrderer: LoadOrderer,
+): VortexValidateFunc => (prev: VortexLoadOrder, current: VortexLoadOrder) => {
+  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+
+  // Unlike in `install`, Vortex doesn't supply us the mod's disk path
+  return loadOrderer.validate(
+    vortexApi,
+    prev,
+    current,
+  );
 };
