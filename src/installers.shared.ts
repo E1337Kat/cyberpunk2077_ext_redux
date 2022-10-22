@@ -27,7 +27,10 @@ import {
   FILETREE_ROOT,
   normalizeDir,
 } from "./filetree";
-import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
+import {
+  V2077_GENERATED_MOD_NAME_TAG,
+  V2077_GENERATED_MOD_VERSION_PRERELEASE,
+} from "./index.metadata";
 import {
   Instructions,
   LayoutToInstructions,
@@ -97,9 +100,6 @@ type ModInfoRaw =
 //
 // Helpers
 //
-
-const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
-const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;
 
 const dateToSeconds = (date: Date): string => (date.getTime() / 1000).toString();
 const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);

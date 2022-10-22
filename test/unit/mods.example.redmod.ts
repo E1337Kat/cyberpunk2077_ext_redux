@@ -84,6 +84,17 @@ const invalidREDmodInfo = {
 };
 const invalidREDmodInfoJson = jsonpp(invalidREDmodInfo);
 
+const myREDmodInfoWithBlankVersion = {
+  name: `myRedMod`,
+  version: ``,
+};
+const myREDmodInfoWithBlankVersionForVortex: REDmodInfoForVortex = {
+  ...myREDmodInfoWithBlankVersion,
+  version: FAKE_MOD_INFO.version.v,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfo.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoWithBlankVersionJson = jsonpp(myREDmodInfoWithBlankVersion);
 
 const NOTmyREDmodInfo = {
   name: `NOTmyRedMod`,
@@ -140,6 +151,35 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
+      ],
+    },
+  ],
+  [
+    `canonical REDmod with a blank version installed with version from Vortex (or generated)`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithBlankVersionJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithBlankVersionForVortex),
       ],
     },
   ],

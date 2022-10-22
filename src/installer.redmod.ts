@@ -152,6 +152,10 @@ const tryReadInfoJson = (
         J.parse,
         chainE(decodeREDmodInfo),
       )),
+    mapTE((redmodInfo) => ({
+      ...redmodInfo,
+      version: redmodInfo.version && redmodInfo.version !== `` ? redmodInfo.version : modInfo.version.v,
+    })),
     mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
 
@@ -293,13 +297,16 @@ const failAfterWarningUserAndLogging = (
   return Promise.reject(new Error(errorMessage));
 };
 
+
 //
 // Layouts for REDmod subtypes
 //
 
+
 const initJsonLayoutAndValidation = (
   api: VortexApi,
   infoAndPaths: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> =>
   pipe(
     right(infoAndPaths),
@@ -319,6 +326,7 @@ const archiveLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const archiveDir =
     path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
@@ -366,6 +374,7 @@ const customSoundLayoutAndValidation = (
     fileTree,
     redmodInfo,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const customSoundsDir =
     path.join(relativeSourceDir, REDMOD_CUSTOMSOUNDS_DIRNAME);
@@ -404,6 +413,7 @@ const scriptLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const scriptsDir =
     path.join(relativeSourceDir, REDMOD_SCRIPTS_DIRNAME);
@@ -443,6 +453,7 @@ const tweakLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const tweaksDir =
     path.join(relativeSourceDir, REDMOD_TWEAKS_DIRNAME);
@@ -481,6 +492,7 @@ const extraFilesLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const filesInSubdirsNotHandled = pipe(
     subdirNamesIn(relativeSourceDir, fileTree),
@@ -593,7 +605,7 @@ export const instructionsForLayoutsPipeline = (
         tryReadInfoJson(modInfo, relativeModDir),
         chainEitherKW((redmodInfo) => pipe(
           collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
-          chainE((modInfoAndPathDetes) => pipe(
+          chainE((redmodInfoAndPathDetes) => pipe(
             [
               initJsonLayoutAndValidation,
               archiveLayoutAndValidation,
@@ -602,8 +614,8 @@ export const instructionsForLayoutsPipeline = (
               tweakLayoutAndValidation,
               extraFilesLayoutAndValidation,
             ],
-            traverseArrayE((layout) => layout(api, modInfoAndPathDetes)),
-            mapE(concat([redmodInfoModAttributeInstruction(modInfo, modInfoAndPathDetes)])),
+            traverseArrayE((layout) => layout(api, redmodInfoAndPathDetes, modInfo)),
+            mapE(concat([redmodInfoModAttributeInstruction(modInfo, redmodInfoAndPathDetes)])),
           )),
           mapE(flatten),
         )),
@@ -781,6 +793,7 @@ export const transformToREDmodArchiveInstructions = (
     archiveLayoutAndValidation(
       api,
       redmodInstallDetes,
+      modInfo,
     );
 
   if (isLeft(archiveInstructionsProducedByREDmodArchiveInstaller)) {
