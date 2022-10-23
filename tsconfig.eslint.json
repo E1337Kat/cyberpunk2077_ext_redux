@@ -4,5 +4,5 @@
     "types": ["node", "jest"]
   },
   "exclude": ["webpack.config.js"],
-  "include": ["src/**/*.ts", "test/**/*.ts", "*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "*.ts", "src/**/*.tsx", "*.tsx"]
 }

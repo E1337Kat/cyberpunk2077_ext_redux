@@ -20,3 +20,5 @@ export const V2077_DIR = `V2077`;
 
 export const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
 export const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;
+
+export const isSupported = (gameMode: string): boolean => (gameMode === GAME_ID);
