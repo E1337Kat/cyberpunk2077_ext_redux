@@ -1,3 +1,9 @@
+import {
+  types,
+  util,
+} from "vortex-api";
+import { VortexApi } from "./vortex-wrapper";
+
 export const enum Feature {
   Enabled = `This feature is enabled`,
   Disabled = `This feature is disabled`,
@@ -24,3 +30,15 @@ export const DefaultFeatureSetForTesting: Features = {
 
 export const FeatureEnabled = (feature: Feature): boolean =>
   feature === Feature.Enabled;
+
+const boolToEnabled = (currentState: boolean): Feature => (currentState ? Feature.Enabled : Feature.Disabled);
+
+// @TODO: build features from settings
+export const FeaturesFromSettings = (vortexApi: VortexApi): Features => {
+  const state: types.IState = vortexApi.store.getState();
+  return {
+    REDmodding: boolToEnabled(util.getSafe(state, [`settings`, `redmod`, `redmodEnable`], false)),
+    REDmodLoadOrder: Feature.Enabled,
+    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `redmod`, `archiveAutoConvert`], false)),
+  };
+};
