@@ -4,7 +4,6 @@ import { contramap } from "fp-ts/lib/Ord";
 import * as t from "io-ts";
 import {
   decodeWith,
-  REDmodCustomSound,
   REDmodInfoForVortex,
 } from "./installers.types";
 import { jsonpp } from "./installers.utils";
@@ -21,14 +20,6 @@ export interface LoadOrderer {
   validate: VortexWrappedValidateFunc;
   deserializeLoadOrder: VortexWrappedDeserializeFunc;
   serializeLoadOrder: VortexWrappedSerializeFunc;
-}
-
-export interface LoadOrderEntryREDmod {
-  folder: string;
-  enabled: boolean;
-  deployed: boolean;
-  deployedVersion: string;
-  customSounds: REDmodCustomSound[];
 }
 
 export interface LoadOrderEntryDataForVortex {
@@ -76,13 +67,13 @@ export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
 export const decodeLoadOrder = decodeWith(LoadOrderType.decode);
 
 
-export type IndexableOrderableMod = VortexModWithEnabledStatus & { index: number };
+export type IndexableMaybeEnabledMod = VortexModWithEnabledStatus & { index: number };
 export type IdToIndex = { [id: string]: number };
 
 export const DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP = -1;
 
 export const byIndexAndNewAtTheTop = pipe(
   NumericOrd,
-  contramap((mod: IndexableOrderableMod) =>
+  contramap((mod: IndexableMaybeEnabledMod) =>
     ((mod.index || DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP) + 1)),
 );

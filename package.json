@@ -31,6 +31,9 @@
         "ThunderGod (https://github.com/thundergod97)"
     ],
     "license": "GPL-3.0",
+    "peerDependencies": {
+        "vortex-api": "github:Nexus-Mods/vortex-api"
+    },
     "devDependencies": {
         "@jest/types": "^27.5.1",
         "@types/glob": "^7.2.0",

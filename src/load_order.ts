@@ -41,7 +41,7 @@ import {
   decodeLoadOrder,
   LoadOrderEntryDataForVortex,
   IdToIndex,
-  IndexableOrderableMod,
+  IndexableMaybeEnabledMod,
   DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP,
   byIndexAndNewAtTheTop,
 } from "./load_order.types";
@@ -191,7 +191,11 @@ const makeIndexForModIdToCurrentOrderLookup =
     );
 
 const addStatusAndIndexOrDefaults =
-  (mod: VortexMod, enabledStatusIndex: VortexProfileModIndex, currentOrderIndex: IdToIndex): IndexableOrderableMod => {
+  (
+    mod: VortexMod,
+    enabledStatusIndex: VortexProfileModIndex,
+    currentOrderIndex: IdToIndex,
+  ): IndexableMaybeEnabledMod => {
     const indexForMod =
       currentOrderIndex[mod.id] ?? DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP;
 
@@ -207,7 +211,7 @@ const addStatusAndIndexOrDefaults =
 
 const makeVortexLoadOrderEntryFrom =
   (
-    orderableMod: IndexableOrderableMod,
+    orderableMod: IndexableMaybeEnabledMod,
     redmodInfo: REDmodInfoForVortex,
     subModIndex: number,
     activeProfile: VortexProfile,
@@ -278,7 +282,6 @@ const makeVortexLoadOrderEntryFrom =
 const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   vortexApi: VortexApi,
 ): Promise<VortexLoadOrder> => {
-  debugger;
   const gameDirPath = getDiscoveryPath(vortexApi);
 
   if (gameDirPath === undefined) {
@@ -311,7 +314,7 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
 
   const allLoadOrderableMods = pipe(
     allModsKnownToVortex,
-    filterMap((mod: VortexMod): Option<IndexableOrderableMod> => {
+    filterMap((mod: VortexMod): Option<IndexableMaybeEnabledMod> => {
 
       if (mod.state === `installed` && attrModType(mod) === ModType.REDmod) {
         return some(
@@ -372,8 +375,49 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
 const startREDmodDeployInTheBackgroundWithNotifications = (
   vortexApi: VortexApi,
   gameDirPath: string,
-  v2077LoadOrderEntries: readonly LoadOrderEntry[],
+  loID: number,
+  v2077LoadOrderToDeploy: LoadOrder,
+  vortexLoadOrderToDeploy: VortexLoadOrder,
 ): void => {
+  const tag = `${me}: REDmod Delayed Deploy`;
+
+  vortexApi.log(`info`, `${tag}: Starting delayed deploy for load order ${loID}`);
+
+  const vortexState: VortexState = vortexApi.store.getState();
+  const activeProfile = selectors.activeProfile(vortexState);
+
+  const ownerProfileId = v2077LoadOrderToDeploy.ownerVortexProfileId;
+
+  if (activeProfile.id !== ownerProfileId) {
+    vortexApi.log(`warn`, `${tag}: Profile is not the same that generated load order ${loID}, stopping!`, { activeProfile, ownerProfileId });
+    return;
+  }
+
+  debugger;
+
+  const newestGeneratedLoadOrder: readonly VortexLoadOrderEntry[] =
+    vortexUtil.getSafe(vortexState, [`persistent`, `loadOrder`, ownerProfileId], undefined);
+
+  if (!newestGeneratedLoadOrder) {
+    vortexApi.log(`error`, `${tag}: Unable to find the current load order, canceling! It should be *this* one (${loID}) if nothing else.`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+    return;
+  }
+
+  // Are we still the current load order? Maybe not!
+  //
+  // Maybe there's a better way to do this check.. but this is what Vortex itself
+  // uses, so we can't give an actually unique ID to the vortex load order because
+  // then it won't match the previous run..
+  if (JSON.stringify(vortexLoadOrderToDeploy) !== JSON.stringify(newestGeneratedLoadOrder)) {
+    vortexApi.log(`info`, `${tag}: Load order ${loID} no longer most recent, this is ok, canceling!`);
+    // No need to notify, it's fine if this has been superceded
+    return;
+  }
+
+  const v2077LoadOrderEntries =
+    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
+
   const loadOrderForREDmodDeployWithShellQuotes = pipe(
     v2077LoadOrderEntries,
     filterMap((mod) =>
@@ -384,14 +428,16 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 
   const redModDeployParametersToCreateNewManifest = [
     `deploy`,
-    `-root="${gameDirPath}"`,
-    `-rttiSchemaFile="${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
+    `-root=`,
+    `"${gameDirPath}"`,
+    `-rttiSchemaFile=`,
+    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
     `-mod=`,
     ...loadOrderForREDmodDeployWithShellQuotes,
   ];
 
   const exePath =
-      path.join(gameDirPath, REDmodDeploy.executable());
+    path.join(gameDirPath, REDmodDeploy.executable());
 
   const runOptions = {
     cwd: path.dirname(exePath),
@@ -400,31 +446,45 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 
   vortexApi.runExecutable(exePath, redModDeployParametersToCreateNewManifest, runOptions)
     .then(() => {
-      vortexApi.log(`info`, `${me}: REDmod deployment complete!`);
+      vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
       showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
     })
     .catch((error) => {
-      vortexApi.log(`error`, `${me}: REDmod deployment failed!`, S(error));
+      vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
       showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
     });
 
   showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
-  vortexApi.log(`info`, `${me}: Starting REDmod deployment!`);
+  vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
   vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S({
     loadOrderForREDmodDeployWithShellQuotes, exePath, redModDeployParametersToCreateNewManifest, runOptions,
   }));
 };
 
+
 //
 // 'Serialize' is what Vortex calls this
 //
-// ...And that's what it is.
+// The load order is stored per profile, and includes all the detes to also
+// run REDmod deploy. The actual JSON load order that we create for ourselves
+// is just used to store the order and enabled/disabled state, really. (But we
+// do need it for that.)
 //
-// The load order is stored per profile, and includes all
-// the necessary detes to later on run `redmod deploy`.
+// The tricky part is that we need to protect against some Vortex edge cases
+// while keeping it convenient for the user.
 //
-
-const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
+// 1. Enabling a mod will trigger LO twice (profile change + deployment.) We have
+//    to wait until the deployment is done before we can run REDmod deploy, but
+//    we also don't want to try to run the deployment twice.
+//
+// 2. Not updating the LO-able mods until a deployment prevents LO changes with
+//    disabled mods which isn't what we want.
+//
+// Vortex does check whether the previously generated LO is the same one as
+// the one we return from compile (above) by matching the content. That means
+// that we *shouldn't* get this function being invoked twice for 'the same' LO.
+//
+const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   vortexApi: VortexApi,
   vortexLoadOrder: VortexLoadOrder,
 ): Promise<void> => {
@@ -435,10 +495,8 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
     return Promise.reject(new vortexUtil.NotFound(`Game Not Found.`));
   }
 
-  debugger;
   if (vortexLoadOrder === undefined || vortexLoadOrder?.length === 0) {
     vortexApi.log(`info`, `${me}: Serialize: No mods in load order, skipping writing to disk..`);
-
     return Promise.resolve();
   }
 
@@ -456,12 +514,26 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
     toMutableArray,
   );
 
+  const loID = Date.now();
+
   const v2077LoadOrder: LoadOrder = {
-    ownerVortexProfileId,
     loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
-    generatedAt: new Date().toISOString(),
+    ownerVortexProfileId,
+    generatedAt: new Date(loID).toISOString(),
     entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
   };
+
+  debugger;
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, v2077LoadOrder);
+
+  // We want to wait until there's been a deployment - either the automatic one
+  // from an enable or something like that, or a manually triggered one.
+  vortexApi.events.once(`did-deploy`, () => {
+    startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder);
+  });
+
+  vortexApi.log(`info`, `${me}: Queuing REDmod deployment for load order ${loID} to run after next Vortex deployment!`);
+  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentQueued);
 
   const serializedLoadOrder =
     encodeLoadOrder(v2077LoadOrder);
@@ -469,12 +541,7 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
   const loadOrderFilePathForThisProfile =
     loadOrderPathFor(activeProfile, gameDirPath);
 
-  vortexApi.log(`debug`, `${me}: New load order ready to be deployed and serialized! `, v2077LoadOrder);
-
-  startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, v2077LoadOrderEntries);
-
-  // Finally, I guess
-  vortexApi.log(`info`, `${me}: Saving load order to disk as JSON: ${loadOrderFilePathForThisProfile}`);
+  vortexApi.log(`info`, `${me}: Saving load order ${loID} to disk as JSON: ${loadOrderFilePathForThisProfile}`);
   return fs.writeFileAsync(loadOrderFilePathForThisProfile, serializedLoadOrder, { encoding: `utf8` });
 };
 
@@ -487,12 +554,10 @@ const serializeLoadOrderToDisk: VortexWrappedSerializeFunc = (
 
 const validate: VortexWrappedValidateFunc = async (
   vortexApi: VortexApi,
-  previousLoadOrder: VortexLoadOrder,
-  currentLoadOrder: VortexLoadOrder,
+  _previousLoadOrder: VortexLoadOrder,
+  _currentLoadOrder: VortexLoadOrder,
 ): Promise<VortexValidationResult> => {
-  vortexApi.log(`debug`, `${me}: Validating load order:`, { previousLoadOrder, currentLoadOrder });
   vortexApi.log(`debug`, `${me}: Load order validation autosucceeds for now, not sure what we want to validate`);
-
   return Promise.resolve(LOAD_ORDER_VALIDATION_PASSED_RESULT);
 };
 
@@ -504,7 +569,7 @@ const validate: VortexWrappedValidateFunc = async (
 
 export const internalLoadOrderer: LoadOrderer = {
   validate,
-  serializeLoadOrder: serializeLoadOrderToDisk,
+  serializeLoadOrder: deployAndSerializeNewLoadOrder,
   deserializeLoadOrder: compileDetesToGenerateLoadOrderUi,
 };
 

@@ -21,6 +21,7 @@ export const enum InfoNotification {
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
   REDmodArchiveAutoconverted = `V2077-notify-success-redmod-archive-autoconverted`,
   REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
+  REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
   REDmodDeploymentStarted = `V2077-notify-info-redmod-deployment-started`,
   REDmodDeploymentSucceeded = `V2077-notify-success-redmod-deployment-succeeded`,
   REDmodDeploymentFailed = `V2077-notify-error-redmod-deployment-failed`,
@@ -68,11 +69,20 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     },
   ],
   [
+    InfoNotification.REDmodDeploymentQueued,
+    {
+      id: InfoNotification.REDmodDeploymentQueued,
+      type: `info`,
+      title: `REDmod Deployment Ready to Go!`,
+      message: `Next Vortex deploy will update load order and enabled state for REDmods too!`,
+    },
+  ],
+  [
     InfoNotification.REDmodDeploymentStarted,
     {
       id: InfoNotification.REDmodDeploymentStarted,
       type: `info`,
-      title: `Starting REDmod Deployment`,
+      title: `Starting REDmod Deployment!`,
       message: `Running REDmod Deployment to get your mods and load order ready to go!`,
     },
   ],
@@ -82,7 +92,7 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       id: InfoNotification.REDmodDeploymentSucceeded,
       type: `success`,
       title: `REDmod Deployment Completed!`,
-      message: `You're good to go, choom!`,
+      message: `You're good to go, choom! The game will now pick up your newest enabled mods and load order!`,
     },
   ],
   [

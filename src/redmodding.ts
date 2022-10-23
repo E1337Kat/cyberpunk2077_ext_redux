@@ -39,6 +39,10 @@ export const REDlauncher = {
   relative: true,
 };
 
+// Not installing the Tool for now because we're
+// using automatic deployment. Maybe enable it
+// later, but it'll require carrying the new
+// load order through starthooks.
 export const REDmodDeploy = {
   id: `V2077-tools-redMod`,
   name: `REDmod Deploy`,
@@ -53,7 +57,7 @@ export const REDmodDeploy = {
 
 export const REDmoddingTools = [
   REDlauncher,
-  REDmodDeploy,
+  // REDmodDeploy,
 ];
 
 
