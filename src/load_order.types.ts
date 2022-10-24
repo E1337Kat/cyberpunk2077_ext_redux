@@ -1,13 +1,23 @@
 import { pipe } from "fp-ts/lib/function";
 import { Ord as NumericOrd } from "fp-ts/lib/number";
-import { contramap } from "fp-ts/lib/Ord";
+import { Ord as StringOrd } from "fp-ts/lib/string";
+import {
+  contramap,
+  Ord,
+} from "fp-ts/lib/Ord";
+import {
+  getOrElse,
+  Option,
+} from "fp-ts/lib/Option";
 import * as t from "io-ts";
+import path from "path";
 import {
   decodeWith,
   REDmodInfoForVortex,
 } from "./installers.types";
 import { jsonpp } from "./installers.utils";
 import {
+  VortexLoadOrderEntry,
   VortexModWithEnabledStatus,
   VortexWrappedDeserializeFunc,
   VortexWrappedSerializeFunc,
@@ -31,6 +41,20 @@ export interface LoadOrderEntryDataForVortex {
   redmodInfo: REDmodInfoForVortex;
 }
 
+export interface OrderableLoadOrderEntryForVortex extends LoadOrderEntryDataForVortex {
+  indexForSorting: Option<number>;
+}
+
+export interface TypedVortexLoadOrderEntry extends Omit<VortexLoadOrderEntry, `data`> {
+  data: LoadOrderEntryDataForVortex;
+}
+
+export interface TypedOrderableVortexLoadOrderEntry extends Omit<VortexLoadOrderEntry, `data`> {
+  data: OrderableLoadOrderEntryForVortex;
+}
+
+// We're not explicitly storing the index for now,
+// but it might not be a bad idea in the long run.
 export const LoadOrderEntryType =
   t.intersection([
     t.partial({
@@ -67,13 +91,21 @@ export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
 export const decodeLoadOrder = decodeWith(LoadOrderType.decode);
 
 
-export type IndexableMaybeEnabledMod = VortexModWithEnabledStatus & { index: number };
+export type IndexableMaybeEnabledMod = VortexModWithEnabledStatus & { index: Option<number> };
 export type IdToIndex = { [id: string]: number };
 
 export const DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP = -1;
 
-export const byIndexAndNewAtTheTop = pipe(
-  NumericOrd,
-  contramap((mod: IndexableMaybeEnabledMod) =>
-    ((mod.index || DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP) + 1)),
+export const byIndexWithNewAtTheBack =
+  (backIndex: number): Ord<VortexLoadOrderEntry> =>
+    pipe(
+      NumericOrd,
+      contramap((mod: VortexLoadOrderEntry) =>
+        pipe(mod.data.indexForSorting, getOrElse(() => backIndex))),
+    );
+
+export const thenByDirnameAscending = pipe(
+  StringOrd,
+  contramap((mod: VortexLoadOrderEntry) =>
+    path.basename(mod.data.redmodInfo.relativePath)),
 );

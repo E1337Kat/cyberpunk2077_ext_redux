@@ -6,6 +6,7 @@ import {
   Option,
   none,
   some,
+  fromNullable,
 } from 'fp-ts/lib/Option';
 import {
   filterMap,
@@ -13,7 +14,7 @@ import {
   map,
   mapWithIndex,
   reduceWithIndex,
-  sort,
+  sortBy,
   toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import {
@@ -28,6 +29,7 @@ import {
   fs,
   selectors,
 } from "vortex-api";
+import { remove } from "spectacles-ts";
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_ID,
@@ -42,8 +44,11 @@ import {
   LoadOrderEntryDataForVortex,
   IdToIndex,
   IndexableMaybeEnabledMod,
-  DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP,
-  byIndexAndNewAtTheTop,
+  thenByDirnameAscending,
+  byIndexWithNewAtTheBack,
+  TypedVortexLoadOrderEntry,
+  OrderableLoadOrderEntryForVortex,
+  TypedOrderableVortexLoadOrderEntry,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -197,7 +202,7 @@ const addStatusAndIndexOrDefaults =
     currentOrderIndex: IdToIndex,
   ): IndexableMaybeEnabledMod => {
     const indexForMod =
-      currentOrderIndex[mod.id] ?? DEFAULT_INDEX_SO_NEW_MODS_SORTED_TO_TOP;
+      fromNullable(currentOrderIndex[mod.id]);
 
     const enabledStatusForMod: VortexProfileMod =
       enabledStatusIndex[mod.id] ?? { enabled: false, enabledTime: 0 };
@@ -217,7 +222,8 @@ const makeVortexLoadOrderEntryFrom =
     activeProfile: VortexProfile,
   ): VortexLoadOrderEntry => {
 
-    const everythinNeededToSerializeLoadOrder: LoadOrderEntryDataForVortex = {
+    const everythingNeededToSerializeLoadOrder: OrderableLoadOrderEntryForVortex = {
+      indexForSorting: orderableMod.index,
       ownerVortexProfileId: activeProfile.id.toString(),
       vortexId: orderableMod.id.toString(),
       vortexModId: orderableMod.attributes?.modId?.toString(),
@@ -238,7 +244,7 @@ const makeVortexLoadOrderEntryFrom =
         ? `${orderableMod.attributes?.modId}${idSuffixIfNeededToDifferentiateSubmods}`
         : undefined;
 
-    const { vortexModVersion } = everythinNeededToSerializeLoadOrder;
+    const { vortexModVersion } = everythingNeededToSerializeLoadOrder;
 
     const vortexVariant =
       orderableMod.attributes?.variant ? ` +${orderableMod.attributes?.variant}` : ``;
@@ -254,7 +260,7 @@ const makeVortexLoadOrderEntryFrom =
       modId: modIdOrNothing,
       enabled: orderableMod.enabled,
       name: displayNameWithAsMuchInfoAsWeDareBecauseWeHaveNoControlOverHTML,
-      data: everythinNeededToSerializeLoadOrder,
+      data: everythingNeededToSerializeLoadOrder,
     };
 
     return loadOrderEntry;
@@ -312,7 +318,7 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
     Object.values,
   );
 
-  const allLoadOrderableMods = pipe(
+  const allLoadOrderableVortexMods = pipe(
     allModsKnownToVortex,
     filterMap((mod: VortexMod): Option<IndexableMaybeEnabledMod> => {
 
@@ -329,25 +335,35 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
     }),
   );
 
-  const loadOrderableModsInOrder = pipe(
-    allLoadOrderableMods,
-    sort(byIndexAndNewAtTheTop),
-  );
-
-  const loadOrderOfIndividualREDmodsInVortexFormat = pipe(
-    loadOrderableModsInOrder,
-    map((orderableMod) => pipe(
-      attrREDmodInfos(orderableMod),
-      mapWithIndex((subModIndex, individualREDmod) =>
-        makeVortexLoadOrderEntryFrom(orderableMod, individualREDmod, subModIndex, activeProfile)),
+  const allIndividualREDmodsInVortexLoadOrderFormat = pipe(
+    allLoadOrderableVortexMods,
+    map((orderableVortexMod) => pipe(
+      attrREDmodInfos(orderableVortexMod),
+      mapWithIndex((subModIndex, containedREDmod) =>
+        makeVortexLoadOrderEntryFrom(orderableVortexMod, containedREDmod, subModIndex, activeProfile)),
     )),
     flatten,
-    toMutableArray,
   );
 
-  vortexApi.log(`debug`, `${me}: Collected detes to create load order selection: `, S(loadOrderOfIndividualREDmodsInVortexFormat));
+  const afterLastKnown =
+      allIndividualREDmodsInVortexLoadOrderFormat.length;
 
-  return Promise.resolve(loadOrderOfIndividualREDmodsInVortexFormat);
+  const loadOrderableModsInOrder = pipe(
+    allIndividualREDmodsInVortexLoadOrderFormat,
+    sortBy([byIndexWithNewAtTheBack(afterLastKnown), thenByDirnameAscending]),
+  );
+
+  const loadOrderableModsInOrderWithoutAnyVariableDataThatWouldConfuseVortex =
+    pipe(
+      loadOrderableModsInOrder,
+      map((entry: TypedOrderableVortexLoadOrderEntry): TypedVortexLoadOrderEntry =>
+        pipe(entry, remove(`data.indexForSorting`))),
+      toMutableArray,
+    );
+
+  vortexApi.log(`debug`, `${me}: Collected detes to create load order selection: `, S(loadOrderableModsInOrderWithoutAnyVariableDataThatWouldConfuseVortex));
+
+  return Promise.resolve(loadOrderableModsInOrderWithoutAnyVariableDataThatWouldConfuseVortex);
 };
 
 
@@ -557,7 +573,7 @@ const validate: VortexWrappedValidateFunc = async (
   _previousLoadOrder: VortexLoadOrder,
   _currentLoadOrder: VortexLoadOrder,
 ): Promise<VortexValidationResult> => {
-  vortexApi.log(`debug`, `${me}: Load order validation autosucceeds for now, not sure what we want to validate`);
+  vortexApi.log(`debug`, `${me}: Load order validation autosucceeds for now, we've already done all validation`);
   return Promise.resolve(LOAD_ORDER_VALIDATION_PASSED_RESULT);
 };
 
