@@ -4,7 +4,7 @@ import path from "path";
 import * as A from "fp-ts/Array";
 import {
   Either,
-  fold,
+  match as matchE,
   left,
   right,
 } from "fp-ts/Either";
@@ -217,7 +217,7 @@ export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, Mod
 export const modInfoFromArchiveNameOrSynthetic = (archivePath: Path): ModInfo =>
   pipe(
     modInfoFromArchivePath(archivePath),
-    fold(identity, identity),
+    matchE(identity, identity),
   );
 
 

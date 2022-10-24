@@ -137,6 +137,13 @@ interface REDmodInfoAndPathDetes {
 // Helpers
 //
 
+const fixAnyInfoJsonProblems = (modInfo: ModInfo) =>
+  (redmodInfo: REDmodInfo): Either<Error, REDmodInfo> =>
+    right({
+      ...redmodInfo,
+      version: redmodInfo.version && redmodInfo.version !== `` ? redmodInfo.version : modInfo.version.v,
+    });
+
 const tryReadInfoJson = (
   modInfo: ModInfo,
   relativeREDmodDir: string,
@@ -152,11 +159,7 @@ const tryReadInfoJson = (
         J.parse,
         chainE(decodeREDmodInfo),
       )),
-    mapTE((redmodInfo) => ({
-      ...redmodInfo,
-      version: redmodInfo.version && redmodInfo.version !== `` ? redmodInfo.version : modInfo.version.v,
-    })),
-    mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
+    mapLeftTE((err) => new Error(`Error decoding ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
 
 const instructionsToMoveAllFromSourceToDestination = (
@@ -603,8 +606,10 @@ export const instructionsForLayoutsPipeline = (
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
         tryReadInfoJson(modInfo, relativeModDir),
-        chainEitherKW((redmodInfo) => pipe(
-          collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
+        chainEitherKW(fixAnyInfoJsonProblems(modInfo)),
+        chainEitherKW((validREDmodInfo) => pipe(
+          collectPathDetesForInstructions(relativeModDir, validREDmodInfo, fileTree),
+          // sanitizePathDetesForREDmodding,
           chainE((redmodInfoAndPathDetes) => pipe(
             [
               initJsonLayoutAndValidation,
