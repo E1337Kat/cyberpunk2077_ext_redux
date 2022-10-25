@@ -5,11 +5,15 @@ import { Console } from "console";
 import { pipe } from "fp-ts/lib/function";
 import {
   flatten,
+  intersection,
   map,
   sortBy,
 } from "fp-ts/lib/ReadonlyArray";
 import { contramap } from "fp-ts/lib/Ord";
-import { Ord as StringOrd } from "fp-ts/lib/string";
+import {
+  Eq as StringEq,
+  Ord as StringOrd,
+} from "fp-ts/lib/string";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import {
   InstallerType,
@@ -37,6 +41,7 @@ import {
   normalizeDir,
   safeNormalizePath,
 } from "../../src/filetree";
+import { S } from "../../src/installers.utils";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -113,11 +118,16 @@ const mapHasAnySameKeys = <K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean =>
   [...map1].some(([k, _]) => map2.get(k));
 
 // It's tests, it's ok to just raise. Don't do this in real code, kids
-export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
+export const mergeOrFailOnConflict = <K extends string, V>(...maps: Map<K, V>[]): Map<K, V> =>
   maps.reduce((mergedMap, nextMap) => {
     if (mapHasAnySameKeys(nextMap, mergedMap)) {
+      const conflictingKeys = pipe(
+        [...mergedMap.keys()],
+        intersection(StringEq)([...nextMap.keys()]),
+      );
+
       // :goose-loose:
-      throw new Error(`Duplicate keys in example categories, fix it first!`);
+      throw new Error(`Duplicate keys in example categories, fix it first! ${S(conflictingKeys)}`);
     }
     return new Map([...mergedMap, ...nextMap]);
   }, new Map<K, V>());

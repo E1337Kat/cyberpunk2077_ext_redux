@@ -188,7 +188,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     (result) => result.instructions,
   );
 
-  const archiveInstructions = extraCanonArchiveInstructionsForMultiType(api, fileTree, modInfo, features);
+  const archiveInstructions = await extraCanonArchiveInstructionsForMultiType(api, fileTree, modInfo, features);
   const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
 
   const redscriptInstructions = redscriptAllowedInMultiInstructions(

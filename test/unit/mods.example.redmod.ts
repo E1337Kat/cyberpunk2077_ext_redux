@@ -1,3 +1,8 @@
+import { pipe } from "fp-ts/lib/function";
+import {
+  map,
+  toArray as toMutableArray,
+} from "fp-ts/lib/ReadonlyArray";
 import path from "path";
 import {
   REDMOD_BASEDIR,
@@ -36,7 +41,6 @@ const myREDmodInfoForVortex: REDmodInfoForVortex = {
   vortexModId: FAKE_MOD_INFO.id,
 };
 const myREDmodInfoJson = jsonpp(myREDmodInfo);
-
 
 const myREDmodInfoWithSound: REDmodInfo = {
   name: `myRedMod`,
@@ -151,35 +155,6 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
-      ],
-    },
-  ],
-  [
-    `canonical REDmod with a blank version installed with version from Vortex (or generated)`,
-    {
-      expectedInstallerType: InstallerType.REDmod,
-      fsMocked: mockedFsLayout(
-        {
-          [REDMOD_BASEDIR]: {
-            myRedMod: {
-              [REDMOD_INFO_FILENAME]: myREDmodInfoWithBlankVersionJson,
-            },
-          },
-        },
-      ),
-      inFiles: [
-        path.join(`${REDMOD_BASEDIR}/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
-      ],
-      outInstructions: [
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
-        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(myREDmodInfoWithBlankVersionForVortex),
       ],
     },
   ],
@@ -690,6 +665,150 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
   ],
 ]);
 
+
+//
+// Autofixes
+//
+
+
+const makeBadDirnameRedmodInfo = (badDirname: string): REDmodInfo => ({
+  name: badDirname,
+  version: `1.0.0`,
+});
+
+const makeBadDirnameRedmodInfoJson = (badDirname: string): string =>
+  JSON.stringify(makeBadDirnameRedmodInfo(badDirname));
+
+const makeBadDirnameRedmodInfoForVortex = (stillBadModname: string, fixedDirname: string): REDmodInfoForVortex => ({
+  ...makeBadDirnameRedmodInfo(stillBadModname),
+  relativePath: path.join(REDMOD_BASEDIR, fixedDirname),
+  vortexModId: FAKE_MOD_INFO.id,
+});
+
+
+const REDmodAutofixesSucceeds = new Map<string, ExampleSucceedingMod>([
+  [
+    `canonical REDmod with a blank version installed with version from Vortex (or generated)`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithBlankVersionJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithBlankVersionForVortex),
+      ],
+    },
+  ],
+  ...pipe(
+    [
+      [`with a file extension`, `myRedMod.zip`, `myRedMod_zip`],
+      [`with another file extension`, `myRedMod.archive`, `myRedMod_archive`],
+      [`with a file extension and stuff after it`, `myRedMod.7z (V2077 Autoconverted)`, `myRedMod_7z (V2077 Autoconverted)`],
+      [`with a version number`, `myRedMod v1.3`, `myRedMod v1_3`],
+      [`with a version number in the middle`, `myRedMod 2.3 fancy version`, `myRedMod 2_3 fancy version`],
+      [`with just some random dot`, `my.RedMod`, `my_RedMod`],
+    ],
+    map(([description, modname, fixedDirname]): [string, ExampleSucceedingMod] =>
+      [
+        // Name > dir, this is always fixed in collecting the path
+        `REDmod with a modname ${description} (${modname}) that redmMod.exe can't is sanitized`,
+        {
+          expectedInstallerType: InstallerType.REDmod,
+          fsMocked: mockedFsLayout(
+            {
+              [REDMOD_BASEDIR]: {
+                [modname]: {
+                  [REDMOD_INFO_FILENAME]: makeBadDirnameRedmodInfoJson(modname),
+                },
+              },
+            },
+          ),
+          inFiles: [
+            path.join(`${REDMOD_BASEDIR}/`),
+            path.join(`${REDMOD_BASEDIR}/${modname}/`),
+            path.join(`${REDMOD_BASEDIR}/${modname}/info.json`),
+            path.join(`${REDMOD_BASEDIR}/${modname}/archives/`),
+            path.join(`${REDMOD_BASEDIR}/${modname}/archives/cool_stuff.archive`),
+          ],
+          outInstructions: [
+            movedFromTo(
+              `${REDMOD_BASEDIR}/${modname}/info.json`,
+              `${REDMOD_BASEDIR}/${fixedDirname}/info.json`,
+            ),
+            movedFromTo(
+              `${REDMOD_BASEDIR}/${modname}/archives/cool_stuff.archive`,
+              `${REDMOD_BASEDIR}/${fixedDirname}/archives/cool_stuff.archive`,
+            ),
+            createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+            addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+            addedREDmodInfoArrayAttribute(makeBadDirnameRedmodInfoForVortex(modname, fixedDirname)),
+          ],
+        },
+      ]),
+    toMutableArray,
+  ),
+  // This could be generated from the above but it gets really painful to read
+  ...pipe(
+    [
+      [`with a file extension`, `myRedMod.zip`, `myRedMod_zip`],
+      [`with another file extension`, `myRedMod.archive`, `myRedMod_archive`],
+      [`with a file extension and stuff after it`, `myRedMod.7z (V2077 Autoconverted)`, `myRedMod_7z (V2077 Autoconverted)`],
+      [`with a version number`, `myRedMod v1.3`, `myRedMod v1_3`],
+      [`with a version number in the middle`, `myRedMod 2.3 fancy version`, `myRedMod 2_3 fancy version`],
+      [`with just some random dot`, `my.RedMod`, `my_RedMod`],
+    ],
+    map(([description, modname, fixedDirname]): [string, ExampleSucceedingMod] =>
+      [
+        `REDmod without a given dirname and a modname ${description} (${modname}) that redmMod.exe can't handle is sanitized`,
+        {
+          expectedInstallerType: InstallerType.REDmod,
+          fsMocked: mockedFsLayout(
+            {
+              [REDMOD_INFO_FILENAME]: makeBadDirnameRedmodInfoJson(modname),
+            },
+          ),
+          inFiles: [
+            path.join(`info.json`),
+            path.join(`archives/`),
+            path.join(`archives/cool_stuff.archive`),
+          ],
+          outInstructions: [
+            movedFromTo(
+              `info.json`,
+              `${REDMOD_BASEDIR}/${fixedDirname}/info.json`,
+            ),
+            movedFromTo(
+              `archives/cool_stuff.archive`,
+              `${REDMOD_BASEDIR}/${fixedDirname}/archives/cool_stuff.archive`,
+            ),
+            createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+            addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+            addedREDmodInfoArrayAttribute(makeBadDirnameRedmodInfoForVortex(modname, fixedDirname)),
+          ],
+        },
+      ]),
+    toMutableArray,
+  ),
+]);
+
+
 //
 // Fails
 //
@@ -902,7 +1021,11 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
 ]);
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: mergeOrFailOnConflict(REDmodSucceeds, REDmodSpecialValidationSucceeds),
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    REDmodSucceeds,
+    REDmodSpecialValidationSucceeds,
+    REDmodAutofixesSucceeds,
+  ),
   AllExpectedDirectFailures: REDmodDirectFailures,
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };

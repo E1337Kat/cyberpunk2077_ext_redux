@@ -14,6 +14,7 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
   REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
+  REDMOD_AUTOCONVERTED_VERSION_TAG,
 } from "../../src/installers.layouts";
 import {
   InstallerType,
@@ -46,6 +47,7 @@ import {
   addedMetadataAttribute,
   createdDirectory,
   addedREDmodInfoArrayAttribute,
+  FAKE_STAGING_PATH,
 } from "./utils.helper";
 
 
@@ -55,7 +57,6 @@ const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: Features = {
 };
 
 const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
-const AUTOCONVERT_MOD_DIR = AUTOCONVERT_MOD_NAME;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
 const REDMOD_FAKE_INFO: REDmodInfo = {
@@ -68,7 +69,6 @@ const REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
   vortexModId: FAKE_MOD_INFO.id,
 };
 const REDMOD_FAKE_INFO_JSON = jsonpp(REDMOD_FAKE_INFO);
-
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -83,11 +83,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -108,11 +108,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX}/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -132,11 +132,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -156,11 +156,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${GIFTWRAP_PREFIX}\\${ARCHIVE_MOD_CANONICAL_PREFIX}\\first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -182,15 +182,15 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/second.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\second.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\second.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -212,11 +212,11 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
       outInstructions: [
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/some-dir/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\some-dir\\first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\some-dir\\first.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -228,6 +228,65 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
   ],
 ]);
 
+
+//
+// Regression test, this should go thru same pipeline as regular REDmod
+//
+
+
+const badFakeModInfo = {
+  ...FAKE_MOD_INFO,
+  name: `yay.archive`,
+};
+
+const badFakeModPath = FAKE_STAGING_PATH.replace(FAKE_MOD_INFO.name, badFakeModInfo.name);
+
+const autoconvertedFakeStagingName = `yay_archive ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
+
+const badFakeREDmodInfo: REDmodInfo = {
+  name: `${badFakeModInfo.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`,
+  version: `${badFakeModInfo.version.v}+${REDMOD_AUTOCONVERTED_VERSION_TAG}`,
+};
+const badFakeREDmodInfoJson = jsonpp(badFakeREDmodInfo);
+
+const badFakeREDModInfoForVortex: REDmodInfoForVortex = {
+  ...badFakeREDmodInfo,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, autoconvertedFakeStagingName)),
+  vortexModId: badFakeModInfo.id,
+};
+
+const ArchiveModToREDmodMigrationWithAutofixSucceeds = new Map<string, ExampleSucceedingMod>([
+  [
+    `Archive with a dot in the name is autofixed by REDmod installer and installed as REDmod`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.Archive,
+      stagingPath: badFakeModPath,
+      inFiles: [
+        path.join(`first.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${autoconvertedFakeStagingName}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+        ),
+        generatedFile(
+          badFakeREDmodInfoJson,
+          path.join(`${REDMOD_BASEDIR}\\${autoconvertedFakeStagingName}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(badFakeREDModInfoForVortex),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+]);
+
+
+//
+// Multitype
+//
 
 const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedingMod>([
   [
@@ -259,11 +318,11 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         },
         movedFromTo(
           path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
         generatedFile(
           REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_DIR}\\${REDMOD_INFO_FILENAME}`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -297,6 +356,7 @@ const ArchiveModToREDmodMigrationCantBeDoneButWeFallbackToOldstyle = new Map<str
 const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(
     ArchiveModToREDmodMigrationSucceeds,
+    ArchiveModToREDmodMigrationWithAutofixSucceeds,
     MultiTypeWithArchiveREDmodAutoconversion,
     ArchiveModToREDmodMigrationCantBeDoneButWeFallbackToOldstyle,
   ),
