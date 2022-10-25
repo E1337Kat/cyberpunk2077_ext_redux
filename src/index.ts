@@ -154,27 +154,27 @@ const main = (vortex: VortexExtensionContext) => {
       // amount of space the panel takes instead.
       //
       usageInstructions: heredoc(`
-        You do NOT have to order everything. It's best to only order mods that
+        You don't have to order everything. It's best to only order mods that
         require it, or that you otherwise know to conflict with each other.
-        \n
+        [br][/br]
         Only REDmods and autoconverted heritage mods are orderable. If you don't see
         something you just installed, click on Refresh.
-        \n
+        [br][/br]
         You can order both enabled and disabled mods, but only the enabled ones will
         be included in the REDmod deployment. The disabled ones will remember their
         place in the load order, though, so long as you don't uninstall them!
-        \n
+        [br][/br]
         All heritage archive mods that are not autoconverted to REDmod will be loaded
         AFTER all REDmods, in the usual alphabetical order.
-        \n
+        [br][/br]
         REDmods that you have installed outside Vortex are NOT supported right now.
-        \n
+        [br][/br]
         The load order is saved automatically, and will be deployed whenever the next
         Vortex deployment occurs - you can also manually click to deploy, if you like!
-        \n
+        [br][/br]
         REDmod deployment can take a little while if you have tweak or script mods,
         so wait for the green success notification before you start the game! :)
-        \n
+        [br][/br]
         You can still use the redmod tool manually, too, but changes won't be reflected
         in Vortex.
       `),

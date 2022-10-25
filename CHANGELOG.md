@@ -1,3 +1,15 @@
+# Cyberpunk 2077 Vortex Support v0.9.0 "Rogue"
+
+This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. Rebuild. Survive.
+
+Thrive. You come out on top, untouchable, and it's your city now.
+
+Because you were always the Queen.
+
+
+
+---
+
 # Cyberpunk2077 Vortex Support v0.8.3 "Third's the Charm, TAKEMURA"
 
 ✨ ADDS support for upcoming Red4ext 1.9.0
