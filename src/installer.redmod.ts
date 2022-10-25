@@ -677,6 +677,11 @@ const layoutsAllowedInMultitype = [
   canonLayoutMatches,
 ];
 
+const layoutsAllowedForConversion = [
+  canonLayoutMatches,
+];
+
+
 //
 // Vortex
 //
@@ -737,22 +742,20 @@ export const redmodAllowedInstructionsForMultitype = async (
 };
 
 
-export const transformToREDmodArchiveInstructions = (
+export const transformToREDmodArchiveInstructions = async (
   api: VortexApi,
   features: Features,
   modInfo: ModInfo,
   originalInstructions: Instructions,
-): Either<Error, Instructions> => {
-  const me = InstallerType.SpecialREDmodAutoconversion;
-
+): Promise<Either<Error, Instructions>> => {
   if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    api.log(`error`, `${me}: REDmod transform function called but feature is disabled`);
+    api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
     return right(originalInstructions);
   }
 
   // ArchiveXL will be supported later: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/258
   if (originalInstructions.kind === ArchiveLayout.XL) {
-    api.log(`info`, `${me}: ArchiveXL autoconversion to REDmod not supported yet!`);
+    api.log(`info`, `${transMe}: ArchiveXL autoconversion to REDmod not supported yet!`);
 
     showInfoNotification(
       api,
@@ -772,11 +775,26 @@ export const transformToREDmodArchiveInstructions = (
   const redmodVersion =
     redmodInfoWithAutoconvertTag.version.v;
 
-  const destinationDirWithModnamePrefix =
-    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
+  const realDestAndVirtualSourceDirWithModname =
+    path.join(REDMOD_BASEDIR, redmodModuleName);
 
-  const destinationArchiveDirWithModnamePrefix =
-    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
+  const RealDestAndVirtualSourceArchiveDirWithModname =
+    path.join(realDestAndVirtualSourceDirWithModname, REDMOD_ARCHIVES_DIRNAME);
+
+  api.log(`debug`, `Transforming Archive instructions to REDmod`);
+  api.log(`debug`, `Original instructions: ${jsonpp(originalInstructions)}`);
+
+  const virtualAndRealArchiveSourcePairs = pipe(
+    originalInstructions.instructions,
+    filter((instruction) => instruction.type === `copy`),
+    map((instruction): [string, string] => [
+      instruction.destination.replace(
+        normalizeDir(ARCHIVE_MOD_CANONICAL_PREFIX),
+        normalizeDir(RealDestAndVirtualSourceArchiveDirWithModname),
+      ),
+      instruction.source,
+    ]),
+  );
 
   const infoJson: REDmodInfo = {
     name: redmodModuleName,
@@ -786,53 +804,63 @@ export const transformToREDmodArchiveInstructions = (
   const generateInfoJsonInstruction: VortexInstruction = {
     type: `generatefile`,
     data: jsonpp(infoJson),
-    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
+    destination: path.join(realDestAndVirtualSourceDirWithModname, REDMOD_INFO_FILENAME),
   };
-
-  api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${jsonpp(originalInstructions)}`);
-
-  const realSourceAndVirtualSourcePairs = pipe(
-    originalInstructions.instructions,
-    filter((instruction) => instruction.type === `copy`),
-    map((instruction): [string, string] => [
-      instruction.destination.replace(
-        ARCHIVE_MOD_CANONICAL_PREFIX,
-        destinationArchiveDirWithModnamePrefix,
-      ),
-      instruction.source,
-    ]),
-  );
 
   const mapFromVirtualSourceToRealSource =
-    new Map<string, string>(realSourceAndVirtualSourcePairs);
+    new Map<string, string>([
+      ...virtualAndRealArchiveSourcePairs,
+    ]);
 
   const fileTreeForVirtualREDmodSources =
-    fileTreeFromPaths(Array.from(mapFromVirtualSourceToRealSource.keys()));
+    fileTreeFromPaths([
+      ...mapFromVirtualSourceToRealSource.keys(),
+      generateInfoJsonInstruction.destination,
+    ]);
 
-  const redmodInstallDetes = {
-    relativeSourceDir: destinationDirWithModnamePrefix,
-    relativeDestDir: destinationDirWithModnamePrefix,
-    fileTree: fileTreeForVirtualREDmodSources,
-    redmodInfo: infoJson,
-  };
+  const returnMatchingVirtualInfoJson =
+  (generatedInfoJson: REDmodInfo): InfoJsonReaderFunc =>
+    (attemptedModInfo: ModInfo, attemptedRelativeModDir: string) => {
+      const jsonWhenMatched =
+        (attemptedModInfo.name === modInfo.name && attemptedRelativeModDir === realDestAndVirtualSourceDirWithModname)
+          ? right(generatedInfoJson)
+          : left(new Error(`${transMe}: Info doesn't match (this should NOT happen)! ${S({ attemptedModInfo, attemptedRelativeModDir, generatedInfoJson })}`));
 
-  const archiveInstructionsProducedByREDmodArchiveInstaller =
-    archiveLayoutAndValidation(
+      return pipe(
+        jsonWhenMatched,
+        TEfromEither,
+      );
+    };
+
+  const redmodInstructionsGeneratedByREDmodPipeline =
+    await instructionsForLayoutsPipeline(
       api,
-      redmodInstallDetes,
+      fileTreeForVirtualREDmodSources,
       modInfo,
-    );
+      features,
+      layoutsAllowedForConversion,
+      returnMatchingVirtualInfoJson(infoJson),
+    )();
 
-  if (isLeft(archiveInstructionsProducedByREDmodArchiveInstaller)) {
-    const errorMessage = `${me}: Failed to generate archive instructions for REDmod: ${archiveInstructionsProducedByREDmodArchiveInstaller.left.message}`;
 
-    api.log(`error`, errorMessage, { redmodInstallDetes, originalInstructions, modInfo });
+  if (isLeft(redmodInstructionsGeneratedByREDmodPipeline)) {
+    const errorMessage = `${transMe}: Failed to generate archive instructions for REDmod: ${S(redmodInstructionsGeneratedByREDmodPipeline)}`;
+
+    api.log(`error`, errorMessage, {
+      originalInstructions, modInfo, infoJson, virtualSourceTree: fileTreeForVirtualREDmodSources,
+    });
     return left(new Error(errorMessage));
   }
 
   const redmodInstructionsMappedBackToRealSources = pipe(
-    archiveInstructionsProducedByREDmodArchiveInstaller.right,
+    redmodInstructionsGeneratedByREDmodPipeline.right,
+    map((redmodInstruction) =>
+      (redmodInstruction.type !== `copy` || path.basename(redmodInstruction.destination) !== REDMOD_INFO_FILENAME
+        ? redmodInstruction
+        : {
+          ...generateInfoJsonInstruction,
+          destination: redmodInstruction.destination,
+        })),
     map((redmodInstruction) =>
       (redmodInstruction.source && mapFromVirtualSourceToRealSource.get(redmodInstruction.source)
         ? {
@@ -840,25 +868,15 @@ export const transformToREDmodArchiveInstructions = (
           source: mapFromVirtualSourceToRealSource.get(redmodInstruction.source),
         }
         : redmodInstruction)),
+    toMutableArray,
   );
-
-  const allREDmodInstructions = [
-    generateInfoJsonInstruction,
-    ...redmodInstructionsMappedBackToRealSources,
-    // This should be fixed so that we can't accidentally forget stuff
-    ...ensureModdedDirExistsInstruction(),
-    ...modTypeModAttributeInstruction(),
-    ...gatherAllREDmodInfoModAttributesIntoOneInstruction(
-      redmodInfoModAttributeInstruction(modInfo, redmodInstallDetes),
-    ),
-  ];
 
   const instructionsToInstallArchiveAsREDmod = {
     kind: REDmodTransformedLayout.Archive,
-    instructions: allREDmodInstructions,
+    instructions: redmodInstructionsMappedBackToRealSources,
   };
 
-  api.log(`info`, `${me}: Generated REDmod instructions for archive`, jsonpp(instructionsToInstallArchiveAsREDmod));
+  api.log(`info`, `${transMe}: Generated REDmod instructions for archive`, instructionsToInstallArchiveAsREDmod);
 
   showInfoNotification(
     api,
