@@ -23,6 +23,7 @@ import {
   chain,
   traverseArray as traverseArrayTE,
   chainEitherK,
+  fromEither as TEfromEither,
 } from "fp-ts/lib/TaskEither";
 import * as J from "fp-ts/lib/Json";
 import {
@@ -39,6 +40,7 @@ import {
   some,
   Option,
 } from "fp-ts/lib/Option";
+import { replace as replaceIn } from "fp-ts/lib/string";
 import {
   FileTree,
   findDirectSubdirsWithSome,
@@ -114,16 +116,23 @@ import {
 import {
   jsonp,
   jsonpp,
+  S,
 } from "./installers.utils";
 import {
   showInfoNotification,
   InfoNotification,
 } from "./ui.notifications";
 
+const me = `${InstallerType.REDmod}`;
+const transMe = `${InstallerType.SpecialREDmodAutoconversion}`;
+
+
 //
 // Types
 //
 
+
+type InfoJsonReaderFunc = (m: ModInfo, relativeModDir: string) => TaskEither<Error, REDmodInfo>;
 
 interface REDmodInfoAndPathDetes {
   redmodInfo: REDmodInfo;
@@ -144,7 +153,7 @@ const fixAnyInfoJsonProblems = (modInfo: ModInfo) =>
       version: redmodInfo.version && redmodInfo.version !== `` ? redmodInfo.version : modInfo.version.v,
     });
 
-const tryReadInfoJson = (
+const readInfoJsonFromDisk: InfoJsonReaderFunc = (
   modInfo: ModInfo,
   relativeREDmodDir: string,
 ): TaskEither<Error, REDmodInfo> =>
@@ -265,6 +274,19 @@ const collectPathDetesForInstructions = (
   });
 
 
+const fixDotsInDirname = flow(
+  // This should be safe w/o split because it's always just `mods/<dirname>` or just the mod name
+  replaceIn(/\./g, `_`),
+);
+
+const sanitizePathDetesForREDmodding =
+  (redmodInfoAndPathDetes: REDmodInfoAndPathDetes): Either<Error, REDmodInfoAndPathDetes> =>
+    right({
+      ...redmodInfoAndPathDetes,
+      relativeDestDir: fixDotsInDirname(redmodInfoAndPathDetes.relativeDestDir),
+    });
+
+
 const returnInstructionsAndLogEtc = (
   _api: VortexApi,
   _fileTree: FileTree,
@@ -286,7 +308,7 @@ const failAfterWarningUserAndLogging = (
 
   api.log(
     `error`,
-    `${InstallerType.REDmod}: ${errorMessage} Error: ${error.message}`,
+    `${me}: ${errorMessage} Error: ${error.message}`,
     sourcePaths(fileTree),
   );
 
@@ -601,15 +623,16 @@ export const instructionsForLayoutsPipeline = (
   modInfo: ModInfo,
   _features: Features,
   allowedLayouts: readonly LayoutMatcherFunc[],
+  readInfoJson: InfoJsonReaderFunc = readInfoJsonFromDisk,
 ): TaskEither<Error, readonly VortexInstruction[]> => {
   const singleModPipeline =
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
-        tryReadInfoJson(modInfo, relativeModDir),
+        readInfoJson(modInfo, relativeModDir),
         chainEitherKW(fixAnyInfoJsonProblems(modInfo)),
         chainEitherKW((validREDmodInfo) => pipe(
           collectPathDetesForInstructions(relativeModDir, validREDmodInfo, fileTree),
-          // sanitizePathDetesForREDmodding,
+          chainE(sanitizePathDetesForREDmodding),
           chainE((redmodInfoAndPathDetes) => pipe(
             [
               initJsonLayoutAndValidation,
