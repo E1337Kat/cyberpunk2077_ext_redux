@@ -48,6 +48,7 @@ import {
   heredoc,
 } from "./installers.utils";
 import { setArchiveAutoConvert } from "./actions";
+import { informUserZeroNineZeroChanges } from "./ui.dialogs";
 // import {
 //   setArchiveAutoConvert,
 //   setAutoRedDeploy,
@@ -314,6 +315,19 @@ const main = (vortex: VortexExtensionContext): boolean => {
   // Auto convert TODO
   vortex.registerToDo(
     `redmod-autoconvert`,
+    `more`,
+    undefined,
+    `info`,
+    `Click to see 0.9.0 Updates`,
+    (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortex.api, log: vortexApi.log }),
+    (_: IREDmodProps) => CurrentFeatureSet.REDmodLoadOrder === Feature.Enabled,
+    undefined,
+    undefined,
+  );
+
+  // Auto convert TODO
+  vortex.registerToDo(
+    `v9-redmod-information`,
     `settings`,
     (state: VortexState): IREDmodProps => {
       const gameMode = vortexApi.selectors.activeGameId(state);
