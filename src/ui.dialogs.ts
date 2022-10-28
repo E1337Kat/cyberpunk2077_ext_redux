@@ -62,6 +62,43 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 // Dialog functions
 
+export const informUserZeroNineZeroChanges = async (
+  api: VortexApi,
+): Promise<void> => {
+  const title = `Full REDmod Update`;
+  const redmodZeroNineZeroExplanation = `
+  The Vortex Cyberpunk 2077 Extension team has _finally_ gotten it together and managed to
+  get full REDmod support into the extension. This update brings about better support for
+  installing REDmods, managing their load order, and starting the game through vortex with
+  all your mods enabled and in the order selected. There are a few things to note about this
+  update though...
+  
+  1. Because of how load order works in Cyberpunk 2077 with REDmods, when a change is made to
+  the load order, we have have to call out to the redmod dlc executable to 'Deploy' the new
+  load order. This could take more than a few seconds depending on how many redmods are
+  being deployed, and how many *new* redmods that have scripts or tweaks.
+  
+  2. We can only know about the redmods installed through Vortex, so any manually installed
+  REDmods may not work unless you manually use the redmod 'deploy' command. We will try to
+  add basic load order support for these "unmanaged" mods, but only as far as being in the
+  load order goes. We cannot support enabling/disabling a mod which is unmanaged by Vortex
+  
+  3. A new (optional) feature we are trying out is "Auto-Converting Old Style Archives".
+  What this means is that when you go to install a mod that is an old style archive (ie. one
+  that would be installed in \`archive/pc/mods/\`), then we will attempt to build a REDmod
+  for it so that it can be used as part of the load order. NOTE: If you use the feature,
+  do _NOT_ bother the mod authors with any problems that might happen with it.`;
+
+  return api.showDialog(
+    `info`,
+    title,
+    {
+      md: heredoc(redmodZeroNineZeroExplanation),
+    },
+    [{ label: `Understood!` }],
+  );
+};
+
 export const promptUserInstallREDmoddingDlc = async (
   api: VortexApi,
   redModDetails: { name: string, url: string, openCommand: () => Promise<void> },
