@@ -39,6 +39,6 @@ export const FeaturesFromSettings = (vortexApi: VortexApi): Features => {
   return {
     REDmodding: CurrentFeatureSet.REDmodding,
     REDmodLoadOrder: CurrentFeatureSet.REDmodLoadOrder,
-    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `V2077`, `redmod`, `archiveAutoConvert`], false)),
+    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false)),
   };
 };

@@ -199,7 +199,7 @@ export const wrapVortexActionConditionFunc =
 // ): Promise<VortexCheckResult> => {
 //   const t = vortexApi.translate;
 //   const state: VortexState = vortexApi.store.getState();
-//   if (!util.getSafe(state, [`settings`, `V2077`, `redmod`, `autoRedDeploy`], false)) {
+//   if (!util.getSafe(state, [`settings`, `v2077`, `redmod`, `autoRedDeploy`], false)) {
 //     // not enabled
 //     return Promise.resolve(undefined);
 //   }
