@@ -6,22 +6,23 @@ import * as actions from './actions';
  */
 const settingsReducer: vortexApi.types.IReducerSpec = {
   reducers: {
-    [actions.setRedModEnable as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`redModEnable`], payload),
-    [actions.setAutoRun as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`autoRun`], payload),
+    // [actions.setRedModEnable as any]: (state, payload) =>
+    //   vortexApi.util.setSafe(state, [`redModEnable`], payload),
+    // [actions.setAutoRedDeploy as any]: (state, payload) =>
+    //   vortexApi.util.setSafe(state, [`autoRedDeploy`], payload),
     [actions.setArchiveAutoConvert as any]: (state, payload) =>
       vortexApi.util.setSafe(state, [`archiveAutoConvert`], payload),
     // [actions.setPatches as any]: (state, payload) =>
     //   util.setSafe(state, ['patches', payload.profileId], payload.patches),
-    [actions.setNeedToRun as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`needToRun`, payload.profileId], payload.force),
+    [actions.setRedmodForceDeploy as any]: (state, payload) =>
+      vortexApi.util.setSafe(state, [`redmodForceDeploy`, payload.profileId], payload.force),
   },
   defaults: {
-    autoRun: false,
+    // redModEnable: false,
+    // autoRedDeploy: false,
     archiveAutoConvert: false,
     // patches: {},
-    needToRun: {},
+    redmodForceDeploy: {},
   },
 };
 

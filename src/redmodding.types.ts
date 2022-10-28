@@ -53,9 +53,5 @@ export interface V2077SettingsView {
   id: string;
   actionOrCondition: V2077ActionFunc;
   condition: V2077ActionConditionFunc;
-  test: V2077CheckFunc;
-  // toDoProp: V2077ToDoPropsFunc;
-  // toDoPropAction: V2077ToDoPropsActionFunc;
-  // toDoPropCondition: VortexToDoPropsConditionFunc;
-  // toDoValue: VortexToDoValuesFunc;
+  // test: V2077CheckFunc;
 }

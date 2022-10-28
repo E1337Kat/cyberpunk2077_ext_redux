@@ -37,8 +37,8 @@ const boolToEnabled = (currentState: boolean): Feature => (currentState ? Featur
 export const FeaturesFromSettings = (vortexApi: VortexApi): Features => {
   const state: types.IState = vortexApi.store.getState();
   return {
-    REDmodding: boolToEnabled(util.getSafe(state, [`settings`, `redmod`, `redmodEnable`], false)),
-    REDmodLoadOrder: Feature.Enabled,
-    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `redmod`, `archiveAutoConvert`], false)),
+    REDmodding: CurrentFeatureSet.REDmodding,
+    REDmodLoadOrder: CurrentFeatureSet.REDmodLoadOrder,
+    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `V2077`, `redmod`, `archiveAutoConvert`], false)),
   };
 };

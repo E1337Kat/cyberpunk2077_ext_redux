@@ -7,27 +7,28 @@ import { ThunkDispatch } from 'redux-thunk';     // eslint-disable-line import/n
 import {
   More,
   Toggle,
-  types,
 } from 'vortex-api';
-import {
-  setArchiveAutoConvert,
-  setAutoRun,
-  setRedModEnable,
-} from '../actions';
+import { setArchiveAutoConvert } from '../actions';
+import { VortexState } from '../vortex-wrapper';
+// import {
+//   setArchiveAutoConvert,
+//   setAutoRedDeploy,
+//   setRedModEnable,
+// } from '../actions';
 
 interface IBaseProps {
   t: typeof I18next.t;
 }
 
 interface IConnectedProps {
-  redModEnable: boolean;
-  autoRun: boolean;
+  // redModEnable: boolean;
+  // autoRedDeploy: boolean;
   archiveAutoConvert: boolean;
 }
 
 interface IActionProps {
-  onRedModEnable: (enable: boolean) => void;
-  onEnableautoRun: (enable: boolean) => void;
+  // onRedModEnable: (enable: boolean) => void;
+  // onAutoRedDeploy: (enable: boolean) => void;
   onArchiveAutoConvert: (enable: boolean) => void;
 }
 
@@ -36,16 +37,16 @@ type IProps = IBaseProps & IConnectedProps & IActionProps;
 const Settings = (props: IProps): JSX.Element => {
   const {
     t,
-    redModEnable,
-    onRedModEnable,
-    autoRun,
-    onEnableautoRun,
+    // redModEnable,
+    // onRedModEnable,
+    // autoRedDeploy,
+    // onAutoRedDeploy,
     archiveAutoConvert,
     onArchiveAutoConvert,
   } = props;
   return (
     <div>
-      <Toggle
+      {/* <Toggle
         checked={redModEnable}
         onToggle={onRedModEnable}
       >
@@ -55,8 +56,8 @@ const Settings = (props: IProps): JSX.Element => {
         </More>
       </Toggle>
       <Toggle
-        checked={autoRun}
-        onToggle={onEnableautoRun}
+        checked={autoRedDeploy}
+        onToggle={onAutoRedDeploy}
       >
         {t(`Run REDmod deploy on Deployment Event (if necessary)`)}
         <More id='red-deploy-setting' name={t(`Running REDmod Deploy automatically`)}>
@@ -64,12 +65,12 @@ const Settings = (props: IProps): JSX.Element => {
             `has changed. If so, it will run redmod.exe deployments and create or update the load order list. ` +
             `This list is used so that the load order can work correctly with new redmods.\n\n`)}
         </More>
-      </Toggle>
+      </Toggle> */}
       <Toggle
         checked={archiveAutoConvert}
         onToggle={onArchiveAutoConvert}
       >
-        {t(`Autoconvert reguular 'archive' mods to REDmods`)}
+        {t(`Autoconvert regular 'archive' mods to REDmods`)}
         <More
           id='red-autoconvert-setting'
           name={t(`Autoconvert old mods for Load Order`)}>
@@ -84,15 +85,15 @@ const Settings = (props: IProps): JSX.Element => {
 };
 
 const mapStateToProps = (state: any): IConnectedProps => ({
-  redModEnable: state.settings.redmod.redModEnable,
-  autoRun: state.settings.redmod.autoRun,
+  // redModEnable: state.settings.redmod.redModEnable,
+  // autoRedDeploy: state.settings.redmod.autoRedDeploy,
   archiveAutoConvert: state.settings.redmod.archiveAutoConvert,
 });
 
-const mapDispatchToProps = (dispatch: ThunkDispatch<types.IState, null, Redux.Action>)
+const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>)
 : IActionProps => ({
-  onRedModEnable: (enable: boolean) => dispatch(setRedModEnable(enable)),
-  onEnableautoRun: (enable: boolean) => dispatch(setAutoRun(enable)),
+  // onRedModEnable: (enable: boolean) => dispatch(setRedModEnable(enable)),
+  // onAutoRedDeploy: (enable: boolean) => dispatch(setAutoRedDeploy(enable)),
   onArchiveAutoConvert: (enable: boolean) => dispatch(setArchiveAutoConvert(enable)),
 });
 
