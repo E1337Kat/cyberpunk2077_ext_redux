@@ -87,7 +87,7 @@ const Settings = (props: IProps): JSX.Element => {
 const mapStateToProps = (state: any): IConnectedProps => ({
   // redModEnable: state.settings.redmod.redModEnable,
   // autoRedDeploy: state.settings.redmod.autoRedDeploy,
-  archiveAutoConvert: state.settings.redmod.archiveAutoConvert,
+  archiveAutoConvert: state.settings.v2077.redmod.archiveAutoConvert,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>)

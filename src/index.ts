@@ -127,9 +127,9 @@ interface IREDmodProps {
   archiveAutoConvertEnabled: boolean;
 }
 
-const redModEnable = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `V2077`, `redmod`, `redModEnable`], false);
-const autoRedDeploy = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `V2077`, `redmod`, `autoRedDeploy`], false);
-const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `V2077`, `redmod`, `archiveAutoConvert`], false);
+const redModEnable = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `redModEnable`], false);
+const autoRedDeploy = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `autoRedDeploy`], false);
+const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false);
 
 
 // const toggleREDmodIntegration = (api: vortexApi.types.IExtensionApi, _gameMode: string) => {
@@ -255,7 +255,7 @@ const main = (vortex: VortexExtensionContext): boolean => {
     */
   }
 
-  vortex.registerReducer([`settings`, `V2077`, `redmod`], reducer);
+  vortex.registerReducer([`settings`, `v2077`, `redmod`], reducer);
 
   vortex.registerSettings(`RedMods`, settings, undefined, () => {
     const state = vortex.api.store.getState();
