@@ -2,12 +2,10 @@ import path from "path";
 import {
   fs,
   selectors,
-  types,
-  util,
   util as VortexUtil,
 } from "vortex-api";
-import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
-import { setNeedToRun } from "./actions";
+// import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
+import { setRedmodForceDeploy } from "./actions";
 import {
   CurrentFeatureSet,
   FeatureEnabled,
@@ -29,7 +27,6 @@ import {
   ActionType,
   V2077ActionConditionFunc,
   V2077ActionFunc,
-  V2077CheckFunc,
 } from "./redmodding.types";
 import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
@@ -38,10 +35,10 @@ import {
   VortexActionFunc,
   VortexActionResult,
   VortexApi,
-  VortexCheckFunc,
-  VortexCheckResult,
   VortexDiscoveryResult,
   VortexExtensionContext,
+  VortexState,
+  VortexToolDiscovered,
 } from "./vortex-wrapper";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
@@ -51,7 +48,7 @@ interface REDmoddingDlcDetails {
   url: string;
   openCommand: () => Promise<void>;
 }
-type TranslationFunction = typeof I18next.t;
+// type TranslationFunction = typeof I18next.t;
 
 export const REDlauncher = {
   id: `V2077-tools-REDLauncher`,
@@ -85,7 +82,7 @@ export const REDmoddingTools = [
   // REDmodDeploy,
 ];
 
-export const redModTool = (state: types.IState, gameId: string): types.IDiscoveredTool => {
+export const redModTool = (state: VortexState, gameId: string): VortexToolDiscovered => {
   const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
   return Object.keys(tools).map((id) => tools[id])
     .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
@@ -99,7 +96,7 @@ const autoDeployAction: V2077ActionFunc = (
 ): VortexActionResult => {
   const state = vortexApi.store.getState();
   const profile = selectors.activeProfile(state);
-  vortexApi.store.dispatch(setNeedToRun(profile.id, true));
+  vortexApi.store.dispatch(setRedmodForceDeploy(profile.id, true));
 };
 
 export const wrapVortexActionFunc =
@@ -154,77 +151,77 @@ export const wrapVortexActionConditionFunc =
       );
     };
 
-const checkFailedResult = (
-  t: TranslationFunction,
-  gameMode: string,
-  reason: 'missing' | 'outdated',
-): types.ITestResult => {
-  const short = {
-    missing: t(`REDmod not installed`),
-  }[reason];
+// const checkFailedResult = (
+//   t: TranslationFunction,
+//   gameMode: string,
+//   reason: 'missing' | 'outdated',
+// ): VortexCheckResult => {
+//   const short = {
+//     missing: t(`REDmod not installed`),
+//   }[reason];
 
-  const long = {
-    missing: t(`meow`),
-  }[reason];
+//   const long = {
+//     missing: t(`meow`),
+//   }[reason];
 
-  const res: types.ITestResult = {
-    severity: `warning`,
-    description: {
-      short,
-      long,
-      localize: false,
-    },
-  };
-  return res;
-};
+//   const res: VortexCheckResult = {
+//     severity: `warning`,
+//     description: {
+//       short,
+//       long,
+//       localize: false,
+//     },
+//   };
+//   return res;
+// };
 
-export const wrappedCheckFunc =
-(
-  vortex: VortexExtensionContext,
-  vortexApiThing,
-  settingsView: V2077SettingsView,
-): VortexCheckFunc =>
-  //
-  // This is the function that Vortex calls.
-  (): Promise<VortexCheckResult> => {
-    //
-    const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+// export const wrappedCheckFunc =
+// (
+//   vortex: VortexExtensionContext,
+//   vortexApiThing,
+//   settingsView: V2077SettingsView,
+// ): VortexCheckFunc =>
+//   //
+//   // This is the function that Vortex calls.
+//   (): Promise<VortexCheckResult> => {
+//     //
+//     const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-    return settingsView.test(
-      vortexApi,
-      CurrentFeatureSet,
-    );
-  };
+//     return settingsView.test(
+//       vortexApi,
+//       CurrentFeatureSet,
+//     );
+//   };
 
-export const checkTest: V2077CheckFunc = async (
-  vortexApi: VortexApi,
-  _features: Features,
-): Promise<VortexCheckResult> => {
-  const t = vortexApi.translate;
-  const state: types.IState = vortexApi.store.getState();
-  if (!util.getSafe(state, [`settings`, `redmod`, `autoRun`], false)) {
-    // not enabled
-    return Promise.resolve(undefined);
-  }
-  const gameMode = selectors.activeGameId(state);
-  if (!isSupported(gameMode)) {
-    // game not supported
-    return Promise.resolve(undefined);
-  }
-  const tool = redModTool(state, gameMode);
+// export const checkTest: V2077CheckFunc = async (
+//   vortexApi: VortexApi,
+//   _features: Features,
+// ): Promise<VortexCheckResult> => {
+//   const t = vortexApi.translate;
+//   const state: VortexState = vortexApi.store.getState();
+//   if (!util.getSafe(state, [`settings`, `V2077`, `redmod`, `autoRedDeploy`], false)) {
+//     // not enabled
+//     return Promise.resolve(undefined);
+//   }
+//   const gameMode = selectors.activeGameId(state);
+//   if (!isSupported(gameMode)) {
+//     // game not supported
+//     return Promise.resolve(undefined);
+//   }
+//   const tool = redModTool(state, gameMode);
 
-  if (tool !== undefined) {
-    // if the tool is configured, verify it's actually installed at that location
-    return fs.statAsync(tool.path)
-      .then(() => {
-        vortexApi.log(`debug`, `redmod tool setup`, { path: tool.path, version: `missing` });
+//   if (tool !== undefined) {
+//     // if the tool is configured, verify it's actually installed at that location
+//     return fs.statAsync(tool.path)
+//       .then(() => {
+//         vortexApi.log(`debug`, `redmod tool setup`, { path: tool.path, version: `missing` });
 
-        return undefined;
-      })
-      .catch(() => checkFailedResult(t, gameMode, `missing`));
-  }
-  return Promise.resolve(checkFailedResult(t, gameMode, `missing`));
-};
+//         return undefined;
+//       })
+//       .catch(() => checkFailedResult(t, gameMode, `missing`));
+//   }
+//   return Promise.resolve(checkFailedResult(t, gameMode, `missing`));
+// };
 
 const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
@@ -323,77 +320,10 @@ export const wrappedPrepareForModdingWithREDmodding = async (
   return prepareForModdingWithREDmodding(vortexApi, discovery);
 };
 
-// const autoRun = (state: types.IState): boolean => util.getSafe(state, [`settings`, `redmod`, `autoRun`], false);
-
-
-// const toggleIntegration = (api: types.IExtensionApi, _gameMode: string) => {
-//   const state: types.IState = api.store.getState();
-//   api.store.dispatch(setAutoRun(!autoRun(state)));
-// };
-
-// export const fetchProps: V2077ToDoPropsFunc =
-// (
-//   vortexApi: VortexApi,
-//   state: VortexState,
-// ): IREDmodProps => {
-//   const gameMode = selectors.activeGameId(state);
-//   return {
-//     gameMode,
-//     enabled: autoRun(state),
-//   };
-// };
-
-// export const fetchREDSettingsProps =
-//   (
-//     vortex: VortexExtensionContext,
-//     vortexApiThing,
-//     settingsView: V2077SettingsView,
-//     state: VortexState,
-//   ): IREDmodProps => {
-//     //
-//     const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-//     return settingsView.toDoProp(
-//       vortexApi,
-//       state,
-//     );
-//   };
-
-// export const wrappedToDoPropsActions =
-// (
-//   vortex: VortexExtensionContext,
-//   vortexApiThing,
-//   settingsView: V2077SettingsView,
-//   props: IREDmodProps,
-// ): void => {
-//   //
-//   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-//   settingsView.toDoPropAction(
-//     vortexApi,
-//     props,
-//   );
-// };
-
-// const toDoPropAction: V2077ToDoPropsActionFunc =
-// (
-//   vortexApi: VortexApi,
-//   props: IREDmodProps,
-// ) => {
-//   toggleIntegration(vortexApi, props.gameMode);
-//   vortexApi.events.emit(`analytics-track-click-event`, `Dashboard`, `REDmod ${props.enabled ? `ON` : `OFF`}`);
-// };
-// export const toDoPropCondition: VortexToDoPropsConditionFunc = (props: IREDmodProps) => isSupported(props.gameMode);
-// export const toDoValue: VortexToDoValuesFunc = (t: TranslationFunction, props: IREDmodProps) => (props.enabled ? t(`Yes`) : t(`No`));
-
 export const internalSettingsViewStuff: V2077SettingsView = {
   type: ActionType.AutoRunDeploy,
   id: ``,
   actionOrCondition: autoDeployAction,
   condition: autoDeployActionCondition,
-  test: checkTest,
-  // toDoProp: fetchProps,
-  // toDoPropAction,
-  // toDoPropCondition,
-  // toDoValue,
+  // test: checkTest,
 };
