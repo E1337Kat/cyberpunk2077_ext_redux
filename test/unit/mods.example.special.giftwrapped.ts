@@ -1,11 +1,18 @@
 import path from "path";
+import { normalizeDir } from "../../src/filetree";
 import {
   REDMOD_ARCHIVES_DIRNAME,
   REDMOD_BASEDIR,
   REDMOD_INFO_FILENAME,
+  REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+  REDmodInfo,
+  REDmodInfoForVortex,
+} from "../../src/installers.types";
+import { jsonpp } from "../../src/installers.utils";
 import {
   ExampleSucceedingMod,
   CET_GIFTWRAPS,
@@ -27,13 +34,23 @@ import {
   movedFromTo,
   FAKE_STAGING_PATH,
   createdDirectory,
+  addedMetadataAttribute,
+  FAKE_MOD_INFO,
+  addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
 
 
-const myRedModInfoJson = JSON.stringify({
+const myREDModInfo: REDmodInfo = {
   name: `myRedMod`,
   version: `1.0.0`,
-});
+};
+const myREDmodInfoForVortex: REDmodInfoForVortex = {
+  ...myREDModInfo,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDModInfo.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoJson = jsonpp(myREDModInfo);
+
 
 const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>([
   [
@@ -83,7 +100,7 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>([
         [GIFTWRAP_PREFIX]: {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myRedModInfoJson,
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
             },
           },
         },
@@ -106,6 +123,8 @@ const GiftwrappedModsFixable = new Map<string, ExampleSucceedingMod>([
           path.join(`${REDMOD_BASEDIR}\\myRedMod\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
       ],
     },
   ],

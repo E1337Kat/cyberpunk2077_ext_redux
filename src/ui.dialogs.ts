@@ -15,6 +15,7 @@ import {
   InstallDecision,
   InstallerType,
 } from "./installers.types";
+import { heredoc } from "./installers.utils";
 import {
   VortexApi,
   VortexDialogResult,
@@ -24,12 +25,6 @@ export const enum InstallChoices {
   Proceed = `Yes, Install To Staging Anyway`,
   Cancel = `No, Cancel Installation`,
 }
-
-export const heredoc = (str: string): string =>
-  str
-    .replace(/^[ \t]+/gm, ``) // Remove leading whitespace on each row
-    .replace(/^\|/gm, ` `) // Drop |'s that protected leading whitespace
-    .replace(/\n{3,}/g, `\n\n`); // And squash extra empty lines into one empty max
 
 const INSTRUCTIONS_TO_FIX_IN_STAGING = `
     If you want to proceed, I'll install *EVERYTHING* in the mod
@@ -67,7 +62,7 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 
 // Dialog functions
 
-export const promptUserInstallREDmodDLC = async (
+export const promptUserInstallREDmoddingDlc = async (
   api: VortexApi,
   redModDetails: { name: string, url: string, openCommand: () => Promise<void> },
   fallback: () => Promise<void>,

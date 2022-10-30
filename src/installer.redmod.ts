@@ -12,6 +12,7 @@ import {
   toArray as toMutableArray,
   findFirstMap,
   concat,
+  partition,
 } from "fp-ts/ReadonlyArray";
 import {
   TaskEither,
@@ -22,6 +23,7 @@ import {
   chain,
   traverseArray as traverseArrayTE,
   chainEitherK,
+  fromEither as TEfromEither,
 } from "fp-ts/lib/TaskEither";
 import * as J from "fp-ts/lib/Json";
 import {
@@ -38,6 +40,7 @@ import {
   some,
   Option,
 } from "fp-ts/lib/Option";
+import { replace as replaceIn } from "fp-ts/lib/string";
 import {
   FileTree,
   findDirectSubdirsWithSome,
@@ -53,6 +56,7 @@ import {
   dirInTree,
   filesIn,
   fileTreeFromPaths,
+  normalizeDir,
 } from "./filetree";
 import {
   REDMOD_INFO_FILENAME,
@@ -73,13 +77,13 @@ import {
   Instructions,
   REDmodTransformedLayout,
   ArchiveLayout,
-  decodeREDmodInfo,
-  REDmodInfo,
+  REDMOD_MODTYPE_ATTRIBUTE,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
   instructionsForSourceToDestPairs,
   instructionsToGenerateDirs,
+  instructionToGenerateMetadataAttribute,
   modInfoTaggedAsAutoconverted,
   moveFromTo,
 } from "./installers.shared";
@@ -90,8 +94,14 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 import {
+  decodeREDmodInfo,
   InstallerType,
+  makeAttr,
+  ModAttributeKey,
+  ModAttributeValue,
   ModInfo,
+  REDmodInfo,
+  REDmodInfoForVortex,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
@@ -104,7 +114,8 @@ import {
   Features,
 } from "./features";
 import {
-  s,
+  jsonp,
+  jsonpp,
   S,
 } from "./installers.utils";
 import {
@@ -112,10 +123,16 @@ import {
   InfoNotification,
 } from "./ui.notifications";
 
+const me = `${InstallerType.REDmod}`;
+const transMe = `${InstallerType.SpecialREDmodAutoconversion}`;
+
+
 //
 // Types
 //
 
+
+type InfoJsonReaderFunc = (m: ModInfo, relativeModDir: string) => TaskEither<Error, REDmodInfo>;
 
 interface REDmodInfoAndPathDetes {
   redmodInfo: REDmodInfo;
@@ -129,7 +146,14 @@ interface REDmodInfoAndPathDetes {
 // Helpers
 //
 
-const tryReadInfoJson = (
+const fixAnyInfoJsonProblems = (modInfo: ModInfo) =>
+  (redmodInfo: REDmodInfo): Either<Error, REDmodInfo> =>
+    right({
+      ...redmodInfo,
+      version: redmodInfo.version && redmodInfo.version !== `` ? redmodInfo.version : modInfo.version.v,
+    });
+
+const readInfoJsonFromDisk: InfoJsonReaderFunc = (
   modInfo: ModInfo,
   relativeREDmodDir: string,
 ): TaskEither<Error, REDmodInfo> =>
@@ -144,7 +168,7 @@ const tryReadInfoJson = (
         J.parse,
         chainE(decodeREDmodInfo),
       )),
-    mapLeftTE((err) => new Error(`Error validating ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
+    mapLeftTE((err) => new Error(`Error decoding ${path.join(relativeREDmodDir, REDMOD_INFO_FILENAME)}: ${err}`)),
   );
 
 const instructionsToMoveAllFromSourceToDestination = (
@@ -250,6 +274,19 @@ const collectPathDetesForInstructions = (
   });
 
 
+const fixDotsInDirname = flow(
+  // This should be safe w/o split because it's always just `mods/<dirname>` or just the mod name
+  replaceIn(/\./g, `_`),
+);
+
+const sanitizePathDetesForREDmodding =
+  (redmodInfoAndPathDetes: REDmodInfoAndPathDetes): Either<Error, REDmodInfoAndPathDetes> =>
+    right({
+      ...redmodInfoAndPathDetes,
+      relativeDestDir: fixDotsInDirname(redmodInfoAndPathDetes.relativeDestDir),
+    });
+
+
 const returnInstructionsAndLogEtc = (
   _api: VortexApi,
   _fileTree: FileTree,
@@ -271,7 +308,7 @@ const failAfterWarningUserAndLogging = (
 
   api.log(
     `error`,
-    `${InstallerType.REDmod}: ${errorMessage} Error: ${error.message}`,
+    `${me}: ${errorMessage} Error: ${error.message}`,
     sourcePaths(fileTree),
   );
 
@@ -285,13 +322,16 @@ const failAfterWarningUserAndLogging = (
   return Promise.reject(new Error(errorMessage));
 };
 
+
 //
 // Layouts for REDmod subtypes
 //
 
+
 const initJsonLayoutAndValidation = (
   api: VortexApi,
   infoAndPaths: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> =>
   pipe(
     right(infoAndPaths),
@@ -311,6 +351,7 @@ const archiveLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const archiveDir =
     path.join(relativeSourceDir, REDMOD_ARCHIVES_DIRNAME);
@@ -358,6 +399,7 @@ const customSoundLayoutAndValidation = (
     fileTree,
     redmodInfo,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const customSoundsDir =
     path.join(relativeSourceDir, REDMOD_CUSTOMSOUNDS_DIRNAME);
@@ -376,7 +418,7 @@ const customSoundLayoutAndValidation = (
   // This isn't /exactly/ an exhaustive check...
   if ((infoJsonRequiresSoundFiles && !hasSoundFiles) ||
       (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
-    return left(new Error(`customSounds sublayout: ${S({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
+    return left(new Error(`customSounds sublayout: ${jsonp({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 
   const instructions = instructionsToMoveAllFromSourceToDestination(
@@ -396,6 +438,7 @@ const scriptLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const scriptsDir =
     path.join(relativeSourceDir, REDMOD_SCRIPTS_DIRNAME);
@@ -435,6 +478,7 @@ const tweakLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const tweaksDir =
     path.join(relativeSourceDir, REDMOD_TWEAKS_DIRNAME);
@@ -473,6 +517,7 @@ const extraFilesLayoutAndValidation = (
     relativeDestDir,
     fileTree,
   }: REDmodInfoAndPathDetes,
+  _modInfo: ModInfo,
 ): Either<Error, readonly VortexInstruction[]> => {
   const filesInSubdirsNotHandled = pipe(
     subdirNamesIn(relativeSourceDir, fileTree),
@@ -497,15 +542,54 @@ const extraFilesLayoutAndValidation = (
   return right(instructions);
 };
 
+const redmodInfoModAttributeInstruction =
+  (modInfo: ModInfo, detes: REDmodInfoAndPathDetes): readonly VortexInstruction[] => {
+
+    const redmodInfoForVortex: REDmodInfoForVortex = {
+      name: detes.redmodInfo.name,
+      version: detes.redmodInfo.version,
+      relativePath: normalizeDir(detes.relativeDestDir),
+      vortexModId: modInfo.id,
+    };
+
+    const redmodInfoModAttribute =
+      makeAttr(ModAttributeKey.REDmodInfo, redmodInfoForVortex);
+
+    return [instructionToGenerateMetadataAttribute(redmodInfoModAttribute)];
+  };
+
+// This is a little annoying, but it flows better with the inner loop
+const gatherAllREDmodInfoModAttributesIntoOneInstruction =
+  (instructions: readonly VortexInstruction[]): readonly VortexInstruction[] => {
+    const { right: redmodInfoInstructions, left: otherInstructions } = pipe(
+      instructions,
+      partition((instruction) => instruction.key === ModAttributeKey.REDmodInfo),
+    );
+
+    const allREDmodInfosInstruction = pipe(
+      redmodInfoInstructions,
+      map((instruction) => (instruction.value as ModAttributeValue<REDmodInfoForVortex>).data),
+      (redmodInfos) => makeAttr(ModAttributeKey.REDmodInfoArray, redmodInfos),
+    );
+
+    return [
+      ...otherInstructions,
+      instructionToGenerateMetadataAttribute(allREDmodInfosInstruction),
+    ];
+  };
+
 // …Let's just always do this?
-const ensureModdedDirExistsInstructions = (): readonly VortexInstruction[] =>
+const ensureModdedDirExistsInstruction = (): readonly VortexInstruction[] =>
   instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
+
+const modTypeModAttributeInstruction = (): readonly VortexInstruction[] =>
+  [instructionToGenerateMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE)];
 
 //
 // Layout pipeline helpers
 //
 
-const knownError = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
+const error = (message: string) => (): Error => new Error(`${InstallerType.REDmod}: ${message}`);
 
 type ModDirsForLayoutFunc = (FileTree) => Either<Error, readonly string[]>;
 type LayoutMatcherFunc = (FileTree) => Option<ModDirsForLayoutFunc>;
@@ -537,16 +621,19 @@ export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  _features: Features,
   allowedLayouts: readonly LayoutMatcherFunc[],
+  readInfoJson: InfoJsonReaderFunc = readInfoJsonFromDisk,
 ): TaskEither<Error, readonly VortexInstruction[]> => {
   const singleModPipeline =
     (relativeModDir: string): TaskEither<Error, readonly VortexInstruction[]> =>
       pipe(
-        tryReadInfoJson(modInfo, relativeModDir),
-        chainEitherKW((redmodInfo) => pipe(
-          collectPathDetesForInstructions(relativeModDir, redmodInfo, fileTree),
-          chainE((modInfoAndPathDetes) => pipe(
+        readInfoJson(modInfo, relativeModDir),
+        chainEitherKW(fixAnyInfoJsonProblems(modInfo)),
+        chainEitherKW((validREDmodInfo) => pipe(
+          collectPathDetesForInstructions(relativeModDir, validREDmodInfo, fileTree),
+          chainE(sanitizePathDetesForREDmodding),
+          chainE((redmodInfoAndPathDetes) => pipe(
             [
               initJsonLayoutAndValidation,
               archiveLayoutAndValidation,
@@ -555,7 +642,8 @@ export const instructionsForLayoutsPipeline = (
               tweakLayoutAndValidation,
               extraFilesLayoutAndValidation,
             ],
-            traverseArrayE((layout) => layout(api, modInfoAndPathDetes)),
+            traverseArrayE((layout) => layout(api, redmodInfoAndPathDetes, modInfo)),
+            mapE(concat([redmodInfoModAttributeInstruction(modInfo, redmodInfoAndPathDetes)])),
           )),
           mapE(flatten),
         )),
@@ -564,12 +652,14 @@ export const instructionsForLayoutsPipeline = (
   const allModsForLayoutPipeline = pipe(
     allowedLayouts,
     findFirstMap((allModDirsForLayoutIfMatch) => allModDirsForLayoutIfMatch(fileTree)),
-    fromOptionTE(knownError(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
+    fromOptionTE(error(`No REDmod layout found! This shouldn't happen, we already tested we should handle this!`)),
     chainEitherK((allModDirsForLayout) => allModDirsForLayout(fileTree)),
     chain(flow(
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
-      mapTE(concat(ensureModdedDirExistsInstructions())),
+      mapTE(concat(ensureModdedDirExistsInstruction())),
+      mapTE(concat(modTypeModAttributeInstruction())),
+      mapTE(gatherAllREDmodInfoModAttributesIntoOneInstruction),
     )),
   );
 
@@ -586,6 +676,11 @@ const allAllowedLayouts = [
 const layoutsAllowedInMultitype = [
   canonLayoutMatches,
 ];
+
+const layoutsAllowedForConversion = [
+  canonLayoutMatches,
+];
+
 
 //
 // Vortex
@@ -647,22 +742,20 @@ export const redmodAllowedInstructionsForMultitype = async (
 };
 
 
-export const transformToREDmodArchiveInstructions = (
+export const transformToREDmodArchiveInstructions = async (
   api: VortexApi,
   features: Features,
   modInfo: ModInfo,
   originalInstructions: Instructions,
-): Either<Error, Instructions> => {
-  const me = `REDmod Autoconversion (InstallerType.REDmod)`;
-
+): Promise<Either<Error, Instructions>> => {
   if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
-    api.log(`error`, `${me}: REDmod transform function called but feature is disabled`);
+    api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
     return right(originalInstructions);
   }
 
   // ArchiveXL will be supported later: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/258
   if (originalInstructions.kind === ArchiveLayout.XL) {
-    api.log(`info`, `${me}: ArchiveXL autoconversion to REDmod not supported yet!`);
+    api.log(`info`, `${transMe}: ArchiveXL autoconversion to REDmod not supported yet!`);
 
     showInfoNotification(
       api,
@@ -682,11 +775,26 @@ export const transformToREDmodArchiveInstructions = (
   const redmodVersion =
     redmodInfoWithAutoconvertTag.version.v;
 
-  const destinationDirWithModnamePrefix =
-    path.join(REDMOD_BASEDIR, redmodModuleName, path.sep);
+  const realDestAndVirtualSourceDirWithModname =
+    path.join(REDMOD_BASEDIR, redmodModuleName);
 
-  const destinationArchiveDirWithModnamePrefix =
-    path.join(destinationDirWithModnamePrefix, REDMOD_ARCHIVES_DIRNAME, path.sep);
+  const RealDestAndVirtualSourceArchiveDirWithModname =
+    path.join(realDestAndVirtualSourceDirWithModname, REDMOD_ARCHIVES_DIRNAME);
+
+  api.log(`debug`, `Transforming Archive instructions to REDmod`);
+  api.log(`debug`, `Original instructions: ${jsonpp(originalInstructions)}`);
+
+  const virtualAndRealArchiveSourcePairs = pipe(
+    originalInstructions.instructions,
+    filter((instruction) => instruction.type === `copy`),
+    map((instruction): [string, string] => [
+      instruction.destination.replace(
+        normalizeDir(ARCHIVE_MOD_CANONICAL_PREFIX),
+        normalizeDir(RealDestAndVirtualSourceArchiveDirWithModname),
+      ),
+      instruction.source,
+    ]),
+  );
 
   const infoJson: REDmodInfo = {
     name: redmodModuleName,
@@ -695,53 +803,64 @@ export const transformToREDmodArchiveInstructions = (
 
   const generateInfoJsonInstruction: VortexInstruction = {
     type: `generatefile`,
-    data: JSON.stringify(infoJson),
-    destination: path.join(destinationDirWithModnamePrefix, REDMOD_INFO_FILENAME),
+    data: jsonpp(infoJson),
+    destination: path.join(realDestAndVirtualSourceDirWithModname, REDMOD_INFO_FILENAME),
   };
-
-  api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${JSON.stringify(originalInstructions)}`);
-
-  const realSourceAndVirtualSourcePairs = pipe(
-    originalInstructions.instructions,
-    filter((instruction) => instruction.type === `copy`),
-    map((instruction): [string, string] => [
-      instruction.destination.replace(
-        ARCHIVE_MOD_CANONICAL_PREFIX,
-        destinationArchiveDirWithModnamePrefix,
-      ),
-      instruction.source,
-    ]),
-  );
 
   const mapFromVirtualSourceToRealSource =
-    new Map<string, string>(realSourceAndVirtualSourcePairs);
+    new Map<string, string>([
+      ...virtualAndRealArchiveSourcePairs,
+    ]);
 
   const fileTreeForVirtualREDmodSources =
-    fileTreeFromPaths(Array.from(mapFromVirtualSourceToRealSource.keys()));
+    fileTreeFromPaths([
+      ...mapFromVirtualSourceToRealSource.keys(),
+      generateInfoJsonInstruction.destination,
+    ]);
 
-  const redmodInstallDetes = {
-    relativeSourceDir: destinationDirWithModnamePrefix,
-    relativeDestDir: destinationDirWithModnamePrefix,
-    fileTree: fileTreeForVirtualREDmodSources,
-    redmodInfo: infoJson,
-  };
+  const returnMatchingVirtualInfoJson =
+  (generatedInfoJson: REDmodInfo): InfoJsonReaderFunc =>
+    (attemptedModInfo: ModInfo, attemptedRelativeModDir: string) => {
+      const jsonWhenMatched =
+        (attemptedModInfo.name === modInfo.name && attemptedRelativeModDir === realDestAndVirtualSourceDirWithModname)
+          ? right(generatedInfoJson)
+          : left(new Error(`${transMe}: Info doesn't match (this should NOT happen)! ${S({ attemptedModInfo, attemptedRelativeModDir, generatedInfoJson })}`));
 
-  const archiveInstructionsProducedByREDmodArchiveInstaller =
-    archiveLayoutAndValidation(
+      return pipe(
+        jsonWhenMatched,
+        TEfromEither,
+      );
+    };
+
+  const redmodInstructionsGeneratedByREDmodPipeline =
+    await instructionsForLayoutsPipeline(
       api,
-      redmodInstallDetes,
-    );
+      fileTreeForVirtualREDmodSources,
+      modInfo,
+      features,
+      layoutsAllowedForConversion,
+      returnMatchingVirtualInfoJson(infoJson),
+    )();
 
-  if (isLeft(archiveInstructionsProducedByREDmodArchiveInstaller)) {
-    const errorMessage = `${me}: Failed to generate archive instructions for REDmod: ${archiveInstructionsProducedByREDmodArchiveInstaller.left.message}`;
 
-    api.log(`error`, errorMessage, { redmodInstallDetes, originalInstructions, modInfo });
+  if (isLeft(redmodInstructionsGeneratedByREDmodPipeline)) {
+    const errorMessage = `${transMe}: Failed to generate archive instructions for REDmod: ${S(redmodInstructionsGeneratedByREDmodPipeline)}`;
+
+    api.log(`error`, errorMessage, {
+      originalInstructions, modInfo, infoJson, virtualSourceTree: fileTreeForVirtualREDmodSources,
+    });
     return left(new Error(errorMessage));
   }
 
   const redmodInstructionsMappedBackToRealSources = pipe(
-    archiveInstructionsProducedByREDmodArchiveInstaller.right,
+    redmodInstructionsGeneratedByREDmodPipeline.right,
+    map((redmodInstruction) =>
+      (redmodInstruction.type !== `copy` || path.basename(redmodInstruction.destination) !== REDMOD_INFO_FILENAME
+        ? redmodInstruction
+        : {
+          ...generateInfoJsonInstruction,
+          destination: redmodInstruction.destination,
+        })),
     map((redmodInstruction) =>
       (redmodInstruction.source && mapFromVirtualSourceToRealSource.get(redmodInstruction.source)
         ? {
@@ -749,22 +868,15 @@ export const transformToREDmodArchiveInstructions = (
           source: mapFromVirtualSourceToRealSource.get(redmodInstruction.source),
         }
         : redmodInstruction)),
-  );
-
-  const allREDmodInstructions = pipe(
-    redmodInstructionsMappedBackToRealSources,
-    concat([
-      generateInfoJsonInstruction,
-    ]),
     toMutableArray,
   );
 
   const instructionsToInstallArchiveAsREDmod = {
     kind: REDmodTransformedLayout.Archive,
-    instructions: allREDmodInstructions,
+    instructions: redmodInstructionsMappedBackToRealSources,
   };
 
-  api.log(`info`, `${me}: Generated REDmod instructions for archive`, s(instructionsToInstallArchiveAsREDmod));
+  api.log(`info`, `${transMe}: Generated REDmod instructions for archive`, instructionsToInstallArchiveAsREDmod);
 
   showInfoNotification(
     api,

@@ -1,6 +1,6 @@
 {
     "name": "cyberpunk2077",
-    "version": "0.8.3",
+    "version": "0.9.0-gonk",
     "description": "A rebuild of the original cyberpunk vortex extension with the aim to support more mod types and fix common issues",
     "main": "./dist/index.js",
     "scripts": {
@@ -16,7 +16,7 @@
         "repl": "ts-node -r tsconfig-paths/register",
         "postinstall": "patch-package",
         "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color",
-        "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./gameicon.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./dist/",
+        "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./gameicon.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./redMod.png ./dist/",
         "pack": "npm run build && powershell.exe ./script/package.ps1",
         "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
         "pack-linux": "npm run build && bash ./script/package.sh",
@@ -31,6 +31,9 @@
         "ThunderGod (https://github.com/thundergod97)"
     ],
     "license": "GPL-3.0",
+    "peerDependencies": {
+        "vortex-api": "github:Nexus-Mods/vortex-api"
+    },
     "devDependencies": {
         "@jest/types": "^27.5.1",
         "@types/glob": "^7.2.0",
@@ -59,6 +62,7 @@
         "jest-mock-extended": "^2.0.4",
         "lint-staged": "^12.3.5",
         "mock-fs": "5.1.2",
+        "patch-package": "^6.4.7",
         "react": "^17.0.2",
         "react-bootstrap": "^2.2.1",
         "react-dom": "^17.0.2",
@@ -66,7 +70,7 @@
         "ts-loader": "^6.0.4",
         "ts-node": "^10.7.0",
         "tsconfig-paths": "^3.13.0",
-        "typescript": "^4.5.0",
+        "typescript": "^4.8.4",
         "vortex-api": "github:Nexus-Mods/vortex-api",
         "webpack": "^4.35.0",
         "webpack-cli": "^4.9.2"
@@ -75,6 +79,9 @@
         "fp-ts": "^2.12.1",
         "io-ts": "^2.2.18",
         "key-tree": "^1.0.3",
-        "patch-package": "^6.4.7"
+        "monocle-ts": "^2.3.13",
+        "spectacles-ts": "^1.0.7",
+        "turbowalk": "github:Nexus-Mods/node-turbowalk",
+        "winapi-bindings": "github:Nexus-Mods/node-winapi-bindings"
     }
 }

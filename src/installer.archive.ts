@@ -373,12 +373,12 @@ const instructionsForToplevelExtras = (
 //
 
 
-const transformAndValidateAndFinalizeInstructions = (
+const transformAndValidateAndFinalizeInstructions = async (
   api: VortexApi,
   features: Features,
   modInfo: ModInfo,
   originalInstructions: Instructions,
-): Either<Error, Instructions> => {
+): Promise<Either<Error, Instructions>> => {
   if (features.REDmodAutoconvertArchives === Feature.Enabled) {
     return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
   }
@@ -466,7 +466,7 @@ export const testForArchiveMod: V2077TestFunc = (
 // install
 //
 
-export const installArchiveMod: V2077InstallFunc = (
+export const installArchiveMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
@@ -494,7 +494,7 @@ export const installArchiveMod: V2077InstallFunc = (
   }
 
   const finalInstructions =
-    transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
+    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
 
   if (isLeft(finalInstructions)) {
     return Promise.reject(finalInstructions.left);
@@ -507,12 +507,12 @@ export const installArchiveMod: V2077InstallFunc = (
 // Internal API for including in other installers
 //
 
-export const extraCanonArchiveInstructionsForMultiType = (
+export const extraCanonArchiveInstructionsForMultiType = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
   features: Features,
-): Instructions => {
+): Promise<Instructions> => {
   const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
 
   if (canonicalInstructions.kind === NoLayout.Optional) {
@@ -521,7 +521,7 @@ export const extraCanonArchiveInstructionsForMultiType = (
   }
 
   const finalInstructions =
-    transformAndValidateAndFinalizeInstructions(api, features, modInfo, canonicalInstructions);
+    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, canonicalInstructions);
 
   if (isLeft(finalInstructions)) {
     api.log(`warn`, `${me} (MultiType): Unable to autoconvert to REDmod, falling back to archive install: ${finalInstructions.left.message}`);

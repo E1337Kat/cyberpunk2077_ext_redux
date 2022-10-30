@@ -8,7 +8,12 @@ import {
   STEAMAPP_ID,
   EPICAPP_ID,
 } from './index.metadata';
-import { promptUserInstallREDmodDLC } from "./ui.dialogs";
+import {
+  REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
+  REDMODDING_REQUIRED_DIR_FOR_MODS,
+  V2077_LOAD_ORDER_DIR,
+} from "./redmodding.metadata";
+import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
@@ -17,13 +22,46 @@ import {
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
 
-interface IREDmodDetails {
+interface REDmoddingDlcDetails {
   name: string;
   url: string;
   openCommand: () => Promise<void>;
 }
 
-const getREDmodetails = (id: string): IREDmodDetails => {
+export const REDlauncher = {
+  id: `V2077-tools-REDLauncher`,
+  name: `REDLauncher`,
+  logo: `REDLauncher.png`,
+  requiredFiles: [`REDprelauncher.exe`],
+  executable: (): string => `REDprelauncher.exe`,
+  parameters: [`-modded`],
+  environment: {},
+  relative: true,
+};
+
+// Not installing the Tool for now because we're
+// using automatic deployment. Maybe enable it
+// later, but it'll require carrying the new
+// load order through starthooks.
+export const REDmodDeploy = {
+  id: `V2077-tools-redMod`,
+  name: `REDmod Deploy`,
+  shortName: `REDdeploy`,
+  requiredFiles: [path.join(`tools\\redmod\\bin\\redMod.exe`)],
+  executable: (): string => path.join(`tools\\redmod\\bin\\redMod.exe`),
+  parameters: [`deploy`],
+  relative: true,
+  shell: true,
+  exclusive: true,
+};
+
+export const REDmoddingTools = [
+  REDlauncher,
+  // REDmodDeploy,
+];
+
+
+const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
 
   const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
@@ -32,7 +70,7 @@ const getREDmodetails = (id: string): IREDmodDetails => {
     return { name: undefined, url: genericHelpUrl, openCommand: () => VortexUtil.opn(genericHelpUrl) };
   }
 
-  const gameStoreData: { [id: string]: IREDmodDetails } = {
+  const gameStoreData: { [id: string]: REDmoddingDlcDetails } = {
     epic: {
       name: `Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
@@ -53,38 +91,50 @@ const getREDmodetails = (id: string): IREDmodDetails => {
   return gameStoreData[id];
 };
 
-const promptREDmodInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
-  const redModDetails = getREDmodetails(gameStoreId);
+const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
+  const redModDetails = fetchREDmoddingDlcDetails(gameStoreId);
 
-  await promptUserInstallREDmodDLC(
+  await promptUserInstallREDmoddingDlc(
     vortexApi,
     redModDetails,
     () => VortexUtil.opn(redModDetails.url),
   );
 };
 
-const prepareForModding = async (
+const prepareForModdingWithREDmodding = async (
   vortexApi: VortexApi,
   discovery: VortexDiscoveryResult,
 ): Promise<void> => {
+
+  // Ensure the directories required by REDmodding exist
   try {
-    // Ensure the mods folder exists
-    await fs.ensureDirAsync(path.join(discovery.path, `mods`));
+    await fs.ensureDirWritableAsync(path.join(discovery.path, REDMODDING_REQUIRED_DIR_FOR_MODS));
+    await fs.ensureDirWritableAsync(path.join(discovery.path, REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES));
+    vortexApi.log(`info`, `Directories required for REDmodding exist and are writable, good!`);
   } catch (err) {
-    // We can ignore this if it fails as REDmod makes the folder anyway.
-    vortexApi.log(`warn`, `Unable to create mods directory in Cyberpunk 2077.`, err);
+    // We can hopefully ignore this issue as it's likely they'll be created when the user installs a mod.
+    vortexApi.log(`warn`, `Unable to create or access required REDmodding directories in game path ${discovery.path}`, err);
+  }
+
+  try {
+    await fs.ensureDirWritableAsync(path.join(discovery.path, V2077_LOAD_ORDER_DIR));
+    vortexApi.log(`info`, `Load order directory exists and is writable, good!`);
+  } catch (err) {
+    // This might be an actual problem but let's not prevent proceeding..
+    vortexApi.log(`error`, `Unable to create or access load order storage dir ${V2077_LOAD_ORDER_DIR} under ${discovery.path}`, err);
   }
 
   // Check for the REDmod files.
-  const redLauncherPath = path.join(discovery.path, `REDprelauncher.exe`);
-  const redModPath = path.join(discovery.path, `tools`, `redmod`, `bin`, `redMod.exe`);
+  const redLauncherPath = path.join(discovery.path, REDlauncher.executable());
+  const redModPath = path.join(discovery.path, REDmodDeploy.executable());
 
   try {
     await Promise.all([redLauncherPath, redModPath].map(async (file) => fs.statAsync(file)));
+
+    // Only need to run the DLC finder if the files aren't there yet
     return;
   } catch (err) {
-    // If this fails, then we know REDmod isn't installed properly.
-    vortexApi.log(`debug`, `REDmod not found for Cyberpunk 2077`, err);
+    vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`, err);
   }
 
   // Determine which game store this is from, so we can recommend the correct process.
@@ -93,10 +143,10 @@ const prepareForModding = async (
     vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
   }
 
-  await promptREDmodInstall(vortexApi, game?.gameStoreId);
+  await promptREDmoddingDlcInstall(vortexApi, game?.gameStoreId);
 };
 
-export const wrappedPrepareForModding = async (
+export const wrappedPrepareForModdingWithREDmodding = async (
   vortex: VortexExtensionContext,
   vortexApiThing,
   discovery: VortexDiscoveryResult,
@@ -105,5 +155,5 @@ export const wrappedPrepareForModding = async (
 
   vortexApi.log(`info`, `Checking for REDmod install`);
 
-  return prepareForModding(vortexApi, discovery);
+  return prepareForModdingWithREDmodding(vortexApi, discovery);
 };

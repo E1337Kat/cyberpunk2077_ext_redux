@@ -19,7 +19,7 @@ import {
 import {
   FAKE_STAGING_PATH,
   getMockVortexLog,
-  sortByDestination,
+  sortInstructionsForComparison,
 } from "./utils.helper";
 
 import {
@@ -27,17 +27,10 @@ import {
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
 } from "./mods.example";
-import { CurrentFeatureSet } from "../../src/features";
+import { DefaultFeatureSetForTesting } from "../../src/features";
 
-// Should switch this to compute the path in case changed, but eh..
-/*
-const fakeModZipfileStructure = FAKE_STAGING_PATH.split(path.sep).reduceRight<object>(
-  (subDir: object, dir: string) => Object.fromEntries([[dir, subDir]]),
-  fakeStagingDirContent,
-);
-*/
 
-const DEFAULT_FEATURES = CurrentFeatureSet;
+const DEFAULT_FEATURES = DefaultFeatureSetForTesting;
 
 describe(`Transforming modules to instructions`, () => {
   beforeEach(() => { mockFs.restore(); });
@@ -99,8 +92,8 @@ describe(`Transforming modules to instructions`, () => {
             null,
           );
 
-          const gotInstructionsSorted = sortByDestination(installResult.instructions);
-          const expectedInstructionsSorted = sortByDestination(mod.outInstructions);
+          const gotInstructionsSorted = sortInstructionsForComparison(installResult.instructions);
+          const expectedInstructionsSorted = sortInstructionsForComparison(mod.outInstructions);
 
           expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
 
@@ -165,8 +158,8 @@ describe(`Transforming modules to instructions`, () => {
             null,
           );
 
-          const gotInstructionsSorted = sortByDestination(installResult.instructions);
-          const expectedInstructionsSorted = sortByDestination(
+          const gotInstructionsSorted = sortInstructionsForComparison(installResult.instructions);
+          const expectedInstructionsSorted = sortInstructionsForComparison(
             mod.proceedOutInstructions,
           );
 

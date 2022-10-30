@@ -2,12 +2,25 @@
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
 import { Console } from "console";
-import * as RA from "fp-ts/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
+import {
+  flatten,
+  intersection,
+  map,
+  sortBy,
+} from "fp-ts/lib/ReadonlyArray";
+import { contramap } from "fp-ts/lib/Ord";
+import {
+  Eq as StringEq,
+  Ord as StringOrd,
+} from "fp-ts/lib/string";
 import { VortexInstruction } from "../../src/vortex-wrapper";
 import {
   InstallerType,
+  ModAttribute,
+  ModAttributeKey,
   ModInfo,
+  REDmodInfoArrayForVortex,
 } from "../../src/installers.types";
 import {
   CONFIG_XML_MOD_BASEDIR,
@@ -24,7 +37,11 @@ import {
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
 import { Features } from "../../src/features";
-import { normalizeDir } from "../../src/filetree";
+import {
+  normalizeDir,
+  safeNormalizePath,
+} from "../../src/filetree";
+import { S } from "../../src/installers.utils";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
@@ -101,13 +118,18 @@ const mapHasAnySameKeys = <K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean =>
   [...map1].some(([k, _]) => map2.get(k));
 
 // It's tests, it's ok to just raise. Don't do this in real code, kids
-export const mergeOrFailOnConflict = <K, V>(...maps: Map<K, V>[]): Map<K, V> =>
-  maps.reduce((mergedMap, map) => {
-    if (mapHasAnySameKeys(map, mergedMap)) {
+export const mergeOrFailOnConflict = <K extends string, V>(...maps: Map<K, V>[]): Map<K, V> =>
+  maps.reduce((mergedMap, nextMap) => {
+    if (mapHasAnySameKeys(nextMap, mergedMap)) {
+      const conflictingKeys = pipe(
+        [...mergedMap.keys()],
+        intersection(StringEq)([...nextMap.keys()]),
+      );
+
       // :goose-loose:
-      throw new Error(`Duplicate keys in example categories, fix it first!`);
+      throw new Error(`Duplicate keys in example categories, fix it first! ${S(conflictingKeys)}`);
     }
-    return new Map([...mergedMap, ...map]);
+    return new Map([...mergedMap, ...nextMap]);
   }, new Map<K, V>());
 
 //
@@ -200,6 +222,21 @@ export const generatedFile = (contents: string, ...dest: string[]): VortexInstru
   destination: path.join(...dest),
 });
 
+export const addedMetadataAttribute = <T>({ key, value }: ModAttribute<T>): VortexInstruction => ({
+  type: `attribute`,
+  key,
+  value,
+});
+
+// Created by hand to test the format is as expected
+export const addedREDmodInfoArrayAttribute = (...infos: REDmodInfoArrayForVortex): VortexInstruction => ({
+  type: `attribute`,
+  key: ModAttributeKey.REDmodInfoArray,
+  value: {
+    data: infos,
+  },
+});
+
 export const expectedUserCancelMessageFor = (installerType: InstallerType): string =>
   `${installerType}: user chose to cancel installation`;
 
@@ -222,15 +259,15 @@ export const expectedUserCancelProtectedMessageInMultiType = `${InstallerType.Mu
 export const CORE_REDSCRIPT_PREFIXES =
   pipe(
     REDSCRIPT_CORE_FILES,
-    RA.map(pathHierarchyFor),
-    RA.flatten,
+    map(pathHierarchyFor),
+    flatten,
   );
 
 export const DEPRECATED_CORE_REDSCRIPT_PREFIXES =
   pipe(
     DEPRECATED_REDSCRIPT_CORE_FILES,
-    RA.map(pathHierarchyFor),
-    RA.flatten,
+    map(pathHierarchyFor),
+    flatten,
   );
 
 export const CORE_CET_FULL_PATH_DEPTH = path.normalize(
@@ -278,14 +315,19 @@ export const ARCHIVE_GIFTWRAPS = pathHierarchyFor(
 // Actual test helpers
 //
 
-export const compareByDestination = (a: VortexInstruction, b: VortexInstruction): number => {
-  if (!a?.destination || !b?.destination) {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
-    throw new Error(`null destination, shouldn't happen: ${{ a, b }}`);
-  } else {
-    return a.destination.localeCompare(b.destination);
-  }
-};
+const destinationOrd = pipe(
+  StringOrd,
+  contramap(({ destination }: VortexInstruction) =>
+    safeNormalizePath(destination ?? ``)),
+);
 
-export const sortByDestination = (instructions: VortexInstruction[]): VortexInstruction[] =>
-  instructions.sort(compareByDestination);
+const attributeOrd = pipe(
+  StringOrd,
+  contramap(({ key }: VortexInstruction) => key ?? ``),
+);
+
+export const sortInstructionsForComparison =
+  (instructions: readonly VortexInstruction[]): readonly VortexInstruction[] => pipe(
+    instructions,
+    sortBy([destinationOrd, attributeOrd]),
+  );

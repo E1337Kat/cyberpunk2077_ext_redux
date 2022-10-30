@@ -19,8 +19,12 @@ export const enum NotificationStatus {
 export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
-  REDmodArchiveAutoconverted = `V2077-notify-info-redmod-archive-autoconverted`,
+  REDmodArchiveAutoconverted = `V2077-notify-success-redmod-archive-autoconverted`,
   REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
+  REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
+  REDmodDeploymentStarted = `V2077-notify-info-redmod-deployment-started`,
+  REDmodDeploymentSucceeded = `V2077-notify-success-redmod-deployment-succeeded`,
+  REDmodDeploymentFailed = `V2077-notify-error-redmod-deployment-failed`,
 }
 
 //
@@ -62,6 +66,42 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       type: `info`,
       title: `Mod NOT Autoconverted to REDmod`,
       message: `The mod was NOT automatically converted and will be installed as a regular mod`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDeploymentQueued,
+    {
+      id: InfoNotification.REDmodDeploymentQueued,
+      type: `info`,
+      title: `REDmod Deployment Ready to Go!`,
+      message: `Next Vortex deploy will update load order and enabled state for REDmods too!`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDeploymentStarted,
+    {
+      id: InfoNotification.REDmodDeploymentStarted,
+      type: `info`,
+      title: `Starting REDmod Deployment!`,
+      message: `Running REDmod Deployment to get your mods and load order ready to go!`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDeploymentSucceeded,
+    {
+      id: InfoNotification.REDmodDeploymentSucceeded,
+      type: `success`,
+      title: `REDmod Deployment Completed!`,
+      message: `You're good to go, choom! The game will now pick up your newest enabled mods and load order!`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDeploymentFailed,
+    {
+      id: InfoNotification.REDmodDeploymentFailed,
+      type: `error`,
+      title: `REDmod Deployment Failed!`,
+      message: `Oh no! Something went wrong with the REDmod deployment. Check Diagnostic Files for details!`,
     },
   ],
 ]);

@@ -1,3 +1,4 @@
+
 // Nexus Mods domain for the game. e.g. nexusmods.com/cyberpunk2077
 export const GAME_ID = `cyberpunk2077`;
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -14,3 +15,8 @@ export const EXTENSION_NAME_INTERNAL = `V2077`;
 
 export const EXTENSION_URL_NEXUS = `https://www.nexusmods.com/site/mods/196`;
 export const EXTENSION_URL_GITHUB = `https://github.com/E1337Kat/cyberpunk2077_ext_redux`;
+
+export const V2077_DIR = `V2077`;
+
+export const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
+export const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;

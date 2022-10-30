@@ -4,7 +4,7 @@ import path from "path";
 import * as A from "fp-ts/Array";
 import {
   Either,
-  fold,
+  match as matchE,
   left,
   right,
 } from "fp-ts/Either";
@@ -27,7 +27,10 @@ import {
   FILETREE_ROOT,
   normalizeDir,
 } from "./filetree";
-import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
+import {
+  V2077_GENERATED_MOD_NAME_TAG,
+  V2077_GENERATED_MOD_VERSION_PRERELEASE,
+} from "./index.metadata";
 import {
   Instructions,
   LayoutToInstructions,
@@ -42,6 +45,7 @@ import {
 import {
   InstallDecision,
   InstallerType,
+  ModAttribute,
   ModInfo,
   SemanticVersion,
 } from "./installers.types";
@@ -96,9 +100,6 @@ type ModInfoRaw =
 //
 // Helpers
 //
-
-const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
-const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;
 
 const dateToSeconds = (date: Date): string => (date.getTime() / 1000).toString();
 const secondsToDate = (ms: string): Date => new Date(parseInt(ms, 10) * 1000);
@@ -216,7 +217,7 @@ export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, Mod
 export const modInfoFromArchiveNameOrSynthetic = (archivePath: Path): ModInfo =>
   pipe(
     modInfoFromArchivePath(archivePath),
-    fold(identity, identity),
+    matchE(identity, identity),
   );
 
 
@@ -283,6 +284,14 @@ export const instructionsToGenerateDirs = (
       destination: dir,
     })),
   );
+
+export const instructionToGenerateMetadataAttribute = <T>(
+  attribute: ModAttribute<T>,
+): VortexInstruction => ({
+    type: `attribute`,
+    key: attribute.key,
+    value: attribute.value,
+  });
 
 export const useFirstMatchingLayoutForInstructions = (
   api: VortexApi,
