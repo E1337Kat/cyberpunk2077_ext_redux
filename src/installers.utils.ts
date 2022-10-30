@@ -12,4 +12,5 @@ export const exhaustiveMatchFailure = (_: never): never => {
   throw new Error(`Type guard failed`);
 };
 
+export const s = (thing: unknown): string => JSON.stringify(thing, null, 2);
 export const S = (thing: unknown): string => JSON.stringify(thing);

@@ -263,7 +263,7 @@ export const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);
 export const ASI_PREFIX = ASI_MOD_PATH;
 export const ASI_PREFIXES = pathHierarchyFor(ASI_PREFIX);
 
-export const GIFTWRAP_PREFIX = `some-dirname`;
+export const GIFTWRAP_PREFIX = `giftwrapper-dirname`;
 
 export const CET_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${CET_PREFIX}`);
 export const REDS_GIFTWRAPS = pathHierarchyFor(`${GIFTWRAP_PREFIX}\\${REDS_PREFIX}`);
