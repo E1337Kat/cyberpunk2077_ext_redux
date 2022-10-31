@@ -7,7 +7,7 @@ import * as actions from './actions';
 const settingsReducer: vortexApi.types.IReducerSpec = {
   reducers: {
     [actions.setArchiveAutoConvert as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`archiveAutoConvert`], payload),
+      vortexApi.util.setSafe(state, [`v2077_feature_redmod_autoconvert_archives`], payload),
     [actions.setRedmodForceDeploy as any]: (state, payload) =>
       vortexApi.util.setSafe(state, [`redmodForceDeploy`, payload.profileId], payload.force),
   },
