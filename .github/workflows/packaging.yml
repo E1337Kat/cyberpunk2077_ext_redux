@@ -69,7 +69,6 @@ jobs:
   package-dev:
     name: Package Dev Build
     needs: [dependencies, test]
-    if: "contains(github.event.commits[0].message, '[gonk]') || (contains(github.event.commits[0].message, 'release/') && contains(github.event.commits[0].message, '/gonk'))"
     runs-on: windows-latest
     strategy:
       matrix:
@@ -105,7 +104,7 @@ jobs:
   package-release:
     name: Package
     needs: [dependencies, test]
-    if: "contains(github.event.commits[0].message, '[release]') || (contains(github.event.commits[0].message, 'release/') && !contains(github.event.commits[0].message, '/gonk'))"
+    if: "(contains(github.event.commits[0].message, 'release') || contains(github.event.commits[1].message, 'release')) && !contains(github.event.commits[0].message, 'gonk')"
     runs-on: windows-latest
     strategy:
       matrix:
