@@ -68,7 +68,7 @@ interface IREDmodProps {
   archiveAutoConvertEnabled: boolean;
 }
 
-const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false);
+const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `v2077_feature_redmod_autoconvert_archives`], false);
 
 const toggleAutoConvert = (api: vortexApi.types.IExtensionApi, _gameMode: string): void => {
   const state: vortexApi.types.IState = api.store.getState();

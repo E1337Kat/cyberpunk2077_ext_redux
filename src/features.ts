@@ -29,8 +29,9 @@ export const enum StaticFeature {
   REDmodLoadOrder = `v2077-feature-redmod-load-order`,
 }
 
+// Need to be underscored since it isn't always just a string... thanks react...
 export const enum DynamicFeature {
-  REDmodAutoconvertArchives = `v2077-feature-redmod-autoconvert-archives`,
+  REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
 }
 
 export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, string[]>;
