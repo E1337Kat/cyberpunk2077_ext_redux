@@ -25,7 +25,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const detectCoreCyberScript = (fileTree: FileTree): boolean =>
   CYBERSCRIPT_CORE_REQUIRED_FILES.some((requiredFile) =>
@@ -41,7 +41,7 @@ export const installCoreCyberScript: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const allCoreCyberScriptFiles = [
     CYBERSCRIPT_CORE_ASI,

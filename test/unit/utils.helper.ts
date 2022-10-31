@@ -36,7 +36,7 @@ import {
   DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
-import { Features } from "../../src/features";
+import { StaticFeatures } from "../../src/features";
 import {
   normalizeDir,
   safeNormalizePath,
@@ -53,6 +53,10 @@ console = new Console(process.stdout, process.stderr);
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const getMockVortexLog = () => {
   const mockLog = jest.fn();
+  mockLog.mockImplementation((...args) => {
+    // eslint-disable-next-line no-console
+    console.log(`vortex.log():`, args);
+  });
 
   if (process.env.DEBUG) {
     mockLog.mockImplementation((...args) => {
@@ -79,7 +83,7 @@ interface ExampleMod {
   inFiles: InFiles;
   stagingPath?: string;
   fsMocked?: MockFsDirItems;
-  features?: Features;
+  features?: StaticFeatures;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {

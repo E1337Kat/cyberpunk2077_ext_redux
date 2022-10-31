@@ -8,8 +8,8 @@ import {
 import { setRedmodForceDeploy } from "./actions";
 import {
   CurrentFeatureSet,
-  FeatureEnabled,
-  Features,
+  IsFeatureEnabled,
+  StaticFeatures,
 } from "./features";
 import {
   GOGAPP_ID,
@@ -91,7 +91,7 @@ export const redModTool = (state: VortexState, gameId: string): VortexToolDiscov
 
 const autoDeployAction: V2077ActionFunc = (
   vortexApi: VortexApi,
-  _features: Features,
+  _features: StaticFeatures,
   _instanceIds: string[],
 ): VortexActionResult => {
   const state = vortexApi.store.getState();
@@ -120,10 +120,10 @@ export const wrapVortexActionFunc =
 
 const autoDeployActionCondition: V2077ActionConditionFunc = (
   vortexApi: VortexApi,
-  features: Features,
+  features: StaticFeatures,
   _instanceIds: string[],
 ): VortexActionConditionResult => {
-  if (!FeatureEnabled(features.REDmodding)) {
+  if (!IsFeatureEnabled(features.REDmodding)) {
     return false;
   }
   const state = vortexApi.store.getState();

@@ -110,8 +110,8 @@ import {
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
 import {
-  Feature,
-  Features,
+  FeatureState,
+  StaticFeatures,
 } from "./features";
 import {
   jsonp,
@@ -291,7 +291,7 @@ const returnInstructionsAndLogEtc = (
   _api: VortexApi,
   _fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
   instructions: readonly VortexInstruction[],
 ): Promise<VortexInstallResult> =>
   Promise.resolve({ instructions: toMutableArray(instructions) });
@@ -301,7 +301,7 @@ const failAfterWarningUserAndLogging = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
   error: Error,
 ): Promise<VortexInstallResult> => {
   const errorMessage = `Didn't Find Expected REDmod Installation!`;
@@ -621,7 +621,7 @@ export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
   allowedLayouts: readonly LayoutMatcherFunc[],
   readInfoJson: InfoJsonReaderFunc = readInfoJsonFromDisk,
 ): TaskEither<Error, readonly VortexInstruction[]> => {
@@ -699,7 +699,7 @@ export const installREDmod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const pipelineForInstructions =
     instructionsForLayoutsPipeline(api, fileTree, modInfo, features, allAllowedLayouts);
@@ -725,7 +725,7 @@ export const redmodAllowedInstructionsForMultitype = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<Either<Error, readonly VortexInstruction[]>> => {
   if (!detectAllowedREDmodLayoutsForMultitype(fileTree)) {
     return right([]);
@@ -744,11 +744,11 @@ export const redmodAllowedInstructionsForMultitype = async (
 
 export const transformToREDmodArchiveInstructions = async (
   api: VortexApi,
-  features: Features,
+  features: StaticFeatures,
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (features.REDmodAutoconvertArchives !== Feature.Enabled) {
+  if (features.REDmodAutoconvertArchives !== FeatureState.Enabled) {
     api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
     return right(originalInstructions);
   }

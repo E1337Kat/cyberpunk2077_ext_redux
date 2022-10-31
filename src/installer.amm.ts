@@ -72,7 +72,7 @@ import {
   extraCanonArchiveInstructions,
   extraToplevelArchiveInstructions,
 } from "./installer.archive";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const matchAmmLua = (filePath: string): boolean => path.extname(filePath) === `.lua`;
 const matchAmmJson = (filePath: string): boolean => path.extname(filePath) === `.json`;
@@ -264,7 +264,7 @@ export const testForAmmMod: V2077TestFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexTestResult> => {
   const looksLikeAmm = dirInTree(AMM_BASEDIR_PATH, fileTree);
 
@@ -313,7 +313,7 @@ export const installAmmMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const pathBasedMatchInstructions = useFirstMatchingLayoutForInstructions(
     api,

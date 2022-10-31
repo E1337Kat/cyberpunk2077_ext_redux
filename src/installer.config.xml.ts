@@ -37,7 +37,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 // Recognizers
 
@@ -178,7 +178,7 @@ export const installConfigXmlMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const allPossibleConfigXmlLayouts = [
     configXmlProtectedLayout,

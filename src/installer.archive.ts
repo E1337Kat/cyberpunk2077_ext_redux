@@ -51,8 +51,8 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 import {
-  Feature,
-  Features,
+  FeatureState,
+  StaticFeatures,
 } from "./features";
 import { transformToREDmodArchiveInstructions } from "./installer.redmod";
 
@@ -375,11 +375,11 @@ const instructionsForToplevelExtras = (
 
 const transformAndValidateAndFinalizeInstructions = async (
   api: VortexApi,
-  features: Features,
+  features: StaticFeatures,
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (features.REDmodAutoconvertArchives === Feature.Enabled) {
+  if (features.REDmodAutoconvertArchives === FeatureState.Enabled) {
     return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
   }
 
@@ -470,7 +470,7 @@ export const installArchiveMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
 
@@ -511,7 +511,7 @@ export const extraCanonArchiveInstructionsForMultiType = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<Instructions> => {
   const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
 
