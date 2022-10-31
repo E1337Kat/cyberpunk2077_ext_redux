@@ -143,7 +143,7 @@ import {
   installCoreRedscript,
   testForCoreRedscript,
 } from "./installer.core.redscript";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -533,7 +533,7 @@ export const wrapInstall =
     vortex: VortexExtensionContext,
     vortexApiThing,
     installer: Installer,
-    features: StaticFeatures,
+    features: FeatureSet,
   ): VortexInstallFunc =>
     //
     // This is the function that Vortex calls
@@ -675,7 +675,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   vortexApi: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: StaticFeatures,
+  features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
 

@@ -31,7 +31,7 @@ import {
   showManualStepRequiredForToolInfo,
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const findRequiredCoreCyberCatFiles = (fileTree: FileTree): string[] =>
   CYBERCAT_CORE_REQUIRED_FILES.filter((requiredFile) =>
@@ -51,7 +51,7 @@ export const installCoreCyberCat: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const files =
     sourcePaths(fileTree);

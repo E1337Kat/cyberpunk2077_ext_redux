@@ -36,7 +36,7 @@ import {
   promptUserToInstallOrCancelOnDeprecatedCoreMod,
   showWarningForUnrecoverableStructureError,
 } from './ui.dialogs';
-import { StaticFeatures } from './features';
+import { FeatureSet } from './features';
 
 // Recognizers
 
@@ -121,7 +121,7 @@ export const installCoreRedscript: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ) => {
   //
   const me = InstallerType.CoreRedscript;

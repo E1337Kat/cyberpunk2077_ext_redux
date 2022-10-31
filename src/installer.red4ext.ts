@@ -42,7 +42,7 @@ import {
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const matchDll = (file: string) => path.extname(file) === `.dll`;
 const reservedDllDir = (dir: string) =>
@@ -227,7 +227,7 @@ export const installRed4ExtMod: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   // At this point we know from the test that none of
   // these are in dangerous locations

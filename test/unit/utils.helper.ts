@@ -36,7 +36,7 @@ import {
   DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
 import { InfoNotification } from "../../src/ui.notifications";
-import { StaticFeatures } from "../../src/features";
+import { FeatureSet } from "../../src/features";
 import {
   normalizeDir,
   safeNormalizePath,
@@ -83,7 +83,7 @@ interface ExampleMod {
   inFiles: InFiles;
   stagingPath?: string;
   fsMocked?: MockFsDirItems;
-  features?: StaticFeatures;
+  features?: FeatureSet;
 }
 
 export interface ExampleSucceedingMod extends ExampleMod {
