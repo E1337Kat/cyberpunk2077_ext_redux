@@ -27,13 +27,10 @@ import {
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
 } from "./mods.example";
-import {
-  DefaultFeatureSetForTesting,
-  FeaturesFromSettings,
-} from "../../src/features";
+import { BaselineFeatureSetForTests } from "../../src/features";
 
 
-const DEFAULT_FEATURES = DefaultFeatureSetForTesting;
+const DEFAULT_FEATURES = BaselineFeatureSetForTests;
 
 describe(`Transforming modules to instructions`, () => {
   beforeEach(() => { mockFs.restore(); });
@@ -81,13 +78,12 @@ describe(`Transforming modules to instructions`, () => {
           emitAndAwaitMock.mockResolvedValue(`Irrelevant`);
 
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
-          const featuresFromSettingsMock = FeaturesFromSettings.calledWith(mockVortexExtensionContext);
-          featuresFromSettingsMock.mockReturnValue(defaultOrOverriddenFeatures);
 
           const wrappedInstall = wrapInstall(
             mockVortexExtensionContext,
             { log: getMockVortexLog() },
             internalPipelineInstaller,
+            defaultOrOverriddenFeatures,
           );
 
           const installResult = await wrappedInstall(

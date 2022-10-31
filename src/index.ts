@@ -83,7 +83,7 @@ const toggleAutoConvert = (api: vortexApi.types.IExtensionApi, _gameMode: string
 const main = (vortex: VortexExtensionContext): boolean => {
 
   // Maybe we could grab the API earlier, but...
-  const features = FeaturesFromSettings(vortex.api);
+  const features = FeaturesFromSettings(vortexApi.util.getSafe, vortex.api);
 
   // REDmodding conditional stuff
   //
