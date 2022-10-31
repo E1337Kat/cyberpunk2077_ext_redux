@@ -26,7 +26,7 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const allFilesInFolder = (folder: string, files: string[]) => {
   const fileTree = new KeyTree({ separator: path.sep });
@@ -128,7 +128,7 @@ export const installCetMod: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const files =
     sourcePaths(fileTree);

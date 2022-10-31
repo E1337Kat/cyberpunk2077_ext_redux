@@ -52,7 +52,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const matchPresetExt = (filePath: string): boolean =>
   path.extname(filePath) === PRESET_MOD_EXTENSION;
@@ -228,7 +228,7 @@ export const installPresetMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const selectedInstructions = await useFirstMatchingLayoutForInstructionsAsync(
     api,

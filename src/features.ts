@@ -18,6 +18,9 @@ const boolAsFeature = (currentState: boolean): FeatureState =>
 export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
   featureState === FeatureState.Enabled;
 
+export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
+  featureState === ((): FeatureState => FeatureState.Enabled);
+
 export type Dynamic<T> = () => T;
 
 //

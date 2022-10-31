@@ -20,7 +20,7 @@ import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   TWEAK_XL_CORE_FILES,
 } from "./installers.layouts";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const coreTweakXLInstructions: VortexInstruction[] = [
   {
@@ -56,7 +56,7 @@ export const installCoreTweakXL: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ) => {
   if (
     fileCount(fileTree) !== TWEAK_XL_CORE_FILES.length ||
