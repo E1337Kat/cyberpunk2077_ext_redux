@@ -42,19 +42,6 @@ export type VortexViewPropsActionsFunc = (props: IREDmodProps) => void;
 export type VortexToDoPropsConditionFunc = (props: IREDmodProps) => boolean;
 export type VortexToDoValuesFunc = string | ((t: Vortex.TFunction, props: IREDmodProps) => JSX.Element);
 
-// export type VortexToDoFunc =
-//   (
-//     id: string,
-//     type: Vortex.ToDoType,
-//     props: VortexViewPropsFunc,
-//     icon: string,
-//     text: string,
-//     action: VortexViewPropsActionsFunc,
-//     condition: VortexViewPropsConditionFunc,
-//     value: VortexViewFunc,
-//     priority: number
-//   ) => void;
-
 export type VortexActionRegisterFunc =
   (
     group: string,
@@ -95,7 +82,6 @@ export type VortexLogFunc = (
   metadata?: unknown,
 ) => void;
 
-export type VortexInitContext = Vortex.IExtensionContext;
 export type VortexExtensionApi = Vortex.IExtensionApi;
 export interface VortexApi extends VortexExtensionApi {
   log: VortexLogFunc;
