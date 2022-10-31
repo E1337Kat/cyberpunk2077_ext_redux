@@ -1,4 +1,4 @@
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 import {
   FileTree,
   pathInTree,
@@ -48,7 +48,7 @@ export const installCoreAmm: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ) => {
   const allCoreAmmFiles = findAllCoreAmmFiles(fileTree);
 

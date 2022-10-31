@@ -17,7 +17,7 @@ import {
   fromNullable,
   getOrElse as getOrElseO,
 } from "fp-ts/lib/Option";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 import {
   FileTree,
   Path,
@@ -239,7 +239,7 @@ export type V2077TestFunc = (
   vortexApi: VortexApi,
   fileTree: FileTree,
   modInfo?: ModInfo,
-  features?: StaticFeatures,
+  features?: FeatureSet,
 ) => Promise<VortexTestResult>;
 
 // Vortex.InstallFunc
@@ -247,7 +247,7 @@ export type V2077InstallFunc = (
   vortexApi: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: StaticFeatures,
+  features: FeatureSet,
 ) => Promise<VortexInstallResult>;
 
 //

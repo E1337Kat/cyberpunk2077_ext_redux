@@ -30,7 +30,7 @@ import {
   VortexInstallResult,
   VortexTestResult,
 } from "./vortex-wrapper";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 export const findFallbackFiles = (fileTree: FileTree): string[] =>
   filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
@@ -123,7 +123,7 @@ export const installFallback: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const installDecision = await promptUserToInstallOrCancelOnReachingFallback(
     api,

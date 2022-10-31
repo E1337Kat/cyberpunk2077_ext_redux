@@ -7,9 +7,8 @@ import {
 // import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
 import { setRedmodForceDeploy } from "./actions";
 import {
-  CurrentFeatureSet,
   IsFeatureEnabled,
-  StaticFeatures,
+  FeatureSet,
 } from "./features";
 import {
   GOGAPP_ID,
@@ -91,7 +90,7 @@ export const redModTool = (state: VortexState, gameId: string): VortexToolDiscov
 
 const autoDeployAction: V2077ActionFunc = (
   vortexApi: VortexApi,
-  _features: StaticFeatures,
+  _features: FeatureSet,
   _instanceIds: string[],
 ): VortexActionResult => {
   const state = vortexApi.store.getState();
@@ -103,6 +102,7 @@ export const wrapVortexActionFunc =
   (
     vortex: VortexExtensionContext,
     vortexApiThing,
+    features: FeatureSet,
     actions: V2077SettingsView,
   ): VortexActionFunc =>
     //
@@ -113,14 +113,14 @@ export const wrapVortexActionFunc =
 
       return actions.actionOrCondition(
         vortexApi,
-        CurrentFeatureSet,
+        features,
         instanceIds,
       );
     };
 
 const autoDeployActionCondition: V2077ActionConditionFunc = (
   vortexApi: VortexApi,
-  features: StaticFeatures,
+  features: FeatureSet,
   _instanceIds: string[],
 ): VortexActionConditionResult => {
   if (!IsFeatureEnabled(features.REDmodding)) {
@@ -136,7 +136,8 @@ export const wrapVortexActionConditionFunc =
   (
     vortex: VortexExtensionContext,
     vortexApiThing,
-    actions: V2077SettingsView,
+    features: FeatureSet,
+    actionCondition: V2077SettingsView,
   ): VortexActionConditionFunc =>
     //
     // This is the function that Vortex calls.
@@ -144,9 +145,9 @@ export const wrapVortexActionConditionFunc =
       //
       const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-      return actions.condition(
+      return actionCondition.condition(
         vortexApi,
-        CurrentFeatureSet,
+        features,
         instanceIds,
       );
     };
