@@ -52,7 +52,7 @@ const Settings = (props: IProps): JSX.Element => {
 };
 
 const mapStateToProps = (state: any): IConnectedProps => ({
-  archiveAutoConvert: state.settings.v2077.redmod.archiveAutoConvert,
+  archiveAutoConvert: state.settings.v2077.v2077_feature_redmod_autoconvert_archives,
 });
 
 const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>)
