@@ -96,7 +96,8 @@ export type VortexLogFunc = (
 ) => void;
 
 export type VortexInitContext = Vortex.IExtensionContext;
-export interface VortexApi extends Vortex.IExtensionApi {
+export type VortexExtensionApi = Vortex.IExtensionApi;
+export interface VortexApi extends VortexExtensionApi {
   log: VortexLogFunc;
 }
 

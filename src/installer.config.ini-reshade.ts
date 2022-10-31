@@ -24,7 +24,7 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const testForReshadeFile = (
   log: VortexLogFunc,
@@ -108,7 +108,7 @@ export const installIniMod: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   // This installer gets called for both reshade and "normal" ini mods
   const files =

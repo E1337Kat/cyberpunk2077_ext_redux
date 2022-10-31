@@ -1,8 +1,6 @@
 import path from "path";
 import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
-import settings from './views/settings'; // eslint-disable-line import/extensions
-import reducer from './reducers';
 
 // Our stuff
 import {
@@ -12,6 +10,7 @@ import {
   isSupported,
   STEAMAPP_ID,
   V2077_DIR,
+  VORTEX_STORE_PATHS,
 } from "./index.metadata";
 import {
   wrapTestSupported,
@@ -33,9 +32,8 @@ import {
   wrapVortexActionFunc,
 } from './redmodding';
 import {
-  CurrentFeatureSet,
-  Feature,
-  FeatureEnabled,
+  FeaturesFromSettings,
+  IsFeatureEnabled,
 } from "./features";
 import {
   wrapValidate,
@@ -49,6 +47,8 @@ import {
 } from "./installers.utils";
 import { setArchiveAutoConvert } from "./actions";
 import { informUserZeroNineZeroChanges } from "./ui.dialogs";
+import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
+import settingsReducer from './reducers';
 // import {
 //   setArchiveAutoConvert,
 //   setAutoRedDeploy,
@@ -66,70 +66,13 @@ const requiresGoGLauncher = (): Promise<{ launcher: string; addInfo?: string; }>
     (gog ? { launcher: `gog`, addInfo: GOGAPP_ID } : undefined));
 
 
-//
-// REDmodding conditional stuff
-//
-
-
-const MaybeREDmodTools =
-  FeatureEnabled(CurrentFeatureSet.REDmodding)
-    ? REDmoddingTools
-    : [];
-
-const moddingTools = [
-  ...MaybeREDmodTools,
-  ...[
-    {
-      id: `CyberCat`,
-      name: `CyberCAT Save Editor`,
-      shortName: `CyberCAT`,
-      logo: `SaveEditor.png`,
-      executable: (): string => path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-      requiredFiles: [
-        path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-        path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
-      ],
-      defaultPrimary: false,
-      shell: false,
-      relative: true,
-    },
-  ],
-];
-
-const setupFunctionToRunAtExtensionInit = (vortex: VortexExtensionContext) =>
-  async (discovery: VortexDiscoveryResult): Promise<void> => {
-    try {
-      await vortexApi.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
-      vortexApi.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
-    } catch (err) {
-    // This might be an actual problem but let's not prevent proceeding..
-      vortexApi.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
-    }
-
-    if (CurrentFeatureSet.REDmodding === Feature.Enabled) {
-      return wrappedPrepareForModdingWithREDmodding(vortex, vortexApi, discovery);
-    }
-
-    return vortexApi.fs.readdirAsync(path.join(discovery.path));
-  };
-
-
-const defaultGameLaunchParameters =
-  FeatureEnabled(CurrentFeatureSet.REDmodding)
-    ? REDlauncher.parameters
-    : [];
-
 type TranslationFunction = typeof I18next.t;
 
 interface IREDmodProps {
   gameMode: string;
-  redmodEnabled: boolean;
-  autoDeployEnabled: boolean;
   archiveAutoConvertEnabled: boolean;
 }
 
-const redModEnable = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `redModEnable`], false);
-const autoRedDeploy = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `autoRedDeploy`], false);
 const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false);
 
 
@@ -152,10 +95,67 @@ const toggleAutoConvert = (api: vortexApi.types.IExtensionApi, _gameMode: string
 
 // This is the main function Vortex will run when detecting the game extension.
 const main = (vortex: VortexExtensionContext): boolean => {
+
+  // Maybe we could grab the API earlier, but...
+  const features = FeaturesFromSettings(vortex.api);
+
+  // REDmodding conditional stuff
+  //
+
+  const MaybeREDmodTools =
+    IsFeatureEnabled(features.REDmodding)
+      ? REDmoddingTools
+      : [];
+
+  const moddingTools = [
+    ...MaybeREDmodTools,
+    ...[
+      {
+        id: `CyberCat`,
+        name: `CyberCAT Save Editor`,
+        shortName: `CyberCAT`,
+        logo: `SaveEditor.png`,
+        executable: (): string => path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
+        requiredFiles: [
+          path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
+          path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
+        ],
+        defaultPrimary: false,
+        shell: false,
+        relative: true,
+      },
+    ],
+  ];
+
+  const setupFunctionToRunAtExtensionInit =
+    async (discovery: VortexDiscoveryResult): Promise<void> => {
+      try {
+        await vortexApi.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
+        vortexApi.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
+      } catch (err) {
+        // This might be an actual problem but let's not prevent proceeding..
+        vortexApi.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
+      }
+
+      if (IsFeatureEnabled(features.REDmodding)) {
+        return wrappedPrepareForModdingWithREDmodding(vortex, vortexApi, discovery);
+      }
+
+      return vortexApi.fs.readdirAsync(path.join(discovery.path));
+    };
+
+
+  const defaultGameLaunchParameters =
+  IsFeatureEnabled(features.REDmodding)
+    ? REDlauncher.parameters
+    : [];
+
+  // Ok, now we have everything in hand to register our stuff with Vortex
+
   vortex.registerGame({
     id: GAME_ID,
     name: `Cyberpunk 2077`,
-    setup: setupFunctionToRunAtExtensionInit(vortex),
+    setup: setupFunctionToRunAtExtensionInit,
     mergeMods: true,
     queryPath: findGame,
     queryModPath: () => ``,
@@ -186,24 +186,25 @@ const main = (vortex: VortexExtensionContext): boolean => {
       vortex,
       vortexApi,
       internalPipelineInstaller,
-      // CurrentFeatureSet,
+      features,
     ),
   );
 
-  if (CurrentFeatureSet.REDmodLoadOrder === Feature.Enabled) {
-    vortex.registerLoadOrder({
-      gameId: GAME_ID,
+  if (IsFeatureEnabled(features.REDmodding)) {
+    if (IsFeatureEnabled(features.REDmodLoadOrder)) {
+      vortex.registerLoadOrder({
+        gameId: GAME_ID,
 
-      // This needs to be actually implemented, it doesnt't do
-      // anything on its own, so leave it out now to avoid confusion
-      //
-      // toggleableEntries: true,
+        // This needs to be actually implemented, it doesnt't do
+        // anything on its own, so leave it out now to avoid confusion
+        //
+        // toggleableEntries: true,
 
-      // Can add instructions to the right-hand panel. Might be useful,
-      // but on the whole I think it's probably better to reduce the
-      // amount of space the panel takes instead.
-      //
-      usageInstructions: heredoc(bbcodeBasics(`
+        // Can add instructions to the right-hand panel. Might be useful,
+        // but on the whole I think it's probably better to reduce the
+        // amount of space the panel takes instead.
+        //
+        usageInstructions: heredoc(bbcodeBasics(`
         You don't have to order everything. It's best to only order mods that
         require it, or that you otherwise know to conflict with each other.
 
@@ -229,15 +230,70 @@ const main = (vortex: VortexExtensionContext): boolean => {
         in Vortex.
       `)),
 
-      validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
-      deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
-      serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
-    });
+        validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
+        deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
+        serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
+      });
+
+    }
+
+    vortex.registerReducer(VORTEX_STORE_PATHS.settings, settingsReducer);
+
+    vortex.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
+      const state = vortex.api.store.getState();
+      const gameMode = vortexApi.selectors.activeGameId(state);
+      return gameMode === GAME_ID;
+    }, 51);
+
+    // Auto convert TODO
+    vortex.registerToDo(
+      `redmod-autoconvert`,
+      `more`,
+      undefined,
+      `info`,
+      `Click to see 0.9.0 Updates`,
+      (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortex.api, log: vortexApi.log }),
+      (_: IREDmodProps) => IsFeatureEnabled(features.REDmodding),
+      undefined,
+      undefined,
+    );
+
+    // Auto convert TODO
+    vortex.registerToDo(
+      `v9-redmod-information`,
+      `settings`,
+      (state: VortexState): IREDmodProps => {
+        const gameMode = vortexApi.selectors.activeGameId(state);
+        return {
+          gameMode,
+          archiveAutoConvertEnabled: archiveAutoConvert(state),
+        };
+      },
+      `download`,
+      `REDmod Autoconvert`,
+      (props: IREDmodProps) => {
+        toggleAutoConvert(vortex.api, props.gameMode);
+        vortex.api.events.emit(`analytics-track-click-event`, `Dashboard`, `Archive Autoconvert to REDmod ${props.archiveAutoConvertEnabled ? `ON` : `OFF`}`);
+      },
+      (props: IREDmodProps) => isSupported(props.gameMode),
+      (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
+      undefined,
+    );
+
+    vortex.registerAction(
+      `mod-icons`,
+      300,
+      `settings`,
+      {},
+      `Configure REDmod`,
+      wrapVortexActionFunc(vortex, vortexApi, internalSettingsViewStuff),
+      wrapVortexActionConditionFunc(vortex, vortexApi, internalSettingsViewStuff),
+    );
 
     // This makes Vortex unable to deploy anything because the type didn't exist previously :D
     //
     // https://github.com/Nexus-Mods/Vortex/issues/13376
-    /*
+  /*
     vortex.registerModType(
       ModType.REDmod,
       100,
@@ -254,15 +310,7 @@ const main = (vortex: VortexExtensionContext): boolean => {
       },
     );
     */
-  }
-
-  vortex.registerReducer([`settings`, `v2077`, `redmod`], reducer);
-
-  vortex.registerSettings(`RedMods`, settings, undefined, () => {
-    const state = vortex.api.store.getState();
-    const gameMode = vortexApi.selectors.activeGameId(state);
-    return gameMode === GAME_ID;
-  }, 51);
+  } // if (IsFeatureEnabled(features.REDmodding))
 
   // // REDmod TODO
   // vortex.registerToDo(
@@ -311,53 +359,6 @@ const main = (vortex: VortexExtensionContext): boolean => {
   //   (t: TranslationFunction, props: IREDmodProps) => (props.autoDeployEnabled ? t(`Yes`) : t(`No`)),
   //   undefined,
   // );
-
-  // Auto convert TODO
-  vortex.registerToDo(
-    `redmod-autoconvert`,
-    `more`,
-    undefined,
-    `info`,
-    `Click to see 0.9.0 Updates`,
-    (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortex.api, log: vortexApi.log }),
-    (_: IREDmodProps) => CurrentFeatureSet.REDmodLoadOrder === Feature.Enabled,
-    undefined,
-    undefined,
-  );
-
-  // Auto convert TODO
-  vortex.registerToDo(
-    `v9-redmod-information`,
-    `settings`,
-    (state: VortexState): IREDmodProps => {
-      const gameMode = vortexApi.selectors.activeGameId(state);
-      return {
-        gameMode,
-        redmodEnabled: redModEnable(state),
-        autoDeployEnabled: autoRedDeploy(state),
-        archiveAutoConvertEnabled: archiveAutoConvert(state),
-      };
-    },
-    `download`,
-    `REDmod Autoconvert`,
-    (props: IREDmodProps) => {
-      toggleAutoConvert(vortex.api, props.gameMode);
-      vortex.api.events.emit(`analytics-track-click-event`, `Dashboard`, `Archive Autoconvert to REDmod ${props.archiveAutoConvertEnabled ? `ON` : `OFF`}`);
-    },
-    (props: IREDmodProps) => isSupported(props.gameMode),
-    (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
-    undefined,
-  );
-
-  vortex.registerAction(
-    `mod-icons`,
-    300,
-    `settings`,
-    {},
-    `Configure REDmod`,
-    wrapVortexActionFunc(vortex, vortexApi, internalSettingsViewStuff),
-    wrapVortexActionConditionFunc(vortex, vortexApi, internalSettingsViewStuff),
-  );
 
   // vortex.registerTest(
   //   `redmod-integration`,

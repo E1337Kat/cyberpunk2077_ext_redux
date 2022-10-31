@@ -1,5 +1,5 @@
 import path from "path";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 import {
   FileTree,
   dirWithSomeIn,
@@ -169,7 +169,7 @@ export const installRedscriptMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const selectedInstructions = useFirstMatchingLayoutForInstructions(
     api,

@@ -27,7 +27,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const matchTweakYaml = (filePath: string): boolean =>
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS.includes(path.extname(filePath));
@@ -70,7 +70,7 @@ export const installTweakXLMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   // This is the only thing supported, so let's hold modders to it
   const selectedInstructions = tweakXLCanonLayout(api, undefined, fileTree);
