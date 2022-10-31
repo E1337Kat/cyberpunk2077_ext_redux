@@ -1,4 +1,3 @@
-import { util } from "vortex-api";
 import { VORTEX_STORE_PATHS } from "./index.metadata";
 import { VortexExtensionApi } from "./vortex-wrapper";
 
@@ -19,7 +18,7 @@ export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
   featureState === FeatureState.Enabled;
 
 export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
-  featureState === ((): FeatureState => FeatureState.Enabled);
+  featureState() === FeatureState.Enabled;
 
 export type Dynamic<T> = () => T;
 
@@ -66,13 +65,13 @@ export const BaselineFeatureSetForTests: FeatureSet = {
   REDmodAutoconvertArchives: () => FeatureState.Disabled,
 };
 
-export const FeaturesFromSettings = ({ store }: VortexExtensionApi): FeatureSet => ({
+export const FeaturesFromSettings = (getSafeFunc, { store }: VortexExtensionApi): FeatureSet => ({
   fromVersion: `0.9.0`,
   REDmodding: FeatureState.Enabled,
   REDmodLoadOrder: FeatureState.Enabled,
   REDmodAutoconvertArchives: () =>
     boolAsFeature(
-      util.getSafe(store?.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
+      getSafeFunc(store?.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
     ),
 });
 

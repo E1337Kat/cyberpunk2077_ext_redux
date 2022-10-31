@@ -1,8 +1,8 @@
 import path from "path";
 import {
-  Features,
-  CurrentFeatureSet,
-  Feature,
+  FeatureState,
+  FeatureSet,
+  BaselineFeatureSetForTests,
 } from "../../src/features";
 import { normalizeDir } from "../../src/filetree";
 import {
@@ -51,9 +51,9 @@ import {
 } from "./utils.helper";
 
 
-const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: Features = {
-  ...CurrentFeatureSet,
-  REDmodAutoconvertArchives: Feature.Enabled,
+const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: FeatureSet = {
+  ...BaselineFeatureSetForTests,
+  REDmodAutoconvertArchives: () => FeatureState.Enabled,
 };
 
 const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
