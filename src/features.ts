@@ -1,44 +1,74 @@
-import {
-  types,
-  util,
-} from "vortex-api";
-import { VortexApi } from "./vortex-wrapper";
+import { util } from "vortex-api";
+import { VORTEX_STORE_PATHS } from "./index.metadata";
+import { VortexExtensionApi } from "./vortex-wrapper";
 
-export const enum Feature {
+//
+// Features are simple things, but not as simple as booleans
+//
+
+export const enum FeatureState {
   Enabled = `This feature is enabled`,
   Disabled = `This feature is disabled`,
   Deprecated = `This feature should be removed`,
 }
 
-export interface Features {
-  REDmodding: Feature;
-  REDmodLoadOrder: Feature;
-  REDmodAutoconvertArchives: Feature;
+const boolAsFeature = (currentState: boolean): FeatureState =>
+  (currentState ? FeatureState.Enabled : FeatureState.Disabled);
+
+export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
+  featureState === FeatureState.Enabled;
+
+export type Dynamic<T> = () => T;
+
+//
+// Some features can be changed, some can't
+//
+
+export const enum StaticFeature {
+  REDmodding = `v2077-feature-redmodding`,
+  REDmodLoadOrder = `v2077-feature-redmod-load-order`,
 }
 
-export const CurrentFeatureSet: Features = {
-  REDmodding: Feature.Enabled,
-  REDmodLoadOrder: Feature.Enabled,
-  REDmodAutoconvertArchives: Feature.Enabled,
+export const enum DynamicFeature {
+  REDmodAutoconvertArchives = `v2077-feature-redmod-autoconvert-archives`,
+}
+
+export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, string[]>;
+
+
+// FeatureSets are what user code uses...
+
+export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
+
+export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
+
+type AllFeaturesSet = StaticFeatureSet & DynamicFeatureSet;
+
+export interface FeatureSet extends AllFeaturesSet {
+  fromVersion: string;
+}
+
+
+// ...Through these records
+
+export const FeatureSettingsPath: FeatureSettingsPathInVortex = {
+  REDmodAutoconvertArchives: [...VORTEX_STORE_PATHS.settings, DynamicFeature.REDmodAutoconvertArchives],
 };
 
-export const DefaultFeatureSetForTesting: Features = {
-  REDmodding: Feature.Disabled,
-  REDmodLoadOrder: Feature.Disabled,
-  REDmodAutoconvertArchives: Feature.Disabled,
+export const BaselineFeatureSetForTests: FeatureSet = {
+  fromVersion: `0.9.0`,
+  REDmodding: FeatureState.Disabled,
+  REDmodLoadOrder: FeatureState.Disabled,
+  REDmodAutoconvertArchives: () => FeatureState.Disabled,
 };
 
-export const FeatureEnabled = (feature: Feature): boolean =>
-  feature === Feature.Enabled;
+export const FeaturesFromSettings = ({ store }: VortexExtensionApi): FeatureSet => ({
+  fromVersion: `0.9.0`,
+  REDmodding: FeatureState.Enabled,
+  REDmodLoadOrder: FeatureState.Enabled,
+  REDmodAutoconvertArchives: () =>
+    boolAsFeature(
+      util.getSafe(store?.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
+    ),
+});
 
-const boolToEnabled = (currentState: boolean): Feature => (currentState ? Feature.Enabled : Feature.Disabled);
-
-// @TODO: build features from settings
-export const FeaturesFromSettings = (vortexApi: VortexApi): Features => {
-  const state: types.IState = vortexApi.store.getState();
-  return {
-    REDmodding: CurrentFeatureSet.REDmodding,
-    REDmodLoadOrder: CurrentFeatureSet.REDmodLoadOrder,
-    REDmodAutoconvertArchives: boolToEnabled(util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false)),
-  };
-};

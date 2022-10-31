@@ -20,7 +20,7 @@ import {
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
   INPUT_LOADER_CORE_FILES,
 } from "./installers.layouts";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const CoreInputLoaderInstructions: VortexInstruction[] = [
   {
@@ -61,7 +61,7 @@ export const installCoreInputLoader: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ) => {
   if (
     fileCount(fileTree) !== INPUT_LOADER_CORE_FILES.length ||

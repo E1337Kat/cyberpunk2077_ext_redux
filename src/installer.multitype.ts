@@ -51,7 +51,7 @@ import {
   configJsonAllowedInMultiInstructions,
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 import {
   detectAllowedREDmodLayoutsForMultitype,
   redmodAllowedInstructionsForMultitype,
@@ -125,7 +125,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.MultiType;
 

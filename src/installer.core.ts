@@ -14,7 +14,7 @@ import {
   V2077InstallFunc,
   ModInfo,
 } from "./installers.types";
-import { Features } from "./features";
+import { StaticFeatures } from "./features";
 
 const path = win32;
 
@@ -40,7 +40,7 @@ export const installCetCore: V2077InstallFunc = (
   _api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: Features,
+  _features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const files =
     sourcePaths(fileTree);

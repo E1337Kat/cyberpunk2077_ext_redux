@@ -143,10 +143,7 @@ import {
   installCoreRedscript,
   testForCoreRedscript,
 } from "./installer.core.redscript";
-import {
-  Features,
-  FeaturesFromSettings,
-} from "./features";
+import { StaticFeatures } from "./features";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -536,7 +533,7 @@ export const wrapInstall =
     vortex: VortexExtensionContext,
     vortexApiThing,
     installer: Installer,
-    // features: Features,
+    features: StaticFeatures,
   ): VortexInstallFunc =>
     //
     // This is the function that Vortex calls
@@ -551,8 +548,6 @@ export const wrapInstall =
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
       vortexApi.log(`debug`, `Input files:`, filesRelativePaths);
-
-      const featuresfromSettings = FeaturesFromSettings(vortexApi);
 
       const treeForInstallers =
         unwrapTreeIfNecessary(vortexApi, fileTreeFromPaths(filesRelativePaths));
@@ -586,7 +581,7 @@ export const wrapInstall =
         vortexApi,
         treeForInstallers.fileTree,
         modInfo,
-        featuresfromSettings,
+        features,
       );
 
       const allSourceFilesAccountedFor =
@@ -635,7 +630,7 @@ export const wrapInstall =
               vortexApi,
               treeForInstallers.fileTree,
               modInfo,
-              featuresfromSettings,
+              features,
             )
           ).instructions;
 
@@ -680,7 +675,7 @@ const installUsingPipelineOfInstallers: V2077InstallFunc = async (
   vortexApi: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  features: Features,
+  features: StaticFeatures,
 ): Promise<VortexInstallResult> => {
   const me = InstallerType.Pipeline;
 
