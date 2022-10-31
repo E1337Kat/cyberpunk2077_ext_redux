@@ -231,9 +231,9 @@ const main = (vortex: VortexExtensionContext): boolean => {
       return gameMode === GAME_ID;
     }, 51);
 
-    // Auto convert TODO
+    // 0.9.0 information TODO
     vortex.registerToDo(
-      `redmod-autoconvert`,
+      `v9-redmod-information`,
       `more`,
       undefined,
       `info`,
@@ -246,7 +246,7 @@ const main = (vortex: VortexExtensionContext): boolean => {
 
     // Auto convert TODO
     vortex.registerToDo(
-      `v9-redmod-information`,
+      `redmod-autoconvert`,
       `settings`,
       (state: VortexState): IREDmodProps => {
         const gameMode = vortexApi.selectors.activeGameId(state);
