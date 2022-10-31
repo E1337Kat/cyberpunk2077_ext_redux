@@ -49,11 +49,6 @@ import { setArchiveAutoConvert } from "./actions";
 import { informUserZeroNineZeroChanges } from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
 import settingsReducer from './reducers';
-// import {
-//   setArchiveAutoConvert,
-//   setAutoRedDeploy,
-//   setRedModEnable,
-// } from "./actions";
 
 
 export const findGame = (): string =>
@@ -75,15 +70,6 @@ interface IREDmodProps {
 
 const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `redmod`, `archiveAutoConvert`], false);
 
-
-// const toggleREDmodIntegration = (api: vortexApi.types.IExtensionApi, _gameMode: string) => {
-//   const state: vortexApi.types.IState = api.store.getState();
-//   api.store.dispatch(setRedModEnable(!redModEnable(state)));
-// };
-// const toggleAutoDeploy = (api: vortexApi.types.IExtensionApi, _gameMode: string) => {
-//   const state: vortexApi.types.IState = api.store.getState();
-//   api.store.dispatch(setAutoRedDeploy(!autoRedDeploy(state)));
-// };
 const toggleAutoConvert = (api: vortexApi.types.IExtensionApi, _gameMode: string): void => {
   const state: vortexApi.types.IState = api.store.getState();
   api.store.dispatch(setArchiveAutoConvert(!archiveAutoConvert(state)));
@@ -311,60 +297,6 @@ const main = (vortex: VortexExtensionContext): boolean => {
     );
     */
   } // if (IsFeatureEnabled(features.REDmodding))
-
-  // // REDmod TODO
-  // vortex.registerToDo(
-  //   `redmod-enableness`,
-  //   `settings`,
-  //   (state: VortexState): IREDmodProps => {
-  //     const gameMode = vortexApi.selectors.activeGameId(state);
-  //     return {
-  //       gameMode,
-  //       redmodEnabled: redModEnable(state),
-  //       autoDeployEnabled: autoRedDeploy(state),
-  //       archiveAutoConvertEnabled: archiveAutoConvert(state),
-  //     };
-  //   },
-  //   `download`,
-  //   `REDmod Integration`,
-  //   (props: IREDmodProps) => {
-  //     toggleREDmodIntegration(vortex.api, props.gameMode);
-  //     vortex.api.events.emit(`analytics-track-click-event`, `Dashboard`, `REDmodding ${props.redmodEnabled ? `ON` : `OFF`}`);
-  //   },
-  //   (props: IREDmodProps) => isSupported(props.gameMode),
-  //   (t: TranslationFunction, props: IREDmodProps) => (props.redmodEnabled ? t(`Yes`) : t(`No`)),
-  //   undefined,
-  // );
-
-  // // Auto deploy TODO
-  // vortex.registerToDo(
-  //   `redmod-auto-deploy`,
-  //   `settings`,
-  //   (state: VortexState): IREDmodProps => {
-  //     const gameMode = vortexApi.selectors.activeGameId(state);
-  //     return {
-  //       gameMode,
-  //       redmodEnabled: redModEnable(state),
-  //       autoDeployEnabled: autoRedDeploy(state),
-  //       archiveAutoConvertEnabled: archiveAutoConvert(state),
-  //     };
-  //   },
-  //   `download`,
-  //   `REDmod AutoDeploy`,
-  //   (props: IREDmodProps) => {
-  //     toggleAutoDeploy(vortex.api, props.gameMode);
-  //     vortex.api.events.emit(`analytics-track-click-event`, `Dashboard`, `REDmod ${props.autoDeployEnabled ? `ON` : `OFF`}`);
-  //   },
-  //   (props: IREDmodProps) => isSupported(props.gameMode),
-  //   (t: TranslationFunction, props: IREDmodProps) => (props.autoDeployEnabled ? t(`Yes`) : t(`No`)),
-  //   undefined,
-  // );
-
-  // vortex.registerTest(
-  //   `redmod-integration`,
-  //   `gamemode-activated`,
-  //   wrappedCheckFunc(vortex, vortexApi, internalSettingsViewStuff),
-  // );
 
   // This is additionally run when the extension is activated,
   // meant especially to set up state, listeners, reducers, etc.
