@@ -80,8 +80,6 @@
         "io-ts": "^2.2.18",
         "key-tree": "^1.0.3",
         "monocle-ts": "^2.3.13",
-        "spectacles-ts": "^1.0.7",
-        "turbowalk": "github:Nexus-Mods/node-turbowalk",
-        "winapi-bindings": "github:Nexus-Mods/node-winapi-bindings"
+        "spectacles-ts": "^1.0.7"
     }
 }
