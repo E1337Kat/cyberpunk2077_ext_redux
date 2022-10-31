@@ -49,7 +49,7 @@ export type VortexActionRegisterFunc =
     iconOrComponent: string | ComponentType<any>,
     options: Vortex.IActionOptions,
     titleOrProps?: string | Vortex.PropsCallback,
-    actionOrCondition?: VortexActionConditionFunc,
+    actionOrCondition?: VortexActionFunc,
     condition?: VortexActionConditionFunc
   ) => void;
 export type VortexActionFunc = (instanceIds?: string[]) => boolean | void;

@@ -1,5 +1,5 @@
 
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 import {
   IREDmodProps,
   VortexActionConditionResult,
@@ -16,21 +16,21 @@ export enum ActionType {
 // Vortex ActionFunc
 export type V2077ActionFunc = (
   vortexApi: VortexApi,
-  features?: StaticFeatures,
+  features?: FeatureSet,
   instanceIds?: string[],
 ) => VortexActionResult;
 
 // Vortex ActionConditionFunc
 export type V2077ActionConditionFunc = (
   vortexApi: VortexApi,
-  features: StaticFeatures,
+  features: FeatureSet,
   instanceIds?: string[],
 ) => VortexActionConditionResult;
 
 // Vortex TestFunc
 export type V2077CheckFunc = (
   vortexApi: VortexApi,
-  features: StaticFeatures,
+  features: FeatureSet,
 ) => Promise<VortexCheckResult>;
 
 // Vortex TestFunc

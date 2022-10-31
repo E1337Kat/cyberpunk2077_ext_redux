@@ -272,8 +272,8 @@ const main = (vortex: VortexExtensionContext): boolean => {
       `settings`,
       {},
       `Configure REDmod`,
-      wrapVortexActionFunc(vortex, vortexApi, internalSettingsViewStuff),
-      wrapVortexActionConditionFunc(vortex, vortexApi, internalSettingsViewStuff),
+      wrapVortexActionFunc(vortex, vortexApi, features, internalSettingsViewStuff),
+      wrapVortexActionConditionFunc(vortex, vortexApi, features, internalSettingsViewStuff),
     );
 
     // This makes Vortex unable to deploy anything because the type didn't exist previously :D

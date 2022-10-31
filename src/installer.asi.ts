@@ -1,5 +1,5 @@
 import path from "path";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 import {
   FileTree,
   filesIn,
@@ -86,7 +86,7 @@ export const installAsiMod: V2077InstallFunc = (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const files =
     sourcePaths(fileTree);

@@ -17,7 +17,7 @@ import {
 } from "./installers.types";
 import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
-import { StaticFeatures } from "./features";
+import { FeatureSet } from "./features";
 
 const coreArchiveXLInstructions: VortexInstruction[] = [
   {
@@ -44,7 +44,7 @@ export const installCoreArchiveXL: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
-  _features: StaticFeatures,
+  _features: FeatureSet,
 ) => {
   if (
     fileCount(fileTree) !== ARCHIVE_XL_CORE_FILES.length ||
