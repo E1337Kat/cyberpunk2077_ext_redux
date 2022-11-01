@@ -41,7 +41,7 @@ import {
   normalizeDir,
   safeNormalizePath,
 } from "../../src/filetree";
-import { S } from "../../src/installers.utils";
+import { S } from "../../src/util.functions";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override

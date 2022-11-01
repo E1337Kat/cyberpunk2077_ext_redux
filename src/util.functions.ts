@@ -1,6 +1,23 @@
 import { flow } from "fp-ts/lib/function";
 import { replace as replaceIn } from "fp-ts/lib/string";
 
+//
+// Utility stuff. Judge /very/ carefully before adding anything here.
+// This should be a small collection and very broadly usable.
+//
+
+//
+// Types
+//
+
+export type Dynamic<T> = () => T;
+
+
+//
+// Functions
+//
+
+
 export const identity = <T>(t: T): T => t;
 export const trueish = <T>(t: T): boolean => !!t;
 export const negate = (b: boolean): boolean => !b;

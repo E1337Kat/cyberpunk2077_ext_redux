@@ -15,7 +15,7 @@ import {
   decodeWith,
   REDmodInfoForVortex,
 } from "./installers.types";
-import { jsonpp } from "./installers.utils";
+import { jsonpp } from "./util.functions";
 import {
   VortexLoadOrderEntry,
   VortexModWithEnabledStatus,

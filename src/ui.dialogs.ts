@@ -15,7 +15,7 @@ import {
   InstallDecision,
   InstallerType,
 } from "./installers.types";
-import { heredoc } from "./installers.utils";
+import { heredoc } from "./util.functions";
 import {
   VortexApi,
   VortexDialogResult,

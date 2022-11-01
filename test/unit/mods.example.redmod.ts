@@ -15,7 +15,7 @@ import {
   REDmodInfo,
   REDmodInfoForVortex,
 } from "../../src/installers.types";
-import { jsonpp } from "../../src/installers.utils";
+import { jsonpp } from "../../src/util.functions";
 import {
   ExampleSucceedingMod,
   ExampleFailingMod,

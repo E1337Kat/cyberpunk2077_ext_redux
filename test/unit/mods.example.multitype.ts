@@ -47,7 +47,7 @@ import {
   addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
 import { normalizeDir } from "../../src/filetree";
-import { jsonpp } from "../../src/installers.utils";
+import { jsonpp } from "../../src/util.functions";
 
 
 const myREDmodInfo: REDmodInfo = {

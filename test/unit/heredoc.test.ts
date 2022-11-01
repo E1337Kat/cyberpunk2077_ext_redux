@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/lib/function";
 import {
   bbcodeBasics,
   heredoc,
-} from "../../src/installers.utils";
+} from "../../src/util.functions";
 
 describe(`heredoc formatting`, () => {
   test(`converts whitespace-preserving | to single space`, () => {
