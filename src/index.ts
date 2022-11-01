@@ -1,6 +1,7 @@
 import path from "path";
-import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import * as vortexLib from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
+
 
 // Our stuff
 import {
@@ -12,6 +13,11 @@ import {
   V2077_DIR,
   VORTEX_STORE_PATHS,
 } from "./index.metadata";
+import {
+  StaticFeaturesForStartup,
+  combineWithDynamicSettings,
+  IsFeatureEnabled,
+} from "./features";
 import {
   wrapTestSupported,
   wrapInstall,
@@ -32,10 +38,6 @@ import {
   wrapVortexActionFunc,
 } from './redmodding';
 import {
-  FeaturesFromSettings,
-  IsFeatureEnabled,
-} from "./features";
-import {
   wrapValidate,
   internalLoadOrderer,
   wrapDeserialize,
@@ -52,12 +54,12 @@ import settingsReducer from './reducers';
 
 
 export const findGame = (): string =>
-  vortexApi.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+  vortexLib.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
     (game: VortexGameStoreEntry) => game.gamePath,
   );
 
 const requiresGoGLauncher = (): Promise<{ launcher: string; addInfo?: string; }> =>
-  vortexApi.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
+  vortexLib.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
     (gog ? { launcher: `gog`, addInfo: GOGAPP_ID } : undefined));
 
 
@@ -68,28 +70,24 @@ interface IREDmodProps {
   archiveAutoConvertEnabled: boolean;
 }
 
-const archiveAutoConvert = (state: vortexApi.types.IState): boolean => vortexApi.util.getSafe(state, [`settings`, `v2077`, `v2077_feature_redmod_autoconvert_archives`], false);
+const archiveAutoConvert = (state: vortexLib.types.IState): boolean => vortexLib.util.getSafe(state, [`settings`, `v2077`, `v2077_feature_redmod_autoconvert_archives`], false);
 
-const toggleAutoConvert = (api: vortexApi.types.IExtensionApi, _gameMode: string): void => {
-  const state: vortexApi.types.IState = api.store.getState();
+const toggleAutoConvert = (api: vortexLib.types.IExtensionApi, _gameMode: string): void => {
+  const state: vortexLib.types.IState = api.store.getState();
   api.store.dispatch(setArchiveAutoConvert(!archiveAutoConvert(state)));
 };
+
 
 //
 // Register extension in entry point
 //
 
+
 // This is the main function Vortex will run when detecting the game extension.
-const main = (vortex: VortexExtensionContext): boolean => {
-
-  // Maybe we could grab the API earlier, but...
-  const features = FeaturesFromSettings(vortexApi.util.getSafe, vortex.api);
-
-  // REDmodding conditional stuff
-  //
+const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const MaybeREDmodTools =
-    IsFeatureEnabled(features.REDmodding)
+    IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
       ? REDmoddingTools
       : [];
 
@@ -116,29 +114,31 @@ const main = (vortex: VortexExtensionContext): boolean => {
   const setupFunctionToRunAtExtensionInit =
     async (discovery: VortexDiscoveryResult): Promise<void> => {
       try {
-        await vortexApi.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
-        vortexApi.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
+        await vortexLib.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
+        vortexLib.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
       } catch (err) {
         // This might be an actual problem but let's not prevent proceeding..
-        vortexApi.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
+        vortexLib.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
       }
 
-      if (IsFeatureEnabled(features.REDmodding)) {
-        return wrappedPrepareForModdingWithREDmodding(vortex, vortexApi, discovery);
+      if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
+        return wrappedPrepareForModdingWithREDmodding(vortexExt, vortexLib, discovery);
       }
 
-      return vortexApi.fs.readdirAsync(path.join(discovery.path));
+      return vortexLib.fs.readdirAsync(path.join(discovery.path));
     };
 
-
   const defaultGameLaunchParameters =
-  IsFeatureEnabled(features.REDmodding)
-    ? REDlauncher.parameters
-    : [];
+    IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
+      ? REDlauncher.parameters
+      : [];
+
+  const fullFeatureSetAvailablePostStartup =
+    combineWithDynamicSettings(StaticFeaturesForStartup, vortexExt.api, vortexLib);
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
-  vortex.registerGame({
+  vortexExt.registerGame({
     id: GAME_ID,
     name: `Cyberpunk 2077`,
     setup: setupFunctionToRunAtExtensionInit,
@@ -164,21 +164,21 @@ const main = (vortex: VortexExtensionContext): boolean => {
     },
   });
 
-  vortex.registerInstaller(
+  vortexExt.registerInstaller(
     internalPipelineInstaller.id,
     internalPipelineInstaller.priority,
-    wrapTestSupported(vortex, vortexApi, internalPipelineInstaller),
+    wrapTestSupported(vortexExt, vortexLib, internalPipelineInstaller),
     wrapInstall(
-      vortex,
-      vortexApi,
+      vortexExt,
+      vortexLib,
       internalPipelineInstaller,
-      features,
+      fullFeatureSetAvailablePostStartup,
     ),
   );
 
-  if (IsFeatureEnabled(features.REDmodding)) {
-    if (IsFeatureEnabled(features.REDmodLoadOrder)) {
-      vortex.registerLoadOrder({
+  if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
+    if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)) {
+      vortexExt.registerLoadOrder({
         gameId: GAME_ID,
 
         // This needs to be actually implemented, it doesnt't do
@@ -216,40 +216,40 @@ const main = (vortex: VortexExtensionContext): boolean => {
         in Vortex.
       `)),
 
-        validate: wrapValidate(vortex, vortexApi, internalLoadOrderer),
-        deserializeLoadOrder: wrapDeserialize(vortex, vortexApi, internalLoadOrderer),
-        serializeLoadOrder: wrapSerialize(vortex, vortexApi, internalLoadOrderer),
+        validate: wrapValidate(vortexExt, vortexLib, internalLoadOrderer),
+        deserializeLoadOrder: wrapDeserialize(vortexExt, vortexLib, internalLoadOrderer),
+        serializeLoadOrder: wrapSerialize(vortexExt, vortexLib, internalLoadOrderer),
       });
 
-    }
+    } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
 
-    vortex.registerReducer(VORTEX_STORE_PATHS.settings, settingsReducer);
+    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, settingsReducer);
 
-    vortex.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
-      const state = vortex.api.store.getState();
-      const gameMode = vortexApi.selectors.activeGameId(state);
+    vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
+      const state = vortexExt.api.store.getState();
+      const gameMode = vortexLib.selectors.activeGameId(state);
       return gameMode === GAME_ID;
     }, 51);
 
     // 0.9.0 information TODO
-    vortex.registerToDo(
+    vortexExt.registerToDo(
       `v9-redmod-information`,
       `more`,
       undefined,
       `info`,
       `Click to see 0.9.0 Updates`,
-      (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortex.api, log: vortexApi.log }),
-      (_: IREDmodProps) => IsFeatureEnabled(features.REDmodding),
+      (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortexExt.api, log: vortexLib.log }),
+      (_: IREDmodProps) => IsFeatureEnabled(StaticFeaturesForStartup.REDmodding),
       undefined,
       undefined,
     );
 
     // Auto convert TODO
-    vortex.registerToDo(
+    vortexExt.registerToDo(
       `redmod-autoconvert`,
       `settings`,
       (state: VortexState): IREDmodProps => {
-        const gameMode = vortexApi.selectors.activeGameId(state);
+        const gameMode = vortexLib.selectors.activeGameId(state);
         return {
           gameMode,
           archiveAutoConvertEnabled: archiveAutoConvert(state),
@@ -258,22 +258,22 @@ const main = (vortex: VortexExtensionContext): boolean => {
       `download`,
       `REDmod Autoconvert`,
       (props: IREDmodProps) => {
-        toggleAutoConvert(vortex.api, props.gameMode);
-        vortex.api.events.emit(`analytics-track-click-event`, `Dashboard`, `Archive Autoconvert to REDmod ${props.archiveAutoConvertEnabled ? `ON` : `OFF`}`);
+        toggleAutoConvert(vortexExt.api, props.gameMode);
+        vortexExt.api.events.emit(`analytics-track-click-event`, `Dashboard`, `Archive Autoconvert to REDmod ${props.archiveAutoConvertEnabled ? `ON` : `OFF`}`);
       },
       (props: IREDmodProps) => isSupported(props.gameMode),
       (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
       undefined,
     );
 
-    vortex.registerAction(
+    vortexExt.registerAction(
       `mod-icons`,
       300,
       `settings`,
       {},
       `Configure REDmod`,
-      wrapVortexActionFunc(vortex, vortexApi, features, internalSettingsViewStuff),
-      wrapVortexActionConditionFunc(vortex, vortexApi, features, internalSettingsViewStuff),
+      wrapVortexActionFunc(vortexExt, vortexLib, fullFeatureSetAvailablePostStartup, internalSettingsViewStuff),
+      wrapVortexActionConditionFunc(vortexExt, vortexLib, fullFeatureSetAvailablePostStartup, internalSettingsViewStuff),
     );
 
     // This makes Vortex unable to deploy anything because the type didn't exist previously :D
@@ -300,16 +300,16 @@ const main = (vortex: VortexExtensionContext): boolean => {
 
   // This is additionally run when the extension is activated,
   // meant especially to set up state, listeners, reducers, etc.
-  vortex.once(() => {
-    vortex.api.onAsync(`did-deploy`, (profileId) => {
-      const state = vortex.api.store.getState();
-      const profile = vortexApi.selectors.profileById(state, profileId);
+  vortexExt.once(() => {
+    vortexExt.api.onAsync(`did-deploy`, (profileId) => {
+      const state = vortexExt.api.store.getState();
+      const profile = vortexLib.selectors.profileById(state, profileId);
 
       if (GAME_ID !== profile?.gameId) {
         return Promise.resolve();
       }
 
-      vortex.api.emitAndAwait(`discover-tools`, GAME_ID);
+      vortexExt.api.emitAndAwait(`discover-tools`, GAME_ID);
       return Promise.resolve();
     });
   });

@@ -12,6 +12,9 @@ import { replace as replaceIn } from "fp-ts/lib/string";
 
 export type Dynamic<T> = () => T;
 
+export interface Versioned {
+  fromVersion: string;
+}
 
 //
 // Functions

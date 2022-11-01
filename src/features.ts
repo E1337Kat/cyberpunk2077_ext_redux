@@ -1,5 +1,8 @@
 import { VORTEX_STORE_PATHS } from "./index.metadata";
-import { Dynamic } from "./util.functions";
+import {
+  Dynamic,
+  Versioned,
+} from "./util.functions";
 import { VortexExtensionApi } from "./vortex-wrapper";
 
 //
@@ -26,8 +29,8 @@ export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): bo
 //
 
 export const enum StaticFeature {
-  REDmodding = `v2077-feature-redmodding`,
-  REDmodLoadOrder = `v2077-feature-redmod-load-order`,
+  REDmodding = `v2077_feature_redmodding`,
+  REDmodLoadOrder = `v2077_feature_redmod_load_order`,
 }
 
 // Need to be underscored since it isn't always just a string... thanks react...
@@ -44,11 +47,9 @@ export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
 
 export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
 
-type AllFeaturesSet = StaticFeatureSet & DynamicFeatureSet;
+export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
 
-export interface FeatureSet extends AllFeaturesSet {
-  fromVersion: string;
-}
+export type FeatureSet = VersionedStaticFeatureSet & DynamicFeatureSet;
 
 
 // ...Through these records
@@ -64,13 +65,22 @@ export const BaselineFeatureSetForTests: FeatureSet = {
   REDmodAutoconvertArchives: () => FeatureState.Disabled,
 };
 
-export const FeaturesFromSettings = (getSafeFunc, { store }: VortexExtensionApi): FeatureSet => ({
+export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
   fromVersion: `0.9.0`,
   REDmodding: FeatureState.Enabled,
   REDmodLoadOrder: FeatureState.Enabled,
+};
+
+export const combineWithDynamicSettings = (
+  staticFeatures: VersionedStaticFeatureSet,
+  vortexExt: VortexExtensionApi,
+  vortexLib: any, // -.-
+): FeatureSet => ({
+  ...staticFeatures,
   REDmodAutoconvertArchives: () =>
     boolAsFeature(
-      getSafeFunc(store?.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
+      // This has to fail here if the structure doesn't exist so no ?'s
+      vortexLib.util.getSafe(vortexExt.store.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
     ),
 });
 
