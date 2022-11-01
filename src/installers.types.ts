@@ -28,7 +28,7 @@ import {
   VortexInstallResult,
   VortexMod,
 } from "./vortex-wrapper";
-import { S } from "./installers.utils";
+import { S } from "./util.functions";
 
 export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself

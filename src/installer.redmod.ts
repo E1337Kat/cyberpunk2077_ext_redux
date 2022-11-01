@@ -117,7 +117,7 @@ import {
   jsonp,
   jsonpp,
   S,
-} from "./installers.utils";
+} from "./util.functions";
 import {
   showInfoNotification,
   InfoNotification,

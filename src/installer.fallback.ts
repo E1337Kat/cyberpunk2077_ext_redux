@@ -24,7 +24,7 @@ import {
   V2077TestFunc,
   ModInfo,
 } from "./installers.types";
-import { exhaustiveMatchFailure } from "./installers.utils";
+import { exhaustiveMatchFailure } from "./util.functions";
 import {
   VortexApi,
   VortexInstallResult,

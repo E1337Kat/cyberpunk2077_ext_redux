@@ -74,7 +74,7 @@ import {
 import {
   jsonp,
   S,
-} from "./installers.utils";
+} from "./util.functions";
 import { fileFromDiskTE } from "./installers.shared";
 import {
   attrModType,

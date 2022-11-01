@@ -41,7 +41,7 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { trueish } from "./installers.utils";
+import { trueish } from "./util.functions";
 import {
   VortexApi,
   VortexTestResult,

@@ -21,7 +21,7 @@ import {
   REDmodInfo,
   REDmodInfoForVortex,
 } from "../../src/installers.types";
-import { jsonpp } from "../../src/installers.utils";
+import { jsonpp } from "../../src/util.functions";
 import { InfoNotification } from "../../src/ui.notifications";
 import {
   FAKE_MOD_INFO,

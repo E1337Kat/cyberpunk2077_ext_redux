@@ -1,4 +1,5 @@
 import { VORTEX_STORE_PATHS } from "./index.metadata";
+import { Dynamic } from "./util.functions";
 import { VortexExtensionApi } from "./vortex-wrapper";
 
 //
@@ -19,8 +20,6 @@ export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
 
 export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
   featureState() === FeatureState.Enabled;
-
-export type Dynamic<T> = () => T;
 
 //
 // Some features can be changed, some can't

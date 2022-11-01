@@ -44,7 +44,7 @@ import {
 import {
   bbcodeBasics,
   heredoc,
-} from "./installers.utils";
+} from "./util.functions";
 import { setArchiveAutoConvert } from "./actions";
 import { informUserZeroNineZeroChanges } from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
