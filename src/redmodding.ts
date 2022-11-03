@@ -15,6 +15,7 @@ import {
   STEAMAPP_ID,
   EPICAPP_ID,
   isSupported,
+  EXTENSION_NAME_INTERNAL,
 } from './index.metadata';
 import {
   REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
@@ -52,8 +53,8 @@ interface REDmoddingDlcDetails {
 // type TranslationFunction = typeof I18next.t;
 
 export const REDlauncher: VortexIToolShim = {
-  id: `V2077-tools-REDLauncher`,
-  name: `REDLauncher (GOG/Steam/Epic/Etc.)`,
+  id: `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`,
+  name: `REDLauncher (GOG/Steam/Epic)`,
   shortName: `REDLauncher`,
   logo: `REDLauncher.png`,
   requiredFiles: [`REDprelauncher.exe`],
@@ -64,7 +65,7 @@ export const REDlauncher: VortexIToolShim = {
 };
 
 export const REDmodManualDeploy: VortexIToolShim = {
-  id: `V2077-tools-redMod`,
+  id: `${EXTENSION_NAME_INTERNAL}-tools-redMod`,
   name: `REDmod Deploy (Everything)`,
   shortName: `REDdeploy`,
   logo: `REDdeploy.png`,
