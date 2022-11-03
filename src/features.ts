@@ -46,6 +46,7 @@ export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, st
 export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
 
 export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
+export type DynamicFeatureDefaults = Record<keyof typeof DynamicFeature, boolean>;
 
 export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
 
@@ -71,6 +72,11 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
   REDmodLoadOrder: FeatureState.Enabled,
 };
 
+const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
+  REDmodAutoconvertArchives: true,
+};
+
+
 export const combineWithDynamicSettings = (
   staticFeatures: VersionedStaticFeatureSet,
   vortexExt: VortexExtensionApi,
@@ -80,7 +86,11 @@ export const combineWithDynamicSettings = (
   REDmodAutoconvertArchives: () =>
     boolAsFeature(
       // This has to fail here if the structure doesn't exist so no ?'s
-      vortexLib.util.getSafe(vortexExt.store.getState(), FeatureSettingsPath.REDmodAutoconvertArchives, false),
+      vortexLib.util.getSafe(
+        vortexExt.store.getState(),
+        FeatureSettingsPath.REDmodAutoconvertArchives,
+        DefaultEnabledStateForDynamicFeatures.REDmodAutoconvertArchives,
+      ) === FeatureState.Enabled,
     ),
 });
 
