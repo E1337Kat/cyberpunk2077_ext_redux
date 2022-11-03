@@ -36,11 +36,13 @@ import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
+  VortexIToolShim,
   VortexState,
   VortexToolDiscovered,
 } from "./vortex-wrapper";
 
-// This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
+// This function runs on starting up Vortex or switching to Cyberpunk as the active game.
+// This may need to be converted to a test, but the UI for tests is less flexible.
 
 interface REDmoddingDlcDetails {
   name: string;
@@ -49,9 +51,10 @@ interface REDmoddingDlcDetails {
 }
 // type TranslationFunction = typeof I18next.t;
 
-export const REDlauncher = {
+export const REDlauncher: VortexIToolShim = {
   id: `V2077-tools-REDLauncher`,
-  name: `REDLauncher`,
+  name: `REDLauncher (GOG/Steam/Epic/Etc.)`,
+  shortName: `REDLauncher`,
   logo: `REDLauncher.png`,
   requiredFiles: [`REDprelauncher.exe`],
   executable: (): string => `REDprelauncher.exe`,
@@ -60,14 +63,11 @@ export const REDlauncher = {
   relative: true,
 };
 
-// Not installing the Tool for now because we're
-// using automatic deployment. Maybe enable it
-// later, but it'll require carrying the new
-// load order through starthooks.
-export const REDmodDeploy = {
+export const REDmodManualDeploy: VortexIToolShim = {
   id: `V2077-tools-redMod`,
-  name: `REDmod Deploy`,
+  name: `REDmod Deploy (Everything)`,
   shortName: `REDdeploy`,
+  logo: `REDdeploy.png`,
   requiredFiles: [path.join(`tools\\redmod\\bin\\redMod.exe`)],
   executable: (): string => path.join(`tools\\redmod\\bin\\redMod.exe`),
   parameters: [`deploy`],
@@ -78,10 +78,10 @@ export const REDmodDeploy = {
 
 export const REDmoddingTools = [
   REDlauncher,
-  // REDmodDeploy,
+  REDmodManualDeploy,
 ];
 
-export const redModTool = (state: VortexState, gameId: string): VortexToolDiscovered => {
+export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
   const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
   return Object.keys(tools).map((id) => tools[id])
     .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
@@ -128,8 +128,16 @@ const autoDeployActionCondition: V2077ActionConditionFunc = (
   }
   const state = vortexApi.store.getState();
   const gameMode = selectors.activeGameId(state);
-  const tool = redModTool(state, gameMode);
+  const tool = detectREDmoddingDlc(state, gameMode);
   return isSupported(gameMode) && (tool !== undefined);
+};
+
+export const internalSettingsViewStuff: V2077SettingsView = {
+  type: ActionType.AutoRunDeploy,
+  id: ``,
+  actionOrCondition: autoDeployAction,
+  condition: autoDeployActionCondition,
+  // test: checkTest,
 };
 
 export const wrapVortexActionConditionFunc =
@@ -217,7 +225,7 @@ const prepareForModdingWithREDmodding = async (
 
   // Check for the REDmod files.
   const redLauncherPath = path.join(discovery.path, REDlauncher.executable());
-  const redModPath = path.join(discovery.path, REDmodDeploy.executable());
+  const redModPath = path.join(discovery.path, REDmodManualDeploy.executable());
 
   try {
     await Promise.all([redLauncherPath, redModPath].map(async (file) => fs.statAsync(file)));
@@ -247,12 +255,4 @@ export const wrappedPrepareForModdingWithREDmodding = async (
   vortexApi.log(`info`, `Checking for REDmod install`);
 
   return prepareForModdingWithREDmodding(vortexApi, discovery);
-};
-
-export const internalSettingsViewStuff: V2077SettingsView = {
-  type: ActionType.AutoRunDeploy,
-  id: ``,
-  actionOrCondition: autoDeployAction,
-  condition: autoDeployActionCondition,
-  // test: checkTest,
 };

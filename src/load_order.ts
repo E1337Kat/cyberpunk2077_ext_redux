@@ -86,7 +86,7 @@ import {
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { REDmodDeploy } from "./redmodding";
+import { REDmodManualDeploy } from "./redmodding";
 import {
   InfoNotification,
   showInfoNotification,
@@ -453,7 +453,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   ];
 
   const exePath =
-    path.join(gameDirPath, REDmodDeploy.executable());
+    path.join(gameDirPath, REDmodManualDeploy.executable());
 
   const runOptions = {
     cwd: path.dirname(exePath),
