@@ -202,7 +202,9 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         place in the load order, though, so long as you don't uninstall them!
 
         All heritage archive mods that are not autoconverted to REDmod will be loaded
-        AFTER all REDmods, in the usual alphabetical order.
+        BEFORE all REDmods, in the usual alphabetical order. That means that if you want
+        to override an archive mod, you need to convert it to REDmod first. You can do
+        this by making sure the autoconvert setting is on and then reinstalling the mod.
 
         REDmods that you have installed outside Vortex are NOT supported right now.
 
@@ -212,8 +214,8 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         REDmod deployment can take a little while if you have tweak or script mods,
         so wait for the green success notification before you start the game! :)
 
-        You can still use the redmod tool manually, too, but changes won't be reflected
-        in Vortex.
+        You can still use the command-line redMod.exe or the REDdeploy Tool in your
+        Tools dashlet, but changes won't be reflected in the load order panel.
       `)),
 
         validate: wrapValidate(vortexExt, vortexLib, internalLoadOrderer),
