@@ -43,14 +43,18 @@ const Settings = (props: IProps): JSX.Element => {
         checked={redmodAutoconvertArchives}
         onToggle={onREDmodAutoconvertArchives}
       >
-        {t(`Autoconvert regular 'archive' mods to REDmods`)}
+        {t(`Automatically convert old-style 'archive' mods to REDmods on install (recommended)`)}
         <More
           id='red-autoconvert-setting'
           name={t(`Autoconvert old mods for Load Order`)}>
-          {t(`Whenever you install a standard 'archive' mod, we can instead install it to the REDmods folder ` +
-            `as if it were a RREDmod from the outset. We do this using mod magic by generating a folder and mod ` +
-            `from the mod details we can glean. After autoconverting during installation, you can then use ` +
-            `the mod in the load order tools.\n\n`)}
+          {t(`${squashAllWhitespace(`
+            Whenever you install a standard 'archive' mod, we can instead install it to the REDmods folder
+            as if it were a REDmod from the outset. We do this using mod magic by generating a folder and mod
+            from the mod details we can glean. After autoconverting during installation, you can then use
+            the mod in the load order tools. This process is very straightforward and should Just Work, but
+            If you encounter a problem, you can always temporarily turn this setting off and install the old
+            way. (And please let us know so that we can fix the problem!)
+          `)}\n\n`)}
         </More>
       </Toggle>
     </div>

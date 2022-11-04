@@ -63,6 +63,9 @@ export const heredoc = flow(
   replaceIn(/\n{3,}/g, `\n\n`),   // And squash extra empty lines into one empty max
 );
 
+export const squashAllWhitespace = flow(
+  replaceIn(/\w+/g, ` `),
+);
 
 export const bbcodeBasics = flow(
   replaceIn(/\n{2,}/g, `\n[br][/br][br][/br]\n`), // Any number of empty lines becomes a single bbcode line break
