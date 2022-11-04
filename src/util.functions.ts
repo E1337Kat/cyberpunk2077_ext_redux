@@ -1,4 +1,8 @@
-import { flow } from "fp-ts/lib/function";
+import {
+  flow,
+  pipe,
+} from "fp-ts/lib/function";
+import { reduceRight } from "fp-ts/lib/ReadonlyArray";
 import { replace as replaceIn } from "fp-ts/lib/string";
 
 //
@@ -29,6 +33,17 @@ export const alwaysTrue = (): boolean => true;
 export const alwaysFalse = (): boolean => false;
 
 export const noop = (): void => undefined;
+
+export type GenericRecord =
+  | unknown
+  | { [key: string]: GenericRecord };
+
+export const nestedRecordFrom =
+  (path: readonly string[], innermost: GenericRecord = {}): GenericRecord =>
+    pipe(
+      path,
+      reduceRight(innermost, (key, innerRecord) => ({ [key as string]: innerRecord })),
+    );
 
 // Haha you have to do this yourself
 export const exhaustiveMatchFailure = (_: never): never => {
