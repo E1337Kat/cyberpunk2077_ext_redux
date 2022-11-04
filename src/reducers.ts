@@ -1,20 +1,17 @@
-import * as vortexApi from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import { util as vortexUtil } from "vortex-api";
 import * as actions from './actions';
+import {
+  DynamicFeature,
+  DynamicFeatureDefaults,
+  storeSetDynamicFeature,
+} from "./features";
+import { VortexReducerSpec } from "./vortex-wrapper";
 
-/**
- * reducer for changes to ephemeral session state
- */
-const settingsReducer: vortexApi.types.IReducerSpec = {
+
+export const makeSettingsReducer = (settingsDefaultsUnnested: DynamicFeatureDefaults): VortexReducerSpec => ({
   reducers: {
-    [actions.setArchiveAutoConvert as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`v2077_feature_redmod_autoconvert_archives`], payload),
-    [actions.setRedmodForceDeploy as any]: (state, payload) =>
-      vortexApi.util.setSafe(state, [`redmodForceDeploy`, payload.profileId], payload.force),
+    [actions.setREDmodAutoconvertArchivesAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
+      storeSetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, stateSliceForJustOurStuff, payload),
   },
-  defaults: {
-    archiveAutoConvert: false,
-    redmodForceDeploy: {},
-  },
-};
-
-export default settingsReducer;
+  defaults: settingsDefaultsUnnested,
+});

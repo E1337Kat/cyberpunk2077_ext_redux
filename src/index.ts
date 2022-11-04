@@ -6,6 +6,7 @@ import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-depen
 // Our stuff
 import {
   EPICAPP_ID,
+  EXTENSION_NAME_INTERNAL,
   GAME_ID,
   GOGAPP_ID,
   isSupported,
@@ -15,8 +16,11 @@ import {
 } from "./index.metadata";
 import {
   StaticFeaturesForStartup,
-  combineWithDynamicSettings,
+  FullFeatureSetFromStaticAndDynamic,
   IsFeatureEnabled,
+  DefaultEnabledStateForDynamicFeatures,
+  storeGetDynamicFeature,
+  DynamicFeature,
 } from "./features";
 import {
   wrapTestSupported,
@@ -28,14 +32,12 @@ import {
   VortexExtensionContext,
   VortexGameStoreEntry,
   VortexState,
+  vortexUtil,
 } from "./vortex-wrapper";
 import {
-  internalSettingsViewStuff,
   REDlauncher,
   REDmoddingTools,
   wrappedPrepareForModdingWithREDmodding,
-  wrapVortexActionConditionFunc,
-  wrapVortexActionFunc,
 } from './redmodding';
 import {
   wrapValidate,
@@ -44,13 +46,14 @@ import {
   wrapSerialize,
 } from "./load_order";
 import {
+  alwaysTrue,
   bbcodeBasics,
   heredoc,
 } from "./util.functions";
-import { setArchiveAutoConvert } from "./actions";
+import { setREDmodAutoconvertArchivesAction } from "./actions";
 import { informUserZeroNineZeroChanges } from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
-import settingsReducer from './reducers';
+import { makeSettingsReducer } from './reducers';
 
 
 export const findGame = (): string =>
@@ -70,11 +73,12 @@ interface IREDmodProps {
   archiveAutoConvertEnabled: boolean;
 }
 
-const archiveAutoConvert = (state: vortexLib.types.IState): boolean => vortexLib.util.getSafe(state, [`settings`, `v2077`, `v2077_feature_redmod_autoconvert_archives`], false);
+const archiveAutoConvert = (state: unknown): boolean =>
+  storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, state);
 
 const toggleAutoConvert = (api: vortexLib.types.IExtensionApi, _gameMode: string): void => {
   const state: vortexLib.types.IState = api.store.getState();
-  api.store.dispatch(setArchiveAutoConvert(!archiveAutoConvert(state)));
+  api.store.dispatch(setREDmodAutoconvertArchivesAction(!archiveAutoConvert(state)));
 };
 
 
@@ -134,7 +138,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       : [];
 
   const fullFeatureSetAvailablePostStartup =
-    combineWithDynamicSettings(StaticFeaturesForStartup, vortexExt.api, vortexLib);
+    FullFeatureSetFromStaticAndDynamic(StaticFeaturesForStartup, vortexExt.api, vortexLib.util);
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
@@ -225,7 +229,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
 
-    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, settingsReducer);
+    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForDynamicFeatures));
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
       const state = vortexExt.api.store.getState();
@@ -235,20 +239,20 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     // 0.9.0 information TODO
     vortexExt.registerToDo(
-      `v9-redmod-information`,
+      `${EXTENSION_NAME_INTERNAL}-todo-v090-information`,
       `more`,
       undefined,
-      `info`,
-      `Click to see 0.9.0 Updates`,
+      `health`,
+      `v0.9.0 Update Detes for Cyberpunk 2077!`,
       (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortexExt.api, log: vortexLib.log }),
-      (_: IREDmodProps) => IsFeatureEnabled(StaticFeaturesForStartup.REDmodding),
+      alwaysTrue, // We want to show this before activating the game
       undefined,
       undefined,
     );
 
     // Auto convert TODO
     vortexExt.registerToDo(
-      `redmod-autoconvert`,
+      `${EXTENSION_NAME_INTERNAL}-todo-redmod-autoconvert`,
       `settings`,
       (state: VortexState): IREDmodProps => {
         const gameMode = vortexLib.selectors.activeGameId(state);
@@ -257,30 +261,35 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
           archiveAutoConvertEnabled: archiveAutoConvert(state),
         };
       },
-      `download`,
+      `clone`,
       `REDmod Autoconvert`,
       (props: IREDmodProps) => {
         toggleAutoConvert(vortexExt.api, props.gameMode);
-        vortexExt.api.events.emit(`analytics-track-click-event`, `Dashboard`, `Archive Autoconvert to REDmod ${props.archiveAutoConvertEnabled ? `ON` : `OFF`}`);
       },
       (props: IREDmodProps) => isSupported(props.gameMode),
       (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
       undefined,
     );
+  } // if (IsFeatureEnabled(features.REDmodding))
 
-    vortexExt.registerAction(
-      `mod-icons`,
-      300,
-      `settings`,
-      {},
-      `Configure REDmod`,
-      wrapVortexActionFunc(vortexExt, vortexLib, fullFeatureSetAvailablePostStartup, internalSettingsViewStuff),
-      wrapVortexActionConditionFunc(vortexExt, vortexLib, fullFeatureSetAvailablePostStartup, internalSettingsViewStuff),
-    );
+  vortexExt.once(() => {
+    vortexExt.api.onAsync(`did-deploy`, (profileId) => {
+      const state = vortexExt.api.store.getState();
+      const profile = vortexLib.selectors.profileById(state, profileId);
 
-    // This makes Vortex unable to deploy anything because the type didn't exist previously :D
-    //
-    // https://github.com/Nexus-Mods/Vortex/issues/13376
+      if (GAME_ID !== profile?.gameId) {
+        return Promise.resolve();
+      }
+
+      vortexExt.api.emitAndAwait(`discover-tools`, GAME_ID);
+      return Promise.resolve();
+    });
+
+  }); // vortexExt.once(() => {
+
+  // This makes Vortex unable to deploy anything because the type didn't exist previously :D
+  //
+  // https://github.com/Nexus-Mods/Vortex/issues/13376
   /*
     vortex.registerModType(
       ModType.REDmod,
@@ -298,24 +307,6 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       },
     );
     */
-  } // if (IsFeatureEnabled(features.REDmodding))
-
-  // This is additionally run when the extension is activated,
-  // meant especially to set up state, listeners, reducers, etc.
-  vortexExt.once(() => {
-    vortexExt.api.onAsync(`did-deploy`, (profileId) => {
-      const state = vortexExt.api.store.getState();
-      const profile = vortexLib.selectors.profileById(state, profileId);
-
-      if (GAME_ID !== profile?.gameId) {
-        return Promise.resolve();
-      }
-
-      vortexExt.api.emitAndAwait(`discover-tools`, GAME_ID);
-      return Promise.resolve();
-    });
-  });
-
   return true;
 };
 

@@ -5,6 +5,7 @@ import {
 } from "./util.functions";
 import { VortexExtensionApi } from "./vortex-wrapper";
 
+
 //
 // Features are simple things, but not as simple as booleans
 //
@@ -46,7 +47,7 @@ export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, st
 export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
 
 export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
-export type DynamicFeatureDefaults = Record<keyof typeof DynamicFeature, boolean>;
+export type DynamicFeatureDefaults = Record<DynamicFeature, boolean>;
 
 export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
 
@@ -54,10 +55,6 @@ export type FeatureSet = VersionedStaticFeatureSet & DynamicFeatureSet;
 
 
 // ...Through these records
-
-export const FeatureSettingsPath: FeatureSettingsPathInVortex = {
-  REDmodAutoconvertArchives: [...VORTEX_STORE_PATHS.settings, DynamicFeature.REDmodAutoconvertArchives],
-};
 
 export const BaselineFeatureSetForTests: FeatureSet = {
   fromVersion: `0.9.0`,
@@ -72,25 +69,58 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
   REDmodLoadOrder: FeatureState.Enabled,
 };
 
-const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
-  REDmodAutoconvertArchives: true,
+
+//
+// Helpers for the store so we don't repeat this everywhere
+//
+
+export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
+  [DynamicFeature.REDmodAutoconvertArchives]: true,
 };
 
 
-export const combineWithDynamicSettings = (
+// wow
+// much type
+// such safe
+
+interface StoreUtil {
+  getSafe: any;
+  setSafe: any;
+}
+
+// Subtlety here: get will get the full state, but set only gets the slice. Should reconsider.
+
+export const storeGetDynamicFeature =
+  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: unknown): boolean => storeUtil.getSafe(
+    stateSlice,
+    [...VORTEX_STORE_PATHS.settings, feature],
+    DefaultEnabledStateForDynamicFeatures[feature],
+  );
+
+export const storeSetDynamicFeature =
+  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: object, value: boolean): object =>
+    storeUtil.setSafe(stateSlice, [feature], value);
+
+//
+// Create the complete feature set once we're ready
+//
+// This /may/ need to be delayed because the Vortex API /object/ isn't
+// permitted to be used until after the extension is initialized.
+//
+// One way around it might just be to use the `once()` function but
+// I'm not a huge fan plus this doesn't really harm anything.. it's
+// just a bit more explicit.
+//
+
+export const FullFeatureSetFromStaticAndDynamic = (
   staticFeatures: VersionedStaticFeatureSet,
-  vortexExt: VortexExtensionApi,
-  vortexLib: any, // -.-
+  vortexExtApi: VortexExtensionApi,
+  storeUtil: StoreUtil, // JFC peer dependencies
 ): FeatureSet => ({
   ...staticFeatures,
   REDmodAutoconvertArchives: () =>
     boolAsFeature(
-      // This has to fail here if the structure doesn't exist so no ?'s
-      vortexLib.util.getSafe(
-        vortexExt.store.getState(),
-        FeatureSettingsPath.REDmodAutoconvertArchives,
-        DefaultEnabledStateForDynamicFeatures.REDmodAutoconvertArchives,
-      ) === FeatureState.Enabled,
+      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
     ),
 });
 
