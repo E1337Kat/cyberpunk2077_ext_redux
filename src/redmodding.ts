@@ -1,20 +1,12 @@
 import path from "path";
 import {
   fs,
-  selectors,
   util as VortexUtil,
 } from "vortex-api";
-// import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
-import { setRedmodForceDeploy } from "./actions";
-import {
-  IsFeatureEnabled,
-  FeatureSet,
-} from "./features";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,
   EPICAPP_ID,
-  isSupported,
   EXTENSION_NAME_INTERNAL,
 } from './index.metadata';
 import {
@@ -22,18 +14,8 @@ import {
   REDMODDING_REQUIRED_DIR_FOR_MODS,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import {
-  V2077SettingsView,
-  ActionType,
-  V2077ActionConditionFunc,
-  V2077ActionFunc,
-} from "./redmodding.types";
 import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
-  VortexActionConditionFunc,
-  VortexActionConditionResult,
-  VortexActionFunc,
-  VortexActionResult,
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
@@ -89,77 +71,6 @@ export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexT
     .find((iter) => path.basename(iter.path).toLowerCase() === `redMod.exe`);
 };
 
-const autoDeployAction: V2077ActionFunc = (
-  vortexApi: VortexApi,
-  _features: FeatureSet,
-  _instanceIds: string[],
-): VortexActionResult => {
-  const state = vortexApi.store.getState();
-  const profile = selectors.activeProfile(state);
-  vortexApi.store.dispatch(setRedmodForceDeploy(profile.id, true));
-};
-
-export const wrapVortexActionFunc =
-  (
-    vortex: VortexExtensionContext,
-    vortexApiThing,
-    features: FeatureSet,
-    actions: V2077SettingsView,
-  ): VortexActionFunc =>
-    //
-    // This is the function that Vortex calls.
-    (instanceIds?: string[]): VortexActionResult => {
-      //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-      return actions.actionOrCondition(
-        vortexApi,
-        features,
-        instanceIds,
-      );
-    };
-
-const autoDeployActionCondition: V2077ActionConditionFunc = (
-  vortexApi: VortexApi,
-  features: FeatureSet,
-  _instanceIds: string[],
-): VortexActionConditionResult => {
-  if (!IsFeatureEnabled(features.REDmodding)) {
-    return false;
-  }
-  const state = vortexApi.store.getState();
-  const gameMode = selectors.activeGameId(state);
-  const tool = detectREDmoddingDlc(state, gameMode);
-  return isSupported(gameMode) && (tool !== undefined);
-};
-
-export const internalSettingsViewStuff: V2077SettingsView = {
-  type: ActionType.AutoRunDeploy,
-  id: ``,
-  actionOrCondition: autoDeployAction,
-  condition: autoDeployActionCondition,
-  // test: checkTest,
-};
-
-export const wrapVortexActionConditionFunc =
-  (
-    vortex: VortexExtensionContext,
-    vortexApiThing,
-    features: FeatureSet,
-    actionCondition: V2077SettingsView,
-  ): VortexActionConditionFunc =>
-    //
-    // This is the function that Vortex calls.
-    (instanceIds?: string[]): VortexActionConditionResult => {
-      //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-      return actionCondition.condition(
-        vortexApi,
-        features,
-        instanceIds,
-      );
-    };
 
 const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;

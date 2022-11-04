@@ -37,6 +37,12 @@ export const vortexUtil = util;
 export type VortexCheckResult = Vortex.ITestResult;
 export type VortexCheckFunc = () => Promise<VortexCheckResult>;
 
+//
+// React stuff
+//
+
+export type VortexReducerSpec = Vortex.IReducerSpec;
+
 export type VortexViewPropsFunc = (state: VortexState) => IREDmodProps;
 export type VortexViewPropsActionsFunc = (props: IREDmodProps) => void;
 export type VortexToDoPropsConditionFunc = (props: IREDmodProps) => boolean;
