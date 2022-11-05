@@ -1,46 +1,31 @@
 import path from "path";
 import {
   fs,
-  selectors,
   util as VortexUtil,
 } from "vortex-api";
-// import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
-import { setRedmodForceDeploy } from "./actions";
-import {
-  IsFeatureEnabled,
-  FeatureSet,
-} from "./features";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,
   EPICAPP_ID,
-  isSupported,
+  EXTENSION_NAME_INTERNAL,
 } from './index.metadata';
 import {
   REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
   REDMODDING_REQUIRED_DIR_FOR_MODS,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import {
-  V2077SettingsView,
-  ActionType,
-  V2077ActionConditionFunc,
-  V2077ActionFunc,
-} from "./redmodding.types";
 import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
-  VortexActionConditionFunc,
-  VortexActionConditionResult,
-  VortexActionFunc,
-  VortexActionResult,
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
+  VortexIToolShim,
   VortexState,
   VortexToolDiscovered,
 } from "./vortex-wrapper";
 
-// This function runs on starting up Vortex or switching to Cyberpunk as the active game. This may need to be converted to a test, but the UI for tests is less flexible.
+// This function runs on starting up Vortex or switching to Cyberpunk as the active game.
+// This may need to be converted to a test, but the UI for tests is less flexible.
 
 interface REDmoddingDlcDetails {
   name: string;
@@ -49,9 +34,10 @@ interface REDmoddingDlcDetails {
 }
 // type TranslationFunction = typeof I18next.t;
 
-export const REDlauncher = {
-  id: `V2077-tools-REDLauncher`,
-  name: `REDLauncher`,
+export const REDlauncher: VortexIToolShim = {
+  id: `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`,
+  name: `REDLauncher (GOG/Steam/Epic)`,
+  shortName: `REDLauncher`,
   logo: `REDLauncher.png`,
   requiredFiles: [`REDprelauncher.exe`],
   executable: (): string => `REDprelauncher.exe`,
@@ -60,14 +46,11 @@ export const REDlauncher = {
   relative: true,
 };
 
-// Not installing the Tool for now because we're
-// using automatic deployment. Maybe enable it
-// later, but it'll require carrying the new
-// load order through starthooks.
-export const REDmodDeploy = {
-  id: `V2077-tools-redMod`,
-  name: `REDmod Deploy`,
+export const REDmodManualDeploy: VortexIToolShim = {
+  id: `${EXTENSION_NAME_INTERNAL}-tools-redMod`,
+  name: `REDmod Deploy (Everything)`,
   shortName: `REDdeploy`,
+  logo: `REDdeploy.png`,
   requiredFiles: [path.join(`tools\\redmod\\bin\\redMod.exe`)],
   executable: (): string => path.join(`tools\\redmod\\bin\\redMod.exe`),
   parameters: [`deploy`],
@@ -78,79 +61,16 @@ export const REDmodDeploy = {
 
 export const REDmoddingTools = [
   REDlauncher,
-  // REDmodDeploy,
+  REDmodManualDeploy,
 ];
 
-export const redModTool = (state: VortexState, gameId: string): VortexToolDiscovered => {
+export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
   const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
   return Object.keys(tools).map((id) => tools[id])
     .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
     .find((iter) => path.basename(iter.path).toLowerCase() === `redMod.exe`);
 };
 
-const autoDeployAction: V2077ActionFunc = (
-  vortexApi: VortexApi,
-  _features: FeatureSet,
-  _instanceIds: string[],
-): VortexActionResult => {
-  const state = vortexApi.store.getState();
-  const profile = selectors.activeProfile(state);
-  vortexApi.store.dispatch(setRedmodForceDeploy(profile.id, true));
-};
-
-export const wrapVortexActionFunc =
-  (
-    vortex: VortexExtensionContext,
-    vortexApiThing,
-    features: FeatureSet,
-    actions: V2077SettingsView,
-  ): VortexActionFunc =>
-    //
-    // This is the function that Vortex calls.
-    (instanceIds?: string[]): VortexActionResult => {
-      //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-      return actions.actionOrCondition(
-        vortexApi,
-        features,
-        instanceIds,
-      );
-    };
-
-const autoDeployActionCondition: V2077ActionConditionFunc = (
-  vortexApi: VortexApi,
-  features: FeatureSet,
-  _instanceIds: string[],
-): VortexActionConditionResult => {
-  if (!IsFeatureEnabled(features.REDmodding)) {
-    return false;
-  }
-  const state = vortexApi.store.getState();
-  const gameMode = selectors.activeGameId(state);
-  const tool = redModTool(state, gameMode);
-  return isSupported(gameMode) && (tool !== undefined);
-};
-
-export const wrapVortexActionConditionFunc =
-  (
-    vortex: VortexExtensionContext,
-    vortexApiThing,
-    features: FeatureSet,
-    actionCondition: V2077SettingsView,
-  ): VortexActionConditionFunc =>
-    //
-    // This is the function that Vortex calls.
-    (instanceIds?: string[]): VortexActionConditionResult => {
-      //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
-
-      return actionCondition.condition(
-        vortexApi,
-        features,
-        instanceIds,
-      );
-    };
 
 const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
@@ -217,7 +137,7 @@ const prepareForModdingWithREDmodding = async (
 
   // Check for the REDmod files.
   const redLauncherPath = path.join(discovery.path, REDlauncher.executable());
-  const redModPath = path.join(discovery.path, REDmodDeploy.executable());
+  const redModPath = path.join(discovery.path, REDmodManualDeploy.executable());
 
   try {
     await Promise.all([redLauncherPath, redModPath].map(async (file) => fs.statAsync(file)));
@@ -247,12 +167,4 @@ export const wrappedPrepareForModdingWithREDmodding = async (
   vortexApi.log(`info`, `Checking for REDmod install`);
 
   return prepareForModdingWithREDmodding(vortexApi, discovery);
-};
-
-export const internalSettingsViewStuff: V2077SettingsView = {
-  type: ActionType.AutoRunDeploy,
-  id: ``,
-  actionOrCondition: autoDeployAction,
-  condition: autoDeployActionCondition,
-  // test: checkTest,
 };

@@ -53,10 +53,6 @@ console = new Console(process.stdout, process.stderr);
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const getMockVortexLog = () => {
   const mockLog = jest.fn();
-  mockLog.mockImplementation((...args) => {
-    // eslint-disable-next-line no-console
-    console.log(`vortex.log():`, args);
-  });
 
   if (process.env.DEBUG) {
     mockLog.mockImplementation((...args) => {

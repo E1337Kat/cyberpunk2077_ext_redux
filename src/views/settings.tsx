@@ -7,8 +7,14 @@ import { ThunkDispatch } from 'redux-thunk';     // eslint-disable-line import/n
 import {
   More,
   Toggle,
+  util as vortexUtil,
 } from 'vortex-api';
-import { setArchiveAutoConvert } from '../actions';
+import { setREDmodAutoconvertArchivesAction } from '../actions';
+import {
+  DynamicFeature,
+  storeGetDynamicFeature,
+} from '../features';
+import { squashAllWhitespace } from '../util.functions';
 import { VortexState } from '../vortex-wrapper';
 
 interface IBaseProps {
@@ -16,11 +22,11 @@ interface IBaseProps {
 }
 
 interface IConnectedProps {
-  archiveAutoConvert: boolean;
+  redmodAutoconvertArchives: boolean;
 }
 
 interface IActionProps {
-  onArchiveAutoConvert: (enable: boolean) => void;
+  onREDmodAutoconvertArchives: (enable: boolean) => void;
 }
 
 type IProps = IBaseProps & IConnectedProps & IActionProps;
@@ -28,36 +34,40 @@ type IProps = IBaseProps & IConnectedProps & IActionProps;
 const Settings = (props: IProps): JSX.Element => {
   const {
     t,
-    archiveAutoConvert,
-    onArchiveAutoConvert,
+    redmodAutoconvertArchives,
+    onREDmodAutoconvertArchives,
   } = props;
   return (
     <div>
       <Toggle
-        checked={archiveAutoConvert}
-        onToggle={onArchiveAutoConvert}
+        checked={redmodAutoconvertArchives}
+        onToggle={onREDmodAutoconvertArchives}
       >
-        {t(`Autoconvert regular 'archive' mods to REDmods`)}
+        {t(`Automatically convert old-style 'archive' mods to REDmods on install (recommended)`)}
         <More
           id='red-autoconvert-setting'
           name={t(`Autoconvert old mods for Load Order`)}>
-          {t(`Whenever you install a standard 'archive' mod, we can instead install it to the REDmods folder ` +
-            `as if it were a RREDmod from the outset. We do this using mod magic by generating a folder and mod ` +
-            `from the mod details we can glean. After autoconverting during installation, you can then use ` +
-            `the mod in the load order tools.\n\n`)}
+          {t(`${squashAllWhitespace(`
+            Whenever you install a standard 'archive' mod, we can instead install it to the REDmods folder
+            as if it were a REDmod from the outset. We do this using mod magic by generating a folder and mod
+            from the mod details we can glean. After autoconverting during installation, you can then use
+            the mod in the load order tools. This process is very straightforward and should Just Work, but
+            If you encounter a problem, you can always temporarily turn this setting off and install the old
+            way. (And please let us know so that we can fix the problem!)
+          `)}\n\n`)}
         </More>
       </Toggle>
     </div>
   );
 };
 
-const mapStateToProps = (state: any): IConnectedProps => ({
-  archiveAutoConvert: state.settings.v2077.v2077_feature_redmod_autoconvert_archives,
+export const mapStateToProps = (fullVortexState: unknown): IConnectedProps => ({
+  redmodAutoconvertArchives: storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, fullVortexState),
 });
 
-const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>)
-: IActionProps => ({
-  onArchiveAutoConvert: (enable: boolean) => dispatch(setArchiveAutoConvert(enable)),
+
+export const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>): IActionProps => ({
+  onREDmodAutoconvertArchives: (enable: boolean) => dispatch(setREDmodAutoconvertArchivesAction(enable)),
 });
 
 export default

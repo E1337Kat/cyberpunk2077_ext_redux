@@ -1,10 +1,13 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { createAction } from 'redux-act';
+import {
+  ComplexActionCreator1,
+  createAction,
+} from 'redux-act';
 
-// export const setRedModEnable = createAction(`SET_REDMOD_ENABLE`, (enabled) => enabled);
-export const setAutoRedDeploy = createAction(`SET_AUTO_RED_DEPLOY`, (enabled) => enabled);
-export const setArchiveAutoConvert = createAction(`SET_ARCHIVE_AUTO_CONVERT`, (enabled) => enabled);
-export const setRedmodForceDeploy = createAction(
-  `SET_REDMOD_FORCE_DEPLOY`,
-  (profileId: string, force: boolean) => ({ profileId, force }),
-);
+export type SettingAction = ComplexActionCreator1<boolean, boolean>;
+
+export const setREDmodAutoconvertArchivesAction: SettingAction =
+  createAction<boolean, boolean>(
+    `SET_REDMOD_AUTOCONVERT_ARCHIVES`,
+    (enabled: boolean): boolean => enabled,
+  );

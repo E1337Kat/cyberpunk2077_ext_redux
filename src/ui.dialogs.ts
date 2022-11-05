@@ -65,29 +65,33 @@ const getLayoutDescriptionOrThrow = (api: VortexApi, installerType: InstallerTyp
 export const informUserZeroNineZeroChanges = async (
   api: VortexApi,
 ): Promise<void> => {
-  const title = `Full REDmod Update`;
+  const title = `v0.9.0 Update Highlights!`;
   const redmodZeroNineZeroExplanation = `
-  The Vortex Cyberpunk 2077 Extension team has _finally_ gotten it together and managed to
-  get full REDmod support into the extension. This update brings about better support for
-  installing REDmods, managing their load order, and starting the game through vortex with
-  all your mods enabled and in the order selected. There are a few things to note about this
-  update though...
-  
-  1. Because of how load order works in Cyberpunk 2077 with REDmods, when a change is made to
-  the load order, we have have to call out to the redmod dlc executable to 'Deploy' the new
-  load order. This could take more than a few seconds depending on how many redmods are
-  being deployed, and how many *new* redmods that have scripts or tweaks.
-  
-  2. We can only know about the redmods installed through Vortex, so any manually installed
-  REDmods may not work unless you manually use the redmod 'deploy' command. We will try to
-  add basic load order support for these "unmanaged" mods, but only as far as being in the
-  load order goes. We cannot support enabling/disabling a mod which is unmanaged by Vortex
-  
-  3. A new (optional) feature we are trying out is "Auto-Converting Old Style Archives".
-  What this means is that when you go to install a mod that is an old style archive (ie. one
-  that would be installed in \`archive/pc/mods/\`), then we will attempt to build a REDmod
-  for it so that it can be used as part of the load order. NOTE: If you use the feature,
-  do _NOT_ bother the mod authors with any problems that might happen with it.`;
+  This is a major update, so the full detes are better read on the Nexus page, but here's quick rundown:
+
+  - **Full REDmod support!** You can install and manage REDmods alongside all the others. *Note:* this
+    is for new installations or reinstalls only. We don't want to accidentally break your existing mods,
+    so you can choose when and if you want to migrate them yourself!
+
+  - **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check
+    out Settings), but we highly recommend that you leave it on unless there's an issue
+    installing a mod. The reason we recommend it is that REDmods are organized a little better,
+    and...
+
+  - **Load Ordering!** Just drag and drop to order any mods that need ordering! Topmost is highest priority.
+    Note that load order _only_ works on REDmods, and that the game will always load old-style archives at
+    a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged
+    REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything
+    to play nice together.
+
+  - **Automatic REDmod deployment!** Yep, no need to hit the terminal, every time you run a deployment
+    in Vortex, your load order is deployed too. As soon as you see the notification that it's done, you can
+    just start the game.
+
+  - **Jack right in!** Finally, the default launch button will launch the game directly, with REDmods enabled.
+    If you want to go through the launcher (for achievements, perhaps), there's the REDlauncher Tool in your
+    toolbar and dashboard that will do just that.
+  `;
 
   return api.showDialog(
     `info`,
@@ -95,7 +99,7 @@ export const informUserZeroNineZeroChanges = async (
     {
       md: heredoc(redmodZeroNineZeroExplanation),
     },
-    [{ label: `Understood!` }],
+    [{ label: `Got it!` }],
   );
 };
 

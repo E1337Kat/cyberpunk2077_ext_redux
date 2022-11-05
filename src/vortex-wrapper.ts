@@ -37,6 +37,12 @@ export const vortexUtil = util;
 export type VortexCheckResult = Vortex.ITestResult;
 export type VortexCheckFunc = () => Promise<VortexCheckResult>;
 
+//
+// React stuff
+//
+
+export type VortexReducerSpec = Vortex.IReducerSpec;
+
 export type VortexViewPropsFunc = (state: VortexState) => IREDmodProps;
 export type VortexViewPropsActionsFunc = (props: IREDmodProps) => void;
 export type VortexToDoPropsConditionFunc = (props: IREDmodProps) => boolean;
@@ -109,3 +115,25 @@ export type VortexModWithEnabledStatus = VortexMod & VortexProfileMod;
 
 export type VortexModIndex = { [modId: string]: VortexMod };
 export type VortexProfileModIndex = { [modId: string]: VortexProfileMod };
+
+//
+// Shims for stuff that Vortex doesn't export for some reason
+//
+
+export interface VortexIToolShim {
+  id: string;
+  name: string;
+  requiredFiles: string[];
+  executable: (string?) => string;
+  shortName?: string;
+  logo?: string;
+  queryPath?: () => Promise<string> | string;
+  parameters?: string[];
+  environment?: { [key: string]: string };
+  relative?: boolean;
+  exclusive?: boolean;
+  shell?: boolean;
+  detach?: boolean;
+  defaultPrimary?: boolean;
+  onStart?: `hide` | `hide_recover` | `close`;
+}
