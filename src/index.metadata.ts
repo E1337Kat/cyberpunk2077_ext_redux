@@ -8,7 +8,7 @@ export const GOGAPP_ID = `1423049311`;
 export const EPICAPP_ID = `Ginger`;
 
 export const EXTENSION_NAME_NEXUS = `Cyberpunk 2077 Vortex Support`;
-export const EXTENSION_NAME_VORTEX = `cyberpunk2077`;
+export const EXTENSION_NAME_VORTEX = `Cyberpunk 2077`;
 export const EXTENSION_NAME_GITHUB = `E1337Kat/cyberpunk2077_ext_redux`;
 export const EXTENSION_NAME_INTERNAL = `V2077`;
 

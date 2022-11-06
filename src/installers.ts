@@ -531,7 +531,7 @@ export const wrapTestSupported =
 export const wrapInstall =
   (
     vortex: VortexExtensionContext,
-    vortexApiThing,
+    vortexApiLib,
     installer: Installer,
     features: FeatureSet,
   ): VortexInstallFunc =>
@@ -544,7 +544,7 @@ export const wrapInstall =
       _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
     //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiLib.log };
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
       vortexApi.log(`debug`, `Input files:`, filesRelativePaths);

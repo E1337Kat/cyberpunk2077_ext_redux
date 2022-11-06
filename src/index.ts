@@ -1,12 +1,19 @@
 import path from "path";
-import * as vortexLib from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
+import * as vortexApiLib from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
 
 
 // Our stuff
+import { findFirst } from "fp-ts/lib/ReadonlyArray";
+import { pipe } from "fp-ts/lib/function";
+import {
+  getOrElse as getOrElseO,
+  map as mapO,
+} from "fp-ts/lib/Option";
 import {
   EPICAPP_ID,
   EXTENSION_NAME_INTERNAL,
+  EXTENSION_NAME_VORTEX,
   GAME_ID,
   GOGAPP_ID,
   isSupported,
@@ -21,6 +28,7 @@ import {
   DefaultEnabledStateForDynamicFeatures,
   storeGetDynamicFeature,
   DynamicFeature,
+  FeatureSet,
 } from "./features";
 import {
   wrapTestSupported,
@@ -46,9 +54,11 @@ import {
   wrapSerialize,
 } from "./load_order";
 import {
+  constant,
   alwaysTrue,
   bbcodeBasics,
   heredoc,
+  S,
 } from "./util.functions";
 import { setREDmodAutoconvertArchivesAction } from "./actions";
 import { informUserZeroNineZeroChanges } from "./ui.dialogs";
@@ -56,13 +66,36 @@ import settingsComponent from './views/settings'; // eslint-disable-line import/
 import { makeSettingsReducer } from './reducers';
 
 
+//
+// Helpers
+//
+
+const lowercaseWhitespaceIgnoring = (str: string): string =>
+  str.toLocaleLowerCase().replace(/\s+/g, ``);
+
+const extensionDetes = (vortexState: VortexState, featureSet: FeatureSet): string =>
+  pipe(
+    vortexApiLib.util.getSafe(vortexState, [`session`, `extensions`, `installed`], {}),
+    Object.entries,
+    findFirst(([_extensionId, extensionData]) =>
+      lowercaseWhitespaceIgnoring(extensionData.name) === lowercaseWhitespaceIgnoring(EXTENSION_NAME_VORTEX)),
+    mapO(([extensionId, extensionData]) => S({
+      extensionId,
+      extensionName: extensionData.name,
+      extensionVersion: extensionData.version,
+      featureSet,
+    })),
+    getOrElseO(constant(`<No extension info found, might just be a glitch>`)),
+  );
+
+
 export const findGame = (): string =>
-  vortexLib.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
+  vortexApiLib.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
     (game: VortexGameStoreEntry) => game.gamePath,
   );
 
 const requiresGoGLauncher = (): Promise<{ launcher: string; addInfo?: string; }> =>
-  vortexLib.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
+  vortexApiLib.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
     (gog ? { launcher: `gog`, addInfo: GOGAPP_ID } : undefined));
 
 
@@ -76,8 +109,8 @@ interface IREDmodProps {
 const archiveAutoConvert = (state: unknown): boolean =>
   storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, state);
 
-const toggleAutoConvert = (api: vortexLib.types.IExtensionApi, _gameMode: string): void => {
-  const state: vortexLib.types.IState = api.store.getState();
+const toggleAutoConvert = (api: vortexApiLib.types.IExtensionApi, _gameMode: string): void => {
+  const state: vortexApiLib.types.IState = api.store.getState();
   api.store.dispatch(setREDmodAutoconvertArchivesAction(!archiveAutoConvert(state)));
 };
 
@@ -118,18 +151,18 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
   const setupFunctionToRunAtExtensionInit =
     async (discovery: VortexDiscoveryResult): Promise<void> => {
       try {
-        await vortexLib.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
-        vortexLib.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
+        await vortexApiLib.fs.ensureDirWritableAsync(path.join(discovery.path, V2077_DIR));
+        vortexApiLib.log(`info`, `Metadata directory ${V2077_DIR} exists and is writable, good!`);
       } catch (err) {
         // This might be an actual problem but let's not prevent proceeding..
-        vortexLib.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
+        vortexApiLib.log(`error`, `Unable to create or access metadata dir ${V2077_DIR} under ${discovery.path}`, err);
       }
 
       if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
-        return wrappedPrepareForModdingWithREDmodding(vortexExt, vortexLib, discovery);
+        return wrappedPrepareForModdingWithREDmodding(vortexExt, vortexApiLib, discovery);
       }
 
-      return vortexLib.fs.readdirAsync(path.join(discovery.path));
+      return vortexApiLib.fs.readdirAsync(path.join(discovery.path));
     };
 
   const defaultGameLaunchParameters =
@@ -138,13 +171,13 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       : [];
 
   const fullFeatureSetAvailablePostStartup =
-    FullFeatureSetFromStaticAndDynamic(StaticFeaturesForStartup, vortexExt.api, vortexLib.util);
+    FullFeatureSetFromStaticAndDynamic(StaticFeaturesForStartup, vortexExt.api, vortexApiLib.util);
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
   vortexExt.registerGame({
     id: GAME_ID,
-    name: `Cyberpunk 2077`,
+    name: EXTENSION_NAME_VORTEX,
     setup: setupFunctionToRunAtExtensionInit,
     mergeMods: true,
     queryPath: findGame,
@@ -171,10 +204,10 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
   vortexExt.registerInstaller(
     internalPipelineInstaller.id,
     internalPipelineInstaller.priority,
-    wrapTestSupported(vortexExt, vortexLib, internalPipelineInstaller),
+    wrapTestSupported(vortexExt, vortexApiLib, internalPipelineInstaller),
     wrapInstall(
       vortexExt,
-      vortexLib,
+      vortexApiLib,
       internalPipelineInstaller,
       fullFeatureSetAvailablePostStartup,
     ),
@@ -222,9 +255,9 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         Tools dashlet, but changes won't be reflected in the load order panel.
       `)),
 
-        validate: wrapValidate(vortexExt, vortexLib, internalLoadOrderer),
-        deserializeLoadOrder: wrapDeserialize(vortexExt, vortexLib, internalLoadOrderer),
-        serializeLoadOrder: wrapSerialize(vortexExt, vortexLib, internalLoadOrderer),
+        validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
+        deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
+        serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),
       });
 
     } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
@@ -233,7 +266,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
       const state = vortexExt.api.store.getState();
-      const gameMode = vortexLib.selectors.activeGameId(state);
+      const gameMode = vortexApiLib.selectors.activeGameId(state);
       return gameMode === GAME_ID;
     }, 51);
 
@@ -244,7 +277,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       undefined,
       `health`,
       `v0.9.0 Update Detes for Cyberpunk 2077!`,
-      (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortexExt.api, log: vortexLib.log }),
+      (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortexExt.api, log: vortexApiLib.log }),
       alwaysTrue, // We want to show this before activating the game
       undefined,
       undefined,
@@ -255,7 +288,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       `${EXTENSION_NAME_INTERNAL}-todo-redmod-autoconvert`,
       `settings`,
       (state: VortexState): IREDmodProps => {
-        const gameMode = vortexLib.selectors.activeGameId(state);
+        const gameMode = vortexApiLib.selectors.activeGameId(state);
         return {
           gameMode,
           archiveAutoConvertEnabled: archiveAutoConvert(state),
@@ -273,9 +306,17 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
   } // if (IsFeatureEnabled(features.REDmodding))
 
   vortexExt.once(() => {
+
+    vortexExt.api.events.once(`startup`, () => {
+      const extensionDetesForDebugging =
+        extensionDetes(vortexExt.api.store.getState(), fullFeatureSetAvailablePostStartup);
+
+      vortexApiLib.log(`info`, `${EXTENSION_NAME_INTERNAL} Vortex Extension Detes: ${extensionDetesForDebugging}`);
+    });
+
     vortexExt.api.onAsync(`did-deploy`, (profileId) => {
       const state = vortexExt.api.store.getState();
-      const profile = vortexLib.selectors.profileById(state, profileId);
+      const profile = vortexApiLib.selectors.profileById(state, profileId);
 
       if (GAME_ID !== profile?.gameId) {
         return Promise.resolve();

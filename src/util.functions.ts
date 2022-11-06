@@ -32,6 +32,8 @@ export const negate = (b: boolean): boolean => !b;
 export const alwaysTrue = (): boolean => true;
 export const alwaysFalse = (): boolean => false;
 
+export const constant = <T>(t: T): Dynamic<T> => () => t;
+
 export const noop = (): void => undefined;
 
 export type GenericRecord =
