@@ -1,6 +1,6 @@
 {
     "name": "cyberpunk2077",
-    "version": "0.9.0-gonk",
+    "version": "0.9.0-preem",
     "description": "A rebuild of the original cyberpunk vortex extension with the aim to support more mod types and fix common issues",
     "main": "./dist/index.js",
     "scripts": {
