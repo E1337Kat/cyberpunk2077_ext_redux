@@ -1,11 +1,55 @@
 # Cyberpunk 2077 Vortex Support v0.9.0 "Rogue"
 
-This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. Rebuild. Survive.
+> This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. Rebuild. Survive.
+>
+> Thrive. You come out on top, untouchable, and it's your city now. Because you were always the Queen.
 
-Thrive. You come out on top, untouchable, and it's your city now.
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
 
-Because you were always the Queen.
+Why use a mod manager? In addition to quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
 
+As always, any feedback and such is appreciated so we can ensure that no bugs or oversights have slipped through our testing - and other feedback and ideas are more than welcome! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+
+- ✨ **Full REDmod support!** You can install and manage REDmods alongside all the others. *Note:* this is for new installations or reinstalls only. We don't want to accidentally break your existing mods, so you can choose when and if you want to migrate them yourself!
+
+- ✨ **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check out Settings), but we highly recommend that you leave it on unless there's an issue installing a mod. The reason we recommend it is that REDmods are organized a little better, and...
+
+- ✨ **Load Ordering!** Just drag and drop to order any mods that need ordering! Topmost is highest priority.  Note that load order _only_ works on REDmods, and that the game will always load old-style archives at a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything to play nice together.
+
+- ✨ **Automatic REDmod deployment!** Yep, no need to hit the terminal, every time you run a deployment in Vortex, your load order is deployed too. As soon as you see the notification that it's done, you can just start the game.
+
+- ✨ **Jack right in!** Finally, the default launch button will launch the game directly, with REDmods enabled. No need for the terminal or a separate launcher. If you _do_ want to go through the launcher (for achievements, perhaps), there's the REDlauncher Tool in your toolbar and dashboard that will do just that.
+
+## Fixer Gigs
+
+- 🐞 All fixes we needed to make were released in v0.8.1, v0.8.2, and v0.8.3, this one's the big leagues.
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+
+- 🩻 A major addition is the ability to define mod type data. In this release it's used to support REDmods, but in the future it can be used for things like true conflict checking, safe cleanup scripts for tricky mods, and so much more...
+- ⚙️ All the internal changes and refactorings are too numerous to mention, but we were able to build on the foundation we'd already set up and make some major changes, and we've got some new foundations to build nova stuff on.
+
+**Full Changelog**: [v0.8.3...v0.9.0](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.8.3...v0.9.0)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+Mostly Auska and Ellie this time around, but we're grateful for the help from both CDPR and Vortex immediately after the REDmodding news dropped - special thanks to @Pickysaurus for even contributing code, and @rfuzzo for tolerating the endlessly meticulous questions about REDmodding implementation minutiae to make sure we'd be able to be 100% compatible!
+
+As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.9.0 "Rogue"'
 
 
 ---
