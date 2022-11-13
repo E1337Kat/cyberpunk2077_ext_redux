@@ -25,8 +25,8 @@
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1 }],
     "import-newlines/enforce": [
-      "error",
-      1
+      "warn",
+      0
     ],
     "curly": "error",
     "func-style": "error",
