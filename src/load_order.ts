@@ -62,6 +62,7 @@ import {
   VortexProfile,
   VortexProfileMod,
   VortexProfileModIndex,
+  VortexRunParameters,
   VortexSerializeFunc,
   VortexState,
   vortexUtil,
@@ -388,12 +389,53 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
 };
 
 
+export const loadOrderToREDdeployRunParameters = (
+  gameDirPath: string,
+  v2077LoadOrderToDeploy: LoadOrder,
+): VortexRunParameters => {
+  const v2077LoadOrderEntries =
+    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
+
+  const loadOrderForREDmodDeployWithShellQuotes = pipe(
+    v2077LoadOrderEntries,
+    filterMap((mod) =>
+      (mod.enabled
+        ? some(`"${path.basename(mod.redmodPath)}"`)
+        : none)),
+  );
+
+  const redModDeployParametersToCreateNewManifest = [
+    `deploy`,
+    `-root=`,
+    `"${gameDirPath}"`,
+    `-rttiSchemaFile=`,
+    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
+    `-mod=`,
+    ...loadOrderForREDmodDeployWithShellQuotes,
+  ];
+
+  const exePath =
+    path.join(gameDirPath, REDmodManualDeploy.executable());
+
+  const runOptions = {
+    cwd: path.dirname(exePath),
+    shell: true,
+  };
+
+  return {
+    executable: exePath,
+    args: redModDeployParametersToCreateNewManifest,
+    options: runOptions,
+  };
+};
+
+
 const startREDmodDeployInTheBackgroundWithNotifications = (
   vortexApi: VortexApi,
   gameDirPath: string,
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
-  vortexLoadOrderToDeploy: VortexLoadOrder,
+  vortexFormatLoadOrderForComparison: VortexLoadOrder,
 ): void => {
   const tag = `${me}: REDmod Delayed Deploy`;
 
@@ -425,42 +467,16 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   // Maybe there's a better way to do this check.. but this is what Vortex itself
   // uses, so we can't give an actually unique ID to the vortex load order because
   // then it won't match the previous run..
-  if (JSON.stringify(vortexLoadOrderToDeploy) !== JSON.stringify(newestGeneratedLoadOrder)) {
+  if (JSON.stringify(vortexFormatLoadOrderForComparison) !== JSON.stringify(newestGeneratedLoadOrder)) {
     vortexApi.log(`info`, `${tag}: Load order ${loID} no longer most recent, this is ok, canceling!`);
     // No need to notify, it's fine if this has been superceded
     return;
   }
 
-  const v2077LoadOrderEntries =
-    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
+  const redDeploy =
+    loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
 
-  const loadOrderForREDmodDeployWithShellQuotes = pipe(
-    v2077LoadOrderEntries,
-    filterMap((mod) =>
-      (mod.enabled
-        ? some(`"${path.basename(mod.redmodPath)}"`)
-        : none)),
-  );
-
-  const redModDeployParametersToCreateNewManifest = [
-    `deploy`,
-    `-root=`,
-    `"${gameDirPath}"`,
-    `-rttiSchemaFile=`,
-    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
-    `-mod=`,
-    ...loadOrderForREDmodDeployWithShellQuotes,
-  ];
-
-  const exePath =
-    path.join(gameDirPath, REDmodManualDeploy.executable());
-
-  const runOptions = {
-    cwd: path.dirname(exePath),
-    shell: true,
-  };
-
-  vortexApi.runExecutable(exePath, redModDeployParametersToCreateNewManifest, runOptions)
+  vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
     .then(() => {
       vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
       showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
@@ -472,9 +488,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 
   showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
   vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
-  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S({
-    loadOrderForREDmodDeployWithShellQuotes, exePath, redModDeployParametersToCreateNewManifest, runOptions,
-  }));
+  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
 };
 
 
@@ -516,7 +530,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
     return Promise.resolve();
   }
 
-  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, vortexLoadOrder);
+  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, S(vortexLoadOrder));
 
   // Is there any risk there could be a mismatch of profiles here? Surely not?
   const vortexState: VortexState = vortexApi.store.getState();
@@ -540,7 +554,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   };
 
   debugger;
-  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, v2077LoadOrder);
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, S(v2077LoadOrder));
 
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
