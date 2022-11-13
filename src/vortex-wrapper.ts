@@ -1,4 +1,4 @@
-import { util } from "vortex-api";
+import { util } from "@vortex-api-test-shimmed";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
 import { Promise } from "bluebird"; // eslint-disable-line import/no-extraneous-dependencies
 import { ComponentType } from "react"; // eslint-disable-line import/no-extraneous-dependencies
@@ -137,3 +137,6 @@ export interface VortexIToolShim {
   defaultPrimary?: boolean;
   onStart?: `hide` | `hide_recover` | `close`;
 }
+
+export type VortexRunParameters = Vortex.IRunParameters;
+export type VortexRunOptions = Vortex.IRunOptions;
