@@ -17,7 +17,7 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@vortex-api-test-shimmed": ["node_modules/vortex-api/lib/index.d.ts"]
+      "@vortex-api-test-shimmed": ["node_modules/vortex-api"]
     }
   },
   "exclude": ["test", "node_modules"],
