@@ -120,7 +120,7 @@ export type VortexProfileModIndex = { [modId: string]: VortexProfileMod };
 // Shims for stuff that Vortex doesn't export for some reason
 //
 
-export interface VortexIToolShim {
+export interface VortexToolShim {
   id: string;
   name: string;
   requiredFiles: string[];

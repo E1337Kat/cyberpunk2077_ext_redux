@@ -9,7 +9,6 @@ import {
   GOGAPP_ID,
   STEAMAPP_ID,
   EPICAPP_ID,
-  EXTENSION_NAME_INTERNAL,
 } from './index.metadata';
 import {
   REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
@@ -21,10 +20,13 @@ import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
-  VortexIToolShim,
   VortexState,
   VortexToolDiscovered,
 } from "./vortex-wrapper";
+import {
+  REDdeployManual,
+  REDlauncher,
+} from "./tools.redmodding";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game.
 // This may need to be converted to a test, but the UI for tests is less flexible.
@@ -35,44 +37,6 @@ interface REDmoddingDlcDetails {
   openCommand: () => Promise<void>;
 }
 
-export const REDlauncherToolId = `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`;
-
-export const REDdeployManualToolId = `${EXTENSION_NAME_INTERNAL}-tools-redMod`;
-export const REDdeployManualToolFakeExe = `${REDdeployManualToolId}-exe.fake`;
-
-export const REDlauncherExeRelativePath = path.join(`REDprelauncher.exe`);
-export const REDdeployExeRelativePath = path.join(`tools\\redmod\\bin\\redMod.exe`);
-
-
-export const REDlauncher: VortexIToolShim = {
-  id: REDlauncherExeRelativePath,
-  name: `REDLauncher (GOG/Steam/Epic)`,
-  shortName: `REDLauncher`,
-  logo: `REDLauncher.png`,
-  requiredFiles: [REDlauncherExeRelativePath],
-  executable: (): string => REDlauncherExeRelativePath,
-  parameters: [`-modded`],
-  environment: {},
-  relative: true,
-};
-
-export const REDdeployManual: VortexIToolShim = {
-  id: REDdeployManualToolId,
-  name: `REDmod Deploy Latest Load Order`,
-  shortName: `REDdeploy`,
-  logo: `REDdeploy.png`,
-  requiredFiles: [REDdeployExeRelativePath],
-  executable: (): string => REDdeployManualToolFakeExe,
-  parameters: [],
-  relative: true,
-  shell: true,
-  exclusive: true,
-};
-
-export const REDmoddingTools = [
-  REDlauncher,
-  REDdeployManual,
-];
 
 export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
   const tools = state.settings.gameMode.discovered[gameId]?.tools || {};

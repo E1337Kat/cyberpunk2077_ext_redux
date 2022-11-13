@@ -4,8 +4,12 @@ import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-depen
 
 
 // Our stuff
-import { findFirst } from "fp-ts/lib/ReadonlyArray";
-import { pipe } from "fp-ts/lib/function";
+import {
+  findFirst,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   getOrElse as getOrElseO,
   map as mapO,
@@ -43,8 +47,6 @@ import {
   vortexUtil,
 } from "./vortex-wrapper";
 import {
-  REDlauncher,
-  REDmoddingTools,
   wrappedPrepareForModdingWithREDmodding,
 } from './redmodding';
 import {
@@ -60,10 +62,17 @@ import {
   heredoc,
   S,
 } from "./util.functions";
-import { setREDmodAutoconvertArchivesAction } from "./actions";
-import { informUserZeroNineZeroChanges } from "./ui.dialogs";
+import {
+  setREDmodAutoconvertArchivesAction,
+} from "./actions";
+import {
+  informUserZeroNineZeroChanges,
+} from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
-import { makeSettingsReducer } from './reducers';
+import {
+  makeSettingsReducer,
+} from './reducers';
+import * as REDmoddingTools from "./tools.redmodding";
 
 
 //
@@ -125,7 +134,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const MaybeREDmodTools =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
-      ? REDmoddingTools
+      ? REDmoddingTools.available.tools
       : [];
 
   const moddingTools = [
@@ -167,7 +176,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const defaultGameLaunchParameters =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
-      ? REDlauncher.parameters
+      ? REDmoddingTools.REDlauncher.parameters
       : [];
 
   const fullFeatureSetAvailablePostStartup =
