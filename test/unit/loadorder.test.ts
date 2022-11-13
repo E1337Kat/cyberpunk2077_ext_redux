@@ -9,7 +9,7 @@ import {
 } from "../../src/load_order.types";
 import { loadOrderToREDdeployRunParameters } from "../../src/load_order";
 
-import { REDmodManualDeploy } from "../../src/redmodding";
+import { REDdeployManual } from "../../src/redmodding";
 import { VortexRunParameters } from "../../src/vortex-wrapper";
 import { REDMODDING_RTTI_METADATA_FILE_PATH } from "../../src/redmodding.metadata";
 
@@ -59,7 +59,7 @@ describe(`Load Order`, () => {
 
       const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
       const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDmodManualDeploy.executable()}`,
+        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
         args: [
           `deploy`,
           `-root=`,
@@ -74,13 +74,41 @@ describe(`Load Order`, () => {
           `"PanamRomancedEnhancedPrivacy"`,
         ],
         options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDmodManualDeploy.executable()}`),
+          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
           shell: true,
         },
       };
 
       const redDeployParamsGenerated =
         loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+
+      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+    });
+
+    test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
+
+      const noModsInLoadOrder: LoadOrder = {
+        ...loTestData.v2077LoadOrder,
+        entriesInOrderWithEarlierWinning: [],
+      };
+
+      const expectedRedDeployParameters: VortexRunParameters = {
+        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
+        args: [
+          `deploy`,
+          `-root=`,
+          `"${FAKE_GAMEDIR_PATH}"`,
+          `-rttiSchemaFile=`,
+          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+        ],
+        options: {
+          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
+          shell: true,
+        },
+      };
+
+      const redDeployParamsGenerated =
+        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, noModsInLoadOrder);
 
       expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
     });
