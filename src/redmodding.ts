@@ -46,13 +46,16 @@ export const REDlauncher: VortexIToolShim = {
   relative: true,
 };
 
-export const REDmodManualDeploy: VortexIToolShim = {
-  id: `${EXTENSION_NAME_INTERNAL}-tools-redMod`,
+export const REDdeployManualToolId = `${EXTENSION_NAME_INTERNAL}-tools-redMod`;
+export const REDdeployManualToolFakeExe = `${REDdeployManualToolId}-exe.fake`;
+
+export const REDdeployManual: VortexIToolShim = {
+  id: REDdeployManualToolId,
   name: `REDmod Deploy (Everything)`,
   shortName: `REDdeploy`,
   logo: `REDdeploy.png`,
   requiredFiles: [path.join(`tools\\redmod\\bin\\redMod.exe`)],
-  executable: (): string => path.join(`tools\\redmod\\bin\\redMod.exe`),
+  executable: (): string => REDdeployManualToolFakeExe,
   parameters: [`deploy`],
   relative: true,
   shell: true,
@@ -61,7 +64,7 @@ export const REDmodManualDeploy: VortexIToolShim = {
 
 export const REDmoddingTools = [
   REDlauncher,
-  REDmodManualDeploy,
+  REDdeployManual,
 ];
 
 export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
@@ -137,7 +140,7 @@ const prepareForModdingWithREDmodding = async (
 
   // Check for the REDmod files.
   const redLauncherPath = path.join(discovery.path, REDlauncher.executable());
-  const redModPath = path.join(discovery.path, REDmodManualDeploy.executable());
+  const redModPath = path.join(discovery.path, REDdeployManual.executable());
 
   try {
     await Promise.all([redLauncherPath, redModPath].map(async (file) => fs.statAsync(file)));

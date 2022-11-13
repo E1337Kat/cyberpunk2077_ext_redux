@@ -11,6 +11,7 @@ import {
 import {
   filterMap,
   flatten,
+  isEmpty,
   map,
   mapWithIndex,
   reduceWithIndex,
@@ -87,7 +88,7 @@ import {
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { REDmodManualDeploy } from "./redmodding";
+import { REDdeployManual } from "./redmodding";
 import {
   InfoNotification,
   showInfoNotification,
@@ -404,18 +405,25 @@ export const loadOrderToREDdeployRunParameters = (
         : none)),
   );
 
+  const loadOrderedModListToDeploy =
+    isEmpty(loadOrderForREDmodDeployWithShellQuotes)
+      ? []
+      : [
+        `-mod=`,
+        ...loadOrderForREDmodDeployWithShellQuotes,
+      ];
+
   const redModDeployParametersToCreateNewManifest = [
     `deploy`,
     `-root=`,
     `"${gameDirPath}"`,
     `-rttiSchemaFile=`,
     `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
-    `-mod=`,
-    ...loadOrderForREDmodDeployWithShellQuotes,
+    ...loadOrderedModListToDeploy,
   ];
 
   const exePath =
-    path.join(gameDirPath, REDmodManualDeploy.executable());
+    path.join(gameDirPath, REDdeployManual.executable());
 
   const runOptions = {
     cwd: path.dirname(exePath),
