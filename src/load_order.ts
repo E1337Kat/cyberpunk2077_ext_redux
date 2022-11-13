@@ -389,6 +389,25 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
   return V2077LoadOrderEntry;
 };
 
+export const makeV2077LoadOrderFrom = (
+  vortexLoadOrder: VortexLoadOrder,
+  ownerVortexProfileId: string,
+  dateAsLoadOrderId: number,
+): LoadOrder => {
+  const v2077LoadOrderEntries = pipe(
+    vortexLoadOrder,
+    map(makeV2077LoadOrderEntryFrom),
+    toMutableArray,
+  );
+
+  return {
+    loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
+    ownerVortexProfileId,
+    generatedAt: new Date(dateAsLoadOrderId).toISOString(),
+    entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
+  };
+};
+
 
 export const loadOrderToREDdeployRunParameters = (
   gameDirPath: string,
@@ -545,23 +564,10 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   const activeProfile = selectors.activeProfile(vortexState);
 
   const ownerVortexProfileId = activeProfile.id;
-
-  const v2077LoadOrderEntries = pipe(
-    vortexLoadOrder,
-    map(makeV2077LoadOrderEntryFrom),
-    toMutableArray,
-  );
-
   const loID = Date.now();
 
-  const v2077LoadOrder: LoadOrder = {
-    loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
-    ownerVortexProfileId,
-    generatedAt: new Date(loID).toISOString(),
-    entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
-  };
+  const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
 
-  debugger;
   vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, S(v2077LoadOrder));
 
   // We want to wait until there's been a deployment - either the automatic one

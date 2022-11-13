@@ -7,7 +7,10 @@ import {
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
 } from "../../src/load_order.types";
-import { loadOrderToREDdeployRunParameters } from "../../src/load_order";
+import {
+  loadOrderToREDdeployRunParameters,
+  makeV2077LoadOrderFrom,
+} from "../../src/load_order";
 
 import { REDdeployManual } from "../../src/redmodding";
 import { VortexRunParameters } from "../../src/vortex-wrapper";
@@ -52,6 +55,31 @@ describe(`Load Order`, () => {
     });
 
   }); // Types and Serialization
+
+
+  describe(`Vortex load order to v2077 load order mapping`, () => {
+
+    test(`makeV2077LoadOrderFrom Vortex load order does exactly that`, () => {
+      const fakeDate = Date.now();
+      const expectedDateString = new Date(fakeDate).toISOString();
+
+      const fakeOwnerVortexProfileId = `xyZzyZx`;
+
+      const { vortexLoadOrder } = loTestData;
+
+      const expectedV2077LoadOrder: LoadOrder = {
+        ...loTestData.v2077LoadOrder,
+        generatedAt: expectedDateString,
+      };
+
+      const generatedV2077LoadOrder =
+        makeV2077LoadOrderFrom(vortexLoadOrder, fakeOwnerVortexProfileId, fakeDate);
+
+      expect(generatedV2077LoadOrder).toEqual(expectedV2077LoadOrder);
+    });
+
+  });
+
 
   describe(`REDdeploy parameter generation`, () => {
 
