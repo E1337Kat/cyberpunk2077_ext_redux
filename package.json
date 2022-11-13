@@ -16,9 +16,13 @@
         "repl": "ts-node -r tsconfig-paths/register",
         "postinstall": "patch-package",
         "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color",
+        "webpack-debug": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color --stats verbose --analyze --progress",
         "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./REDdeploy.png ./dist/",
+        "build-debug": "npm run webpack-debug && extractInfo && copyfiles -f ./gameart.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./REDdeploy.png ./dist/",
         "pack": "npm run build && powershell.exe ./script/package.ps1",
+        "pack-debug": "npm run build-debug && powershell.exe ./script/package.ps1",
         "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
+        "pack-dev-debug": "npm run build-debug && powershell.exe ./script/package.ps1 -Dev",
         "pack-linux": "npm run build && bash ./script/package.sh",
         "pack-dev-linux": "npm run build && bash ./script/package.sh -dev",
         "dump-schemas": "npx ts-node -T ./script/dump-schemas.ts"
@@ -74,10 +78,10 @@
         "ts-loader": "^6.0.4",
         "ts-node": "^10.7.0",
         "tsconfig-paths": "^3.13.0",
-        "tsconfig-paths-webpack-plugin": "^4.0.0",
         "typescript": "^4.8.4",
         "vortex-api": "github:Nexus-Mods/vortex-api",
         "webpack": "^4.35.0",
+        "webpack-bundle-analyzer": "^4.7.0",
         "webpack-cli": "^4.9.2"
     },
     "dependencies": {
