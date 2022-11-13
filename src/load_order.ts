@@ -1,7 +1,13 @@
-import { win32 } from "path";
+import {
+  win32,
+} from "path";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Promise } from "bluebird";
-import { pipe } from "fp-ts/lib/function";
+import {
+  Promise,
+} from "bluebird";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   Option,
   none,
@@ -30,7 +36,9 @@ import {
   fs,
   selectors,
 } from "@vortex-api-test-shimmed";
-import { remove } from "spectacles-ts";
+import {
+  remove,
+} from "spectacles-ts";
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_ID,
@@ -77,7 +85,9 @@ import {
   jsonp,
   S,
 } from "./util.functions";
-import { fileFromDiskTE } from "./installers.shared";
+import {
+  fileFromDiskTE,
+} from "./installers.shared";
 import {
   attrModType,
   attrREDmodInfos,
@@ -88,7 +98,9 @@ import {
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { REDdeployManual } from "./redmodding";
+import {
+  REDdeployExeRelativePath,
+} from "./tools.redmodding";
 import {
   InfoNotification,
   showInfoNotification,
@@ -442,7 +454,7 @@ export const loadOrderToREDdeployRunParameters = (
   ];
 
   const exePath =
-    path.join(gameDirPath, REDdeployManual.executable());
+    path.join(gameDirPath, REDdeployExeRelativePath);
 
   const runOptions = {
     cwd: path.dirname(exePath),

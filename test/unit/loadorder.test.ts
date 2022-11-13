@@ -1,6 +1,8 @@
 import path from "path";
 // import * as mockedVortexApi from "vortex-api";
-import { isLeft } from "fp-ts/lib/Either";
+import {
+  isLeft,
+} from "fp-ts/lib/Either";
 import {
   decodeLoadOrder,
   encodeLoadOrder,
@@ -11,10 +13,15 @@ import {
   loadOrderToREDdeployRunParameters,
   makeV2077LoadOrderFrom,
 } from "../../src/load_order";
-
-import { REDdeployManual } from "../../src/redmodding";
-import { VortexRunParameters } from "../../src/vortex-wrapper";
-import { REDMODDING_RTTI_METADATA_FILE_PATH } from "../../src/redmodding.metadata";
+import {
+  REDdeployManual,
+} from "../../src/tools.redmodding";
+import {
+  VortexRunParameters,
+} from "../../src/vortex-wrapper";
+import {
+  REDMODDING_RTTI_METADATA_FILE_PATH,
+} from "../../src/redmodding.metadata";
 
 import * as loTestData from "./loadorder.example";
 
