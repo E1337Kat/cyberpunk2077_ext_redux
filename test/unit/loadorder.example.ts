@@ -7,7 +7,7 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
   enabled: true,
   name: `✅ #POPPY DRESS (V2077 Autoconverted) 0.0.1-V2077+V2077RED (from #POPPY DRESS.zip )`,
   data: {
-    ownerVortexProfileId: `JoXXWgtZn`,
+    ownerVortexProfileId: `xyZzyZx`,
     vortexId: `#POPPY DRESS`,
     vortexModVersion: ``,
     vortexEnabled: true,
@@ -24,7 +24,7 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
   enabled: true,
   name: `✅ AuskaWorks - Guinevere's Always-On Chrome 1.0 (from AuskaWorks Guinevere's Always-On Chrome v1.0.0 - nim's extra more head slots - slot08 enabled )`,
   data: {
-    ownerVortexProfileId: `JoXXWgtZn`,
+    ownerVortexProfileId: `xyZzyZx`,
     vortexId: `Guinevere's Always-On Chrome v1.0.0`,
     vortexModVersion: ``,
     vortexEnabled: true,
@@ -42,7 +42,7 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
   enabled: true,
   name: `✅ Better_Apartment_Views 1.e3 (from Better Apartment Views - redmod version 1.e3)`,
   data: {
-    ownerVortexProfileId: `JoXXWgtZn`,
+    ownerVortexProfileId: `xyZzyZx`,
     vortexId: `redmod version-5401-1-e3-1664115429`,
     vortexModId: `5401`,
     vortexModVersion: `1.e3`,
@@ -61,7 +61,7 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
   enabled: true,
   name: `✅ PanamRomancedEnhanced 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
   data: {
-    ownerVortexProfileId: `JoXXWgtZn`,
+    ownerVortexProfileId: `xyZzyZx`,
     vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
     vortexModId: `4626`,
     vortexModVersion: `1.4`,
@@ -80,7 +80,7 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
   enabled: true,
   name: `✅ PanamRomancedEnhancedPrivacy 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
   data: {
-    ownerVortexProfileId: `JoXXWgtZn`,
+    ownerVortexProfileId: `xyZzyZx`,
     vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
     vortexModId: `4626`,
     vortexModVersion: `1.4`,
