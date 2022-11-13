@@ -14,7 +14,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@vortex-api-test-shimmed": ["node_modules/vortex-api/lib/index.d.ts"]
+    }
   },
   "exclude": ["test", "node_modules"],
   "include": ["src/**/*.ts", "src/**/*.tsx"]

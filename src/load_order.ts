@@ -28,7 +28,7 @@ import {
 import {
   fs,
   selectors,
-} from "vortex-api";
+} from "@vortex-api-test-shimmed";
 import { remove } from "spectacles-ts";
 import {
   EXTENSION_NAME_INTERNAL,

@@ -2,7 +2,7 @@ import path from "path";
 import {
   fs,
   util as VortexUtil,
-} from "vortex-api";
+} from "@vortex-api-test-shimmed";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,

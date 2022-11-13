@@ -13,6 +13,7 @@
     "sourceMap": true,
     "baseUrl": "..",
     "paths": {
+      "@vortex-api-test-shimmed": ["test/shimmed/vortex-api-test-shimmed"],
       "*": ["../node_modules/vortex-api/lib/types/*"]
     }
   },
