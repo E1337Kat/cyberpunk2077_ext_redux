@@ -73,6 +73,7 @@ import {
   makeSettingsReducer,
 } from './reducers';
 import * as REDmoddingTools from "./tools.redmodding";
+import * as ExternalTools from "./tools.external";
 
 
 //
@@ -139,22 +140,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const moddingTools = [
     ...MaybeREDmodTools,
-    ...[
-      {
-        id: `CyberCat`,
-        name: `CyberCAT Save Editor`,
-        shortName: `CyberCAT`,
-        logo: `SaveEditor.png`,
-        executable: (): string => path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-        requiredFiles: [
-          path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-          path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
-        ],
-        defaultPrimary: false,
-        shell: false,
-        relative: true,
-      },
-    ],
+    ...ExternalTools.available.tools,
   ];
 
   const setupFunctionToRunAtExtensionInit =
