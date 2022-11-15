@@ -54,6 +54,7 @@ import {
   internalLoadOrderer,
   wrapDeserialize,
   wrapSerialize,
+  loadOrderUsageInstructionsForVortexGui,
 } from "./load_order";
 import {
   constant,
@@ -222,34 +223,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         // but on the whole I think it's probably better to reduce the
         // amount of space the panel takes instead.
         //
-        usageInstructions: heredoc(bbcodeBasics(`
-        You don't have to order everything. It's best to only order mods that
-        require it, or that you otherwise know to conflict with each other.
-
-        Only REDmods and autoconverted heritage mods are orderable. If you don't see
-        something you just installed, click on Refresh.
-
-        You can order both enabled and disabled mods, but only the enabled ones will
-        be included in the REDmod deployment. The disabled ones will remember their
-        place in the load order, though, so long as you don't uninstall them!
-
-        All heritage archive mods that are not autoconverted to REDmod will be loaded
-        BEFORE all REDmods, in the usual alphabetical order. That means that if you want
-        to override an archive mod, you need to convert it to REDmod first. You can do
-        this by making sure the autoconvert setting is on and then reinstalling the mod.
-
-        REDmods that you have installed outside Vortex are NOT supported right now.
-
-        The load order is saved automatically, and will be deployed whenever the next
-        Vortex deployment occurs - you can also manually click to deploy, if you like!
-
-        REDmod deployment can take a little while if you have tweak or script mods,
-        so wait for the green success notification before you start the game! :)
-
-        You can still use the command-line redMod.exe or the REDdeploy Tool in your
-        Tools dashlet, but changes won't be reflected in the load order panel.
-      `)),
-
+        usageInstructions: loadOrderUsageInstructionsForVortexGui,
         validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
         deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
         serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),
