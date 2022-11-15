@@ -107,8 +107,6 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
         const fullExePath =
           path.join(gameDirPath(vortexApi), REDdeployExeRelativePath);
 
-        debugger;
-
         if (executable !== fullExePath
            || args.length !== 1
            || args[0] !== REDdeployManualToolNeedsLOGenerated) {

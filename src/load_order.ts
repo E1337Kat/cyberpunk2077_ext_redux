@@ -525,8 +525,6 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
     return;
   }
 
-  debugger;
-
   const newestGeneratedLoadOrder: readonly VortexLoadOrderEntry[] =
     vortexUtil.getSafe(vortexState, [`persistent`, `loadOrder`, ownerProfileId], undefined);
 
