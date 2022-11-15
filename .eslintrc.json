@@ -47,7 +47,9 @@
           ":": "before",
           "|": "before",
           ">": "before",
-          "<": "before"
+          "<": "before",
+          "||": "before",
+          "&&": "before"
         }
       }
     ],
