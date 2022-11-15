@@ -111,6 +111,8 @@ describe(`Load Order`, () => {
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
           shell: true,
+          detach: true,
+          expectSuccess: true,
         },
       };
 
@@ -139,6 +141,8 @@ describe(`Load Order`, () => {
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
           shell: true,
+          detach: true,
+          expectSuccess: true,
         },
       };
 

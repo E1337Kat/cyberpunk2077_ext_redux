@@ -6,6 +6,9 @@ import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-depen
 // Our stuff
 import {
   findFirst,
+  map,
+  mapWithIndex,
+  toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import {
   pipe,
@@ -15,9 +18,13 @@ import {
   map as mapO,
 } from "fp-ts/lib/Option";
 import {
+  mapLeft,
+} from "fp-ts/lib/Either";
+import {
   EPICAPP_ID,
   EXTENSION_NAME_INTERNAL,
   EXTENSION_NAME_VORTEX,
+  GAME_EXE_RELATIVE_PATH,
   GAME_ID,
   GOGAPP_ID,
   isSupported,
@@ -59,9 +66,9 @@ import {
 import {
   constant,
   alwaysTrue,
-  bbcodeBasics,
-  heredoc,
   S,
+  forEachEffect,
+  forEffect,
 } from "./util.functions";
 import {
   setREDmodAutoconvertArchivesAction,
@@ -75,6 +82,9 @@ import {
 } from './reducers';
 import * as REDmoddingTools from "./tools.redmodding";
 import * as ExternalTools from "./tools.external";
+import {
+  ToolStartHook,
+} from "./tools.types";
 
 
 //
@@ -125,6 +135,34 @@ const toggleAutoConvert = (api: vortexApiLib.types.IExtensionApi, _gameMode: str
   api.store.dispatch(setREDmodAutoconvertArchivesAction(!archiveAutoConvert(state)));
 };
 
+
+//
+// Setup functions so we don't clutter the main
+//
+
+// TODO This should really be both Tool + Hook
+//      https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/282
+const prepStartHooks =
+  (vortexExt: VortexExtensionContext, featureSet: FeatureSet): ToolStartHook[] => {
+    const maybeREDmodHooks =
+      IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
+        ? REDmoddingTools.available.startHooks
+        : [];
+
+    const allHooks = [
+      ...maybeREDmodHooks,
+      ...ExternalTools.available.startHooks,
+    ];
+
+    const hooksWithState =
+      pipe(
+        allHooks,
+        map((makeHook) => makeHook(vortexExt, vortexApiLib, featureSet)),
+        toMutableArray,
+      );
+
+    return hooksWithState;
+  };
 
 //
 // Register extension in entry point
@@ -179,9 +217,9 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     queryPath: findGame,
     queryModPath: () => ``,
     logo: `gameart.png`,
-    executable: () => `bin/x64/Cyberpunk2077.exe`,
+    executable: () => GAME_EXE_RELATIVE_PATH,
     parameters: defaultGameLaunchParameters,
-    requiredFiles: [`bin/x64/Cyberpunk2077.exe`],
+    requiredFiles: [GAME_EXE_RELATIVE_PATH],
     supportedTools: moddingTools,
     compatible: {
       symlinks: false,
@@ -209,6 +247,18 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     ),
   );
 
+  const availableStartHooks = prepStartHooks(vortexExt, fullFeatureSetAvailablePostStartup);
+
+  pipe(
+    availableStartHooks,
+    mapWithIndex((i: number, { hookId, transformRunParams }) =>
+      forEffect(() => { vortexExt.registerStartHook(40 + i, hookId, transformRunParams); })),
+    forEachEffect,
+    mapLeft((err) => {
+      vortexApiLib.log(`error`, `${EXTENSION_NAME_INTERNAL} init: Failed to register start hook`, err);
+    }),
+  );
+
   if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
     if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)) {
       vortexExt.registerLoadOrder({
@@ -218,10 +268,6 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         // anything on its own, so leave it out now to avoid confusion
         //
         // toggleableEntries: true,
-
-        // Can add instructions to the right-hand panel. Might be useful,
-        // but on the whole I think it's probably better to reduce the
-        // amount of space the panel takes instead.
         //
         usageInstructions: loadOrderUsageInstructionsForVortexGui,
         validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),

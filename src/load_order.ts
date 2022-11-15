@@ -71,6 +71,7 @@ import {
   VortexProfile,
   VortexProfileMod,
   VortexProfileModIndex,
+  VortexRunOptions,
   VortexRunParameters,
   VortexSerializeFunc,
   VortexState,
@@ -97,12 +98,10 @@ import {
   REDmodInfoForVortex,
 } from "./installers.types";
 import {
+  REDdeployExeRelativePath,
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import {
-  REDdeployExeRelativePath,
-} from "./tools.redmodding";
 import {
   InfoNotification,
   showInfoNotification,
@@ -333,7 +332,6 @@ const makeVortexLoadOrderEntryFrom =
 // https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/264
 //
 
-
 const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   vortexApi: VortexApi,
 ): Promise<VortexLoadOrder> => {
@@ -491,9 +489,11 @@ export const loadOrderToREDdeployRunParameters = (
   const exePath =
     path.join(gameDirPath, REDdeployExeRelativePath);
 
-  const runOptions = {
+  const runOptions: VortexRunOptions = {
     cwd: path.dirname(exePath),
     shell: true,
+    detach: true,
+    expectSuccess: true,
   };
 
   return {
