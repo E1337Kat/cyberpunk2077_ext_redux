@@ -163,33 +163,40 @@ const getDiscoveryPath = (
 // Help etc.
 //
 
-export const loadOrderUsageInstructionsForVortexGui = heredoc(bbcodeBasics(`
-        You don't have to order everything. It's best to only order mods that
-        require it, or that you otherwise know to conflict with each other.
+export const loadOrderUsageInstructionsForVortexGui =
+  heredoc(bbcodeBasics(`
+    Drag your mods in the order you want them to load here! They will be
+    deployed whenever the next Vortex deployment is triggered.
 
-        Only REDmods and autoconverted heritage mods are orderable. If you don't see
-        something you just installed, click on Refresh.
+    You don't have to order everything. It's best to only order mods that
+    require it, or that you otherwise know to conflict with each other.
 
-        You can order both enabled and disabled mods, but only the enabled ones will
-        be included in the REDmod deployment. The disabled ones will remember their
-        place in the load order, though, so long as you don't uninstall them!
+    Only REDmods and autoconverted heritage mods are orderable. If you don't see
+    something you just installed, click on Refresh.
 
-        All heritage archive mods that are not autoconverted to REDmod will be loaded
-        BEFORE all REDmods, in the usual alphabetical order. That means that if you want
-        to override an archive mod, you need to convert it to REDmod first. You can do
-        this by making sure the autoconvert setting is on and then reinstalling the mod.
+    You can order both enabled and disabled mods, but only the enabled ones will
+    be included in the REDmod deployment. The disabled ones will remember their
+    place in the load order, though, so long as you don't uninstall them!
 
-        REDmods that you have installed outside Vortex are NOT supported right now.
+    All heritage archive mods that are not autoconverted to REDmod will be loaded
+    BEFORE all REDmods, in the usual alphabetical order. That means that if you want
+    to override an archive mod, you need to convert it to REDmod first. You can do
+    this by making sure the autoconvert setting is on and then reinstalling the mod.
 
-        The load order is saved automatically, and will be deployed whenever the next
-        Vortex deployment occurs - you can also manually click to deploy, if you like!
+    REDmods that you have installed outside Vortex are NOT supported right now.
 
-        REDmod deployment can take a little while if you have tweak or script mods,
-        so wait for the green success notification before you start the game! :)
+    The load order is saved automatically, and will be deployed whenever the next
+    Vortex deployment occurs - you can also manually click to deploy, if you like!
 
-        You can still use the command-line redMod.exe or the REDdeploy Tool in your
-        Tools dashlet, but changes won't be reflected in the load order panel.
-      `));
+    REDmod deployment can take a little while if you have tweak or script mods,
+    so wait for the green success notification before you start the game! :)
+
+    You can also click the REDdeploy tool button to run a deployment on-demand. It'll
+    (re)deploy the most recently created load order.
+
+    You can still use the command-line redMod.exe or WolvenKit to deploy or order
+    REDmods, but any changes you make there will NOT be reflected in Vortex.
+  `));
 
 
 //

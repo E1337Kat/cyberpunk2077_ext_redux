@@ -291,7 +291,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       `more`,
       undefined,
       `health`,
-      `v0.9.0 Update Detes for Cyberpunk 2077!`,
+      `Important v0.9.0 Update Detes for CP2077!`,
       (_: IREDmodProps) => informUserZeroNineZeroChanges({ ...vortexExt.api, log: vortexApiLib.log }),
       alwaysTrue, // We want to show this before activating the game
       undefined,

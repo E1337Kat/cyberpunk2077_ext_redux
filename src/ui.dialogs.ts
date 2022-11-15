@@ -15,7 +15,9 @@ import {
   InstallDecision,
   InstallerType,
 } from "./installers.types";
-import { heredoc } from "./util.functions";
+import {
+  heredoc,
+} from "./util.functions";
 import {
   VortexApi,
   VortexDialogResult,
@@ -73,16 +75,15 @@ export const informUserZeroNineZeroChanges = async (
     is for new installations or reinstalls only. We don't want to accidentally break your existing mods,
     so you can choose when and if you want to migrate them yourself!
 
-  - **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check
-    out Settings), but we highly recommend that you leave it on unless there's an issue
-    installing a mod. The reason we recommend it is that REDmods are organized a little better,
-    and...
-
   - **Load Ordering!** Just drag and drop to order any mods that need ordering! Topmost is highest priority.
     Note that load order _only_ works on REDmods, and that the game will always load old-style archives at
     a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged
     REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything
     to play nice together.
+
+  - **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check
+    out Settings), but we highly recommend that you leave it on unless there's an issue
+    installing a mod.
 
   - **Automatic REDmod deployment!** Yep, no need to hit the terminal, every time you run a deployment
     in Vortex, your load order is deployed too. As soon as you see the notification that it's done, you can
