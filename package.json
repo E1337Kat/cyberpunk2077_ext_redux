@@ -1,7 +1,10 @@
 {
     "name": "cyberpunk2077",
-    "version": "0.9.0-preem",
-    "description": "A rebuild of the original cyberpunk vortex extension with the aim to support more mod types and fix common issues",
+    "version": "0.9.0",
+    "description": "Cyberpunk 2077 modding support for the Vortex mod manager, as user-friendly and helpful as possible.",
+    "homepage": "https://www.nexusmods.com/site/mods/196",
+    "repository": "https://github.com/E1337Kat/cyberpunk2077_ext_redux",
+    "bugs": "https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues",
     "main": "./dist/index.js",
     "scripts": {
         "prepare": "husky install",
@@ -16,9 +19,13 @@
         "repl": "ts-node -r tsconfig-paths/register",
         "postinstall": "patch-package",
         "webpack": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color",
+        "webpack-debug": "node ./node_modules/webpack/bin/webpack --config webpack.config.js --color --stats verbose --analyze --progress",
         "build": "npm run webpack && extractInfo && copyfiles -f ./gameart.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./REDdeploy.png ./dist/",
+        "build-debug": "npm run webpack-debug && extractInfo && copyfiles -f ./gameart.png ./LICENSE ./SaveEditor.png ./REDLauncher.png ./REDdeploy.png ./dist/",
         "pack": "npm run build && powershell.exe ./script/package.ps1",
+        "pack-debug": "npm run build-debug && powershell.exe ./script/package.ps1",
         "pack-dev": "npm run build && powershell.exe ./script/package.ps1 -Dev",
+        "pack-dev-debug": "npm run build-debug && powershell.exe ./script/package.ps1 -Dev",
         "pack-linux": "npm run build && bash ./script/package.sh",
         "pack-dev-linux": "npm run build && bash ./script/package.sh -dev",
         "dump-schemas": "npx ts-node -T ./script/dump-schemas.ts"
@@ -67,9 +74,9 @@
         "react": "^17.0.2",
         "react-bootstrap": "^2.2.1",
         "react-dom": "^17.0.2",
+        "react-i18next": "^12.0.0",
         "react-redux": "^8.0.4",
         "redux-act": "^1.8.0",
-        "react-i18next": "^12.0.0",
         "ts-jest": "^27.1.3",
         "ts-loader": "^6.0.4",
         "ts-node": "^10.7.0",
@@ -77,6 +84,7 @@
         "typescript": "^4.8.4",
         "vortex-api": "github:Nexus-Mods/vortex-api",
         "webpack": "^4.35.0",
+        "webpack-bundle-analyzer": "^4.7.0",
         "webpack-cli": "^4.9.2"
     },
     "dependencies": {

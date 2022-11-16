@@ -1,4 +1,6 @@
-import { MODS_EXTRA_BASEDIR } from "./installers.layouts";
+import {
+  MODS_EXTRA_BASEDIR,
+} from "./installers.layouts";
 import {
   VortexApi,
   VortexNotification,
@@ -25,6 +27,7 @@ export const enum InfoNotification {
   REDmodDeploymentStarted = `V2077-notify-info-redmod-deployment-started`,
   REDmodDeploymentSucceeded = `V2077-notify-success-redmod-deployment-succeeded`,
   REDmodDeploymentFailed = `V2077-notify-error-redmod-deployment-failed`,
+  REDmodDeploymentDefaulted = `V2077-notify-warn-redmod-deployment-default`,
 }
 
 //
@@ -102,6 +105,15 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       type: `error`,
       title: `REDmod Deployment Failed!`,
       message: `Oh no! Something went wrong with the REDmod deployment. Check Diagnostic Files for details!`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDeploymentDefaulted,
+    {
+      id: InfoNotification.REDmodDeploymentDefaulted,
+      type: `warning`,
+      title: `REDmod DEFAULT Deployment Started!`,
+      message: `There was no load order defined, running the default (everything in \`mods/\`)!`,
     },
   ],
 ]);

@@ -1,3 +1,7 @@
+import {
+  VortexExtensionApi,
+} from "./vortex-wrapper";
+
 // Nexus Mods domain for the game. e.g. nexusmods.com/cyberpunk2077
 export const GAME_ID = `cyberpunk2077`;
 // Steam Application ID, you can get this from https://steamdb.info/apps/
@@ -15,6 +19,8 @@ export const EXTENSION_NAME_INTERNAL = `V2077`;
 export const EXTENSION_URL_NEXUS = `https://www.nexusmods.com/site/mods/196`;
 export const EXTENSION_URL_GITHUB = `https://github.com/E1337Kat/cyberpunk2077_ext_redux`;
 
+export const GAME_EXE_RELATIVE_PATH = `bin/x64/cyberpunk2077.exe`;
+
 export const V2077_DIR = `V2077`;
 
 export const V2077_GENERATED_MOD_NAME_TAG = ` (${EXTENSION_NAME_INTERNAL})`;
@@ -25,3 +31,9 @@ export const VORTEX_STORE_PATHS = {
 };
 
 export const isSupported = (gameMode: string): boolean => (gameMode === GAME_ID);
+
+
+// Let it crash. We can't function if this doesn't work.
+export const gameDirPath =
+  (api: VortexExtensionApi): string =>
+    api.store.getState().settings.gameMode.discovered[GAME_ID].path;

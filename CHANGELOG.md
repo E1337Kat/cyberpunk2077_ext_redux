@@ -1,24 +1,24 @@
 # Cyberpunk 2077 Vortex Support v0.9.0 "Rogue"
 
-> This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. Rebuild. Survive.
+> This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. You rebuild. You survive.
 >
-> Thrive. You come out on top, untouchable, and it's your city now. Because you were always the Queen.
+> You thrive. You come out on top, untouchable, and it's your city now. Because you were always the Queen.
 
 Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
 
-Why use a mod manager? In addition to quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
+Why use a mod manager? In addition to supporting REDmods and every other kind of mod there is for CP2077, there's the quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
 
-As always, any feedback and such is appreciated so we can ensure that no bugs or oversights have slipped through our testing - and other feedback and ideas are more than welcome! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+As always, all feedback is appreciated so we can ensure that no bugs or oversights have slipped through our testing — and any suggestions and ideas are welcome too! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
 
 ## Main Jobs
 
-- ✨ **Full REDmod support!** You can install and manage REDmods alongside all the others. *Note:* this is for new installations or reinstalls only. We don't want to accidentally break your existing mods, so you can choose when and if you want to migrate them yourself!
+- ✨ **Full REDmod support!** You can install and manage REDmods alongside all the others. *Note:* this is for new installations or reinstalls only. We don't want to accidentally break your existing mods, so you can choose when and if you want to migrate them yourself! Just hit Reinstall when you're ready.
 
-- ✨ **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check out Settings), but we highly recommend that you leave it on unless there's an issue installing a mod. The reason we recommend it is that REDmods are organized a little better, and...
+- ✨ **Load Ordering!** Drag and drop to order any mods that need ordering! Topmost is highest priority. Note that load order _only_ works on REDmods, and that the game will always load old-style archives at a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything to play nice together.
 
-- ✨ **Load Ordering!** Just drag and drop to order any mods that need ordering! Topmost is highest priority.  Note that load order _only_ works on REDmods, and that the game will always load old-style archives at a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything to play nice together.
+- ✨ **Autoconversion of old-style mods to REDmods!** This is a _togglable_ feature (check out Settings), but we highly recommend that you leave it on unless there's an issue installing a mod.
 
-- ✨ **Automatic REDmod deployment!** Yep, no need to hit the terminal, every time you run a deployment in Vortex, your load order is deployed too. As soon as you see the notification that it's done, you can just start the game.
+- ✨ **Automatic REDmod deployment!** Yep, no need to hit the terminal, every time you run a deployment in Vortex, your load order is deployed too. As soon as you see the notification that it's done, you can just start the game. And you can trigger a **REDdeployment on-demand**, too, at the click of a button in the toolbar.
 
 - ✨ **Jack right in!** Finally, the default launch button will launch the game directly, with REDmods enabled. No need for the terminal or a separate launcher. If you _do_ want to go through the launcher (for achievements, perhaps), there's the REDlauncher Tool in your toolbar and dashboard that will do just that.
 
@@ -39,7 +39,7 @@ We'll collect any tutorials, walkthroughs and other info on the [Nexus page](htt
 
 ## The Crew
 
-Mostly Auska and Ellie this time around, but we're grateful for the help from both CDPR and Vortex immediately after the REDmodding news dropped - special thanks to @Pickysaurus for even contributing code, and @rfuzzo for tolerating the endlessly meticulous questions about REDmodding implementation minutiae to make sure we'd be able to be 100% compatible!
+Mostly Auska (@effs) and Ellie (@E1337Kat) this time around, but we're grateful for the help from both CDPR and Nexus Mods immediately after the REDmodding news dropped - special thanks to @Pickysaurus for even contributing code, and @rfuzzo for bearing with the endlessly meticulous questions about REDmodding implementation minutiae to make sure we'd be able to be 100% compatible! (Pretty sure we hit every remaining bug and quirk in the redmodding tools in this process :innocent:)
 
 As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
 

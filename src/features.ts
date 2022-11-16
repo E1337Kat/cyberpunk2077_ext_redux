@@ -1,9 +1,18 @@
-import { VORTEX_STORE_PATHS } from "./index.metadata";
+import {
+  Option,
+  none,
+  some,
+} from "fp-ts/lib/Option";
+import {
+  VORTEX_STORE_PATHS,
+} from "./index.metadata";
 import {
   Dynamic,
   Versioned,
 } from "./util.functions";
-import { VortexExtensionApi } from "./vortex-wrapper";
+import {
+  VortexExtensionApi,
+} from "./vortex-wrapper";
 
 
 //
@@ -24,6 +33,11 @@ export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
 
 export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
   featureState() === FeatureState.Enabled;
+
+export const IfFeatureEnabled = <T>(featureState: FeatureState, then: Dynamic<T>): Option<T> =>
+  (IsFeatureEnabled(featureState)
+    ? some(then())
+    : none);
 
 //
 // Some features can be changed, some can't

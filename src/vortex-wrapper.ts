@@ -1,7 +1,17 @@
-import { util } from "vortex-api";
+import {
+  util,
+} from "@vortex-api-test-shimmed";
 import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
-import { Promise } from "bluebird"; // eslint-disable-line import/no-extraneous-dependencies
-import { ComponentType } from "react"; // eslint-disable-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {
+  Promise,
+} from "bluebird";
+// TODO Move all this to peer deps for real
+//      https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/284
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {
+  ComponentType,
+} from "react";
 
 
 export interface IREDmodProps {
@@ -89,6 +99,10 @@ export type VortexLogFunc = (
 ) => void;
 
 export type VortexExtensionApi = Vortex.IExtensionApi;
+// TODO: Really should add the 'vortexApiLib' i.e. vortex-api
+//       here, just need to change it everywhere.
+//
+//       https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/283
 export interface VortexApi extends VortexExtensionApi {
   log: VortexLogFunc;
 }
@@ -120,7 +134,7 @@ export type VortexProfileModIndex = { [modId: string]: VortexProfileMod };
 // Shims for stuff that Vortex doesn't export for some reason
 //
 
-export interface VortexIToolShim {
+export interface VortexToolShim {
   id: string;
   name: string;
   requiredFiles: string[];
@@ -137,3 +151,6 @@ export interface VortexIToolShim {
   defaultPrimary?: boolean;
   onStart?: `hide` | `hide_recover` | `close`;
 }
+
+export type VortexRunParameters = Vortex.IRunParameters;
+export type VortexRunOptions = Vortex.IRunOptions;

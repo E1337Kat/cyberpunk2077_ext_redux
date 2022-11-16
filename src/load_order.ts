@@ -1,7 +1,13 @@
-import { win32 } from "path";
+import {
+  win32,
+} from "path";
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Promise } from "bluebird";
-import { pipe } from "fp-ts/lib/function";
+import {
+  Promise,
+} from "bluebird";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   Option,
   none,
@@ -11,6 +17,7 @@ import {
 import {
   filterMap,
   flatten,
+  isEmpty,
   map,
   mapWithIndex,
   reduceWithIndex,
@@ -28,8 +35,10 @@ import {
 import {
   fs,
   selectors,
-} from "vortex-api";
-import { remove } from "spectacles-ts";
+} from "@vortex-api-test-shimmed";
+import {
+  remove,
+} from "spectacles-ts";
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_ID,
@@ -62,6 +71,8 @@ import {
   VortexProfile,
   VortexProfileMod,
   VortexProfileModIndex,
+  VortexRunOptions,
+  VortexRunParameters,
   VortexSerializeFunc,
   VortexState,
   vortexUtil,
@@ -72,10 +83,14 @@ import {
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 import {
+  bbcodeBasics,
+  heredoc,
   jsonp,
   S,
 } from "./util.functions";
-import { fileFromDiskTE } from "./installers.shared";
+import {
+  fileFromDiskTE,
+} from "./installers.shared";
 import {
   attrModType,
   attrREDmodInfos,
@@ -83,10 +98,10 @@ import {
   REDmodInfoForVortex,
 } from "./installers.types";
 import {
+  REDdeployExeRelativePath,
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { REDmodManualDeploy } from "./redmodding";
 import {
   InfoNotification,
   showInfoNotification,
@@ -142,6 +157,46 @@ const getDiscoveryPath = (
 
   return discovery?.path;
 };
+
+
+//
+// Help etc.
+//
+
+export const loadOrderUsageInstructionsForVortexGui =
+  heredoc(bbcodeBasics(`
+    Drag your mods in the order you want them to load here! They will be
+    deployed whenever the next Vortex deployment is triggered.
+
+    You don't have to order everything. It's best to only order mods that
+    require it, or that you otherwise know to conflict with each other.
+
+    Only REDmods and autoconverted heritage mods are orderable. If you don't see
+    something you just installed, click on Refresh.
+
+    You can order both enabled and disabled mods, but only the enabled ones will
+    be included in the REDmod deployment. The disabled ones will remember their
+    place in the load order, though, so long as you don't uninstall them!
+
+    All heritage archive mods that are not autoconverted to REDmod will be loaded
+    BEFORE all REDmods, in the usual alphabetical order. That means that if you want
+    to override an archive mod, you need to convert it to REDmod first. You can do
+    this by making sure the autoconvert setting is on and then reinstalling the mod.
+
+    REDmods that you have installed outside Vortex are NOT supported right now.
+
+    The load order is saved automatically, and will be deployed whenever the next
+    Vortex deployment occurs - you can also manually click to deploy, if you like!
+
+    REDmod deployment can take a little while if you have tweak or script mods,
+    so wait for the green success notification before you start the game! :)
+
+    You can also click the REDdeploy tool button to run a deployment on-demand. It'll
+    (re)deploy the most recently created load order.
+
+    You can still use the command-line redMod.exe or WolvenKit to deploy or order
+    REDmods, but any changes you make there will NOT be reflected in Vortex.
+  `));
 
 
 //
@@ -284,7 +339,6 @@ const makeVortexLoadOrderEntryFrom =
 // https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/264
 //
 
-
 const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   vortexApi: VortexApi,
 ): Promise<VortexLoadOrder> => {
@@ -387,13 +441,82 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
   return V2077LoadOrderEntry;
 };
 
+export const makeV2077LoadOrderFrom = (
+  vortexLoadOrder: VortexLoadOrder,
+  ownerVortexProfileId: string,
+  dateAsLoadOrderId: number,
+): LoadOrder => {
+  const v2077LoadOrderEntries = pipe(
+    vortexLoadOrder,
+    map(makeV2077LoadOrderEntryFrom),
+    toMutableArray,
+  );
+
+  return {
+    loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
+    ownerVortexProfileId,
+    generatedAt: new Date(dateAsLoadOrderId).toISOString(),
+    entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
+  };
+};
+
+
+export const loadOrderToREDdeployRunParameters = (
+  gameDirPath: string,
+  v2077LoadOrderToDeploy: LoadOrder,
+): VortexRunParameters => {
+  const v2077LoadOrderEntries =
+    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
+
+  const loadOrderForREDmodDeployWithShellQuotes = pipe(
+    v2077LoadOrderEntries,
+    filterMap((mod) =>
+      (mod.enabled
+        ? some(`"${path.basename(mod.redmodPath)}"`)
+        : none)),
+  );
+
+  const loadOrderedModListToDeploy =
+    isEmpty(loadOrderForREDmodDeployWithShellQuotes)
+      ? []
+      : [
+        `-mod=`,
+        ...loadOrderForREDmodDeployWithShellQuotes,
+      ];
+
+  const redModDeployParametersToCreateNewManifest = [
+    `deploy`,
+    `-root=`,
+    `"${gameDirPath}"`,
+    `-rttiSchemaFile=`,
+    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
+    ...loadOrderedModListToDeploy,
+  ];
+
+  const exePath =
+    path.join(gameDirPath, REDdeployExeRelativePath);
+
+  const runOptions: VortexRunOptions = {
+    cwd: path.dirname(exePath),
+    shell: true,
+    detach: true,
+    expectSuccess: true,
+  };
+
+  return {
+    executable: exePath,
+    args: redModDeployParametersToCreateNewManifest,
+    options: runOptions,
+  };
+};
+
 
 const startREDmodDeployInTheBackgroundWithNotifications = (
   vortexApi: VortexApi,
   gameDirPath: string,
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
-  vortexLoadOrderToDeploy: VortexLoadOrder,
+  vortexFormatLoadOrderForComparison: VortexLoadOrder,
 ): void => {
   const tag = `${me}: REDmod Delayed Deploy`;
 
@@ -409,8 +532,6 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
     return;
   }
 
-  debugger;
-
   const newestGeneratedLoadOrder: readonly VortexLoadOrderEntry[] =
     vortexUtil.getSafe(vortexState, [`persistent`, `loadOrder`, ownerProfileId], undefined);
 
@@ -425,42 +546,16 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   // Maybe there's a better way to do this check.. but this is what Vortex itself
   // uses, so we can't give an actually unique ID to the vortex load order because
   // then it won't match the previous run..
-  if (JSON.stringify(vortexLoadOrderToDeploy) !== JSON.stringify(newestGeneratedLoadOrder)) {
+  if (JSON.stringify(vortexFormatLoadOrderForComparison) !== JSON.stringify(newestGeneratedLoadOrder)) {
     vortexApi.log(`info`, `${tag}: Load order ${loID} no longer most recent, this is ok, canceling!`);
     // No need to notify, it's fine if this has been superceded
     return;
   }
 
-  const v2077LoadOrderEntries =
-    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
+  const redDeploy =
+    loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
 
-  const loadOrderForREDmodDeployWithShellQuotes = pipe(
-    v2077LoadOrderEntries,
-    filterMap((mod) =>
-      (mod.enabled
-        ? some(`"${path.basename(mod.redmodPath)}"`)
-        : none)),
-  );
-
-  const redModDeployParametersToCreateNewManifest = [
-    `deploy`,
-    `-root=`,
-    `"${gameDirPath}"`,
-    `-rttiSchemaFile=`,
-    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
-    `-mod=`,
-    ...loadOrderForREDmodDeployWithShellQuotes,
-  ];
-
-  const exePath =
-    path.join(gameDirPath, REDmodManualDeploy.executable());
-
-  const runOptions = {
-    cwd: path.dirname(exePath),
-    shell: true,
-  };
-
-  vortexApi.runExecutable(exePath, redModDeployParametersToCreateNewManifest, runOptions)
+  vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
     .then(() => {
       vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
       showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
@@ -472,9 +567,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 
   showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
   vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
-  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S({
-    loadOrderForREDmodDeployWithShellQuotes, exePath, redModDeployParametersToCreateNewManifest, runOptions,
-  }));
+  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
 };
 
 
@@ -516,31 +609,18 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
     return Promise.resolve();
   }
 
-  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, vortexLoadOrder);
+  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, S(vortexLoadOrder));
 
   // Is there any risk there could be a mismatch of profiles here? Surely not?
   const vortexState: VortexState = vortexApi.store.getState();
   const activeProfile = selectors.activeProfile(vortexState);
 
   const ownerVortexProfileId = activeProfile.id;
-
-  const v2077LoadOrderEntries = pipe(
-    vortexLoadOrder,
-    map(makeV2077LoadOrderEntryFrom),
-    toMutableArray,
-  );
-
   const loID = Date.now();
 
-  const v2077LoadOrder: LoadOrder = {
-    loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
-    ownerVortexProfileId,
-    generatedAt: new Date(loID).toISOString(),
-    entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
-  };
+  const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
 
-  debugger;
-  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, v2077LoadOrder);
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, S(v2077LoadOrder));
 
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.

@@ -2,12 +2,13 @@ import path from "path";
 import {
   fs,
   util as VortexUtil,
-} from "vortex-api";
+} from "@vortex-api-test-shimmed";
+import { map } from "fp-ts/lib/ReadonlyArray";
+import { pipe } from "fp-ts/lib/function";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,
   EPICAPP_ID,
-  EXTENSION_NAME_INTERNAL,
 } from './index.metadata';
 import {
   REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
@@ -19,10 +20,13 @@ import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
-  VortexIToolShim,
   VortexState,
   VortexToolDiscovered,
 } from "./vortex-wrapper";
+import {
+  REDdeployManual,
+  REDlauncher,
+} from "./tools.redmodding";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game.
 // This may need to be converted to a test, but the UI for tests is less flexible.
@@ -32,37 +36,7 @@ interface REDmoddingDlcDetails {
   url: string;
   openCommand: () => Promise<void>;
 }
-// type TranslationFunction = typeof I18next.t;
 
-export const REDlauncher: VortexIToolShim = {
-  id: `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`,
-  name: `REDLauncher (GOG/Steam/Epic)`,
-  shortName: `REDLauncher`,
-  logo: `REDLauncher.png`,
-  requiredFiles: [`REDprelauncher.exe`],
-  executable: (): string => `REDprelauncher.exe`,
-  parameters: [`-modded`],
-  environment: {},
-  relative: true,
-};
-
-export const REDmodManualDeploy: VortexIToolShim = {
-  id: `${EXTENSION_NAME_INTERNAL}-tools-redMod`,
-  name: `REDmod Deploy (Everything)`,
-  shortName: `REDdeploy`,
-  logo: `REDdeploy.png`,
-  requiredFiles: [path.join(`tools\\redmod\\bin\\redMod.exe`)],
-  executable: (): string => path.join(`tools\\redmod\\bin\\redMod.exe`),
-  parameters: [`deploy`],
-  relative: true,
-  shell: true,
-  exclusive: true,
-};
-
-export const REDmoddingTools = [
-  REDlauncher,
-  REDmodManualDeploy,
-];
 
 export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
   const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
@@ -135,26 +109,35 @@ const prepareForModdingWithREDmodding = async (
     vortexApi.log(`error`, `Unable to create or access load order storage dir ${V2077_LOAD_ORDER_DIR} under ${discovery.path}`, err);
   }
 
-  // Check for the REDmod files.
-  const redLauncherPath = path.join(discovery.path, REDlauncher.executable());
-  const redModPath = path.join(discovery.path, REDmodManualDeploy.executable());
+  // Attempt to detect if the user has the REDmodding DLC installed
+  const requiredREDmoddingFiles = [
+    ...REDlauncher.requiredFiles,
+    ...REDdeployManual.requiredFiles,
+  ];
 
   try {
-    await Promise.all([redLauncherPath, redModPath].map(async (file) => fs.statAsync(file)));
+    await pipe(
+      requiredREDmoddingFiles,
+      map((file) =>
+        fs.statAsync(path.join(discovery.path, file))),
+      Promise.all,
+    );
 
     // Only need to run the DLC finder if the files aren't there yet
     return;
+
   } catch (err) {
     vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`, err);
   }
 
-  // Determine which game store this is from, so we can recommend the correct process.
-  const game = await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
-  if (game?.gamePath !== discovery.path) {
-    vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: game.path });
+  const gameStoreIfInstalledThroughStore =
+    await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]);
+
+  if (gameStoreIfInstalledThroughStore?.gamePath !== discovery.path) {
+    vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: gameStoreIfInstalledThroughStore.path });
   }
 
-  await promptREDmoddingDlcInstall(vortexApi, game?.gameStoreId);
+  await promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
 };
 
 export const wrappedPrepareForModdingWithREDmodding = async (
