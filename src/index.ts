@@ -4,16 +4,27 @@ import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-depen
 
 
 // Our stuff
-import { findFirst } from "fp-ts/lib/ReadonlyArray";
-import { pipe } from "fp-ts/lib/function";
+import {
+  findFirst,
+  map,
+  mapWithIndex,
+  toArray as toMutableArray,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   getOrElse as getOrElseO,
   map as mapO,
 } from "fp-ts/lib/Option";
 import {
+  mapLeft,
+} from "fp-ts/lib/Either";
+import {
   EPICAPP_ID,
   EXTENSION_NAME_INTERNAL,
   EXTENSION_NAME_VORTEX,
+  GAME_EXE_RELATIVE_PATH,
   GAME_ID,
   GOGAPP_ID,
   isSupported,
@@ -43,8 +54,6 @@ import {
   vortexUtil,
 } from "./vortex-wrapper";
 import {
-  REDlauncher,
-  REDmoddingTools,
   wrappedPrepareForModdingWithREDmodding,
 } from './redmodding';
 import {
@@ -52,18 +61,30 @@ import {
   internalLoadOrderer,
   wrapDeserialize,
   wrapSerialize,
+  loadOrderUsageInstructionsForVortexGui,
 } from "./load_order";
 import {
   constant,
   alwaysTrue,
-  bbcodeBasics,
-  heredoc,
   S,
+  forEachEffect,
+  forEffect,
 } from "./util.functions";
-import { setREDmodAutoconvertArchivesAction } from "./actions";
-import { informUserZeroNineZeroChanges } from "./ui.dialogs";
+import {
+  setREDmodAutoconvertArchivesAction,
+} from "./actions";
+import {
+  informUserZeroNineZeroChanges,
+} from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
-import { makeSettingsReducer } from './reducers';
+import {
+  makeSettingsReducer,
+} from './reducers';
+import * as REDmoddingTools from "./tools.redmodding";
+import * as ExternalTools from "./tools.external";
+import {
+  ToolStartHook,
+} from "./tools.types";
 
 
 //
@@ -116,6 +137,34 @@ const toggleAutoConvert = (api: vortexApiLib.types.IExtensionApi, _gameMode: str
 
 
 //
+// Setup functions so we don't clutter the main
+//
+
+// TODO This should really be both Tool + Hook
+//      https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/282
+const prepStartHooks =
+  (vortexExt: VortexExtensionContext, featureSet: FeatureSet): ToolStartHook[] => {
+    const maybeREDmodHooks =
+      IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
+        ? REDmoddingTools.available.startHooks
+        : [];
+
+    const allHooks = [
+      ...maybeREDmodHooks,
+      ...ExternalTools.available.startHooks,
+    ];
+
+    const hooksWithState =
+      pipe(
+        allHooks,
+        map((makeHook) => makeHook(vortexExt, vortexApiLib, featureSet)),
+        toMutableArray,
+      );
+
+    return hooksWithState;
+  };
+
+//
 // Register extension in entry point
 //
 
@@ -125,27 +174,12 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const MaybeREDmodTools =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
-      ? REDmoddingTools
+      ? REDmoddingTools.available.tools
       : [];
 
   const moddingTools = [
     ...MaybeREDmodTools,
-    ...[
-      {
-        id: `CyberCat`,
-        name: `CyberCAT Save Editor`,
-        shortName: `CyberCAT`,
-        logo: `SaveEditor.png`,
-        executable: (): string => path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-        requiredFiles: [
-          path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
-          path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
-        ],
-        defaultPrimary: false,
-        shell: false,
-        relative: true,
-      },
-    ],
+    ...ExternalTools.available.tools,
   ];
 
   const setupFunctionToRunAtExtensionInit =
@@ -167,7 +201,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const defaultGameLaunchParameters =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
-      ? REDlauncher.parameters
+      ? REDmoddingTools.REDlauncher.parameters
       : [];
 
   const fullFeatureSetAvailablePostStartup =
@@ -183,9 +217,9 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     queryPath: findGame,
     queryModPath: () => ``,
     logo: `gameart.png`,
-    executable: () => `bin/x64/Cyberpunk2077.exe`,
+    executable: () => GAME_EXE_RELATIVE_PATH,
     parameters: defaultGameLaunchParameters,
-    requiredFiles: [`bin/x64/Cyberpunk2077.exe`],
+    requiredFiles: [GAME_EXE_RELATIVE_PATH],
     supportedTools: moddingTools,
     compatible: {
       symlinks: false,
@@ -213,6 +247,18 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     ),
   );
 
+  const availableStartHooks = prepStartHooks(vortexExt, fullFeatureSetAvailablePostStartup);
+
+  pipe(
+    availableStartHooks,
+    mapWithIndex((i: number, { hookId, transformRunParams }) =>
+      forEffect(() => { vortexExt.registerStartHook(40 + i, hookId, transformRunParams); })),
+    forEachEffect,
+    mapLeft((err) => {
+      vortexApiLib.log(`error`, `${EXTENSION_NAME_INTERNAL} init: Failed to register start hook`, err);
+    }),
+  );
+
   if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
     if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)) {
       vortexExt.registerLoadOrder({
@@ -222,39 +268,8 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         // anything on its own, so leave it out now to avoid confusion
         //
         // toggleableEntries: true,
-
-        // Can add instructions to the right-hand panel. Might be useful,
-        // but on the whole I think it's probably better to reduce the
-        // amount of space the panel takes instead.
         //
-        usageInstructions: heredoc(bbcodeBasics(`
-        You don't have to order everything. It's best to only order mods that
-        require it, or that you otherwise know to conflict with each other.
-
-        Only REDmods and autoconverted heritage mods are orderable. If you don't see
-        something you just installed, click on Refresh.
-
-        You can order both enabled and disabled mods, but only the enabled ones will
-        be included in the REDmod deployment. The disabled ones will remember their
-        place in the load order, though, so long as you don't uninstall them!
-
-        All heritage archive mods that are not autoconverted to REDmod will be loaded
-        BEFORE all REDmods, in the usual alphabetical order. That means that if you want
-        to override an archive mod, you need to convert it to REDmod first. You can do
-        this by making sure the autoconvert setting is on and then reinstalling the mod.
-
-        REDmods that you have installed outside Vortex are NOT supported right now.
-
-        The load order is saved automatically, and will be deployed whenever the next
-        Vortex deployment occurs - you can also manually click to deploy, if you like!
-
-        REDmod deployment can take a little while if you have tweak or script mods,
-        so wait for the green success notification before you start the game! :)
-
-        You can still use the command-line redMod.exe or the REDdeploy Tool in your
-        Tools dashlet, but changes won't be reflected in the load order panel.
-      `)),
-
+        usageInstructions: loadOrderUsageInstructionsForVortexGui,
         validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
         deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
         serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),

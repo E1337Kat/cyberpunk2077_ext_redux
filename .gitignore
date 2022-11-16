@@ -133,3 +133,6 @@ dist
 *.7z
 *.rar
 *.zip
+
+# Scratch dir
+tmp/
