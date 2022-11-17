@@ -9,11 +9,14 @@ import {
 } from "fp-ts/lib/ReadonlyArray";
 import path from "path/win32";
 import {
+  map as mapE,
+  isLeft,
+} from "fp-ts/lib/Either";
+import {
   FeatureSet,
 } from "./features";
 import {
   EXTENSION_NAME_INTERNAL,
-  gameDirPath,
 } from "./index.metadata";
 import {
   makeV2077LoadOrderFrom,
@@ -49,6 +52,9 @@ import {
   VortexRunParameters,
   VortexToolShim,
 } from "./vortex-wrapper";
+import {
+  gameDirPath,
+} from "./state.functions";
 
 
 export const REDlauncherToolId = `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`;
@@ -104,8 +110,17 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
           log: vortexApiLib.log,
         };
 
-        const fullExePath =
-          path.join(gameDirPath(vortexApi), REDdeployExeRelativePath);
+        const toolPaths = pipe(
+          gameDirPath(vortexApi),
+          mapE((gameDir) => [gameDir, path.join(gameDir, REDdeployExeRelativePath)]),
+        );
+
+        if (isLeft(toolPaths)) {
+          vortexApi.log(`warn`, `${me}: Unable to resolve game dir, maybe external tool w/o CP2077 installed? Skipping hook.`);
+          return Promise.resolve({ executable, args, options });
+        }
+
+        const [gameDir, fullExePath] = toolPaths.right;
 
         if (executable !== fullExePath
            || args.length !== 1
@@ -142,7 +157,7 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
 
         // exclusive is something we want but that's handled higher up so no need here
         const overridingActualParamsToREDdeployLatestLoadOrder =
-          loadOrderToREDdeployRunParameters(gameDirPath(vortexApi), latestLoadOrder);
+          loadOrderToREDdeployRunParameters(gameDir, latestLoadOrder);
 
         vortexApi.log(`debug`, `${me}: Actual run parameters we're using ${S(overridingActualParamsToREDdeployLatestLoadOrder)}`);
 
