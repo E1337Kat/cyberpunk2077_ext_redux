@@ -27,7 +27,6 @@ import {
   GAME_EXE_RELATIVE_PATH,
   GAME_ID,
   GOGAPP_ID,
-  isSupported,
   STEAMAPP_ID,
   V2077_DIR,
   VORTEX_STORE_PATHS,
@@ -85,6 +84,9 @@ import * as ExternalTools from "./tools.external";
 import {
   ToolStartHook,
 } from "./tools.types";
+import {
+  isSupported,
+} from "./state.functions";
 
 
 //
