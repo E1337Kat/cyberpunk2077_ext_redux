@@ -1,6 +1,3 @@
-import {
-  VortexExtensionApi,
-} from "./vortex-wrapper";
 
 // Nexus Mods domain for the game. e.g. nexusmods.com/cyberpunk2077
 export const GAME_ID = `cyberpunk2077`;
@@ -29,11 +26,3 @@ export const V2077_GENERATED_MOD_VERSION_PRERELEASE = EXTENSION_NAME_INTERNAL;
 export const VORTEX_STORE_PATHS = {
   settings: [`settings`, `v2077`],
 };
-
-export const isSupported = (gameMode: string): boolean => (gameMode === GAME_ID);
-
-
-// Let it crash. We can't function if this doesn't work.
-export const gameDirPath =
-  (api: VortexExtensionApi): string =>
-    api.store.getState().settings.gameMode.discovered[GAME_ID].path;
