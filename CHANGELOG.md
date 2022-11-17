@@ -1,3 +1,10 @@
+# Cyberpunk 2077 Vortex Support v0.9.1
+
+Bugfix update to v0.9.0, see full changelog below.
+## Fixer Gigs
+
+- 🐞 **Tools from other games won't crash if user has our extension but the game is not installed**. Until and if Vortex offers isolation from other games touching our stuff, we need to be extra careful not to touch any CP2077-specific stuff until we know that the user is actually invoking one of our tools.
+
 # Cyberpunk 2077 Vortex Support v0.9.0 "Rogue"
 
 > This city will get you every time. You think you have it all for a minute, a crew like no other, a plan that'll make you rich or make you a legend... and then somebody sets off a nuke and it's all ash in the sky. But you pick yourself up under the red twilight that reminds you of what you lost every single day, and you keep going. Make the deals, take the jobs, get involved with the wrong people in the right places. You reinvent yourself. You rebuild. You survive.
