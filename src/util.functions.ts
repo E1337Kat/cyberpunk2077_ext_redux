@@ -98,7 +98,7 @@ export const heredoc = flow(
 );
 
 export const squashAllWhitespace = flow(
-  replaceIn(/\w+/g, ` `),
+  replaceIn(/\s{2,}/g, ` `),
 );
 
 export const bbcodeBasics = flow(
