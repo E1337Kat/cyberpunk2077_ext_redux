@@ -8,6 +8,9 @@
     "main": "./dist/index.js",
     "scripts": {
         "prepare": "husky install",
+        "pre-commit": "lint-staged",
+        "post-commit": "npm run pack-dev && npm run test",
+        "postinstall": "patch-package",
         "clean": "rm *.7z && rm ./dist/*",
         "clear-caches": "jest --clearCache",
         "lint": "eslint -c .eslintrc.build.json src test",
