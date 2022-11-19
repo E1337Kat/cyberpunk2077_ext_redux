@@ -16,67 +16,6 @@ import {
   VortexInstruction,
 } from "./vortex-wrapper";
 
-/**
- * Correct Directory structure is something like this,
- * but this is NOT a complete representation. See the
- * mod type layouts further down this file for the details,
- * or go read the example mod definitions for tests.
- *
- * root_folder
- * |-📁 archive
- * | |-📁 pc
- * | | |-📁 mod
- * | | | |- 📄 *.archive
- * | | | |- 📄 *.xl
- * |-📁 bin
- * | |-📁 x64
- * | | |-📄 *.ini -- Reshade mods
- * | | |-📁 reshade-shaders
- * | | |-📁 plugins
- * | | | |- 📄 *.asi
- * | | | |-📁 cyber_engine_tweaks
- * | | | | |-📁 mods
- * | | | | | |-📁 SomeMod
- * | | | | | | |- 📄 init.lua
- * | | | | | | |- Whatever structure the mod wants
- * |-📁 engine
- * | |-📁 config
- * | | |-📄 giweights.json
- * | | |-📁 platform
- * | | | |-📁 pc
- * | | | | |-📄 *.ini
- * |-📁 mods
- * | |-📁 SomeMod
- * | | |-📄 info.json
- * | | | |- Whatever structure the mod wants
- * |-📁 r6
- * | |-📁 config
- * | | |-📄 bumperSettings.json
- * | | |-📄 inputContexts.xml
- * | | |-📄 inputDeadzones.xml
- * | | |-📄 inputUserMappings.xml
- * | | |-📄 uiInputActions.xml
- * | | |-📄 *.xml
- * | | |-📁 settings
- * | | | |-📄 options.json
- * | | | |-📁 platform
- * | | | | |-📁 pc
- * | | | | | |-📄 options.json
- * | |-📁 input
- * | | |-📄 *.xml
- * | |-📁 scripts
- * | | |-📁 SomeMod
- * | | | |-📄 *.reds
- * | |-📁 tweaks
- * | | |-📄 *.yaml
- * | | |-📁 SomeMod
- * | | | |-📄 *.yaml
- * |-📁 red4ext
- * | |-📁 plugins
- * | | |-📄 *.dll
- * | | |-📁 SomeMod
- * | | | |-📄 *.dll
- */
 
 //
 // Common stuff
