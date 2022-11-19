@@ -486,6 +486,7 @@ export const loadOrderToREDdeployRunParameters = (
 
   const redModDeployParametersToCreateNewManifest = [
     `deploy`,
+    `-force`, // TODO: Required until https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/297
     `-root=`,
     `"${gameDirPath}"`,
     `-rttiSchemaFile=`,
