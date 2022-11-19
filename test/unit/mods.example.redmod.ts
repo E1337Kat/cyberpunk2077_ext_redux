@@ -163,6 +163,66 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
     },
   ],
   [
+    `canonical REDmod with Archive and ArchiveXL`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
+      ],
+    },
+  ],
+  [
+    `canonical REDmod with just ArchiveXL`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
+      ],
+    },
+  ],
+  [
     `canonical REDmod with dir matching mod name and more complete info.json`,
     {
       expectedInstallerType: InstallerType.REDmod,
@@ -462,6 +522,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`info.json`),
         path.join(`archives/`),
         path.join(`archives/cool_stuff.archive`),
+        path.join(`archives/xlnamedoesntneedtomatch.xl`),
         path.join(`customSounds/`),
         path.join(`customSounds/cool_sound.wav`),
         path.join(`scripts/`),
@@ -484,6 +545,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         movedFromTo(
           path.join(`archives/cool_stuff.archive`),
           path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        ),
+        movedFromTo(
+          path.join(`archives/xlnamedoesntneedtomatch.xl`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/archives/xlnamedoesntneedtomatch.xl`),
         ),
         movedFromTo(
           path.join(`customSounds/cool_sound.wav`),
