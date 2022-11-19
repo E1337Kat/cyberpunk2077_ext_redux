@@ -136,3 +136,4 @@ dist
 
 # Scratch dir
 tmp/
+.vscode/
