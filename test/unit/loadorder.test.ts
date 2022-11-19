@@ -97,6 +97,7 @@ describe(`Load Order`, () => {
         executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
         args: [
           `deploy`,
+          `-force`,
           `-root=`,
           `"${FAKE_GAMEDIR_PATH}"`,
           `-rttiSchemaFile=`,
@@ -133,6 +134,7 @@ describe(`Load Order`, () => {
         executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
         args: [
           `deploy`,
+          `-force`,
           `-root=`,
           `"${FAKE_GAMEDIR_PATH}"`,
           `-rttiSchemaFile=`,
