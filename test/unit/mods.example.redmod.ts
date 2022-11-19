@@ -378,6 +378,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`myRedMod/scripts/exec/cool_scripts.script`),
         path.join(`myRedMod/scripts/core/ai/`),
         path.join(`myRedMod/scripts/core/ai/deepScripts.script`),
+        path.join(`myRedMod/scripts/core/ai/helperstuff.ws`),
         path.join(`myRedMod/tweaks/`),
         path.join(`myRedMod/tweaks/base/`),
         path.join(`myRedMod/tweaks/base/gameplay/`),
@@ -404,6 +405,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         movedFromTo(
           path.join(`myRedMod/scripts/core/ai/deepScripts.script`),
           path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        ),
+        movedFromTo(
+          path.join(`myRedMod/scripts/core/ai/helperstuff.ws`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/helperstuff.ws`),
         ),
         movedFromTo(
           path.join(`myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
