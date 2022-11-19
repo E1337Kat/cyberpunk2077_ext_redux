@@ -5,6 +5,15 @@ import {
   right,
 } from "fp-ts/lib/Either";
 import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  filter,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  not,
+} from "fp-ts/lib/Predicate";
+import {
   showArchiveInstallWarning,
 } from "./ui.dialogs";
 import {
@@ -18,6 +27,7 @@ import {
   subdirsIn,
   filesIn,
   sourcePaths,
+  pathStartsWith,
 } from "./filetree";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
@@ -36,6 +46,7 @@ import {
   ARCHIVE_MOD_XL_EXTENSION,
   ARCHIVE_MOD_EXTENSIONS,
   ExtraArchiveLayout,
+  REDMOD_BASEDIR,
 } from "./installers.layouts";
 import {
   instructionsForSameSourceAndDestPaths,
@@ -92,8 +103,11 @@ const findToplevelArchiveOrXLFiles = (fileTree: FileTree): string[] =>
 const findUnknownFilesInCanonDir = (fileTree: FileTree): string[] =>
   filesIn(ARCHIVE_MOD_CANONICAL_PREFIX, matchNonArchive, fileTree);
 
-const findAllArchiveFiles = (fileTree: FileTree): string[] =>
-  filesUnder(FILETREE_ROOT, matchArchiveOrXL, fileTree);
+const findAllNonREDmodArchiveFiles = (fileTree: FileTree): readonly string[] =>
+  pipe(
+    filesUnder(FILETREE_ROOT, matchArchiveOrXL, fileTree),
+    filter(not(pathStartsWith(REDMOD_BASEDIR))),
+  );
 
 const detectArchiveCanonWithXLLayout = (fileTree: FileTree): boolean =>
   findArchiveXLFiles(fileTree).length > 0;

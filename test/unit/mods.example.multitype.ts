@@ -16,7 +16,6 @@ import {
 } from "../../src/installers.layouts";
 import {
   InstallerType,
-  REDmodInfo,
   REDmodInfoForVortex,
 } from "../../src/installers.types";
 import {
@@ -54,20 +53,6 @@ import {
 import {
   jsonpp,
 } from "../../src/util.functions";
-
-
-const myREDmodInfo: REDmodInfo = {
-  name: `myRedMod`,
-  version: `1.0.0`,
-};
-/* Unused for now, this is a failing case
-const myREDmodInfoForVortex: REDmodInfoForVortex = {
-  ...myREDmodInfo,
-  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDmodInfo.name)),
-  vortexModId: FAKE_MOD_INFO.id,
-};
-*/
-const myREDmodInfoJson = jsonpp(myREDmodInfo);
 
 
 const myREDModCompleteInfo = {
@@ -772,37 +757,6 @@ const MultiTypeDirectFailures = new Map<string, ExampleFailingMod>([
       ],
       failure: `MultiType Mod Installer: REDmod instructions failed, canceling installation: Error: Script sublayout: these files don't look like valid REDmod scripts: mods\\myRedMod\\scripts\\thisiswrong.script`,
       errorDialogTitle: `Can't Install MultiType Mod when the REDmod Part Fails!`,
-    },
-  ],
-  [
-    `REDmod MultiType will fail if it contains both REDmod and old style archives`,
-    {
-      expectedInstallerType: InstallerType.MultiType,
-      fsMocked: mockedFsLayout(
-        {
-          [REDMOD_BASEDIR]: {
-            myRedMod: {
-              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-            },
-          },
-        },
-      ),
-      inFiles: [
-        ...CET_PREFIXES,
-        path.join(`${CET_PREFIX}/exmod/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}\\magicgoeshere.archive`),
-        path.join(`${REDMOD_BASEDIR}/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
-        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
-      ],
-      errorDialogTitle: `Can't Install Both REDmod and Old-Style Archive in the Same Mod!`,
-      failure: `MultiType Mod Installer: Can't install REDmod and Old-Style Archive at the same time, canceling installation`,
     },
   ],
 ]);
