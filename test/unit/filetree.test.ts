@@ -14,6 +14,7 @@ import {
   fileCount,
   prunedTreeFrom,
   dirInTree,
+  pathStartsWith,
 } from "../../src/filetree";
 
 const paths = [
@@ -244,5 +245,27 @@ describe(`FileTree`, () => {
     expect(pathInTree(path.normalize(`sub1/sub12/f12.notseek`), treeWithoutSub1)).toBe(
       false,
     );
+  });
+
+  describe(`path comparisons`, () => {
+
+    test(`pathStartsWith`, () => {
+      expect(pathStartsWith(`foo`)(`foo`)).toBeTruthy();
+      expect(pathStartsWith(`foo`)(`foo\\bar`)).toBeTruthy();
+      expect(pathStartsWith(`foo`)(`foo/bar`)).toBeTruthy();
+      expect(pathStartsWith(`foo`)(`Foo/`)).toBeTruthy();
+      expect(pathStartsWith(`foo`)(`FoO/Bar`)).toBeTruthy();
+
+      expect(pathStartsWith(`foo/bar`)(`foo/bar/`)).toBeTruthy();
+      expect(pathStartsWith(`foo/bar/`)(`foo/bar/`)).toBeTruthy();
+      expect(pathStartsWith(`foo/bar`)(`foo/bar/bazbaz`)).toBeTruthy();
+      expect(pathStartsWith(`Foo/bar/`)(`foo/Bar/bazbaz`)).toBeTruthy();
+      expect(pathStartsWith(`Foo\\bar`)(`foo/Bar/bazbaz`)).toBeTruthy();
+
+      expect(pathStartsWith(`fooB`)(`foo/Bar/bazbaz`)).toBeFalsy();
+      expect(pathStartsWith(`Bar`)(`foo/Bar/bazbaz`)).toBeFalsy();
+      expect(pathStartsWith(`/Bar`)(`foo/Bar/bazbaz`)).toBeFalsy();
+    });
+
   });
 });

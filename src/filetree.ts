@@ -1,7 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 import nodejsPath from "path";
 import KeyTree from "key-tree";
-import { pipe } from "fp-ts/lib/function";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   filter,
   map,
@@ -174,6 +176,10 @@ export const pathIn = (paths: readonly string[]) => (path: string): boolean => p
 export const pathContains = (path: string) => (pathThatShouldContain: string): boolean =>
   // eslint-disable-next-line max-len
   safeNormalizePath(pathThatShouldContain).includes(safeNormalizePath(path));
+
+export const pathStartsWith = (pathPrefix: string) => (pathThatShouldStartWith: string): boolean =>
+  safeNormalizePath(pathThatShouldStartWith).startsWith(safeNormalizePath(pathPrefix));
+
 
 //
 // Creation
