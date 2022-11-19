@@ -633,7 +633,7 @@ export const enum REDmodLayout {
           One or more mods in the canonical REDmod layout of
 
           | - .\\mods\\[modname]\\info.json { name: modname, ... }
-          | - .\\mods\\[modname]\\archives\\*.archive
+          | - .\\mods\\[modname]\\archives\\[*.archive, *.xl]
           | - .\\mods\\[modname]\\customSounds\\*.wav
           | - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
           | - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
@@ -646,7 +646,7 @@ export const enum REDmodLayout {
           Without the top-level mods\\, one or more mods in the form of
 
           | - .\\[modname]\\info.json { name: modname, ... }
-          | - .\\[modname]\\archives\\*.archive
+          | - .\\[modname]\\archives\\[*.archive, *.xl]
           | - .\\[modname]\\customSounds\\*.wav
           | - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
           | - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
@@ -655,7 +655,7 @@ export const enum REDmodLayout {
           Single mod in the form of
 
           | - .\\info.json { name: modname, ... }
-          | - .\\archives\\*.archive
+          | - .\\archives\\[*.archive, *.xl]
           | - .\\customSounds\\*.wav
           | - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
           | - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
@@ -671,7 +671,7 @@ export const enum REDmodTransformedLayout {
 export const REDMOD_BASEDIR = path.normalize(`mods`);
 
 export const REDMOD_ARCHIVES_DIRNAME = `archives`;
-export const REDMOD_ARCHIVES_VALID_EXTENSIONS = [`.archive`];
+export const REDMOD_ARCHIVES_VALID_EXTENSIONS = [`.archive`, `.xl`];
 export const REDMOD_CUSTOMSOUNDS_DIRNAME = `customSounds`;
 export const REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS = [`.wav`];
 export const REDMOD_SCRIPTS_DIRNAME = `scripts`;
