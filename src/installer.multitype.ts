@@ -6,8 +6,8 @@ import {
   sourcePaths,
 } from "./filetree";
 import {
-  detectExtraArchiveLayouts,
-  extraCanonArchiveInstructionsForMultiType,
+  detectCanonArchiveLayoutsAllowedExternally,
+  archiveCanonInstructionsAllowedForMultiType,
 } from "./installer.archive";
 import {
   detectCetCanonLayout,
@@ -84,7 +84,7 @@ export const testForMultiTypeMod: V2077TestFunc = (
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
   const hasAllowedTweakXL = detectAllowedTweakXLLayouts(fileTree);
 
-  const hasExtraArchives = detectExtraArchiveLayouts(fileTree);
+  const hasExtraArchives = detectCanonArchiveLayoutsAllowedExternally(fileTree);
 
   const hasAtLeastTwoTypes =
     [
@@ -200,7 +200,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     (result) => result.instructions,
   );
 
-  const archiveInstructions = await extraCanonArchiveInstructionsForMultiType(api, fileTree, modInfo, features);
+  const archiveInstructions = await archiveCanonInstructionsAllowedForMultiType(api, fileTree, modInfo, features);
   const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
 
   const redscriptInstructions = redscriptAllowedInMultiInstructions(
