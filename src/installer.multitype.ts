@@ -1,4 +1,6 @@
-import { isLeft } from "fp-ts/lib/Either";
+import {
+  isLeft,
+} from "fp-ts/lib/Either";
 import {
   FileTree,
   sourcePaths,
@@ -11,7 +13,9 @@ import {
   detectCetCanonLayout,
   cetCanonLayout,
 } from "./installer.cet";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import {
+  promptToFallbackOrFailOnUnresolvableLayout,
+} from "./installer.fallback";
 import {
   detectRed4ExtCanonOnlyLayout,
   detectRed4ExtBasedirLayout,
@@ -34,14 +38,18 @@ import {
   LayoutToInstructions,
   NotAllowed,
 } from "./installers.layouts";
-import { useAllMatchingLayouts } from "./installers.shared";
+import {
+  useAllMatchingLayouts,
+} from "./installers.shared";
 import {
   InstallerType,
   ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { trueish } from "./util.functions";
+import {
+  trueish,
+} from "./util.functions";
 import {
   VortexApi,
   VortexTestResult,
@@ -51,12 +59,16 @@ import {
   configJsonAllowedInMultiInstructions,
   detectAllowedConfigJsonLayouts,
 } from "./installer.config.json";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 import {
   detectAllowedREDmodLayoutsForMultitype,
   redmodAllowedInstructionsForMultitype,
 } from "./installer.redmod";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import {
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
 
 export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,

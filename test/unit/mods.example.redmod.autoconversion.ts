@@ -4,7 +4,9 @@ import {
   FeatureSet,
   BaselineFeatureSetForTests,
 } from "../../src/features";
-import { normalizeDir } from "../../src/filetree";
+import {
+  normalizeDir,
+} from "../../src/filetree";
 import {
   REDMOD_AUTOCONVERTED_NAME_TAG,
   REDMOD_BASEDIR,
@@ -21,8 +23,12 @@ import {
   REDmodInfo,
   REDmodInfoForVortex,
 } from "../../src/installers.types";
-import { jsonpp } from "../../src/util.functions";
-import { InfoNotification } from "../../src/ui.notifications";
+import {
+  jsonpp,
+} from "../../src/util.functions";
+import {
+  InfoNotification,
+} from "../../src/ui.notifications";
 import {
   FAKE_MOD_INFO,
   ExampleSucceedingMod,

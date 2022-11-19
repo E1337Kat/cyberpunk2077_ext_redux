@@ -1,6 +1,10 @@
 import path from "path";
-import { FileTree } from "./filetree";
-import { EXTENSION_NAME_INTERNAL } from "./index.metadata";
+import {
+  FileTree,
+} from "./filetree";
+import {
+  EXTENSION_NAME_INTERNAL,
+} from "./index.metadata";
 import {
   InstallerType,
   makeAttr,

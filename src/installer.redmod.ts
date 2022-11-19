@@ -3,7 +3,9 @@ import {
   flow,
   pipe,
 } from "fp-ts/lib/function";
-import { not } from "fp-ts/lib/Predicate";
+import {
+  not,
+} from "fp-ts/lib/Predicate";
 import {
   map,
   filter,
@@ -40,7 +42,9 @@ import {
   some,
   Option,
 } from "fp-ts/lib/Option";
-import { replace as replaceIn } from "fp-ts/lib/string";
+import {
+  replace as replaceIn,
+} from "fp-ts/lib/string";
 import {
   FileTree,
   findDirectSubdirsWithSome,
@@ -229,13 +233,13 @@ const detectNamedREDmodLayout = (fileTree: FileTree): boolean =>
   findNamedREDmodDirs(fileTree).length > 0;
 
 const detectToplevelREDmodLayout = (fileTree: FileTree): boolean =>
-  dirWithSomeIn(FILETREE_ROOT, matchREDmodInfoJson, fileTree) &&
-  matchAnyREDmodSubtypeDir(fileTree)(FILETREE_ROOT);
+  dirWithSomeIn(FILETREE_ROOT, matchREDmodInfoJson, fileTree)
+  && matchAnyREDmodSubtypeDir(fileTree)(FILETREE_ROOT);
 
 export const detectREDmodLayout = (fileTree: FileTree): boolean =>
-  detectCanonREDmodLayout(fileTree) ||
-  detectNamedREDmodLayout(fileTree) ||
-  detectToplevelREDmodLayout(fileTree);
+  detectCanonREDmodLayout(fileTree)
+  || detectNamedREDmodLayout(fileTree)
+  || detectToplevelREDmodLayout(fileTree);
 
 //
 // Layouts
@@ -416,8 +420,8 @@ const customSoundLayoutAndValidation = (
     allCustomSoundFiles.length > 0;
 
   // This isn't /exactly/ an exhaustive check...
-  if ((infoJsonRequiresSoundFiles && !hasSoundFiles) ||
-      (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
+  if ((infoJsonRequiresSoundFiles && !hasSoundFiles)
+      || (!infoJsonRequiresSoundFiles && hasSoundFiles)) {
     return left(new Error(`customSounds sublayout: ${jsonp({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 

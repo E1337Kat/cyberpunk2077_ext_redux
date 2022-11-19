@@ -1,4 +1,6 @@
-import { pipe } from "fp-ts/lib/function";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   map,
   toArray as toMutableArray,
@@ -15,7 +17,9 @@ import {
   REDmodInfo,
   REDmodInfoForVortex,
 } from "../../src/installers.types";
-import { jsonpp } from "../../src/util.functions";
+import {
+  jsonpp,
+} from "../../src/util.functions";
 import {
   ExampleSucceedingMod,
   ExampleFailingMod,
