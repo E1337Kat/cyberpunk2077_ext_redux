@@ -4,7 +4,9 @@ import {
   isLeft,
   right,
 } from "fp-ts/lib/Either";
-import { showArchiveInstallWarning } from "./ui.dialogs";
+import {
+  showArchiveInstallWarning,
+} from "./ui.dialogs";
 import {
   PathFilter,
   FileTree,
@@ -17,7 +19,9 @@ import {
   filesIn,
   sourcePaths,
 } from "./filetree";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import {
+  promptToFallbackOrFailOnUnresolvableLayout,
+} from "./installer.fallback";
 import {
   ARCHIVE_MOD_FILE_EXTENSION,
   ARCHIVE_MOD_CANONICAL_PREFIX,
@@ -54,7 +58,9 @@ import {
   FeatureSet,
   IsDynamicFeatureEnabled,
 } from "./features";
-import { transformToREDmodArchiveInstructions } from "./installer.redmod";
+import {
+  transformToREDmodArchiveInstructions,
+} from "./installer.redmod";
 
 const me = InstallerType.Archive;
 
@@ -99,9 +105,9 @@ const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
   findArchiveHeritageFiles(fileTree).length > 0;
 
 export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
-  detectArchiveCanonWithXLLayout(fileTree) ||
-  detectArchiveCanonLayout(fileTree) ||
-  detectArchiveHeritageLayout(fileTree);
+  detectArchiveCanonWithXLLayout(fileTree)
+  || detectArchiveCanonLayout(fileTree)
+  || detectArchiveHeritageLayout(fileTree);
 
 // Prompts
 
@@ -341,8 +347,8 @@ const instructionsForCanonicalExtras = (
   );
 
   if (
-    chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.Conflict
+    chosenInstructions === NoInstructions.NoMatch
+    || chosenInstructions === InvalidLayout.Conflict
   ) {
     api.log(`debug`, `${InstallerType.Archive}: No valid extra canon archives`);
     return { kind: NoLayout.Optional, instructions: [] };
@@ -358,8 +364,8 @@ const instructionsForToplevelExtras = (
   const chosenInstructions = archiveExtraToplevelLayout(api, undefined, fileTree);
 
   if (
-    chosenInstructions === NoInstructions.NoMatch ||
-    chosenInstructions === InvalidLayout.Conflict
+    chosenInstructions === NoInstructions.NoMatch
+    || chosenInstructions === InvalidLayout.Conflict
   ) {
     api.log(`debug`, `${InstallerType.Archive}: No valid extra toplevel archives`);
     return { kind: NoLayout.Optional, instructions: [] };

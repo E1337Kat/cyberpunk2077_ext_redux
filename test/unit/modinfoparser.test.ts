@@ -1,9 +1,17 @@
 /* eslint-disable prefer-template */
 import path from 'path';
-import { pipe } from "fp-ts/lib/function";
-import { match } from 'fp-ts/lib/Either';
-import { modInfoFromArchivePath } from "../../src/installers.shared";
-import { ModInfo } from '../../src/installers.types';
+import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  match,
+} from 'fp-ts/lib/Either';
+import {
+  modInfoFromArchivePath,
+} from "../../src/installers.shared";
+import {
+  ModInfo,
+} from '../../src/installers.types';
 
 const fakeDate = new Date(2021, 1, 1);
 const fakeTimestamp = fakeDate.getTime() / 1000;

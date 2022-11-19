@@ -2,7 +2,9 @@
 // to match things, and normally within them.
 
 import path from "path";
-import { InstallChoices } from "../../src/ui.dialogs";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
 import {
   CONFIG_XML_MOD_BASEDIR,
   CONFIG_JSON_MOD_BASEDIR_SETTINGS,
@@ -46,8 +48,12 @@ import {
   FAKE_MOD_INFO,
   addedREDmodInfoArrayAttribute,
 } from "./utils.helper";
-import { normalizeDir } from "../../src/filetree";
-import { jsonpp } from "../../src/util.functions";
+import {
+  normalizeDir,
+} from "../../src/filetree";
+import {
+  jsonpp,
+} from "../../src/util.functions";
 
 
 const myREDmodInfo: REDmodInfo = {

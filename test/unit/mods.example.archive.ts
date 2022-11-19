@@ -1,7 +1,13 @@
 import path from "path";
-import { ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
-import { InstallChoices } from "../../src/ui.dialogs";
+import {
+  ARCHIVE_MOD_TRADITIONAL_WRONG_PREFIX,
+} from "../../src/installers.layouts";
+import {
+  InstallerType,
+} from "../../src/installers.types";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
 import {
   ExampleSucceedingMod,
   ARCHIVE_PREFIXES,
