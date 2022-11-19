@@ -104,7 +104,7 @@ const detectArchiveCanonLayout = (fileTree: FileTree): boolean =>
 const detectArchiveHeritageLayout = (fileTree: FileTree): boolean =>
   findArchiveHeritageFiles(fileTree).length > 0;
 
-export const detectExtraArchiveLayouts = (fileTree: FileTree): boolean =>
+export const detectCanonArchiveLayoutsAllowedExternally = (fileTree: FileTree): boolean =>
   detectArchiveCanonWithXLLayout(fileTree)
   || detectArchiveCanonLayout(fileTree)
   || detectArchiveHeritageLayout(fileTree);
@@ -185,7 +185,7 @@ const archiveCanonWithXLLayout = (
   ];
 
   const hasArchivesOutsideDirsAllowedHere =
-    findAllArchiveFiles(fileTree).length !== allInstructions.length;
+    findAllNonREDmodArchiveFiles(fileTree).length !== allInstructions.length;
 
   if (hasArchivesOutsideDirsAllowedHere) {
     return InvalidLayout.Conflict;
@@ -212,8 +212,10 @@ export const archiveCanonLayout = (
   const allFilesInCanonDir = filesUnder(ARCHIVE_MOD_CANONICAL_PREFIX, Glob.Any, fileTree);
 
   const hasArchivesOutsideCanon =
-    findAllArchiveFiles(fileTree).length !== findArchiveCanonFiles(fileTree).length;
+    findAllNonREDmodArchiveFiles(fileTree).length !== findArchiveCanonFiles(fileTree).length;
 
+  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/293
+  //       We really need to get rid of this, it's a mess to handle as a special case
   if (hasArchivesOutsideCanon) {
     return InvalidLayout.Conflict;
   }
@@ -329,7 +331,7 @@ const instructionsForStandaloneMod = (
   return chosenInstructions;
 };
 
-const instructionsForCanonicalExtras = (
+const instructionsForCanonicalAllowedInMultiType = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
@@ -513,13 +515,13 @@ export const installArchiveMod: V2077InstallFunc = async (
 // Internal API for including in other installers
 //
 
-export const extraCanonArchiveInstructionsForMultiType = async (
+export const archiveCanonInstructionsAllowedForMultiType = async (
   api: VortexApi,
   fileTree: FileTree,
   modInfo: ModInfo,
   features: FeatureSet,
 ): Promise<Instructions> => {
-  const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
+  const canonicalInstructions = instructionsForCanonicalAllowedInMultiType(api, fileTree);
 
   if (canonicalInstructions.kind === NoLayout.Optional) {
     api.log(`debug`, `${me} (MultiType): No valid canon archives found for multitype (this is ok)`);
@@ -544,7 +546,7 @@ export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,
 ): Instructions => {
-  const canonicalInstructions = instructionsForCanonicalExtras(api, fileTree);
+  const canonicalInstructions = instructionsForCanonicalAllowedInMultiType(api, fileTree);
 
   warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
