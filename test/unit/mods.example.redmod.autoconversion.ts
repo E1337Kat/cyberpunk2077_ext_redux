@@ -475,32 +475,11 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
   ],
 ]);
 
-const ArchiveModToREDmodMigrationCantBeDoneButWeFallbackToOldstyle = new Map<string, ExampleSucceedingMod>([
-  [
-    `XL can't be autoconverted fully so it is installed as a regular Archive mod`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
-      expectedInstallerType: InstallerType.Archive,
-      inFiles: [
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/first.archive`),
-        path.join(`${ARCHIVE_PREFIX}/first.archive.xl`),
-      ],
-      outInstructions: [
-        copiedToSamePath(`${ARCHIVE_PREFIX}/first.archive`),
-        copiedToSamePath(`${ARCHIVE_PREFIX}/first.archive.xl`),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveNOTautoconverted,
-    },
-  ],
-]);
-
 const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(
     ArchiveModToREDmodMigrationSucceeds,
     ArchiveModToREDmodMigrationWithAutofixSucceeds,
     MultiTypeWithArchiveREDmodAutoconversion,
-    ArchiveModToREDmodMigrationCantBeDoneButWeFallbackToOldstyle,
   ),
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),

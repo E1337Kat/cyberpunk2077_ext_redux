@@ -80,7 +80,6 @@ import {
   ARCHIVE_MOD_CANONICAL_PREFIX,
   Instructions,
   REDmodTransformedLayout,
-  ArchiveLayout,
   REDMOD_MODTYPE_ATTRIBUTE,
 } from "./installers.layouts";
 import {
@@ -754,19 +753,6 @@ export const transformToREDmodArchiveInstructions = async (
 ): Promise<Either<Error, Instructions>> => {
   if (!IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
     api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
-    return right(originalInstructions);
-  }
-
-  // ArchiveXL will be supported later: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/258
-  if (originalInstructions.kind === ArchiveLayout.XL) {
-    api.log(`info`, `${transMe}: ArchiveXL autoconversion to REDmod not supported yet!`);
-
-    showInfoNotification(
-      api,
-      InfoNotification.REDmodArchiveNOTautoconverted,
-      `${modInfo.name} installed as an old-style archive, ArchiveXL can't be autoconverted to REDmod yet!`,
-    );
-
     return right(originalInstructions);
   }
 
