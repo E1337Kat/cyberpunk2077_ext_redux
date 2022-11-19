@@ -211,7 +211,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
-  vortexExt.registerGame({
+  const vortexGameParams = {
     id: GAME_ID,
     name: EXTENSION_NAME_VORTEX,
     setup: setupFunctionToRunAtExtensionInit,
@@ -235,7 +235,11 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       gogAppId: GOGAPP_ID,
       epicAppId: EPICAPP_ID,
     },
-  });
+  };
+
+  vortexApiLib.log(`debug`, `Registering game with Vortex`, vortexGameParams);
+
+  vortexExt.registerGame(vortexGameParams);
 
   vortexExt.registerInstaller(
     internalPipelineInstaller.id,
