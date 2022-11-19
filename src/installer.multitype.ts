@@ -98,21 +98,6 @@ export const testForMultiTypeMod: V2077TestFunc = (
       hasAllowedTweakXL,
     ].filter(trueish).length > 1;
 
-  // This would be a mess to handle later
-  if (hasExtraArchives && hasAllowedREDmods) {
-    const errorMessage = `${InstallerType.MultiType}: Can't install REDmod and Old-Style Archive at the same time, canceling installation`;
-
-    showWarningForUnrecoverableStructureError(
-      api,
-      InstallerType.MultiType,
-      `Can't Install Both REDmod and Old-Style Archive in the Same Mod!`,
-      sourcePaths(fileTree),
-    );
-
-    api.log(`error`, errorMessage);
-    return Promise.reject(new Error(errorMessage));
-  }
-
   // For now, let's define these specifically. Should also move
   // the special handling in CET and Reds to this mode (and then
   // I think we might also be able to unify these two if we don't
