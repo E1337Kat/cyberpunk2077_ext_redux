@@ -106,19 +106,21 @@ describe(`Transforming modules to instructions`, () => {
 
           expect(gotInstructionsSorted).toEqual(expectedInstructionsSorted);
 
-          if (mod.infoDialogTitle) {
-            const actualCalls = dialogMock.mock.calls;
+          const actualDialogCalls = dialogMock.mock.calls;
 
-            expect(actualCalls.length).toBe(1);
-            expect(actualCalls[0][0]).toBe(`info`);
-            expect(actualCalls[0][1]).toBe(mod.infoDialogTitle);
+          if (mod.infoDialogTitle) {
+            expect(actualDialogCalls.length).toBe(1);
+            expect(actualDialogCalls[0][0]).toBe(`info`);
+            expect(actualDialogCalls[0][1]).toBe(mod.infoDialogTitle);
+          } else {
+            expect(actualDialogCalls[0]?.[1]).toBe(undefined);
           }
 
           if (mod.infoNotificationId) {
-            const actualCalls = notificationMock.mock.calls;
+            const actualNotifCalls = notificationMock.mock.calls;
 
-            expect(actualCalls.length).toBe(1);
-            expect(actualCalls[0][0].id).toBe(mod.infoNotificationId);
+            expect(actualNotifCalls.length).toBe(1);
+            expect(actualNotifCalls[0][0].id).toBe(mod.infoNotificationId);
           }
         });
       });
