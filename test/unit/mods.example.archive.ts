@@ -25,6 +25,10 @@ import {
   ExampleFailingMod,
 } from "./utils.helper";
 
+const MANUAL_ARCHIVE_CHECK_WARNING_TITLE =
+  `Mod Installed But May Need Manual Adjustment!`;
+
+
 const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
   Object.entries({
     archiveWithSingleFileCanonical: {
@@ -79,6 +83,7 @@ const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
     },
     archiveWithMultipleFilesInHeritageFolderFixable: {
       expectedInstallerType: InstallerType.Archive,
@@ -128,6 +133,7 @@ const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`${ARCHIVE_PREFIX}/second.archive`),
         },
       ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
     },
     archiveWithArchivesInRandomFolder: {
       expectedInstallerType: InstallerType.Archive,
@@ -146,6 +152,7 @@ const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
     },
     archiveWithArchivesTopLevelAndFolder: {
       expectedInstallerType: InstallerType.Archive,
@@ -162,6 +169,7 @@ const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/second.archive`),
         },
       ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
     },
     archiveWithArchivesInRandomFolderPlusRandomFiles: {
       expectedInstallerType: InstallerType.Archive,
@@ -200,6 +208,7 @@ const ArchiveModSucceeds = new Map<string, ExampleSucceedingMod>(
           destination: path.normalize(`${ARCHIVE_PREFIX}/fold1/thisisenough.md`),
         },
       ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
     },
     archiveXLWithFilesWithMatchingNamesInCanonicalDir: {
       expectedInstallerType: InstallerType.Archive,
