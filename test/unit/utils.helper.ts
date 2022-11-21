@@ -1,20 +1,28 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 import * as path from "path";
-import { Console } from "console";
-import { pipe } from "fp-ts/lib/function";
+import {
+  Console,
+} from "console";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   flatten,
   intersection,
   map,
   sortBy,
 } from "fp-ts/lib/ReadonlyArray";
-import { contramap } from "fp-ts/lib/Ord";
+import {
+  contramap,
+} from "fp-ts/lib/Ord";
 import {
   Eq as StringEq,
   Ord as StringOrd,
 } from "fp-ts/lib/string";
-import { VortexInstruction } from "../../src/vortex-wrapper";
+import {
+  VortexInstruction,
+} from "../../src/vortex-wrapper";
 import {
   InstallerType,
   ModAttribute,
@@ -35,13 +43,19 @@ import {
   REDSCRIPT_CORE_FILES,
   DEPRECATED_REDSCRIPT_CORE_FILES,
 } from "../../src/installers.layouts";
-import { InfoNotification } from "../../src/ui.notifications";
-import { FeatureSet } from "../../src/features";
+import {
+  InfoNotification,
+} from "../../src/ui.notifications";
+import {
+  FeatureSet,
+} from "../../src/features";
 import {
   normalizeDir,
   safeNormalizePath,
 } from "../../src/filetree";
-import { S } from "../../src/util.functions";
+import {
+  S,
+} from "../../src/util.functions";
 
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override

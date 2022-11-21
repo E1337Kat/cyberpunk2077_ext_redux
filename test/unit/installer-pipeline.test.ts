@@ -4,9 +4,15 @@ import {
   DeepMockProxy,
 } from "jest-mock-extended";
 import mockFs from "mock-fs";
-import { IState } from "vortex-api/lib/types/IState";
-import { InstallChoices } from "../../src/ui.dialogs";
-import { GAME_ID } from "../../src/index.metadata";
+import {
+  IState,
+} from "vortex-api/lib/types/IState";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
+import {
+  GAME_ID,
+} from "../../src/index.metadata";
 import {
   internalPipelineInstaller,
   wrapInstall,
@@ -27,7 +33,9 @@ import {
   AllExpectedInstallPromptables,
   AllExpectedSuccesses,
 } from "./mods.example";
-import { BaselineFeatureSetForTests } from "../../src/features";
+import {
+  BaselineFeatureSetForTests,
+} from "../../src/features";
 
 
 const DEFAULT_FEATURES = BaselineFeatureSetForTests;
