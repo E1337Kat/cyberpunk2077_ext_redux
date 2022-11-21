@@ -203,7 +203,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   const defaultGameLaunchParameters =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
-      ? REDmoddingTools.REDlauncher.parameters
+      ? REDmoddingTools.GameExeModded.parameters
       : [];
 
   const fullFeatureSetAvailablePostStartup =

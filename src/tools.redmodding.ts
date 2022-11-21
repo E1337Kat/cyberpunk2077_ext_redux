@@ -17,6 +17,7 @@ import {
 } from "./features";
 import {
   EXTENSION_NAME_INTERNAL,
+  GAME_EXE_RELATIVE_PATH,
 } from "./index.metadata";
 import {
   makeV2077LoadOrderFrom,
@@ -57,6 +58,8 @@ import {
 } from "./state.functions";
 
 
+export const GameExeModdedToolId = `${EXTENSION_NAME_INTERNAL}-game-exe-modded`;
+
 export const REDlauncherToolId = `${EXTENSION_NAME_INTERNAL}-tools-REDLauncher`;
 
 export const REDdeployManualToolId = `${EXTENSION_NAME_INTERNAL}-tools-redMod`;
@@ -65,16 +68,26 @@ export const REDdeployManualToolNeedsLOGenerated = `${REDdeployManualToolId}-wil
 export const REDdeployManualToolHookId = `${REDdeployManualToolId}-hook`;
 
 
+export const GameExeModded: VortexToolShim = {
+  id: GameExeModdedToolId,
+  name: `Launch Game with REDmods Enabled`,
+  shortName: `cp2077.exe -modded`,
+  logo: `gameicon.jpg`,
+  relative: true,
+  requiredFiles: [GAME_EXE_RELATIVE_PATH],
+  executable: constant(GAME_EXE_RELATIVE_PATH),
+  parameters: [`-modded`],
+};
+
 export const REDlauncher: VortexToolShim = {
   id: REDlauncherExeRelativePath,
   name: `REDLauncher (GOG/Steam/Epic)`,
   shortName: `REDLauncher`,
   logo: `REDLauncher.png`,
-  requiredFiles: [REDlauncherExeRelativePath],
-  executable: (): string => REDlauncherExeRelativePath,
   relative: true,
+  requiredFiles: [REDlauncherExeRelativePath],
+  executable: constant(REDlauncherExeRelativePath),
   parameters: [`-modded`],
-  environment: {},
 };
 
 export const REDdeployManual: VortexToolShim = {
@@ -82,9 +95,9 @@ export const REDdeployManual: VortexToolShim = {
   name: `REDmod Deploy Latest Load Order`,
   shortName: `REDdeploy`,
   logo: `REDdeploy.png`,
-  requiredFiles: [REDdeployExeRelativePath],
-  executable: (): string => REDdeployExeRelativePath,
   relative: true,
+  requiredFiles: [REDdeployExeRelativePath],
+  executable: constant(REDdeployExeRelativePath),
   parameters: [REDdeployManualToolNeedsLOGenerated],
   shell: true,
   exclusive: true,
@@ -175,6 +188,7 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
 
 
 export const REDmoddingTools = [
+  GameExeModded,
   REDlauncher,
   REDdeployManual,
 ];

@@ -20,6 +20,8 @@ const finalWebpackConfig = {
     */
 };
 
-console.log(vortexWebpackConfig, finalWebpackConfig);
+if (!!process.env.V2077_DEBUG) {
+  console.log(vortexWebpackConfig, finalWebpackConfig);
+}
 
 module.exports = finalWebpackConfig;

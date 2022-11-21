@@ -13,7 +13,7 @@ export const CyberCatTool: VortexToolShim = {
   id: `CyberCat`,
   name: `CyberCAT Save Editor`,
   shortName: `CyberCAT`,
-  logo: `SaveEditor.png`,
+  logo: `SaveEditor.jpg`,
   requiredFiles: [
     path.join(`CyberCAT`, `CP2077SaveEditor.exe`),
     path.join(`CyberCAT`, `licenses`, `CyberCAT.Core.LICENSE.txt`),
