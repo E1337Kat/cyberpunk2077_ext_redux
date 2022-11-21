@@ -1,3 +1,22 @@
+# Cyberpunk 2077 Vortex Support v0.9.2
+
+A nice new gig and a bit of fixing for v0.9.0
+
+## Main Jobs
+
+- ✨ **ArchiveXL REDmod support!** ArchiveXL can now be installed in REDmods, including for MultiType mods. Autoconversion from heirloom ArchiveXL is also supported both standalone and along with `.archive` files.
+
+## Fixer Gigs
+
+- 🐛 **redMod.exe will now always deploy order-only changes too!** The `redMod.exe` tool doesn't currently correctly handle cases where only the load order is changed without enabling/disabling mods at the same time. Until that's fixed upstream, Vortex will default to force deployment. It's unfortunately slower, but hopefully won't get in the way too much because it's running in the background.
+
+- 🐛 **REDmodding DLC check won't fail on non-store games!** 
+
+## Chippin' In - Tools of the Trade
+
+- ⚒️ **Run the game directly, `-modded`, no launcher.** If you don't need the launcher, you can launch the game directly and still get the modded goodness (it's in the toolbar at the top, or on your dashboard.) 
+
+
 # Cyberpunk 2077 Vortex Support v0.9.1
 
 Bugfix update to v0.9.0, see full changelog below.
