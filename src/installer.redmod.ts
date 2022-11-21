@@ -81,6 +81,7 @@ import {
   Instructions,
   REDmodTransformedLayout,
   REDMOD_MODTYPE_ATTRIBUTE,
+  ARCHIVE_MOD_XL_EXTENSION,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
@@ -371,7 +372,16 @@ const archiveLayoutAndValidation = (
   const hasMultipleArchives =
     correctlyPlacedArchiveFiles.length > 1;
 
-  if (hasArchivesInSubdirs || hasMultipleArchives) {
+  const hasXlWhichMeansMultipleArchivesShouldntBeAProblem =
+    pipe(
+      correctlyPlacedArchiveFiles,
+      any((archiveFile) => archiveFile.endsWith(ARCHIVE_MOD_XL_EXTENSION)),
+    );
+
+  const hasPossiblyProblematicMultipleArchives =
+    hasMultipleArchives && !hasXlWhichMeansMultipleArchivesShouldntBeAProblem;
+
+  if (hasArchivesInSubdirs || hasPossiblyProblematicMultipleArchives) {
     api.log(`warn`, `Archive sublayout may require manual fixing, showing warning but continuing:`, { hasArchivesInSubdirs, hasMultipleArchives });
 
     showArchiveInstallWarning(
