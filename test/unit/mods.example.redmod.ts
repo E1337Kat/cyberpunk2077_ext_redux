@@ -128,6 +128,10 @@ const myREDmodNumber2InfoForVortex: REDmodInfoForVortex = {
 const myREDmodNumber2InfoJson = jsonpp(myREDmodInfoNumber2);
 
 
+const MANUAL_ARCHIVE_CHECK_WARNING_TITLE =
+  `Mod Installed But May Need Manual Adjustment!`;
+
+
 //
 // Examples
 //
@@ -163,6 +167,38 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
     },
   ],
   [
+    `canonical REDmod with multiple archives and no XL files installs with warning`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_opt1.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_opt2.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_opt1.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff_opt2.archive`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
+      ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
+    },
+  ],
+  [
     `canonical REDmod with Archive and ArchiveXL`,
     {
       expectedInstallerType: InstallerType.REDmod,
@@ -187,6 +223,39 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
+      ],
+    },
+  ],
+  [
+    `canonical REDmod with multiple archives installs without warning if XL files present (it generally means there's no need to prompt)`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cooler_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/whatever.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cooler_stuff.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/whatever.xl`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoForVortex),
