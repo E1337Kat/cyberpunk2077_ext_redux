@@ -134,7 +134,7 @@ const prepareForModdingWithREDmodding = async (
     await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]).catch(() => undefined);
 
   if (gameStoreIfInstalledThroughStore?.gamePath !== discovery.path) {
-    vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, autoDetect: gameStoreIfInstalledThroughStore.path });
+    vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, gameStoreIfInstalledThroughStore });
   }
 
   await promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
