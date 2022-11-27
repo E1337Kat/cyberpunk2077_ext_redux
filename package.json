@@ -1,6 +1,6 @@
 {
     "name": "cyberpunk2077",
-    "version": "0.9.2",
+    "version": "0.9.3-gonk",
     "description": "Cyberpunk 2077 modding support for the Vortex mod manager, as user-friendly and helpful as possible.",
     "homepage": "https://www.nexusmods.com/site/mods/196",
     "repository": "https://github.com/E1337Kat/cyberpunk2077_ext_redux",
