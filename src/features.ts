@@ -46,6 +46,19 @@ export const IfFeatureEnabled = <T>(featureState: FeatureState, then: Dynamic<T>
 export const enum StaticFeature {
   REDmodding = `v2077_feature_redmodding`,
   REDmodLoadOrder = `v2077_feature_redmod_load_order`,
+  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/313
+  //
+  //       Maybe we can do something better here? This will only increase
+  //       the limit from 8192 to 32k anyway, but that does give us headroom.
+  //       Just kind of a worse UX until and if we come up with a spinner-like.
+  //
+  //       And error handling might be trickier.
+  //
+  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/316
+  //
+  //       Turn this into a DynamicFeature once we have a solid way to
+  //       directly derive the settings from it #278
+  ExePreferDirectSpawnWithoutShell = `v2077_feature_exe_prefer_direct_spawn_without_shell`,
 }
 
 // Need to be underscored since it isn't always just a string... thanks react...
@@ -71,16 +84,18 @@ export type FeatureSet = VersionedStaticFeatureSet & DynamicFeatureSet;
 // ...Through these records
 
 export const BaselineFeatureSetForTests: FeatureSet = {
-  fromVersion: `0.9.0`,
+  fromVersion: `0.9.3`,
   REDmodding: FeatureState.Disabled,
   REDmodLoadOrder: FeatureState.Disabled,
+  ExePreferDirectSpawnWithoutShell: FeatureState.Disabled,
   REDmodAutoconvertArchives: () => FeatureState.Disabled,
 };
 
 export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
-  fromVersion: `0.9.0`,
+  fromVersion: `0.9.3`,
   REDmodding: FeatureState.Enabled,
   REDmodLoadOrder: FeatureState.Enabled,
+  ExePreferDirectSpawnWithoutShell: FeatureState.Enabled,
 };
 
 
