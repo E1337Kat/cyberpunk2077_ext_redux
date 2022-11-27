@@ -12,3 +12,4 @@ export const V2077_LOAD_ORDER_DIR = path.join(`${V2077_DIR}\\Load Order`);
 
 export const REDlauncherExeRelativePath = path.join(`REDprelauncher.exe`);
 export const REDdeployExeRelativePath = path.join(`tools\\redmod\\bin\\redMod.exe`);
+

@@ -58,6 +58,9 @@ import {
   TypedVortexLoadOrderEntry,
   OrderableLoadOrderEntryForVortex,
   TypedOrderableVortexLoadOrderEntry,
+  VortexWrappedDeserializeFunc,
+  VortexWrappedSerializeFunc,
+  VortexWrappedValidateFunc,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -78,9 +81,6 @@ import {
   vortexUtil,
   VortexValidateFunc,
   VortexValidationResult,
-  VortexWrappedDeserializeFunc,
-  VortexWrappedSerializeFunc,
-  VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 import {
   bbcodeBasics,
@@ -106,6 +106,10 @@ import {
   InfoNotification,
   showInfoNotification,
 } from "./ui.notifications";
+import {
+  FeatureSet,
+  IsFeatureEnabled,
+} from "./features";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -341,6 +345,7 @@ const makeVortexLoadOrderEntryFrom =
 
 const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   vortexApi: VortexApi,
+  _features: FeatureSet,
 ): Promise<VortexLoadOrder> => {
   const gameDirPath = getDiscoveryPath(vortexApi);
 
@@ -462,6 +467,7 @@ export const makeV2077LoadOrderFrom = (
 
 
 export const loadOrderToREDdeployRunParameters = (
+  features: FeatureSet,
   gameDirPath: string,
   v2077LoadOrderToDeploy: LoadOrder,
 ): VortexRunParameters => {
@@ -497,9 +503,12 @@ export const loadOrderToREDdeployRunParameters = (
   const exePath =
     path.join(gameDirPath, REDdeployExeRelativePath);
 
+  const runInsideShell =
+    !IsFeatureEnabled(features.ExePreferDirectSpawnWithoutShell);
+
   const runOptions: VortexRunOptions = {
     cwd: path.dirname(exePath),
-    shell: true,
+    shell: runInsideShell,
     detach: true,
     expectSuccess: true,
   };
@@ -512,8 +521,9 @@ export const loadOrderToREDdeployRunParameters = (
 };
 
 
-const startREDmodDeployInTheBackgroundWithNotifications = (
+const startREDmodDeployInTheBackgroundWithNotifs = (
   vortexApi: VortexApi,
+  features: FeatureSet,
   gameDirPath: string,
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
@@ -554,7 +564,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   }
 
   const redDeploy =
-    loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
+    loadOrderToREDdeployRunParameters(features, gameDirPath, v2077LoadOrderToDeploy);
 
   vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
     .then(() => {
@@ -596,6 +606,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 //
 const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   vortexApi: VortexApi,
+  features: FeatureSet,
   vortexLoadOrder: VortexLoadOrder,
 ): Promise<void> => {
   const gameDirPath = getDiscoveryPath(vortexApi);
@@ -626,7 +637,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
   vortexApi.events.once(`did-deploy`, () => {
-    startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder);
+    startREDmodDeployInTheBackgroundWithNotifs(vortexApi, features, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder);
   });
 
   vortexApi.log(`info`, `${me}: Queuing REDmod deployment for load order ${loID} to run after next Vortex deployment!`);
@@ -651,6 +662,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
 
 const validate: VortexWrappedValidateFunc = async (
   vortexApi: VortexApi,
+  _features: FeatureSet,
   _previousLoadOrder: VortexLoadOrder,
   _currentLoadOrder: VortexLoadOrder,
 ): Promise<VortexValidationResult> => {
@@ -681,11 +693,12 @@ export const internalLoadOrderer: LoadOrderer = {
 export const wrapDeserialize = (
   vortex: VortexExtensionContext,
   vortexApiThing,
+  features: FeatureSet,
   loadOrderer: LoadOrderer,
 ): VortexDeserializeFunc => async (): Promise<VortexLoadOrder> => {
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-  return loadOrderer.deserializeLoadOrder(vortexApi);
+  return loadOrderer.deserializeLoadOrder(vortexApi, features);
 };
 
 //
@@ -699,11 +712,12 @@ export const wrapDeserialize = (
 export const wrapSerialize = (
   vortex: VortexExtensionContext,
   vortexApiThing,
+  features: FeatureSet,
   loadOrderer: LoadOrderer,
 ): VortexSerializeFunc => async (loadOrder: VortexLoadOrder): Promise<void> => {
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-  return loadOrderer.serializeLoadOrder(vortexApi, loadOrder);
+  return loadOrderer.serializeLoadOrder(vortexApi, features, loadOrder);
 };
 
 //
@@ -716,6 +730,7 @@ export const wrapSerialize = (
 export const wrapValidate = (
   vortex: VortexExtensionContext,
   vortexApiThing,
+  features: FeatureSet,
   loadOrderer: LoadOrderer,
 ): VortexValidateFunc => (prev: VortexLoadOrder, current: VortexLoadOrder) => {
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
@@ -723,6 +738,7 @@ export const wrapValidate = (
   // Unlike in `install`, Vortex doesn't supply us the mod's disk path
   return loadOrderer.validate(
     vortexApi,
+    features,
     prev,
     current,
   );

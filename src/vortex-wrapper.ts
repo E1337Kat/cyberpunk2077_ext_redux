@@ -73,23 +73,11 @@ export type VortexActionConditionFunc = (instanceIds?: string[]) => string | boo
 
 export type VortexValidateFunc =
    (prev: VortexLoadOrder, current: VortexLoadOrder) => Promise<VortexValidationResult>;
-export type VortexWrappedValidateFunc = (
-  vortexApi: VortexApi,
-  prev: VortexLoadOrder,
-  current: VortexLoadOrder
-) => Promise<VortexValidationResult>;
 
 export type VortexDeserializeFunc = () => Promise<VortexLoadOrder>;
-export type VortexWrappedDeserializeFunc = (
-  vortexApi: VortexApi,
-) => Promise<VortexLoadOrder>;
 
 export type VortexSerializeFunc =
   (loadOrder: VortexLoadOrder) => Promise<void>;
-export type VortexWrappedSerializeFunc = (
-  vortexApi: VortexApi,
-  loadOrder: VortexLoadOrder,
-) => Promise<void>;
 
 export type VortexLogLevel = "debug" | "info" | "warn" | "error";
 export type VortexLogFunc = (

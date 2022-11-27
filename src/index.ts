@@ -276,9 +276,12 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         // toggleableEntries: true,
         //
         usageInstructions: loadOrderUsageInstructionsForVortexGui,
-        validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
-        deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
-        serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),
+        validate:
+          wrapValidate(vortexExt, vortexApiLib, fullFeatureSetAvailablePostStartup, internalLoadOrderer),
+        deserializeLoadOrder:
+          wrapDeserialize(vortexExt, vortexApiLib, fullFeatureSetAvailablePostStartup, internalLoadOrderer),
+        serializeLoadOrder:
+          wrapSerialize(vortexExt, vortexApiLib, fullFeatureSetAvailablePostStartup, internalLoadOrderer),
       });
 
     } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))

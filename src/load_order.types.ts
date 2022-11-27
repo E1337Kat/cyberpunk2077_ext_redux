@@ -1,6 +1,12 @@
-import { pipe } from "fp-ts/lib/function";
-import { Ord as NumericOrd } from "fp-ts/lib/number";
-import { Ord as StringOrd } from "fp-ts/lib/string";
+import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  Ord as NumericOrd,
+} from "fp-ts/lib/number";
+import {
+  Ord as StringOrd,
+} from "fp-ts/lib/string";
 import {
   contramap,
   Ord,
@@ -15,16 +21,39 @@ import {
   decodeWith,
   REDmodInfoForVortex,
 } from "./installers.types";
-import { jsonpp } from "./util.functions";
 import {
+  jsonpp,
+} from "./util.functions";
+import {
+  VortexApi,
+  VortexLoadOrder,
   VortexLoadOrderEntry,
   VortexModWithEnabledStatus,
-  VortexWrappedDeserializeFunc,
-  VortexWrappedSerializeFunc,
-  VortexWrappedValidateFunc,
+  VortexValidationResult,
 } from "./vortex-wrapper";
+import {
+  FeatureSet,
+} from "./features";
 
 export const LOAD_ORDER_TYPE_VERSION = `1.0.0`;
+
+export type VortexWrappedValidateFunc = (
+  vortexApi: VortexApi,
+  features: FeatureSet,
+  prev: VortexLoadOrder,
+  current: VortexLoadOrder
+) => Promise<VortexValidationResult>;
+
+export type VortexWrappedDeserializeFunc = (
+  vortexApi: VortexApi,
+  features: FeatureSet,
+) => Promise<VortexLoadOrder>;
+
+export type VortexWrappedSerializeFunc = (
+  vortexApi: VortexApi,
+  features: FeatureSet,
+  loadOrder: VortexLoadOrder,
+) => Promise<void>;
 
 export interface LoadOrderer {
   validate: VortexWrappedValidateFunc;

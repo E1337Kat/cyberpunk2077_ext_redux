@@ -14,6 +14,8 @@ import {
 } from "fp-ts/lib/Either";
 import {
   FeatureSet,
+  IsFeatureEnabled,
+  StaticFeaturesForStartup,
 } from "./features";
 import {
   EXTENSION_NAME_INTERNAL,
@@ -99,7 +101,9 @@ export const REDdeployManual: VortexToolShim = {
   requiredFiles: [REDdeployExeRelativePath],
   executable: constant(REDdeployExeRelativePath),
   parameters: [REDdeployManualToolNeedsLOGenerated],
-  shell: true,
+  // This isn't really the right way, we should be wrapping these all in a `make*` function,
+  // but it's the correct value, and avoids yet another threading the needle.
+  shell: !IsFeatureEnabled(StaticFeaturesForStartup.ExePreferDirectSpawnWithoutShell),
   exclusive: true,
   // Can't be set here for some reason, we do this in the hook instead
   // expectSuccess: true
@@ -108,7 +112,7 @@ export const REDdeployManual: VortexToolShim = {
 
 export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFunc =
   // wrap...
-  (vortexExt: VortexExtensionContext, vortexApiLib: any, _featureSet: FeatureSet): ToolStartHook => ({
+  (vortexExt: VortexExtensionContext, vortexApiLib: any, features: FeatureSet): ToolStartHook => ({
     // ...the actual hook
 
     hookId:
@@ -170,7 +174,7 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
 
         // exclusive is something we want but that's handled higher up so no need here
         const overridingActualParamsToREDdeployLatestLoadOrder =
-          loadOrderToREDdeployRunParameters(gameDir, latestLoadOrder);
+          loadOrderToREDdeployRunParameters(features, gameDir, latestLoadOrder);
 
         vortexApi.log(`debug`, `${me}: Actual run parameters we're using ${S(overridingActualParamsToREDdeployLatestLoadOrder)}`);
 
