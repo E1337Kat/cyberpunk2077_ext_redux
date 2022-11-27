@@ -24,6 +24,12 @@ import {
 } from "../../src/redmodding.metadata";
 
 import * as loTestData from "./loadorder.example";
+import {
+  BaselineFeatureSetForTests,
+  FeatureSet,
+  FeatureState,
+  IsFeatureEnabled,
+} from "../../src/features";
 
 const FAKE_GAMEDIR_PATH = `C:\\fake\\gamedir`;
 
@@ -90,37 +96,48 @@ describe(`Load Order`, () => {
 
   describe(`REDdeploy parameter generation`, () => {
 
-    test(`produces correctly formatted parameter list with all necessary parameters`, () => {
+    [
+      FeatureState.Enabled,
+      FeatureState.Disabled,
+    ].forEach((featureState) => {
 
-      const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-mod=`,
-          `"#POPPY DRESS (V2077 Autoconverted)"`,
-          `"AuskaWorks - Guinevere's Always-On Chrome"`,
-          `"Better_Apartment_Views"`,
-          `"PanamRomancedEnhanced"`,
-          `"PanamRomancedEnhancedPrivacy"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: true,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
+      test(`produces correctly formatted parameter list with all necessary parameters when shelling ${featureState}`, () => {
 
-      const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+        const testFeatures: FeatureSet = {
+          ...BaselineFeatureSetForTests,
+          ExePreferDirectSpawnWithoutShell: featureState,
+        };
 
-      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+        const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
+        const expectedRedDeployParameters: VortexRunParameters = {
+          executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
+          args: [
+            `deploy`,
+            `-force`,
+            `-root=`,
+            `"${FAKE_GAMEDIR_PATH}"`,
+            `-rttiSchemaFile=`,
+            `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+            `-mod=`,
+            `"#POPPY DRESS (V2077 Autoconverted)"`,
+            `"AuskaWorks - Guinevere's Always-On Chrome"`,
+            `"Better_Apartment_Views"`,
+            `"PanamRomancedEnhanced"`,
+            `"PanamRomancedEnhancedPrivacy"`,
+          ],
+          options: {
+            cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
+            shell: !IsFeatureEnabled(testFeatures.ExePreferDirectSpawnWithoutShell),
+            detach: true,
+            expectSuccess: true,
+          },
+        };
+
+        const redDeployParamsGenerated =
+        loadOrderToREDdeployRunParameters(testFeatures, FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+
+        expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+      });
     });
 
     test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
@@ -142,14 +159,14 @@ describe(`Load Order`, () => {
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: true,
+          shell: !IsFeatureEnabled(BaselineFeatureSetForTests.ExePreferDirectSpawnWithoutShell),
           detach: true,
           expectSuccess: true,
         },
       };
 
       const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, noModsInLoadOrder);
+        loadOrderToREDdeployRunParameters(BaselineFeatureSetForTests, FAKE_GAMEDIR_PATH, noModsInLoadOrder);
 
       expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
     });
