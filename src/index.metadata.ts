@@ -16,7 +16,7 @@ export const EXTENSION_NAME_INTERNAL = `V2077`;
 export const EXTENSION_URL_NEXUS = `https://www.nexusmods.com/site/mods/196`;
 export const EXTENSION_URL_GITHUB = `https://github.com/E1337Kat/cyberpunk2077_ext_redux`;
 
-export const GAME_EXE_RELATIVE_PATH = `bin/x64/cyberpunk2077.exe`;
+export const GAME_EXE_RELATIVE_PATH = `bin/x64/Cyberpunk2077.exe`;
 
 export const V2077_DIR = `V2077`;
 
