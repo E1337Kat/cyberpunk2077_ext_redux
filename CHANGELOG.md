@@ -1,3 +1,15 @@
+# Cyberpunk 2077 Vortex Support v0.9.3
+
+Quick and dirty, 'cause what else is there in Night City?
+
+## Fixer Gigs
+
+- 🐛 **cYbEr PuNk 2o77 Ex3** Since the 'case-insensitive' Windows filesystem doesn't _actually_ do a whole lot to guarantee any protection against any sort of problem, much like NCPD, there's a minor workaround to allow `cybercmd` to use case-sensitive comparison (until their fix is in.) To wit, we now spell `Cyberpunk2077` as `Cyberpunk2077`, not `cyberpunk2077`. Computers are great.
+
+- 🐛 **:spy:** No more autoconvert tags in mod names to reduce the name length, which is actually becoming a problem with ~200 REDmods installed. This defers the problem slightly, but we need to solve it better unless the next version of `redMod.exe` will allow file-based input.
+
+- 🐛 **INFINITE MODS** (actually not infinite). To APPARENTLY NOT work around Windows' shell invocation limit of 8192 characters that can be a problem with tons of REDmods, we switched to directly calling `redMod.exe`. This means you won't get to enjoy the fun hacker experience of watching a terminal window, but it'll run just the same - keep an eye on the green notification of grand success! While this doesn't solve the command line length issue in itself, it gives us a single place to control the eventual feature from.
+
 # Cyberpunk 2077 Vortex Support v0.9.2
 
 A nice new gig and a bit of fixing for v0.9.0
