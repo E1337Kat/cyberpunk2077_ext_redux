@@ -46,6 +46,7 @@ export const IfFeatureEnabled = <T>(featureState: FeatureState, then: Dynamic<T>
 export const enum StaticFeature {
   REDmodding = `v2077_feature_redmodding`,
   REDmodLoadOrder = `v2077_feature_redmod_load_order`,
+  REDmodAutoconversionTag = `v2077_feature_redmod_autoconversion_tag`,
   // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/313
   //
   //       Maybe we can do something better here? This will only increase
@@ -87,6 +88,7 @@ export const BaselineFeatureSetForTests: FeatureSet = {
   fromVersion: `0.9.3`,
   REDmodding: FeatureState.Disabled,
   REDmodLoadOrder: FeatureState.Disabled,
+  REDmodAutoconversionTag: FeatureState.Enabled,
   ExePreferDirectSpawnWithoutShell: FeatureState.Disabled,
   REDmodAutoconvertArchives: () => FeatureState.Disabled,
 };
@@ -95,6 +97,7 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
   fromVersion: `0.9.3`,
   REDmodding: FeatureState.Enabled,
   REDmodLoadOrder: FeatureState.Enabled,
+  REDmodAutoconversionTag: FeatureState.Disabled,
   ExePreferDirectSpawnWithoutShell: FeatureState.Enabled,
 };
 
