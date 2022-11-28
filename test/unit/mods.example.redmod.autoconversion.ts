@@ -62,11 +62,22 @@ const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: FeatureSet = {
   REDmodAutoconvertArchives: () => FeatureState.Enabled,
 };
 
+const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING: FeatureSet = {
+  ...BaselineFeatureSetForTests,
+  REDmodAutoconversionTag: FeatureState.Disabled,
+  REDmodAutoconvertArchives: () => FeatureState.Enabled,
+};
+
 const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
+const AUTOCONVERT_MOD_NAME_UNTAGGED = `${FAKE_MOD_INFO.name}`;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
 const REDMOD_FAKE_INFO: REDmodInfo = {
   name: AUTOCONVERT_MOD_NAME,
+  version: AUTOCONVERT_MOD_VERSION,
+};
+const REDMOD_FAKE_INFO_UNTAGGED: REDmodInfo = {
+  name: AUTOCONVERT_MOD_NAME_UNTAGGED,
   version: AUTOCONVERT_MOD_VERSION,
 };
 const REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
@@ -75,6 +86,12 @@ const REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
   vortexModId: FAKE_MOD_INFO.id,
 };
 const REDMOD_FAKE_INFO_JSON = jsonpp(REDMOD_FAKE_INFO);
+const REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED: REDmodInfoForVortex = {
+  ...REDMOD_FAKE_INFO_UNTAGGED,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, REDMOD_FAKE_INFO_UNTAGGED.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const REDMOD_FAKE_INFO_UNTAGGED_JSON = jsonpp(REDMOD_FAKE_INFO_UNTAGGED);
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -98,6 +115,31 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
+    `Canonical with single archive migrated to REDmod without name tagging`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/first.archive`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/first.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
+        ),
+        generatedFile(
+          REDMOD_FAKE_INFO_UNTAGGED_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
