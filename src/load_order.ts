@@ -512,16 +512,16 @@ export const loadOrderToREDdeployRunParameters = (
 };
 
 
-const startREDmodDeployInTheBackgroundWithNotifications = (
+export const startREDmodDeployInTheBackgroundWithNotifications = (
   vortexApi: VortexApi,
   gameDirPath: string,
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
   vortexFormatLoadOrderForComparison: VortexLoadOrder,
-): void => {
-  const tag = `${me}: REDmod Delayed Deploy`;
+): Promise<void> => {
+  const tag = `${me}: REDmod Background Deploy`;
 
-  vortexApi.log(`info`, `${tag}: Starting delayed deploy for load order ${loID}`);
+  vortexApi.log(`info`, `${tag}: Starting background deploy for load order ${loID}`);
 
   const vortexState: VortexState = vortexApi.store.getState();
   const activeProfile = selectors.activeProfile(vortexState);
@@ -530,7 +530,7 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
 
   if (activeProfile.id !== ownerProfileId) {
     vortexApi.log(`warn`, `${tag}: Profile is not the same that generated load order ${loID}, stopping!`, { activeProfile, ownerProfileId });
-    return;
+    return Promise.resolve();
   }
 
   const newestGeneratedLoadOrder: readonly VortexLoadOrderEntry[] =
@@ -539,7 +539,8 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   if (!newestGeneratedLoadOrder) {
     vortexApi.log(`error`, `${tag}: Unable to find the current load order, canceling! It should be *this* one (${loID}) if nothing else.`);
     showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-    return;
+
+    return Promise.resolve();
   }
 
   // Are we still the current load order? Maybe not!
@@ -550,25 +551,37 @@ const startREDmodDeployInTheBackgroundWithNotifications = (
   if (JSON.stringify(vortexFormatLoadOrderForComparison) !== JSON.stringify(newestGeneratedLoadOrder)) {
     vortexApi.log(`info`, `${tag}: Load order ${loID} no longer most recent, this is ok, canceling!`);
     // No need to notify, it's fine if this has been superceded
-    return;
+    return Promise.resolve();
   }
 
   const redDeploy =
     loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
 
-  vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
-    .then(() => {
-      vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-    })
-    .catch((error) => {
-      vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
-      showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-    });
 
-  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
-  vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
+  if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
+    vortexApi.log(`warn`, `${me}: No mods in load order, running default REDdeploy!`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentDefaulted);
+  } else {
+    vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
+  }
+
   vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
+
+  // Should really figure out how to get the output from this.
+  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/321
+  const REDdeployment: Promise<void> =
+    vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
+      .then(() => {
+        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+      })
+      .catch((error) => {
+        vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
+        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+      });
+
+  return REDdeployment;
 };
 
 
