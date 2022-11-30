@@ -257,8 +257,8 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
   pipe(
     availableStartHooks,
-    mapWithIndex((i: number, { hookId, transformRunParams }) =>
-      forEffect(() => { vortexExt.registerStartHook(40 + i, hookId, transformRunParams); })),
+    mapWithIndex((i: number, { hookId, doActualWorkInTheHookAndReturnDummyParams }) =>
+      forEffect(() => { vortexExt.registerStartHook(40 + i, hookId, doActualWorkInTheHookAndReturnDummyParams); })),
     forEachEffect,
     mapLeft((err) => {
       vortexApiLib.log(`error`, `${EXTENSION_NAME_INTERNAL} init: Failed to register start hook`, err);

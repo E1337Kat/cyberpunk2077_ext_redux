@@ -767,7 +767,7 @@ export const transformToREDmodArchiveInstructions = async (
   }
 
   const redmodInfoWithAutoconvertTag =
-    modInfoTaggedAsAutoconverted(modInfo);
+    modInfoTaggedAsAutoconverted(features, modInfo);
 
   const redmodModuleName =
     redmodInfoWithAutoconvertTag.name;

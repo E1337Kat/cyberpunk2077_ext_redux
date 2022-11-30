@@ -4,9 +4,6 @@ import {
 import {
   pipe,
 } from "fp-ts/lib/function";
-import {
-  isEmpty,
-} from "fp-ts/lib/ReadonlyArray";
 import path from "path/win32";
 import {
   map as mapE,
@@ -21,7 +18,7 @@ import {
 } from "./index.metadata";
 import {
   makeV2077LoadOrderFrom,
-  loadOrderToREDdeployRunParameters,
+  startREDmodDeployInTheBackgroundWithNotifications,
 } from "./load_order";
 import {
   loadOrderFromVortexState,
@@ -38,10 +35,6 @@ import {
   ToolSpec,
   ToolStartHook,
 } from "./tools.types";
-import {
-  InfoNotification,
-  showInfoNotification,
-} from "./ui.notifications";
 import {
   constant,
   S,
@@ -67,6 +60,15 @@ export const REDdeployManualToolNeedsLOGenerated = `${REDdeployManualToolId}-wil
 
 export const REDdeployManualToolHookId = `${REDdeployManualToolId}-hook`;
 
+export const DummyCmdExeCallForToolToCallAfterRealWorkDone: VortexRunParameters = {
+  executable: `cmd.exe`,
+  args: [`/c`, `echo`, ``],
+  options: {
+    shell: true,
+    detach: true,
+    expectSuccess: true,
+  },
+};
 
 export const GameExeModded: VortexToolShim = {
   id: GameExeModdedToolId,
@@ -114,8 +116,8 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
     hookId:
       REDdeployManualToolHookId,
 
-    transformRunParams:
-      ({ executable, args, options }: VortexRunParameters): Promise<VortexRunParameters> => {
+    doActualWorkInTheHookAndReturnDummyParams:
+      async ({ executable, args, options }: VortexRunParameters): Promise<VortexRunParameters> => {
         const me = `${EXTENSION_NAME_INTERNAL} REDdeploy hook`;
 
         const vortexApi: VortexApi = {
@@ -139,7 +141,7 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
            || args.length !== 1
            || args[0] !== REDdeployManualToolNeedsLOGenerated) {
 
-          vortexApi.log(`debug`, `${me} not our tool, this is ok, skipping: ${S({ executable, args, options })}`);
+          vortexApi.log(`debug`, `${me}: Call doesn't match this hook, skipping: ${S({ executable, args, options })}`);
           return Promise.resolve({ executable, args, options });
         }
 
@@ -168,21 +170,22 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
         const latestLoadOrder: LoadOrder =
           makeV2077LoadOrderFrom(latestLoadOrderInVortexFormat, activeProfile.id, timestampAsLoadOrderId);
 
-        // exclusive is something we want but that's handled higher up so no need here
-        const overridingActualParamsToREDdeployLatestLoadOrder =
-          loadOrderToREDdeployRunParameters(gameDir, latestLoadOrder);
+        try {
+          await startREDmodDeployInTheBackgroundWithNotifications(
+            vortexApi,
+            gameDir,
+            timestampAsLoadOrderId,
+            latestLoadOrder,
+            latestLoadOrderInVortexFormat,
+          );
 
-        vortexApi.log(`debug`, `${me}: Actual run parameters we're using ${S(overridingActualParamsToREDdeployLatestLoadOrder)}`);
+          vortexApi.log(`info`, `${me}: REDdeploy through tool completed`);
+          return DummyCmdExeCallForToolToCallAfterRealWorkDone;
 
-        if (isEmpty(latestLoadOrderInVortexFormat)) {
-          vortexApi.log(`warn`, `${me}: no mods in load order, running default REDdeploy!`);
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentDefaulted);
-        } else {
-          vortexApi.log(`info`, `${me}: load order ready for manual REDdeployment, starting!`);
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
+        } catch (error) {
+          vortexApi.log(`error`, `${me}: REDmod deploy through tool failed: ${S(error)}`);
+          return DummyCmdExeCallForToolToCallAfterRealWorkDone;
         }
-
-        return Promise.resolve(overridingActualParamsToREDdeployLatestLoadOrder);
       },
   });
 

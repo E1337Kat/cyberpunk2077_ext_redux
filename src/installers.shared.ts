@@ -12,13 +12,17 @@ import {
   identity,
   pipe,
 } from "fp-ts/lib/function";
-import { Task } from "fp-ts/lib/Task";
+import {
+  Task,
+} from "fp-ts/lib/Task";
 import * as T from "fp-ts/Task";
 import {
   TaskEither,
   tryCatch,
 } from "fp-ts/lib/TaskEither";
-import { promptUserOnProtectedPaths } from "./ui.dialogs";
+import {
+  promptUserOnProtectedPaths,
+} from "./ui.dialogs";
 import {
   Path,
   File,
@@ -53,6 +57,10 @@ import {
   VortexApi,
   VortexInstruction,
 } from "./vortex-wrapper";
+import {
+  FeatureSet,
+  IsFeatureEnabled,
+} from "./features";
 
 
 //
@@ -141,32 +149,35 @@ export const makeSyntheticModInfo =
    });
 
 //
-export const modInfoTaggedAsAutoconverted = (modInfo: ModInfo): ModInfo => {
-  const modNameWithoutExtraTag =
+export const modInfoTaggedAsAutoconverted =
+  (features: FeatureSet, modInfo: ModInfo): ModInfo => {
+    const modNameWithoutExtraTag =
     modInfo.name.replace(V2077_GENERATED_MOD_NAME_TAG, ``);
 
-  const modNameTaggedAsAutoconverted =
-    `${modNameWithoutExtraTag} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
+    const modNameToUseForModInfo =
+      IsFeatureEnabled(features.REDmodAutoconversionTag)
+        ? `${modNameWithoutExtraTag} ${REDMOD_AUTOCONVERTED_NAME_TAG}`
+        : modNameWithoutExtraTag;
 
-  const existingBuildTagMustBeModified =
+    const existingBuildTagMustBeModified =
     modInfo.version.build && modInfo.version.build !== ``;
 
-  const tagSeparator =
+    const tagSeparator =
     existingBuildTagMustBeModified ? `-` : ``;
 
-  const taggedBuildVersion =
+    const taggedBuildVersion =
       `${modInfo.version.build || ``}${tagSeparator}${REDMOD_AUTOCONVERTED_VERSION_TAG}`;
 
-  return makeModInfo({
-    ...modInfo,
-    name: modNameTaggedAsAutoconverted,
-    version: {
-      ...modInfo.version,
-      build: taggedBuildVersion,
-    },
-    createTime: dateToSeconds(modInfo.createTime),
-  });
-};
+    return makeModInfo({
+      ...modInfo,
+      name: modNameToUseForModInfo,
+      version: {
+        ...modInfo.version,
+        build: taggedBuildVersion,
+      },
+      createTime: dateToSeconds(modInfo.createTime),
+    });
+  };
 
 //
 // Parsing

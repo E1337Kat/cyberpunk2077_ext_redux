@@ -1,3 +1,16 @@
+# Cyberpunk 2077 Vortex Support v0.9.3
+
+Quick and dirty, 'cause what else is there in Night City?
+
+## Fixer Gigs
+
+- 🐛 **cYbEr PuNk 2o77 Ex3** Since the 'case-insensitive' Windows filesystem doesn't _actually_ do a whole lot to guarantee any protection against any sort of problem, much like NCPD, there's a minor workaround to allow `cybercmd` to use case-sensitive comparison (until their fix is in.) To wit, we now spell `Cyberpunk2077` as `Cyberpunk2077`, not `cyberpunk2077`. Computers are great.
+
+- 🐛 **:spy:** No more autoconvert tags in mod names to reduce the name length, which is actually becoming a problem with ~200 REDmods installed. This defers the problem slightly, but we need to solve it better unless the next version of `redMod.exe` will allow file-based input.
+
+- 🐛 **DND: off** Show notifications for starting _and_ completing an on-demand REDdeployment.
+
+---
 # Cyberpunk 2077 Vortex Support v0.9.2
 
 A nice new gig and a bit of fixing for v0.9.0
@@ -16,6 +29,7 @@ A nice new gig and a bit of fixing for v0.9.0
 
 - ⚒️ **Run the game directly, `-modded`, no launcher.** If you don't need the launcher, you can launch the game directly and still get the modded goodness (it's in the toolbar at the top, or on your dashboard.) 
 
+---
 
 # Cyberpunk 2077 Vortex Support v0.9.1
 
@@ -23,6 +37,8 @@ Bugfix update to v0.9.0, see full changelog below.
 ## Fixer Gigs
 
 - 🐞 **Tools from other games won't crash if user has our extension but the game is not installed**. Until and if Vortex offers isolation from other games touching our stuff, we need to be extra careful not to touch any CP2077-specific stuff until we know that the user is actually invoking one of our tools.
+
+---
 
 # Cyberpunk 2077 Vortex Support v0.9.0 "Rogue"
 

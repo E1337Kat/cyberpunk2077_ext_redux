@@ -12,7 +12,7 @@ export type ToolRunParamTransformStartHookFunc =
 
 export interface ToolStartHook {
   readonly hookId: string;
-  readonly transformRunParams: ToolRunParamTransformStartHookFunc;
+  readonly doActualWorkInTheHookAndReturnDummyParams: ToolRunParamTransformStartHookFunc;
 }
 
 export type MakeToolStartHookWithStateFunc =
