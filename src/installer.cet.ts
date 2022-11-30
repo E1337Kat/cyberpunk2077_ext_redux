@@ -7,7 +7,6 @@ import {
   Glob,
   sourcePaths,
 } from "./filetree";
-import { extraCanonArchiveInstructions } from "./installer.archive";
 import {
   CET_MOD_CANONICAL_PATH_PREFIX,
   CET_MOD_CANONICAL_INIT_FILE,
@@ -141,12 +140,7 @@ export const installCetMod: V2077InstallFunc = (
     );
   }
 
-  const extraArchiveInstructions = extraCanonArchiveInstructions(api, fileTree);
-
-  const instructions = [
-    ...instructionsForSameSourceAndDestPaths(cetFiles),
-    ...extraArchiveInstructions.instructions,
-  ];
+  const instructions = instructionsForSameSourceAndDestPaths(cetFiles);
 
   return Promise.resolve({ instructions });
 };

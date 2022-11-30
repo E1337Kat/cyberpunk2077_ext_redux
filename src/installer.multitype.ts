@@ -83,11 +83,11 @@ export const testForMultiTypeMod: V2077TestFunc = (
   const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
   const hasAllowedTweakXL = detectAllowedTweakXLLayouts(fileTree);
-
-  const hasExtraArchives = detectCanonArchiveLayoutsAllowedExternally(fileTree);
+  const hasAllowedArchives = detectCanonArchiveLayoutsAllowedExternally(fileTree);
 
   const hasAtLeastTwoTypes =
     [
+      hasAllowedArchives,
       hasAllowedConfigJson,
       hasAllowedConfigXml,
       hasCanonCet,
@@ -98,14 +98,8 @@ export const testForMultiTypeMod: V2077TestFunc = (
       hasAllowedTweakXL,
     ].filter(trueish).length > 1;
 
-  // For now, let's define these specifically. Should also move
-  // the special handling in CET and Reds to this mode (and then
-  // I think we might also be able to unify these two if we don't
-  // need to worry about the archive special cases..)
-  const hasValidExtraArchives =
-    hasExtraArchives && (hasAllowedTweakXL || hasCanonRed4Ext || hasBasedirRed4Ext);
 
-  if (!hasAtLeastTwoTypes && !hasValidExtraArchives) {
+  if (!hasAtLeastTwoTypes) {
     api.log(`debug`, `${InstallerType.MultiType}: no multitype match`);
     return Promise.resolve({ supported: false, requiredFiles: [] });
   }
@@ -185,6 +179,9 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     (result) => result.instructions,
   );
 
+  // should we ignore the autoconversion feature when there is already a redmod? I am not sure why you would have a redmod and old style
+  // archive mod, but I have seen it... I feel like it is just dumb and we can go ahead and convert and pressure the mod author
+  // to make a better mod...
   const archiveInstructions = await archiveCanonInstructionsAllowedForMultiType(api, fileTree, modInfo, features);
   const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
 

@@ -12,7 +12,6 @@ import {
   pathInTree,
   sourcePaths,
 } from "./filetree";
-import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
@@ -264,14 +263,7 @@ export const installRed4ExtMod: V2077InstallFunc = (
     );
   }
 
-  const extraArchiveLayoutsAllowed = chosenInstructions.kind !== Red4ExtLayout.Toplevel;
-
-  const allInstructions = extraArchiveLayoutsAllowed
-    ? [
-      ...chosenInstructions.instructions,
-      ...extraCanonArchiveInstructions(api, fileTree).instructions,
-    ]
-    : chosenInstructions.instructions;
+  const allInstructions = chosenInstructions.instructions;
 
   api.log(`info`, `Red4Ext installer installing files.`);
   api.log(`debug`, `Red4Ext instructions: `, allInstructions);

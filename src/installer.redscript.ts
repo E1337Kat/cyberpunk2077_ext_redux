@@ -9,7 +9,6 @@ import {
   FILETREE_ROOT,
   sourcePaths,
 } from "./filetree";
-import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   REDS_MOD_CANONICAL_PATH_PREFIX,
@@ -190,10 +189,7 @@ export const installRedscriptMod: V2077InstallFunc = async (
     );
   }
 
-  const allInstructions = [
-    ...selectedInstructions.instructions,
-    ...extraCanonArchiveInstructions(api, fileTree).instructions,
-  ];
+  const allInstructions = selectedInstructions.instructions;
 
   return Promise.resolve({ instructions: allInstructions });
 };
