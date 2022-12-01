@@ -58,26 +58,6 @@ import {
 } from "./utils.helper";
 
 
-const myREDModCompleteInfo = {
-  name: `myRedMod`,
-  version: `1.0.0`,
-  description: `This is a description I guess`,
-  customSounds: [
-    {
-      name: `mySound`,
-      type: `mod_sfx_2d`,
-      path: `mySound.wav`,
-    },
-  ],
-};
-const myREDmodCompleteInfoForVortex: REDmodInfoForVortex = {
-  name: myREDModCompleteInfo.name,
-  version: myREDModCompleteInfo.version,
-  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDModCompleteInfo.name)),
-  vortexModId: FAKE_MOD_INFO.id,
-};
-const myREDmodCompleteInfoJson = jsonpp(myREDModCompleteInfo);
-
 const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: FeatureSet = {
   ...BaselineFeatureSetForTests,
   REDmodAutoconvertArchives: () => FeatureState.Enabled,
@@ -93,26 +73,51 @@ const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_
 const AUTOCONVERT_MOD_NAME_UNTAGGED = `${FAKE_MOD_INFO.name}`;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
 
-const REDMOD_FAKE_INFO: REDmodInfo = {
+const AUTOCONVERTED_REDMOD_FAKE_INFO: REDmodInfo = {
   name: AUTOCONVERT_MOD_NAME,
   version: AUTOCONVERT_MOD_VERSION,
 };
-const REDMOD_FAKE_INFO_UNTAGGED: REDmodInfo = {
+const AUTOCONVERTED_REDMOD_FAKE_INFO_UNTAGGED: REDmodInfo = {
   name: AUTOCONVERT_MOD_NAME_UNTAGGED,
   version: AUTOCONVERT_MOD_VERSION,
 };
-const REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
-  ...REDMOD_FAKE_INFO,
-  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, REDMOD_FAKE_INFO.name)),
+const AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX: REDmodInfoForVortex = {
+  ...AUTOCONVERTED_REDMOD_FAKE_INFO,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, AUTOCONVERTED_REDMOD_FAKE_INFO.name)),
   vortexModId: FAKE_MOD_INFO.id,
 };
-const REDMOD_FAKE_INFO_JSON = jsonpp(REDMOD_FAKE_INFO);
-const REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED: REDmodInfoForVortex = {
-  ...REDMOD_FAKE_INFO_UNTAGGED,
-  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, REDMOD_FAKE_INFO_UNTAGGED.name)),
+const AUTOCONVERTED_REDMOD_FAKE_INFO_JSON = jsonpp(AUTOCONVERTED_REDMOD_FAKE_INFO);
+const AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED: REDmodInfoForVortex = {
+  ...AUTOCONVERTED_REDMOD_FAKE_INFO_UNTAGGED,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, AUTOCONVERTED_REDMOD_FAKE_INFO_UNTAGGED.name)),
   vortexModId: FAKE_MOD_INFO.id,
 };
-const REDMOD_FAKE_INFO_UNTAGGED_JSON = jsonpp(REDMOD_FAKE_INFO_UNTAGGED);
+const AUTOCONVERTED_REDMOD_FAKE_INFO_JSON_UNTAGGED = jsonpp(AUTOCONVERTED_REDMOD_FAKE_INFO_UNTAGGED);
+
+const NATIVE_REDMOD_INFO_IN_MULTITYPE = {
+  name: `myRedMod`,
+  version: `1.0.0`,
+  description: `This is a description I guess`,
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_sfx_2d`,
+      path: `mySound.wav`,
+    },
+  ],
+};
+const NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX: REDmodInfoForVortex = {
+  name: NATIVE_REDMOD_INFO_IN_MULTITYPE.name,
+  version: NATIVE_REDMOD_INFO_IN_MULTITYPE.version,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, NATIVE_REDMOD_INFO_IN_MULTITYPE.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const NATIVE_REDMOD_INFO_IN_MULTITYPE_JSON = jsonpp(NATIVE_REDMOD_INFO_IN_MULTITYPE);
+
+const BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX: REDmodInfoForVortex[] = [
+  AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX,
+  NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX,
+];
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -130,12 +135,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -155,12 +160,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_UNTAGGED_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON_UNTAGGED,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -185,12 +190,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.xl`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -210,12 +215,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.xl`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -235,12 +240,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -259,12 +264,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -293,12 +298,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\some.xl`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -317,12 +322,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -347,12 +352,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\second.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
@@ -373,12 +378,12 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\some-dir\\first.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
@@ -479,12 +484,54 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
+    `MultiType with Archive converts Archive to REDmod when autoconversion enabled, and respects tagging feature if there's no REDmod present`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/script.dll`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        {
+          type: `copy`,
+          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
+          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
+        },
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        generatedFile(
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON_UNTAGGED,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -507,12 +554,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -539,12 +586,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -586,12 +633,61 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
+    `MultiType: native and autoconverting REDmod in same mod are correctly combined so both show in LO with conversion tag forced to avoid name clashes`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
+      expectedInstallerType: InstallerType.MultiType,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: NATIVE_REDMOD_INFO_IN_MULTITYPE_JSON,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
+        ),
+        generatedFile(
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(...BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
@@ -599,13 +695,13 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
   [
     `MultiType: REDmod maybe with archive installable with old-style archive + CET converts to REDmod when autoconversion enabled`,
     {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
       expectedInstallerType: InstallerType.MultiType,
       fsMocked: mockedFsLayout(
         {
           [REDMOD_BASEDIR]: {
             myRedMod: {
-              [REDMOD_INFO_FILENAME]: myREDmodCompleteInfoJson,
+              [REDMOD_INFO_FILENAME]: NATIVE_REDMOD_INFO_IN_MULTITYPE_JSON,
             },
           },
         },
@@ -649,12 +745,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
         ),
         generatedFile(
-          REDMOD_FAKE_INFO_JSON,
+          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(...BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX),
         copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
         copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
@@ -665,10 +761,6 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
-        // and a second time because fuck it we ball
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(myREDmodCompleteInfoForVortex),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
