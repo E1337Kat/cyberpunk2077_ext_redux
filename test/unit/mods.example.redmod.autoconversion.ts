@@ -599,6 +599,7 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
   [
     `MultiType: REDmod maybe with archive installable with old-style archive + CET converts to REDmod when autoconversion enabled`,
     {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
       fsMocked: mockedFsLayout(
         {
@@ -641,14 +642,6 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
       outInstructions: [
         copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
         copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
-        ),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
@@ -660,7 +653,24 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodCompleteInfoForVortex),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
+        ),
+        generatedFile(
+          REDMOD_FAKE_INFO_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        // and a second time because fuck it we ball
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
 ]);
