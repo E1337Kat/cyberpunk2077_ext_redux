@@ -54,8 +54,29 @@ import {
   createdDirectory,
   addedREDmodInfoArrayAttribute,
   FAKE_STAGING_PATH,
+  mockedFsLayout,
 } from "./utils.helper";
 
+
+const myREDModCompleteInfo = {
+  name: `myRedMod`,
+  version: `1.0.0`,
+  description: `This is a description I guess`,
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_sfx_2d`,
+      path: `mySound.wav`,
+    },
+  ],
+};
+const myREDmodCompleteInfoForVortex: REDmodInfoForVortex = {
+  name: myREDModCompleteInfo.name,
+  version: myREDModCompleteInfo.version,
+  relativePath: normalizeDir(path.join(REDMOD_BASEDIR, myREDModCompleteInfo.name)),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodCompleteInfoJson = jsonpp(myREDModCompleteInfo);
 
 const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: FeatureSet = {
   ...BaselineFeatureSetForTests,
@@ -469,6 +490,66 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
     },
   ],
   [
+    `MultiType with just Archive and redscript converts Archive to REDmod when autoconversion enabled`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        generatedFile(
+          REDMOD_FAKE_INFO_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
+    `MultiType with just Archive and CET converts Archive to REDmod when autoconversion enabled`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        generatedFile(
+          REDMOD_FAKE_INFO_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
     `MultiType with Archive and XL converts to REDmod when autoconversion enabled`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
@@ -511,6 +592,83 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
+    },
+  ],
+  [
+    `MultiType: REDmod maybe with archive installable with old-style archive + CET converts to REDmod when autoconversion enabled`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.MultiType,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodCompleteInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        ...CET_PREFIXES,
+        path.join(`${CET_PREFIX}/exmod/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/`),
+        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
+        ),
+        movedFromTo(
+          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
+        ),
+        generatedFile(
+          REDMOD_FAKE_INFO_JSON,
+          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(REDMOD_FAKE_INFO_FOR_VORTEX),
+        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
+        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.archive`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/cool_scripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        // and a second time because fuck it we ball
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodCompleteInfoForVortex),
       ],
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },

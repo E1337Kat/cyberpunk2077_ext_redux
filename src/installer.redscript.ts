@@ -9,7 +9,6 @@ import {
   FILETREE_ROOT,
   sourcePaths,
 } from "./filetree";
-import { extraCanonArchiveInstructions } from "./installer.archive";
 import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
 import {
   REDS_MOD_CANONICAL_PATH_PREFIX,
@@ -51,13 +50,13 @@ export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
   dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
 export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
-  !detectRedscriptBasedirLayout(fileTree) &&
-  findCanonicalRedscriptDirs(fileTree).length > 0;
+  !detectRedscriptBasedirLayout(fileTree)
+  && findCanonicalRedscriptDirs(fileTree).length > 0;
 
 export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
-  !detectRedscriptBasedirLayout(fileTree) &&
-  !detectRedscriptCanonOnlyLayout(fileTree) &&
-  dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+  !detectRedscriptBasedirLayout(fileTree)
+  && !detectRedscriptCanonOnlyLayout(fileTree)
+  && dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
 
 //
 // Layouts
@@ -180,8 +179,8 @@ export const installRedscriptMod: V2077InstallFunc = async (
   );
 
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
@@ -190,10 +189,7 @@ export const installRedscriptMod: V2077InstallFunc = async (
     );
   }
 
-  const allInstructions = [
-    ...selectedInstructions.instructions,
-    ...extraCanonArchiveInstructions(api, fileTree).instructions,
-  ];
+  const allInstructions = selectedInstructions.instructions;
 
   return Promise.resolve({ instructions: allInstructions });
 };
@@ -219,8 +215,8 @@ export const redscriptAllowedInMultiInstructions = (
   );
 
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     api.log(
       `debug`,

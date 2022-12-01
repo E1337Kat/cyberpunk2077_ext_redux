@@ -76,8 +76,8 @@ export const installTweakXLMod: V2077InstallFunc = async (
   const selectedInstructions = tweakXLCanonLayout(api, undefined, fileTree);
 
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     return promptToFallbackOrFailOnUnresolvableLayout(
       api,
@@ -105,8 +105,8 @@ export const tweakXLAllowedInMultiInstructions = (
   const selectedInstructions = tweakXLCanonLayout(api, undefined, fileTree);
 
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     api.log(`debug`, `${InstallerType.TweakXL}: No valid extra archives`);
     return { kind: NoLayout.Optional, instructions: [] };
