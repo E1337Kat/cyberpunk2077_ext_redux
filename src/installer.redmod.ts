@@ -104,6 +104,7 @@ import {
   ModAttributeKey,
   ModAttributeValue,
   ModInfo,
+  ModType,
   REDmodInfo,
   REDmodInfoForVortex,
   V2077InstallFunc,
@@ -595,7 +596,7 @@ const gatherAllREDmodInfoModAttributesIntoOneInstruction =
 const ensureModdedDirExistsInstruction = (): readonly VortexInstruction[] =>
   instructionsToGenerateDirs([REDMOD_SCRIPTS_MODDED_DIR]);
 
-const modTypeModAttributeInstruction = (): readonly VortexInstruction[] =>
+const redmodModTypeModAttributeInstruction = (): readonly VortexInstruction[] =>
   [instructionToGenerateMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE)];
 
 //
@@ -671,7 +672,7 @@ export const instructionsForLayoutsPipeline = (
       traverseArrayTE(singleModPipeline),
       mapTE(flatten),
       mapTE(concat(ensureModdedDirExistsInstruction())),
-      mapTE(concat(modTypeModAttributeInstruction())),
+      mapTE(concat(redmodModTypeModAttributeInstruction())),
       mapTE(gatherAllREDmodInfoModAttributesIntoOneInstruction),
     )),
   );
@@ -885,4 +886,67 @@ export const transformToREDmodArchiveInstructions = async (
   );
 
   return right(instructionsToInstallArchiveAsREDmod);
+};
+
+
+export const consolidateREDmodInstructionsForMultiType = (
+  api: VortexApi,
+  maybeAutoconvertedArchiveInstructions: readonly VortexInstruction[],
+  redmodInstructions: readonly VortexInstruction[],
+): readonly VortexInstruction[] => {
+
+  // I guess we could also check whether autoconvert is enabled, but
+  // call this looking both ways on a one-way street...
+  const archivesWereAutoconverted = pipe(
+    maybeAutoconvertedArchiveInstructions,
+    any((instruction) =>
+      instruction.key === ModAttributeKey.ModType && instruction.value.data === ModType.REDmod),
+  );
+
+  if (!archivesWereAutoconverted) {
+    api.log(`debug`, `${transMe}: Consolidating for MultiType: no autoconverted archives found`);
+    return [...maybeAutoconvertedArchiveInstructions, ...redmodInstructions];
+  }
+
+  api.log(`debug`, `${transMe}: Consolidating for MultiType: ${S({ maybeAutoconvertedArchiveInstructions, redmodInstructions })}`);
+
+  const allInstructions = pipe(
+    maybeAutoconvertedArchiveInstructions,
+    concat(redmodInstructions),
+  );
+
+  const moddedDirInstruction =
+    ensureModdedDirExistsInstruction()[0];
+
+  const justRealInstructions = pipe(
+    allInstructions,
+    filter((instruction) =>
+      instruction.key !== ModAttributeKey.ModType
+      && instruction.key !== ModAttributeKey.REDmodInfoArray
+      && instruction.destination !== moddedDirInstruction.destination),
+  );
+
+  const redmodInfoArraysConsolidatedIntoOne = pipe(
+    allInstructions,
+    filter((instruction) =>
+      instruction.key === ModAttributeKey.REDmodInfoArray),
+    map((instruction) =>
+      (instruction.value as ModAttributeValue<readonly REDmodInfoForVortex[]>).data),
+    flatten,
+    (redmodInfos) =>
+      makeAttr(ModAttributeKey.REDmodInfoArray, redmodInfos),
+    (redmodInfoArrayAttr) =>
+      [instructionToGenerateMetadataAttribute(redmodInfoArrayAttr)],
+  );
+
+  const consolidatedREDmodInstructions = pipe(
+    justRealInstructions,
+    concat(redmodInfoArraysConsolidatedIntoOne),
+    concat(redmodModTypeModAttributeInstruction()),
+    concat(ensureModdedDirExistsInstruction()),
+  );
+
+  api.log(`info`, `${transMe}: Consolidating for MultiType: Result: ${S({ consolidatedREDmodInstructions })}`);
+
+  return consolidatedREDmodInstructions;
 };

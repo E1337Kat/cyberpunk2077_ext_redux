@@ -2,6 +2,9 @@ import {
   isLeft,
 } from "fp-ts/lib/Either";
 import {
+  isEmpty,
+} from "fp-ts/lib/ReadonlyArray";
+import {
   FileTree,
   sourcePaths,
 } from "./filetree";
@@ -61,8 +64,10 @@ import {
 } from "./installer.config.json";
 import {
   FeatureSet,
+  FeatureState,
 } from "./features";
 import {
+  consolidateREDmodInstructionsForMultiType,
   detectAllowedREDmodLayoutsForMultitype,
   redmodAllowedInstructionsForMultitype,
 } from "./installer.redmod";
@@ -70,6 +75,8 @@ import {
   showWarningForUnrecoverableStructureError,
 } from "./ui.dialogs";
 
+// TODO:  Check whether REDmod is enabled!
+// ISSUE: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/324
 export const testForMultiTypeMod: V2077TestFunc = (
   api: VortexApi,
   fileTree: FileTree,
@@ -179,17 +186,13 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     (result) => result.instructions,
   );
 
-  // should we ignore the autoconversion feature when there is already a redmod? I am not sure why you would have a redmod and old style
-  // archive mod, but I have seen it... I feel like it is just dumb and we can go ahead and convert and pressure the mod author
-  // to make a better mod...
-  const archiveInstructions = await archiveCanonInstructionsAllowedForMultiType(api, fileTree, modInfo, features);
-  const tweakXLInstructions = tweakXLAllowedInMultiInstructions(api, fileTree);
+  const tweakXLInstructions =
+    tweakXLAllowedInMultiInstructions(api, fileTree);
 
-  const redscriptInstructions = redscriptAllowedInMultiInstructions(
-    api,
-    modInfo.name,
-    fileTree,
-  );
+  const redscriptInstructions =
+    redscriptAllowedInMultiInstructions(api, modInfo.name, fileTree);
+
+  // This really should be flagged... ISSUE #324,
 
   const maybeREDmodInstructions = await redmodAllowedInstructionsForMultitype(api, fileTree, modInfo, features);
 
@@ -208,13 +211,23 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     return Promise.reject(new Error(errorMessage));
   }
 
+  const enforceTagWhenREDmodPresentToAvoidConflict: FeatureSet =
+    !isEmpty(maybeREDmodInstructions.right)
+      ? { ...features, REDmodAutoconversionTag: FeatureState.Enabled }
+      : features;
+
+  const archiveInstructions =
+    await archiveCanonInstructionsAllowedForMultiType(api, fileTree, modInfo, enforceTagWhenREDmodPresentToAvoidConflict);
+
+  const archiveAndREDmodInstructions =
+    consolidateREDmodInstructionsForMultiType(api, archiveInstructions.instructions, maybeREDmodInstructions.right);
+
   const allInstructions = [
     ...allPromptedInstructions,
     ...allInstructionsDirectedByUs,
-    ...archiveInstructions.instructions,
     ...tweakXLInstructions.instructions,
     ...redscriptInstructions.instructions,
-    ...maybeREDmodInstructions.right,
+    ...archiveAndREDmodInstructions,
   ];
 
   if (allInstructions.length < 1) {
