@@ -1,3 +1,12 @@
+# Cyberpunk 2077 Vortex Support v0.9.4
+
+## Fixer Gigs
+
+- 🐛 **Spyder Murphy's Law** The special archive handling in CET, Redscript, and Red4ext mods is gone, which means that now all archives can be autoconverted. (They're auto-convertible :get-it-doggo:)
+
+- 🐛 **Wear the Colors** The few mods that were proactively splitting archives between REDmod and classic now work correctly in the load order when autoconverted — both halves show up and can be independently ordered (they are still a single Vortex mod, though, so you can only enable or disable _both_.)
+
+---
 # Cyberpunk 2077 Vortex Support v0.9.3
 
 Quick and dirty, 'cause what else is there in Night City?
