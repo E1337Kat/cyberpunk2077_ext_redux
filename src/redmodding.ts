@@ -3,8 +3,12 @@ import {
   fs,
   util as VortexUtil,
 } from "@vortex-api-test-shimmed";
-import { map } from "fp-ts/lib/ReadonlyArray";
-import { pipe } from "fp-ts/lib/function";
+import {
+  map,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,
@@ -15,13 +19,13 @@ import {
   REDMODDING_REQUIRED_DIR_FOR_MODS,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
+import {
+  promptUserInstallREDmoddingDlc,
+} from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
-  VortexState,
-  VortexToolDiscovered,
 } from "./vortex-wrapper";
 import {
   REDdeployManual,
@@ -36,14 +40,6 @@ interface REDmoddingDlcDetails {
   url: string;
   openCommand: () => Promise<void>;
 }
-
-
-export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
-  const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
-  return Object.keys(tools).map((id) => tools[id])
-    .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
-    .find((iter) => path.basename(iter.path).toLowerCase() === `redMod.exe`);
-};
 
 
 const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
