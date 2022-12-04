@@ -2,8 +2,8 @@ import {
   FeatureSet,
   FeatureState,
   VersionedStaticFeatureSet,
-  DynamicFeatureDefaults,
-  DynamicFeature,
+  UserControlledFeatureDefaults,
+  UserControlledFeature,
   boolAsFeature,
 } from "./features.types";
 import {
@@ -42,8 +42,8 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
 // Helpers for the store so we don't repeat this everywhere
 //
 
-export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
-  [DynamicFeature.REDmodAutoconvertArchives]: false,
+export const DefaultEnabledStateForUserControlledFeatures: UserControlledFeatureDefaults = {
+  [UserControlledFeature.REDmodAutoconvertArchives]: false,
 };
 
 
@@ -58,15 +58,15 @@ interface StoreUtil {
 
 // Subtlety here: get will get the full state, but set only gets the slice. Should reconsider.
 
-export const storeGetDynamicFeature =
-  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: unknown): boolean => storeUtil.getSafe(
+export const storeGetUserControlledFeature =
+  (storeUtil: StoreUtil, feature: UserControlledFeature, stateSlice: unknown): boolean => storeUtil.getSafe(
     stateSlice,
     [...VORTEX_STORE_PATHS.settings, feature],
-    DefaultEnabledStateForDynamicFeatures[feature],
+    DefaultEnabledStateForUserControlledFeatures[feature],
   );
 
-export const storeSetDynamicFeature =
-  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: object, value: boolean): object =>
+export const storeSetUserControlledFeature =
+  (storeUtil: StoreUtil, feature: UserControlledFeature, stateSlice: object, value: boolean): object =>
     storeUtil.setSafe(stateSlice, [feature], value);
 
 //
@@ -80,7 +80,7 @@ export const storeSetDynamicFeature =
 // just a bit more explicit.
 //
 
-export const FullFeatureSetFromStaticAndDynamic = (
+export const MakeCompleteRuntimeFeatureSet = (
   staticFeatures: VersionedStaticFeatureSet,
   vortexExtApi: VortexExtensionApi,
   storeUtil: StoreUtil, // JFC peer dependencies
@@ -88,7 +88,11 @@ export const FullFeatureSetFromStaticAndDynamic = (
   ...staticFeatures,
   REDmodAutoconvertArchives: () =>
     boolAsFeature(
-      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
+      storeGetUserControlledFeature(
+        storeUtil,
+        UserControlledFeature.REDmodAutoconvertArchives,
+        vortexExtApi.store.getState(),
+      ),
     ),
 });
 

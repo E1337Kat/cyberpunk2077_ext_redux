@@ -34,7 +34,7 @@ export const enum StaticFeature {
 }
 
 // Need to be underscored since it isn't always just a string... thanks react...
-export const enum DynamicFeature {
+export const enum UserControlledFeature {
   REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
 }
 
@@ -43,9 +43,9 @@ export const enum DynamicFeature {
 
 export type StaticFeatureSet = Record<keyof typeof StaticFeature, Lazy<FeatureState>>;
 
-export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Lazy<FeatureState>>;
-export type DynamicFeatureDefaults = Record<DynamicFeature, boolean>;
+export type UserControlledFeatureSet = Record<keyof typeof UserControlledFeature, Lazy<FeatureState>>;
+export type UserControlledFeatureDefaults = Record<UserControlledFeature, boolean>;
 
 export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
 
-export type FeatureSet = VersionedStaticFeatureSet & DynamicFeatureSet;
+export type FeatureSet = VersionedStaticFeatureSet & UserControlledFeatureSet;

@@ -33,11 +33,11 @@ import {
 } from "./index.metadata";
 import {
   StaticFeaturesForStartup,
-  FullFeatureSetFromStaticAndDynamic,
+  MakeCompleteRuntimeFeatureSet,
   IsFeatureEnabled,
-  DefaultEnabledStateForDynamicFeatures,
-  storeGetDynamicFeature,
-  DynamicFeature,
+  DefaultEnabledStateForUserControlledFeatures,
+  storeGetUserControlledFeature,
+  UserControlledFeature,
   FeatureSet,
 } from "./features";
 import {
@@ -130,7 +130,7 @@ interface IREDmodProps {
 }
 
 const archiveAutoConvert = (state: unknown): boolean =>
-  storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, state);
+  storeGetUserControlledFeature(vortexUtil, UserControlledFeature.REDmodAutoconvertArchives, state);
 
 const toggleAutoConvert = (api: vortexApiLib.types.IExtensionApi, _gameMode: string): void => {
   const state: vortexApiLib.types.IState = api.store.getState();
@@ -207,7 +207,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       : [];
 
   const fullFeatureSetAvailablePostStartup =
-    FullFeatureSetFromStaticAndDynamic(StaticFeaturesForStartup, vortexExt.api, vortexApiLib.util);
+    MakeCompleteRuntimeFeatureSet(StaticFeaturesForStartup, vortexExt.api, vortexApiLib.util);
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
@@ -283,7 +283,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
 
-    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForDynamicFeatures));
+    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForUserControlledFeatures));
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
       const state = vortexExt.api.store.getState();
