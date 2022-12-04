@@ -24,7 +24,7 @@ import {
 // Types
 //
 
-export type Dynamic<T> = () => T;
+export type Lazy<T> = () => T;
 
 export interface Versioned {
   fromVersion: string;
@@ -50,7 +50,7 @@ export const negate = (b: boolean): boolean => !b;
 export const alwaysTrue = (): boolean => true;
 export const alwaysFalse = (): boolean => false;
 
-export const constant = <T>(t: T): Dynamic<T> => () => t;
+export const constant = <T>(t: T): Lazy<T> => () => t;
 
 export const noop = (): void => undefined;
 

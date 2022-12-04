@@ -1,5 +1,5 @@
 import {
-  Dynamic,
+  Lazy,
   Versioned,
 } from "./util.functions";
 
@@ -44,9 +44,9 @@ export const enum DynamicFeature {
 
 // FeatureSets are what user code uses...
 
-export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
+export type StaticFeatureSet = Record<keyof typeof StaticFeature, Lazy<FeatureState>>;
 
-export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
+export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Lazy<FeatureState>>;
 export type DynamicFeatureDefaults = Record<DynamicFeature, boolean>;
 
 export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
