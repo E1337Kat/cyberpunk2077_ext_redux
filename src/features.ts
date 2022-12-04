@@ -10,6 +10,9 @@ import {
   VORTEX_STORE_PATHS,
 } from "./index.metadata";
 import {
+  constant,
+} from "./util.functions";
+import {
   VortexExtensionApi,
 } from "./vortex-wrapper";
 
@@ -20,18 +23,18 @@ export * from "./features.types";
 // Default setup
 
 export const BaselineFeatureSetForTests: FeatureSet = {
-  fromVersion: `0.9.3`,
-  REDmodding: FeatureState.Disabled,
-  REDmodLoadOrder: FeatureState.Disabled,
-  REDmodAutoconversionTag: FeatureState.Enabled,
-  REDmodAutoconvertArchives: () => FeatureState.Disabled,
+  fromVersion: `0.9.5`,
+  REDmodding: constant(FeatureState.Disabled),
+  REDmodLoadOrder: constant(FeatureState.Disabled),
+  REDmodAutoconversionTag: constant(FeatureState.Enabled),
+  REDmodAutoconvertArchives: constant(FeatureState.Disabled),
 };
 
 export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
-  fromVersion: `0.9.3`,
-  REDmodding: FeatureState.Enabled,
-  REDmodLoadOrder: FeatureState.Enabled,
-  REDmodAutoconversionTag: FeatureState.Disabled,
+  fromVersion: `0.9.5`,
+  REDmodding: constant(FeatureState.Enabled),
+  REDmodLoadOrder: constant(FeatureState.Enabled),
+  REDmodAutoconversionTag: constant(FeatureState.Disabled),
 };
 
 

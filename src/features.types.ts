@@ -17,10 +17,7 @@ export const enum FeatureState {
 export const boolAsFeature = (currentState: boolean): FeatureState =>
   (currentState ? FeatureState.Enabled : FeatureState.Disabled);
 
-export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
-  featureState === FeatureState.Enabled;
-
-export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
+export const IsFeatureEnabled = (featureState: Lazy<FeatureState>): boolean =>
   featureState() === FeatureState.Enabled;
 
 

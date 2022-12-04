@@ -24,6 +24,7 @@ import {
   REDmodInfoForVortex,
 } from "../../src/installers.types";
 import {
+  constant,
   jsonpp,
 } from "../../src/util.functions";
 import {
@@ -60,13 +61,13 @@ import {
 
 const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES: FeatureSet = {
   ...BaselineFeatureSetForTests,
-  REDmodAutoconvertArchives: () => FeatureState.Enabled,
+  REDmodAutoconvertArchives: constant(FeatureState.Enabled),
 };
 
 const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING: FeatureSet = {
   ...BaselineFeatureSetForTests,
-  REDmodAutoconversionTag: FeatureState.Disabled,
-  REDmodAutoconvertArchives: () => FeatureState.Enabled,
+  REDmodAutoconversionTag: constant(FeatureState.Disabled),
+  REDmodAutoconvertArchives: constant(FeatureState.Enabled),
 };
 
 const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
