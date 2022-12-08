@@ -92,7 +92,7 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
 //
 
 export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
-  [DynamicFeature.REDmodAutoconvertArchives]: true,
+  [DynamicFeature.REDmodAutoconvertArchives]: false,
 };
 
 
