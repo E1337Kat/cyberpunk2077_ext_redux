@@ -1,3 +1,11 @@
+# Cyberpunk 2077 Vortex Support v0.9.5
+
+## Fixer Gigs
+
+- 🚩 **Autoconversion is off by default** Beware the mean reds.
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.9.4
 
 ## Fixer Gigs
