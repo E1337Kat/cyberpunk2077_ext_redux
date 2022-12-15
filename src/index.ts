@@ -18,6 +18,8 @@ import {
   map as mapO,
 } from "fp-ts/lib/Option";
 import {
+  chain as chainE,
+  getOrElse,
   mapLeft,
 } from "fp-ts/lib/Either";
 import {
@@ -29,16 +31,16 @@ import {
   GOGAPP_ID,
   STEAMAPP_ID,
   V2077_DIR,
-  VORTEX_STORE_PATHS,
 } from "./index.metadata";
 import {
   StaticFeaturesForStartup,
-  MakeCompleteRuntimeFeatureSet,
+  MakeCompleteFeatureSet,
   IsFeatureEnabled,
-  DefaultEnabledStateForUserControlledFeatures,
   storeGetUserControlledFeature,
   UserControlledFeature,
   FeatureSet,
+  RuntimeFeatureInitializers,
+  makeSettingsReducerForUserControlledFeatures,
 } from "./features";
 import {
   wrapTestSupported,
@@ -53,6 +55,7 @@ import {
   vortexUtil,
 } from "./vortex-wrapper";
 import {
+  isREDmoddingDlcAvailable,
   wrappedPrepareForModdingWithREDmodding,
 } from './redmodding';
 import {
@@ -76,15 +79,13 @@ import {
   informUserZeroNineZeroChanges,
 } from "./ui.dialogs";
 import settingsComponent from './views/settings'; // eslint-disable-line import/extensions
-import {
-  makeSettingsReducer,
-} from './reducers';
 import * as REDmoddingTools from "./tools.redmodding";
 import * as ExternalTools from "./tools.external";
 import {
   ToolStartHook,
 } from "./tools.types";
 import {
+  gameDirPath,
   isSupported,
 } from "./state.functions";
 
@@ -172,7 +173,26 @@ const prepStartHooks =
 
 
 // This is the main function Vortex will run when detecting the game extension.
+//
+// NB: API can't be called inside this function, only after the extension is registered
 const main = (vortexExt: VortexExtensionContext): boolean => {
+
+  const runtimeFeatureInitializers: RuntimeFeatureInitializers = {
+    REDmoddingDlc: () =>
+      pipe(
+        gameDirPath(vortexExt.api),
+        chainE(isREDmoddingDlcAvailable),
+        getOrElse(constant(false)),
+      ),
+  };
+
+  const fullFeatureSetAvailablePostStartup =
+    MakeCompleteFeatureSet(
+      vortexExt.api,
+      vortexUtil,
+      StaticFeaturesForStartup,
+      runtimeFeatureInitializers,
+    );
 
   const MaybeREDmodTools =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
@@ -198,16 +218,15 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         return wrappedPrepareForModdingWithREDmodding(vortexExt, vortexApiLib, discovery);
       }
 
-      return vortexApiLib.fs.readdirAsync(path.join(discovery.path));
+      return Promise.resolve();
     };
 
+  // TODO:  Delay this choice until we know if REDmodding is available
+  // ISSUE: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/334
   const defaultGameLaunchParameters =
     IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
       ? REDmoddingTools.GameExeModded.parameters
       : [];
-
-  const fullFeatureSetAvailablePostStartup =
-    MakeCompleteRuntimeFeatureSet(StaticFeaturesForStartup, vortexExt.api, vortexApiLib.util);
 
   // Ok, now we have everything in hand to register our stuff with Vortex
 
@@ -283,7 +302,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
 
-    vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForUserControlledFeatures));
+    vortexExt.registerReducer(...makeSettingsReducerForUserControlledFeatures());
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
       const state = vortexExt.api.store.getState();
@@ -291,7 +310,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       return gameMode === GAME_ID;
     }, 51);
 
-    // 0.9.0 information TODO
+    // 0.9.0 information 'todo' style info box (dashboard)
     vortexExt.registerToDo(
       `${EXTENSION_NAME_INTERNAL}-todo-v090-information`,
       `more`,
@@ -304,7 +323,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       undefined,
     );
 
-    // Auto convert TODO
+    // Auto convert 'todo' style autoconvert toggle box (dashboard)
     vortexExt.registerToDo(
       `${EXTENSION_NAME_INTERNAL}-todo-redmod-autoconvert`,
       `settings`,

@@ -39,7 +39,6 @@ import {
 } from "./tools.redmodding";
 import {
   jsonp,
-  S,
 } from "./util.functions";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game.

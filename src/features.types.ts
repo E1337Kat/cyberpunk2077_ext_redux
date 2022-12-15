@@ -17,9 +17,11 @@ export const enum FeatureState {
 export const boolAsFeature = (currentState: boolean): FeatureState =>
   (currentState ? FeatureState.Enabled : FeatureState.Disabled);
 
+export const featureAsBool = (featureState: FeatureState): boolean =>
+  featureState === FeatureState.Enabled;
+
 export const IsFeatureEnabled = (featureState: Lazy<FeatureState>): boolean =>
   featureState() === FeatureState.Enabled;
-
 
 //
 // Some features are build-time static,
@@ -33,19 +35,33 @@ export const enum StaticFeature {
   REDmodAutoconversionTag = `v2077_feature_redmod_autoconversion_tag`,
 }
 
+export const enum RuntimeFeature {
+  REDmoddingDlc = `v2077_feature_redmodding_dlc_available`,
+}
+
 // Need to be underscored since it isn't always just a string... thanks react...
 export const enum UserControlledFeature {
   REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
 }
 
+export type Feature =
+    | StaticFeature
+    | RuntimeFeature
+    | UserControlledFeature;
+
 
 // FeatureSets are what user code uses...
 
 export type StaticFeatureSet = Record<keyof typeof StaticFeature, Lazy<FeatureState>>;
+export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
+// StaticFeatures are constant, no need for defaults
+
+export type RuntimeFeatureSet = Record<keyof typeof RuntimeFeature, Lazy<FeatureState>>;
+export type RuntimeFeatureAvailableFunc = Lazy<boolean>;
+export type RuntimeFeatureInitializers = Record<keyof typeof RuntimeFeature, RuntimeFeatureAvailableFunc>;
 
 export type UserControlledFeatureSet = Record<keyof typeof UserControlledFeature, Lazy<FeatureState>>;
 export type UserControlledFeatureDefaults = Record<UserControlledFeature, boolean>;
 
-export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
 
-export type FeatureSet = VersionedStaticFeatureSet & UserControlledFeatureSet;
+export type FeatureSet = VersionedStaticFeatureSet & RuntimeFeatureSet & UserControlledFeatureSet;
