@@ -195,11 +195,13 @@ export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 export const enum CoreArchiveXLLayout {
   OnlyValid = `
           - .\\red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll
+          - .\\r6\\scripts\\ArchiveXL\\ArchiveXL.reds
           `,
 }
 
 export const ARCHIVE_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+  path.join(`r6\\scripts\\ArchiveXL\\ArchiveXL.reds`),
 ];
 
 //

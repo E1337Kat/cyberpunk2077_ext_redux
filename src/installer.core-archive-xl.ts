@@ -15,15 +15,26 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
-import { ARCHIVE_XL_CORE_FILES } from "./installers.layouts";
-import { FeatureSet } from "./features";
+import {
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
+import {
+  ARCHIVE_XL_CORE_FILES,
+} from "./installers.layouts";
+import {
+  FeatureSet,
+} from "./features";
 
 const coreArchiveXLInstructions: VortexInstruction[] = [
   {
     type: `copy`,
     source: `red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`,
     destination: `red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`,
+  },
+  {
+    type: `copy`,
+    source: `r6\\scripts\\ArchiveXL\\ArchiveXL.reds`,
+    destination: `r6\\scripts\\ArchiveXL\\ArchiveXL.reds`,
   },
 ];
 
@@ -47,8 +58,8 @@ export const installCoreArchiveXL: V2077InstallFunc = async (
   _features: FeatureSet,
 ) => {
   if (
-    fileCount(fileTree) !== ARCHIVE_XL_CORE_FILES.length ||
-    findCoreArchiveXLFiles(fileTree).length !== fileCount(fileTree)
+    fileCount(fileTree) !== ARCHIVE_XL_CORE_FILES.length
+    || findCoreArchiveXLFiles(fileTree).length !== fileCount(fileTree)
   ) {
     const errorMessage = `Didn't Find Expected ArchiveXL Installation!`;
     api.log(
