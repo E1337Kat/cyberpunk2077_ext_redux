@@ -1,5 +1,7 @@
 import path from "path";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+} from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
   copiedToSamePath,
@@ -7,6 +9,8 @@ import {
   ExamplesForType,
   mergeOrFailOnConflict,
   ExamplePromptInstallableMod,
+  RED4EXT_PREFIX,
+  REDS_PREFIX,
 } from "./utils.helper";
 
 const CoreArchiveXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
@@ -18,8 +22,15 @@ const CoreArchiveXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\ArchiveXL\\`),
         path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+        path.join(`r6\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\ArchiveXL\\`),
+        path.join(`r6\\scripts\\ArchiveXL\\ArchiveXL.reds`),
       ],
-      outInstructions: [copiedToSamePath(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`)],
+      outInstructions: [
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+        copiedToSamePath(`${REDS_PREFIX}\\ArchiveXL\\ArchiveXL.reds`),
+      ],
     },
   }),
 );
