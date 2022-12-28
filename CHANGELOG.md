@@ -1,3 +1,11 @@
+# Cyberpunk 2077 Vortex Support v0.9.6
+
+## Fixer Gigs
+
+- 🐛 **ArchiveXXXXXXL** ArchiveXL 1.3.4's new Redscript API file supported in our known layout
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.9.5
 
 ## Fixer Gigs
