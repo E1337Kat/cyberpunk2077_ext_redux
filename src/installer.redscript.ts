@@ -11,6 +11,8 @@ import {
   FILETREE_ROOT,
   sourcePaths,
   pathEq,
+  pathIn,
+  filesIn,
 } from "./filetree";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
@@ -24,6 +26,8 @@ import {
   InvalidLayout,
   Instructions,
   NoLayout,
+  REDS_MOD_CONFIG_EXTENSIONS,
+  REDS_MOD_CANONICAL_HINTS_PATH_PREFIX,
 } from "./installers.layouts";
 import {
   moveFromTo,
@@ -43,16 +47,22 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 
-const matchRedscript = (file: string): boolean =>
+const matchRedscriptFile = (file: string): boolean =>
   pathEq(REDS_MOD_CANONICAL_EXTENSION)(path.extname(file));
 
-const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
+const matchRedscriptConfigFile = (file: string): boolean =>
+  pathIn(REDS_MOD_CONFIG_EXTENSIONS)(path.extname(file));
+
+const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscriptFile);
+
+const allRedscriptConfigFiles = (fileTree: FileTree): readonly string[] =>
+  filesIn(REDS_MOD_CANONICAL_HINTS_PATH_PREFIX, matchRedscriptConfigFile, fileTree);
 
 const findCanonicalRedscriptDirs = (fileTree: FileTree): readonly string[] =>
-  findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+  findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscriptFile, fileTree);
 
 export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
-  dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
+  dirWithSomeIn(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscriptFile, fileTree);
 
 export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree)
@@ -61,7 +71,7 @@ export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
 export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree)
   && !detectRedscriptCanonOnlyLayout(fileTree)
-  && dirWithSomeIn(FILETREE_ROOT, matchRedscript, fileTree);
+  && dirWithSomeIn(FILETREE_ROOT, matchRedscriptFile, fileTree);
 
 //
 // Layouts
@@ -91,9 +101,16 @@ export const redscriptBasedirLayout = (
     moveFromTo(REDS_MOD_CANONICAL_PATH_PREFIX, modnamedDir),
   );
 
+  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
+
+  const allBasedirInstructions = [
+    ...instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+    ...instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+  ];
+
   return {
     kind: RedscriptLayout.Basedir,
-    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+    instructions: allBasedirInstructions,
   };
 };
 
@@ -126,7 +143,7 @@ export const redscriptToplevelLayout = (
 };
 
 export const redscriptCanonLayout = (
-  api: VortexApi,
+  _api: VortexApi,
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
@@ -138,9 +155,16 @@ export const redscriptCanonLayout = (
     return NoInstructions.NoMatch;
   }
 
+  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
+
+  const allCanonicalInstructions = [
+    ...instructionsForSameSourceAndDestPaths(allCanonRedscriptFiles),
+    ...instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+  ];
+
   return {
-    kind: RedscriptLayout.Canon,
-    instructions: instructionsForSameSourceAndDestPaths(allCanonRedscriptFiles),
+    kind: RedscriptLayout.Basedir,
+    instructions: allCanonicalInstructions,
   };
 };
 
