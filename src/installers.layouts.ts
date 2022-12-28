@@ -588,13 +588,21 @@ export const AMM_MOD_THEME_REQUIRED_KEYS = [`Text`, `Border`];
 //
 
 export const enum RedscriptLayout {
-  Canon = `.\\r6\\scripts\\[modname]\\[*.reds, any files + subdirs]`,
-  Basedir = `.\\r6\\scripts\\*.reds + [any files + subdirs]`,
+  Canon = `
+          .\\r6\\scripts\\[modname]\\[*.reds, any files + subdirs]
+          .\\r6\\redsUserHints\\*.toml
+          `,
+  Basedir = `
+          .\\r6\\scripts\\*.reds + [any files + subdirs]
+          .\\r6\\redsUserHints\\*.toml
+          `,
   Toplevel = `.\\*.reds + [any files + subdirs]`,
 }
 
 export const REDS_MOD_CANONICAL_EXTENSION = `.reds`;
+export const REDS_MOD_CONFIG_EXTENSIONS = [`.toml`];
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize(`r6/scripts`);
+export const REDS_MOD_CANONICAL_HINTS_PATH_PREFIX = path.normalize(`r6/redsUserHints`);
 
 //
 // Red4Ext
