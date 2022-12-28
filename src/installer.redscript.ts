@@ -9,10 +9,10 @@ import {
   findTopmostSubdirsWithSome,
   Glob,
   FILETREE_ROOT,
-  sourcePaths,
   pathEq,
   pathIn,
   filesIn,
+  dirWithSomeUnder,
 } from "./filetree";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
@@ -53,8 +53,6 @@ const matchRedscriptFile = (file: string): boolean =>
 const matchRedscriptConfigFile = (file: string): boolean =>
   pathIn(REDS_MOD_CONFIG_EXTENSIONS)(path.extname(file));
 
-const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscriptFile);
-
 const allRedscriptConfigFiles = (fileTree: FileTree): readonly string[] =>
   filesIn(REDS_MOD_CANONICAL_HINTS_PATH_PREFIX, matchRedscriptConfigFile, fileTree);
 
@@ -72,6 +70,11 @@ export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree)
   && !detectRedscriptCanonOnlyLayout(fileTree)
   && dirWithSomeIn(FILETREE_ROOT, matchRedscriptFile, fileTree);
+
+const detectRedscriptLayout = (fileTree: FileTree): boolean =>
+  allRedscriptConfigFiles(fileTree).length > 0
+  || dirWithSomeUnder(FILETREE_ROOT, matchRedscriptFile, fileTree);
+
 
 //
 // Layouts
@@ -179,15 +182,11 @@ export const redscriptCanonLayout = (
 export const testForRedscriptMod: V2077TestFunc = async (
   api: VortexApi,
   fileTree: FileTree,
-): Promise<VortexTestResult> => {
-  const redscriptFiles = allRedscriptFiles(sourcePaths(fileTree));
+): Promise<VortexTestResult> => ({
+  supported: detectRedscriptLayout(fileTree),
+  requiredFiles: [],
+});
 
-  if (redscriptFiles.length < 1) {
-    return { supported: false, requiredFiles: [] };
-  }
-
-  return { supported: true, requiredFiles: [] };
-};
 
 //
 // install
