@@ -147,6 +147,16 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
         ),
       ],
     },
+    redsWithOnlyUserHintsFile: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_HINTS}/whatevs.toml`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_HINTS}/whatevs.toml`),
+      ],
+    },
   }),
 );
 
