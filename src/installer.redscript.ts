@@ -1,5 +1,7 @@
 import path from "path";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 import {
   FileTree,
   dirWithSomeIn,
@@ -9,7 +11,9 @@ import {
   FILETREE_ROOT,
   sourcePaths,
 } from "./filetree";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import {
+  promptToFallbackOrFailOnUnresolvableLayout,
+} from "./installer.fallback";
 import {
   REDS_MOD_CANONICAL_PATH_PREFIX,
   MaybeInstructions,

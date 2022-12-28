@@ -1,6 +1,10 @@
 import path from "path";
-import { InstallerType } from "../../src/installers.types";
-import { InstallChoices } from "../../src/ui.dialogs";
+import {
+  InstallerType,
+} from "../../src/installers.types";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
 import {
   ExampleSucceedingMod,
   REDS_PREFIXES,
@@ -120,7 +124,7 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         copiedToSamePath(`${REDS_HINTS}/whatevs.toml`),
-        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`)
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
       ],
     },
     redsWithUserHintsBasedir: {
