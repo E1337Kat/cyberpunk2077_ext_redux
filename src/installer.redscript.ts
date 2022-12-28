@@ -171,6 +171,23 @@ export const redscriptCanonLayout = (
   };
 };
 
+export const redscriptConfigOnlyLayout = (
+  _api: VortexApi,
+  _modName: string,
+  fileTree: FileTree,
+): MaybeInstructions => {
+  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
+
+  if (allConfigFilesInCanonicalDir.length < 1) {
+    return NoInstructions.NoMatch;
+  }
+
+  return {
+    kind: RedscriptLayout.ConfigOnly,
+    instructions: instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+  };
+};
+
 //
 // API
 //
@@ -203,7 +220,7 @@ export const installRedscriptMod: V2077InstallFunc = async (
     modInfo.name,
     fileTree,
     // Order is significant here.
-    [redscriptBasedirLayout, redscriptCanonLayout, redscriptToplevelLayout],
+    [redscriptBasedirLayout, redscriptCanonLayout, redscriptToplevelLayout, redscriptConfigOnlyLayout],
   );
 
   if (
