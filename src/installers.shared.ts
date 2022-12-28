@@ -282,11 +282,11 @@ export const instructionsForSourceToDestPairs = (
 };
 
 export const instructionsForSameSourceAndDestPaths = (
-  files: string[],
+  files: readonly string[],
 ): VortexInstruction[] => instructionsForSourceToDestPairs(files.map(toSamePath));
 
 export const instructionsToGenerateDirs = (
-  dirs: string[],
+  dirs: readonly string[],
 ): VortexInstruction[] =>
   pipe(
     dirs,
