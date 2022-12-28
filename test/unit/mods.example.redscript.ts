@@ -12,6 +12,7 @@ import {
   ExampleFailingMod,
   copiedToSamePath,
   movedFromTo,
+  REDS_HINTS,
 } from "./utils.helper";
 
 const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
@@ -107,6 +108,39 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [
         copiedToSamePath(`${REDS_PREFIX}/rexmod/dirname/anotherdirname/patch.reds`),
+      ],
+    },
+    redsWithUserHintsFileCanonical: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_HINTS}/whatevs.toml`),
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_HINTS}/whatevs.toml`),
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`)
+      ],
+    },
+    redsWithUserHintsBasedir: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_HINTS}/whatevs.toml`),
+        path.join(`${REDS_PREFIX}/script.reds`),
+        path.join(`${REDS_PREFIX}/notascript.reds`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_HINTS}/whatevs.toml`),
+        movedFromTo(
+          `${REDS_PREFIX}/script.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/script.reds`,
+        ),
+        movedFromTo(
+          `${REDS_PREFIX}/notascript.reds`,
+          `${REDS_PREFIX}/${FAKE_MOD_NAME}/notascript.reds`,
+        ),
       ],
     },
   }),

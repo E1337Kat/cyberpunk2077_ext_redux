@@ -42,6 +42,7 @@ import {
   REDMOD_BASEDIR,
   REDSCRIPT_CORE_FILES,
   DEPRECATED_REDSCRIPT_CORE_FILES,
+  REDS_MOD_CANONICAL_HINTS_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import {
   InfoNotification,
@@ -297,7 +298,11 @@ export const CET_PREFIXES = pathHierarchyFor(CET_PREFIX);
 export const CET_INIT = CET_MOD_CANONICAL_INIT_FILE;
 
 export const REDS_PREFIX = REDS_MOD_CANONICAL_PATH_PREFIX;
-export const REDS_PREFIXES = pathHierarchyFor(REDS_PREFIX);
+export const REDS_HINTS = REDS_MOD_CANONICAL_HINTS_PATH_PREFIX;
+export const REDS_PREFIXES = [
+  ...pathHierarchyFor(REDS_PREFIX),
+  ...pathHierarchyFor(REDS_HINTS),
+];
 
 export const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 export const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);
