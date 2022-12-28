@@ -10,6 +10,7 @@ import {
   Glob,
   FILETREE_ROOT,
   sourcePaths,
+  pathEq,
 } from "./filetree";
 import {
   promptToFallbackOrFailOnUnresolvableLayout,
@@ -42,12 +43,12 @@ import {
   VortexInstallResult,
 } from "./vortex-wrapper";
 
-const matchRedscript = (file: string) =>
-  path.extname(file) === REDS_MOD_CANONICAL_EXTENSION;
+const matchRedscript = (file: string): boolean =>
+  pathEq(REDS_MOD_CANONICAL_EXTENSION)(path.extname(file));
 
 const allRedscriptFiles = (files: string[]): string[] => files.filter(matchRedscript);
 
-const findCanonicalRedscriptDirs = (fileTree: FileTree) =>
+const findCanonicalRedscriptDirs = (fileTree: FileTree): readonly string[] =>
   findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscript, fileTree);
 
 export const detectRedscriptBasedirLayout = (fileTree: FileTree): boolean =>
