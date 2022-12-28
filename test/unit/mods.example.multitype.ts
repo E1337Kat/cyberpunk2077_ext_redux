@@ -46,6 +46,7 @@ import {
   addedMetadataAttribute,
   FAKE_MOD_INFO,
   addedREDmodInfoArrayAttribute,
+  REDS_HINTS,
 } from "./utils.helper";
 import {
   normalizeDir,
@@ -194,6 +195,7 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
         path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
         ...REDS_PREFIXES,
+        path.join(`${REDS_HINTS}/whatevs.toml`),
         path.join(`${REDS_PREFIX}/rexmod/script.reds`),
         ...RED4EXT_PREFIXES,
         path.join(`${RED4EXT_PREFIX}/r4xmod/`),
@@ -207,6 +209,7 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
       outInstructions: [
         copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
         copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
+        copiedToSamePath(`${REDS_HINTS}/whatevs.toml`),
         copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
         copiedToSamePath(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
         copiedToSamePath(`${RED4EXT_PREFIX}/r4xmod/sme.ini`),
