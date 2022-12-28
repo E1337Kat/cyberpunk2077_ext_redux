@@ -1,3 +1,9 @@
+# Cyberpunk 2077 Vortex Support v0.9.7
+
+## Fixer Gigs
+
+- 🐛 **I GUESS WE NEEDED A HINT TOO** Redscript mods can now include a hints file in `r6/redsUserHints/`
+
 # Cyberpunk 2077 Vortex Support v0.9.6
 
 ## Fixer Gigs
