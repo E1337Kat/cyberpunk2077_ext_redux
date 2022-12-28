@@ -49,6 +49,15 @@ const RedscriptModShouldSucceed = new Map<string, ExampleSucceedingMod>(
       ],
       outInstructions: [copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`)],
     },
+    redsWithSingleFileCanonicalUppercase: {
+      expectedInstallerType: InstallerType.Redscript,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/SCRIPT.REDS`),
+      ],
+      outInstructions: [copiedToSamePath(`${REDS_PREFIX}/rexmod/SCRIPT.REDS`)],
+    },
     redsWithMultipleFilesCanonical: {
       expectedInstallerType: InstallerType.Redscript,
       inFiles: [
