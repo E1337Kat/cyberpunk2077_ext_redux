@@ -2,8 +2,8 @@ param (
     [switch]$Dev = $false
 )
 
-$name = node -pe 'p = require(\"./package.json\"); `${p[\"name\"]}`'
-$version = node -pe 'p = require(\"./package.json\"); `${p[\"version\"]}`'
+$name = node -pe 'p = require(''./package.json''); `${p[''name'']}`'
+$version = node -pe 'p = require(''./package.json''); `${p[''version'']}`'
 $hash = git log --oneline | Select-Object -first 1 | ForEach-Object { $_.split(' ')[0] }
 $date = [datetime]::Now.ToUniversalTime().ToString("yyyyMMdd-hhmm")
 
