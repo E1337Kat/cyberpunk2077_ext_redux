@@ -25,12 +25,12 @@ import {
   toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import {
-  Task,
-  map as mapT,
-} from "fp-ts/lib/Task";
-import {
-  chainEitherK,
-  match as matchTE,
+  fromEither as fromEitherTE,
+  map as mapTE,
+  mapLeft as mapLeftTE,
+  orElse as orElseTE,
+  swap as swapTE,
+  TaskEither,
 } from "fp-ts/lib/TaskEither";
 import {
   fs,
@@ -39,6 +39,9 @@ import {
 import {
   remove,
 } from "spectacles-ts";
+import {
+  isLeft,
+} from "fp-ts/lib/Either";
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_ID,
@@ -212,42 +215,41 @@ export const loadOrderUsageInstructionsForVortexGui =
 
 
 const deserializeLoadOrder = (vortexApi: VortexApi) =>
-  (loadOrderPathForCurrentProfile: string): Task<readonly LoadOrderEntry[]> => {
-
-    const decodedLoadOrder = pipe(
+  (loadOrderPathForCurrentProfile: string): TaskEither<Error, readonly LoadOrderEntry[]> =>
+    pipe(
       fileFromDiskTE({ relativePath: loadOrderPathForCurrentProfile, pathOnDisk: loadOrderPathForCurrentProfile }),
-      chainEitherK(({ content }) => decodeLoadOrder(content)),
-      matchTE(
-        (error) => {
-          vortexApi.log(`warn`, `${me}: Failed to deserialize load order, ignoring the file: ${error.message}`);
-          return [] as LoadOrderEntry[];
-        },
-        (loadOrder) => {
-          vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
-          return loadOrder.entriesInOrderWithEarlierWinning;
-        },
-      ),
+      swapTE,
+      mapTE((error) => {
+        vortexApi.log(`warn`, `${me}: Couldn't open load order file, proceeding with an empty list: ${error.message}`);
+        return [] as LoadOrderEntry[];
+      }),
+      orElseTE(({ content }) =>
+        pipe(
+          decodeLoadOrder(content),
+          fromEitherTE,
+          mapLeftTE((error) =>
+            new Error(`Couldn't decode load order file: ${error.message}`)),
+          mapTE((loadOrder) => {
+            vortexApi.log(`info`, `${me}: Successfully deserialized load order id: ${Date.parse(loadOrder.generatedAt)} (${loadOrder.generatedAt})`);
+            vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
+            return loadOrder.entriesInOrderWithEarlierWinning;
+          }),
+        )),
     );
 
-    return decodedLoadOrder;
-  };
 
 const makeIndexForModIdToCurrentOrderLookup =
-  (deserializedLoadOrder: Task<readonly LoadOrderEntry[]>): Task<IdToIndex> =>
+  (deserializedLoadOrder: readonly LoadOrderEntry[]): IdToIndex =>
     pipe(
       deserializedLoadOrder,
-      mapT((entries): IdToIndex =>
-        pipe(
-          entries,
-          reduceWithIndex(
-            {},
-            (index, mapped, entry) => {
-              // eslint-disable-next-line no-param-reassign
-              mapped[entry.vortexId] = index;
-              return mapped;
-            },
-          ),
-        )),
+      reduceWithIndex(
+        {},
+        (index, mapped, entry) => {
+          // eslint-disable-next-line no-param-reassign
+          mapped[entry.vortexId] = index;
+          return mapped;
+        },
+      ),
     );
 
 const addStatusAndIndexOrDefaults =
@@ -355,14 +357,22 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
     return Promise.reject(new Error(`${me}: Invalid profile or wrong game, canceling: ${jsonp(activeProfile)}`));
   }
 
-  vortexApi.log(`info`, `${me}: Compiling detes for load order UI}`);
+  vortexApi.log(`info`, `${me}: Compiling detes for load order UI`);
+
+  const deserializedLoadOrder = await pipe(
+    loadOrderPathFor(activeProfile, gameDirPath),
+    deserializeLoadOrder(vortexApi),
+  )();
+
+  // The rest of this function could and should be refactored into a pipeline
+
+  if (isLeft(deserializedLoadOrder)) {
+    vortexApi.log(`error`, `${me}: Error deserializing load order: ${deserializedLoadOrder.left.message}`);
+    return Promise.reject(deserializedLoadOrder.left);
+  }
 
   const indexForCurrentOrderLookup =
-    await pipe(
-      loadOrderPathFor(activeProfile, gameDirPath),
-      deserializeLoadOrder(vortexApi),
-      makeIndexForModIdToCurrentOrderLookup,
-    )();
+    makeIndexForModIdToCurrentOrderLookup(deserializedLoadOrder.right);
 
   const indexForEnabledStatusForThisProfile =
     activeProfile.modState;
