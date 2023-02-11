@@ -644,7 +644,8 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
 
   const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
 
-  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, S(v2077LoadOrder));
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
+  vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
 
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
