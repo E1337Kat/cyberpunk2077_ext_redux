@@ -1,4 +1,6 @@
-import { VortexProfile } from "../../src/vortex-wrapper";
+import {
+  VortexProfile,
+} from "../../src/vortex-wrapper";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fail = (...args: any[]) => {
@@ -17,6 +19,7 @@ export const fs = {
   ensureDirWritableAsync: jest.fn(),
   statAsync: jest.fn(),
   writeFileAsync: jest.fn(),
+  renameAsync: jest.fn(),
 };
 
 export const selectors = {

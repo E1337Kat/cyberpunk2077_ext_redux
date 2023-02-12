@@ -25,12 +25,13 @@ import {
   toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import {
-  Task,
-  map as mapT,
-} from "fp-ts/lib/Task";
-import {
-  chainEitherK,
-  match as matchTE,
+  fromEither as fromEitherTE,
+  map as mapTE,
+  mapLeft as mapLeftTE,
+  orElse as orElseTE,
+  swap as swapTE,
+  TaskEither,
+  tryCatch as tryCatchTE,
 } from "fp-ts/lib/TaskEither";
 import {
   fs,
@@ -39,6 +40,9 @@ import {
 import {
   remove,
 } from "spectacles-ts";
+import {
+  isLeft,
+} from "fp-ts/lib/Either";
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_ID,
@@ -106,6 +110,9 @@ import {
   InfoNotification,
   showInfoNotification,
 } from "./ui.notifications";
+import {
+  showInvalidLoadOrderFileErrorDialog,
+} from "./ui.dialogs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -212,42 +219,41 @@ export const loadOrderUsageInstructionsForVortexGui =
 
 
 const deserializeLoadOrder = (vortexApi: VortexApi) =>
-  (loadOrderPathForCurrentProfile: string): Task<readonly LoadOrderEntry[]> => {
-
-    const decodedLoadOrder = pipe(
+  (loadOrderPathForCurrentProfile: string): TaskEither<Error, readonly LoadOrderEntry[]> =>
+    pipe(
       fileFromDiskTE({ relativePath: loadOrderPathForCurrentProfile, pathOnDisk: loadOrderPathForCurrentProfile }),
-      chainEitherK(({ content }) => decodeLoadOrder(content)),
-      matchTE(
-        (error) => {
-          vortexApi.log(`warn`, `${me}: Failed to deserialize load order, ignoring the file: ${error.message}`);
-          return [] as LoadOrderEntry[];
-        },
-        (loadOrder) => {
-          vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
-          return loadOrder.entriesInOrderWithEarlierWinning;
-        },
-      ),
+      swapTE,
+      mapTE((error) => {
+        vortexApi.log(`warn`, `${me}: Couldn't open load order file, proceeding with an empty list: ${error.message}`);
+        return [] as LoadOrderEntry[];
+      }),
+      orElseTE(({ content }) =>
+        pipe(
+          decodeLoadOrder(content),
+          fromEitherTE,
+          mapLeftTE((error) =>
+            new Error(`Couldn't decode load order file: ${error.message}`)),
+          mapTE((loadOrder) => {
+            vortexApi.log(`info`, `${me}: Successfully deserialized load order id: ${Date.parse(loadOrder.generatedAt)} (${loadOrder.generatedAt})`);
+            vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
+            return loadOrder.entriesInOrderWithEarlierWinning;
+          }),
+        )),
     );
 
-    return decodedLoadOrder;
-  };
 
 const makeIndexForModIdToCurrentOrderLookup =
-  (deserializedLoadOrder: Task<readonly LoadOrderEntry[]>): Task<IdToIndex> =>
+  (deserializedLoadOrder: readonly LoadOrderEntry[]): IdToIndex =>
     pipe(
       deserializedLoadOrder,
-      mapT((entries): IdToIndex =>
-        pipe(
-          entries,
-          reduceWithIndex(
-            {},
-            (index, mapped, entry) => {
-              // eslint-disable-next-line no-param-reassign
-              mapped[entry.vortexId] = index;
-              return mapped;
-            },
-          ),
-        )),
+      reduceWithIndex(
+        {},
+        (index, mapped, entry) => {
+          // eslint-disable-next-line no-param-reassign
+          mapped[entry.vortexId] = index;
+          return mapped;
+        },
+      ),
     );
 
 const addStatusAndIndexOrDefaults =
@@ -355,14 +361,25 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
     return Promise.reject(new Error(`${me}: Invalid profile or wrong game, canceling: ${jsonp(activeProfile)}`));
   }
 
-  vortexApi.log(`info`, `${me}: Compiling detes for load order UI}`);
+  vortexApi.log(`info`, `${me}: Compiling detes for load order UI`);
+
+  const deserializedLoadOrder = await pipe(
+    loadOrderPathFor(activeProfile, gameDirPath),
+    deserializeLoadOrder(vortexApi),
+  )();
+
+  // The rest of this function could and should be refactored into a pipeline
+  // to get rid of this early return
+
+  if (isLeft(deserializedLoadOrder)) {
+    vortexApi.log(`error`, `${me}: Error deserializing load order: ${deserializedLoadOrder.left.message}`);
+    showInvalidLoadOrderFileErrorDialog(vortexApi, loadOrderPathFor(activeProfile, gameDirPath));
+
+    return Promise.reject(deserializedLoadOrder.left);
+  }
 
   const indexForCurrentOrderLookup =
-    await pipe(
-      loadOrderPathFor(activeProfile, gameDirPath),
-      deserializeLoadOrder(vortexApi),
-      makeIndexForModIdToCurrentOrderLookup,
-    )();
+    makeIndexForModIdToCurrentOrderLookup(deserializedLoadOrder.right);
 
   const indexForEnabledStatusForThisProfile =
     activeProfile.modState;
@@ -584,6 +601,21 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
   return REDdeployment;
 };
 
+const writeLoadOrderToDisk = (
+  loID: number,
+  loadOrderPath: string,
+  serializedLoadOrder: string,
+): TaskEither<Error, void> =>
+  pipe(
+    tryCatchTE(
+      () =>
+        fs.statAsync(path.dirname(loadOrderPath)).then(() =>
+          fs.writeFileAsync(`${loadOrderPath}.${loID}.tmp`, serializedLoadOrder, { encoding: `utf8` })).then(() =>
+          fs.renameAsync(`${loadOrderPath}.${loID}.tmp`, loadOrderPath)),
+      (error) => new Error(`Unable to write load order to disk: ${S(error)}`),
+    ),
+  );
+
 
 //
 // 'Serialize' is what Vortex calls this
@@ -634,7 +666,8 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
 
   const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
 
-  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`, S(v2077LoadOrder));
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
+  vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
 
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
@@ -652,7 +685,18 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
     loadOrderPathFor(activeProfile, gameDirPath);
 
   vortexApi.log(`info`, `${me}: Saving load order ${loID} to disk as JSON: ${loadOrderFilePathForThisProfile}`);
-  return fs.writeFileAsync(loadOrderFilePathForThisProfile, serializedLoadOrder, { encoding: `utf8` });
+
+  const maybeSuccessfullyWroteLoadOrderToDisk =
+    pipe(
+      writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
+      mapLeftTE((error) => {
+        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+        return error;
+      }),
+    );
+
+  return maybeSuccessfullyWroteLoadOrderToDisk();
 };
 
 

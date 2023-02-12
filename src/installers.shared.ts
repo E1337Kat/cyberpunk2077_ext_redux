@@ -14,8 +14,8 @@ import {
 } from "fp-ts/lib/function";
 import {
   Task,
+  map as mapT,
 } from "fp-ts/lib/Task";
-import * as T from "fp-ts/Task";
 import {
   TaskEither,
   tryCatch,
@@ -68,8 +68,12 @@ import {
 //
 
 export const fileFromDisk = ({ relativePath, pathOnDisk }: Path): Task<File> =>
-  T.map((content: string) => ({ relativePath, pathOnDisk, content }))(() =>
-    fs.readFile(pathOnDisk, { encoding: `utf-8` }));
+  pipe(
+    () =>
+      fs.stat(path.dirname(pathOnDisk)).then(() =>
+        fs.readFile(pathOnDisk, { encoding: `utf-8` })),
+    mapT((content: string) => ({ relativePath, pathOnDisk, content })),
+  );
 
 export const fileFromDiskTE = ({ relativePath, pathOnDisk }: Path): TaskEither<Error, File> =>
   tryCatch(
