@@ -31,6 +31,7 @@ import {
   orElse as orElseTE,
   swap as swapTE,
   TaskEither,
+  tryCatch as tryCatchTE,
 } from "fp-ts/lib/TaskEither";
 import {
   fs,
@@ -600,6 +601,21 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
   return REDdeployment;
 };
 
+const writeLoadOrderToDisk = (
+  loID: number,
+  loadOrderPath: string,
+  serializedLoadOrder: string,
+): TaskEither<Error, void> =>
+  pipe(
+    tryCatchTE(
+      () =>
+        fs.statAsync(path.dirname(loadOrderPath)).then(() =>
+          fs.writeFileAsync(`${loadOrderPath}.${loID}.tmp`, serializedLoadOrder, { encoding: `utf8` })).then(() =>
+          fs.renameAsync(`${loadOrderPath}.${loID}.tmp`, loadOrderPath)),
+      (error) => new Error(`Unable to write load order to disk: ${S(error)}`),
+    ),
+  );
+
 
 //
 // 'Serialize' is what Vortex calls this
@@ -669,7 +685,18 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
     loadOrderPathFor(activeProfile, gameDirPath);
 
   vortexApi.log(`info`, `${me}: Saving load order ${loID} to disk as JSON: ${loadOrderFilePathForThisProfile}`);
-  return fs.writeFileAsync(loadOrderFilePathForThisProfile, serializedLoadOrder, { encoding: `utf8` });
+
+  const maybeSuccessfullyWroteLoadOrderToDisk =
+    pipe(
+      writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
+      mapLeftTE((error) => {
+        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+        return error;
+      }),
+    );
+
+  return maybeSuccessfullyWroteLoadOrderToDisk();
 };
 
 

@@ -21,6 +21,7 @@ export const enum NotificationStatus {
 export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
+  LoadOrderWriteFailed = `V2077-notify-error-loadorder-write-failed`,
   REDmodArchiveAutoconverted = `V2077-notify-success-redmod-archive-autoconverted`,
   REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
   REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
@@ -51,6 +52,15 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       type: `info`,
       title: `Vortex Restart Required`,
       message: `To complete installing CyberCAT, wait for the deploy to finish and then restart Vortex!`,
+    },
+  ],
+  [
+    InfoNotification.LoadOrderWriteFailed,
+    {
+      id: InfoNotification.LoadOrderWriteFailed,
+      type: `error`,
+      title: `Writing Load Order to Disk Failed!`,
+      message: `Couldn't write the new load order to disk. Check the log for details!`,
     },
   ],
   [
@@ -104,7 +114,7 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       id: InfoNotification.REDmodDeploymentFailed,
       type: `error`,
       title: `REDmod Deployment Failed!`,
-      message: `Oh no! Something went wrong with the REDmod deployment. Check Diagnostic Files for details!`,
+      message: `Oh no! Something went wrong with the REDmod deployment. Check the log for details!`,
     },
   ],
   [
