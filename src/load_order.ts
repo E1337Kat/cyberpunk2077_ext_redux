@@ -109,6 +109,9 @@ import {
   InfoNotification,
   showInfoNotification,
 } from "./ui.notifications";
+import {
+  showInvalidLoadOrderFileErrorDialog,
+} from "./ui.dialogs";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -365,9 +368,12 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
   )();
 
   // The rest of this function could and should be refactored into a pipeline
+  // to get rid of this early return
 
   if (isLeft(deserializedLoadOrder)) {
     vortexApi.log(`error`, `${me}: Error deserializing load order: ${deserializedLoadOrder.left.message}`);
+    showInvalidLoadOrderFileErrorDialog(vortexApi, loadOrderPathFor(activeProfile, gameDirPath));
+
     return Promise.reject(deserializedLoadOrder.left);
   }
 

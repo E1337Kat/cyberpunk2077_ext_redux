@@ -493,3 +493,31 @@ export const showManualStepRequiredForToolInfo = (
     [{ label: `Understood!` }],
   );
 };
+
+export const showInvalidLoadOrderFileErrorDialog = (
+  api: VortexApi,
+  loadOrderFilePath: string,
+): void =>
+  api.showDialog(
+    `error`,
+    `Error Loading Stored Load Order`,
+    {
+      md: heredoc(`
+        I was unable to load the stored Load Order in ${loadOrderFilePath}!
+
+        This means you need to resolve the error before you can continue.
+
+        If you edited the file manually, make sure it's valid JSON and in the correct format.
+
+        If you haven't touched it yourself, it's possible the file has become corrupted,
+        or this error may be transient and go away if you try again. If it doesn't:
+
+        Easiest solution:
+
+        1. Make sure the Load Order is correct in Vortex
+        2. Delete ${loadOrderFilePath} (or rename/move it if you want to examine/fix it)
+        3. Either move something in the Load Order (you can then move it back), or just restart Vortex
+      `),
+    },
+    [{ label: `Understood!` }],
+  );
