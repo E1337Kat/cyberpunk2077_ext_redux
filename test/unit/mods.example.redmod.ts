@@ -681,7 +681,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
         },
       ),
       inFiles: [
@@ -710,7 +710,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
         },
       ),
       inFiles: [
@@ -746,7 +746,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.REDmod,
       fsMocked: mockedFsLayout(
         {
-          [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
         },
       ),
       inFiles: [
@@ -1027,6 +1027,28 @@ const REDmodDirectFailures = new Map<string, ExampleFailingMod>([
         path.join(`${REDMOD_BASEDIR}/info.json`),
         path.join(`${REDMOD_BASEDIR}/archives/`),
         path.join(`${REDMOD_BASEDIR}/archives/cool_stuff.archive`),
+      ],
+      failure: `Didn't Find Expected REDmod Installation!`,
+      errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
+    },
+  ],
+  [
+    `REDmod with only an info.json that is not a known special case`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
       ],
       failure: `Didn't Find Expected REDmod Installation!`,
       errorDialogTitle: `Didn't Find Expected REDmod Installation!`,
