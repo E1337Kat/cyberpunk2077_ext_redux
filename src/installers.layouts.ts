@@ -672,32 +672,37 @@ export const enum REDmodLayout {
           One or more mods in the canonical REDmod layout of
 
           | - .\\mods\\[modname]\\info.json { name: modname, ... }
-          | - .\\mods\\[modname]\\archives\\[*.archive, *.xl]
-          | - .\\mods\\[modname]\\customSounds\\*.wav
-          | - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          | - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
-
-          There may additionally be a placeholder file to ensure the script dir exists
-
-          | - .\\r6\\cache\\modded\\[any .txt or no-extension files]
+          |   - .\\mods\\[modname]\\archives\\[*.archive, *.xl]
+          |   - .\\mods\\[modname]\\customSounds\\*.wav
+          |   - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          |   - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
+
+  InfoOnly = `
+          Or the special case for info-only mods (currently ONLY for \`mod_skip\` audio mods,
+          only supported in canonical layout:
+
+          | - .\\mods\\[modname]\\info.json { name: modname, customSounds: [ { name: 'hi', type: 'mod_skip' } ... } ]
+          `,
+
   Named = `
-          Without the top-level mods\\, one or more mods in the form of
+          Without the top-level mods\\ directory, one or more mods in the form of
 
           | - .\\[modname]\\info.json { name: modname, ... }
-          | - .\\[modname]\\archives\\[*.archive, *.xl]
-          | - .\\[modname]\\customSounds\\*.wav
-          | - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          | - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          |   - .\\[modname]\\archives\\[*.archive, *.xl]
+          |   - .\\[modname]\\customSounds\\*.wav
+          |   - .\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          |   - .\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
+
   Toplevel = `
           Single mod in the form of
 
           | - .\\info.json { name: modname, ... }
-          | - .\\archives\\[*.archive, *.xl]
-          | - .\\customSounds\\*.wav
-          | - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
-          | - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
+          |   - .\\archives\\[*.archive, *.xl]
+          |   - .\\customSounds\\*.wav
+          |   - .\\scripts\\[valid script subdir]\\[*.script, *.ws]
+          |   - .\\tweaks\\base\\gameplay\\static_data\\*.tweak
           `,
 }
 
@@ -992,6 +997,7 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.REDmod,
     `
     - \`${REDmodLayout.Canon}\` (Canonical)
+    - \`${REDmodLayout.InfoOnly}\` (Special case)
     - \`${REDmodLayout.Named}\` (Can be fixed to canonical)
     - \`${REDmodLayout.Toplevel}\` (Can be fixed to canonical)
 
