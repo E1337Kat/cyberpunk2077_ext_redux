@@ -8,6 +8,7 @@ import {
 import path from "path";
 import {
   REDMOD_BASEDIR,
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
   REDMOD_INFO_FILENAME,
   REDMOD_MODTYPE_ATTRIBUTE,
   REDMOD_SCRIPTS_MODDED_DIR,
@@ -827,6 +828,7 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
           path.join(`mods/myRedMod/info.json`),
           path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         ),
+        createdDirectory(path.join(`${REDMOD_BASEDIR}/myRedMod`, REDMOD_CUSTOMSOUNDS_DIRNAME)),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoWithSkipSoundForVortex),
