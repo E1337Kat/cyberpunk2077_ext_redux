@@ -216,10 +216,7 @@ const matchAnyREDmodSubtypeDir = (fileTree: FileTree) =>
     );
 
 const findCanonicalREDmodDirs = (fileTree: FileTree): readonly string[] =>
-  pipe(
-    findDirectSubdirsWithSome(REDMOD_BASEDIR, matchREDmodInfoJson, fileTree),
-    filter(matchAnyREDmodSubtypeDir(fileTree)),
-  );
+  findDirectSubdirsWithSome(REDMOD_BASEDIR, matchREDmodInfoJson, fileTree);
 
 const findNamedREDmodDirs = (fileTree: FileTree): readonly string[] =>
   pipe(
@@ -333,7 +330,7 @@ const failAfterWarningUserAndLogging = (
 //
 
 
-const initJsonLayoutAndValidation = (
+const infoJsonLayoutAndValidation = (
   api: VortexApi,
   infoAndPaths: REDmodInfoAndPathDetes,
   _modInfo: ModInfo,
@@ -421,10 +418,16 @@ const customSoundLayoutAndValidation = (
   const allCustomSoundFiles =
     filesUnder(customSoundsDir, matchREDmodCustomSound, fileTree);
 
-  const infoJsonRequiresSoundFiles = pipe(
-    redmodInfo.customSounds || [],
-    any((soundDecl) => soundDecl.type !== `mod_skip`),
+  const infoJsonCustomSounds =
+    redmodInfo.customSounds || [];
+
+  const infoJsonSkippedSounds = pipe(
+    infoJsonCustomSounds,
+    filter((soundDecl) => soundDecl.type === `mod_skip`),
   );
+
+  const infoJsonRequiresSoundFiles =
+    infoJsonSkippedSounds.length !== infoJsonCustomSounds.length;
 
   const hasSoundFiles =
     allCustomSoundFiles.length > 0;
@@ -435,11 +438,22 @@ const customSoundLayoutAndValidation = (
     return left(new Error(`customSounds sublayout: ${jsonp({ soundFilesRequiredPresent: infoJsonRequiresSoundFiles, hasSoundFiles })}!`));
   }
 
-  const instructions = instructionsToMoveAllFromSourceToDestination(
+  const fileInstructions = instructionsToMoveAllFromSourceToDestination(
     relativeSourceDir,
     relativeDestDir,
     allCustomSoundFiles,
   );
+
+  const infoJsonHasSoundSpecButOnlySkipped =
+    infoJsonCustomSounds.length > 0 && infoJsonSkippedSounds.length === infoJsonCustomSounds.length;
+
+  const customSoundsAllSkippedRequiresPlaceholder =
+    infoJsonHasSoundSpecButOnlySkipped && fileInstructions.length < 1;
+
+  const instructions =
+    customSoundsAllSkippedRequiresPlaceholder
+      ? instructionsToGenerateDirs([path.join(relativeDestDir, REDMOD_CUSTOMSOUNDS_DIRNAME)])
+      : fileInstructions;
 
   return right(instructions);
 };
@@ -631,6 +645,39 @@ const toplevelLayoutMatches = (fileTree: FileTree): Option<ModDirsForLayoutFunc>
 // Actual instruction generation
 //
 
+const validateCompleteSingleREDmodInstructions = (
+  _modInfo: ModInfo,
+  redmodInfoAndPathDetes: REDmodInfoAndPathDetes,
+) =>
+  (instructions: readonly VortexInstruction[]): Either<Error, readonly VortexInstruction[]> => {
+    const destinations = pipe(
+      instructions,
+      map((instruction) => (instruction.destination ? [instruction.destination] : [])),
+      flatten,
+      toMutableArray,
+    );
+
+    const hasOneRequiredSubdir = pipe(
+      destinations,
+      fileTreeFromPaths,
+      (fileTree) => subdirNamesIn(redmodInfoAndPathDetes.relativeDestDir, fileTree),
+      any(pathIn(REDMOD_SUBTYPE_DIRNAMES)),
+    );
+
+    const hasSpecialCaseCustomSoundsDirWhenOnlySkippingSounds = pipe(
+      destinations,
+      any(pathEq(path.join(redmodInfoAndPathDetes.relativeDestDir, REDMOD_CUSTOMSOUNDS_DIRNAME))),
+    );
+
+    const looksGood =
+      hasOneRequiredSubdir || hasSpecialCaseCustomSoundsDirWhenOnlySkippingSounds;
+
+    return looksGood
+      ? right(instructions)
+      : left(new Error(`REDmods require at least one mod file or placeholder in addition to an info.json, mod seems invalid based on these final instructions: ${S({ instructions })}`));
+  };
+
+
 export const instructionsForLayoutsPipeline = (
   api: VortexApi,
   fileTree: FileTree,
@@ -649,17 +696,18 @@ export const instructionsForLayoutsPipeline = (
           chainE(sanitizePathDetesForREDmodding),
           chainE((redmodInfoAndPathDetes) => pipe(
             [
-              initJsonLayoutAndValidation,
               archiveLayoutAndValidation,
               customSoundLayoutAndValidation,
               scriptLayoutAndValidation,
               tweakLayoutAndValidation,
+              infoJsonLayoutAndValidation,
               extraFilesLayoutAndValidation,
             ],
             traverseArrayE((layout) => layout(api, redmodInfoAndPathDetes, modInfo)),
-            mapE(concat([redmodInfoModAttributeInstruction(modInfo, redmodInfoAndPathDetes)])),
+            mapE(flatten),
+            mapE(concat(redmodInfoModAttributeInstruction(modInfo, redmodInfoAndPathDetes))),
+            chainE(validateCompleteSingleREDmodInstructions(modInfo, redmodInfoAndPathDetes)),
           )),
-          mapE(flatten),
         )),
       );
 
