@@ -806,6 +806,33 @@ const REDmodSpecialValidationSucceeds = new Map<string, ExampleSucceedingMod>([
       ],
     },
   ],
+  [
+    `Canonical REDmod without any files except info.json if info customSounds only has skip files`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithSkipSoundJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`mods/myRedMod/info.json`),
+      ],
+      outInstructions: [
+        movedFromTo(
+          path.join(`mods/myRedMod/info.json`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        ),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithSkipSoundForVortex),
+      ],
+    },
+  ],
 ]);
 
 
