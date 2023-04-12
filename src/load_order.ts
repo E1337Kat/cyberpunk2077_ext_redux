@@ -1,6 +1,18 @@
 import {
   win32,
 } from "path";
+import {
+  execFile,
+} from "node:child_process";
+import {
+  promisify,
+} from "util";
+import {
+  Dirent,
+} from "fs";
+import {
+  readdir,
+} from "fs/promises";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Promise,
@@ -19,6 +31,7 @@ import {
   flatten,
   isEmpty,
   map,
+  some as any,
   mapWithIndex,
   reduceWithIndex,
   sortBy,
@@ -118,6 +131,14 @@ import {
 import {
   showInvalidLoadOrderFileErrorDialog,
 } from "./ui.dialogs";
+import {
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_TWEAKS_DIRNAME,
+} from "./installers.layouts";
+import {
+  pathIn,
+} from "./filetree";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -156,6 +177,12 @@ const DISABLED_MOD_DISPLAY_MARKER = `🚫`;
 const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
   (mod.enabled ? ENABLED_MOD_DISPLAY_MARKER : DISABLED_MOD_DISPLAY_MARKER);
 
+
+const REDMOD_COMPILABLE_DIRNAMES = [
+  REDMOD_CUSTOMSOUNDS_DIRNAME,
+  REDMOD_SCRIPTS_DIRNAME,
+  REDMOD_TWEAKS_DIRNAME,
+];
 
 //
 // Helpers
@@ -544,6 +571,42 @@ export const makeModsDotJsonLoadOrderFrom = (
   };
 };
 
+const getDirectories = async (source: string): Promise<readonly string[]> =>
+  (readdir(source, { withFileTypes: true })).then((directoryContents: Dirent[]): string[] =>
+    directoryContents
+      .filter((directoryEntry: Dirent) => directoryEntry.isDirectory())
+      .map((directoryEntry: Dirent) => directoryEntry.name));
+
+
+const maybeCompilableMod = (
+  redmodFolder: string,
+): boolean => {
+  try {
+    getDirectories(redmodFolder).then((dirs) =>
+      pipe(dirs, any(pathIn(REDMOD_COMPILABLE_DIRNAMES))));
+  } catch (error) {
+    return false;
+  }
+
+  return true;
+};
+
+const pruneToSparseLoadOrder = (
+  vortexApi: VortexApi,
+  loadOrderFromVortex: LoadOrder,
+): LoadOrder => {
+  vortexApi.log(`info`, `${me}: Sparsing out the load order`);
+
+  const newLoadOrderEntries =
+    loadOrderFromVortex.entriesInOrderWithEarlierWinning.filter((entry) => maybeCompilableMod(entry.redmodPath));
+
+  const newLoadOrder = loadOrderFromVortex;
+
+  newLoadOrder.entriesInOrderWithEarlierWinning = newLoadOrderEntries;
+
+  return newLoadOrder;
+};
+
 
 export const loadOrderToREDdeployRunParameters = (
   gameDirPath: string,
@@ -638,8 +701,12 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
     return Promise.resolve();
   }
 
+  // Need to only deploy that which is necessary for compilation. This is any redmod with a script, sound, or tweak change.
+  // After that, we can take all of the plain archive based redmods and selectively inject them into the mods.json.
+  const sparseLOforDeploy = pruneToSparseLoadOrder(vortexApi, v2077LoadOrderToDeploy);
+
   const redDeploy =
-    loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
+    loadOrderToREDdeployRunParameters(gameDirPath, sparseLOforDeploy);
 
 
   if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
@@ -652,18 +719,30 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
 
   vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
 
-  // Should really figure out how to get the output from this.
-  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/321
   const REDdeployment: Promise<void> =
-    vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
-      .then(() => {
-        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-      })
-      .catch((error) => {
-        vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
-        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-      });
+    promisify(() => execFile(
+      redDeploy.executable,
+      [...redDeploy.args],
+      {
+        cwd: redDeploy.options.cwd,
+        shell: redDeploy.options.shell,
+        timeout: (120 * 1000),
+        maxBuffer: (1024 * 1024),
+        windowsHide: true,
+      },
+      (err, stdout, stderr) => {
+        if (err) {
+          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(err));
+          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(stderr));
+          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+          throw err;
+        } else {
+          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} output: ${stdout}`);
+          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+        }
+      },
+    ));
 
   return REDdeployment;
 };
