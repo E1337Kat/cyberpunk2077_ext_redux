@@ -46,6 +46,16 @@ describe(`Load Order`, () => {
             redmodVersion: `testredmodversion`,
             redmodPath: `testredmodpath`,
             enabled: true,
+            modsDotJsonEntry: {
+              folder: `testredmodpath`,
+              enabled: true,
+              deployed: true,
+              deployedVersion: `testredmodversion`,
+              customSounds: [{
+                name: `testmodSound`,
+                type: `mod_skip`,
+              }],
+            },
           },
         ],
       };
