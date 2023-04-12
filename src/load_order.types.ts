@@ -13,6 +13,7 @@ import * as t from "io-ts";
 import path from "path";
 import {
   decodeWith,
+  REDmodCustomSoundType,
   REDmodInfoForVortex,
 } from "./installers.types";
 import { jsonpp } from "./util.functions";
@@ -53,6 +54,48 @@ export interface TypedOrderableVortexLoadOrderEntry extends Omit<VortexLoadOrder
   data: OrderableLoadOrderEntryForVortex;
 }
 
+export const ModsDotJsonCustomSoundEntryType =
+    t.type(
+      {
+        name: t.string,
+        type: t.string,
+        file: t.string,
+        gain: t.number,
+        pitch: t.number,
+      },
+      `ModsDotJsonCustomSoundEntryType`,
+    );
+export type ModsDotJsonCustomSoundEntry = t.TypeOf<typeof ModsDotJsonCustomSoundEntryType>;
+
+export const ModsDotJsonEntryType =
+    t.type(
+      {
+        folder: t.string,
+        enabled: t.boolean,
+        deployed: t.boolean,
+        deployedVersion: t.string,
+        customSounds: t.array(REDmodCustomSoundType),
+      },
+      `ModsDotJsonEntryType`,
+    );
+export type ModsDotJsonEntry = t.TypeOf<typeof ModsDotJsonEntryType>;
+
+export const ModsDotJsonType =
+    t.type(
+      {
+        mods: t.array(ModsDotJsonEntryType),
+      },
+      `ModsDotJsonType`,
+    );
+export type ModsDotJson = t.TypeOf<typeof ModsDotJsonType>;
+
+
+export const encodeModsDotJsonLoadOrder = (loadOrder: ModsDotJson): string =>
+  jsonpp(loadOrder);
+
+
+export const decodeModsDotJsonLoadOrder = decodeWith(ModsDotJsonType.decode);
+
 // We're not explicitly storing the index for now,
 // but it might not be a bad idea in the long run.
 export const LoadOrderEntryType =
@@ -67,6 +110,7 @@ export const LoadOrderEntryType =
       redmodVersion: t.string,
       redmodPath: t.string,
       enabled: t.boolean,
+      modsDotJsonEntry: ModsDotJsonEntryType, // We want to also know this to use it later.
     }),
   ], `LoadOrderEntryType`);
 export type LoadOrderEntry = t.TypeOf<typeof LoadOrderEntryType>;

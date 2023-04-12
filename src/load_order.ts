@@ -62,6 +62,10 @@ import {
   TypedVortexLoadOrderEntry,
   OrderableLoadOrderEntryForVortex,
   TypedOrderableVortexLoadOrderEntry,
+  ModsDotJsonEntry,
+  decodeModsDotJsonLoadOrder,
+  encodeModsDotJsonLoadOrder,
+  ModsDotJson,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -103,6 +107,7 @@ import {
 } from "./installers.types";
 import {
   REDdeployExeRelativePath,
+  REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
@@ -130,6 +135,11 @@ const loadOrderFilenameFor = (profile: VortexProfile): string =>
 // user profile dir, as long as we show the path somewhere?
 const loadOrderPathFor = (profile: VortexProfile, gameDirPath): string =>
   path.join(gameDirPath, V2077_LOAD_ORDER_DIR, loadOrderFilenameFor(profile));
+
+// Should probably store this somewhere else, maybe in the
+// user profile dir, as long as we show the path somewhere?
+const modsDotJsonPathFor = (gameDirPath): string =>
+  path.join(gameDirPath, REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES, `mods.json`);
 
 
 //
@@ -237,6 +247,27 @@ const deserializeLoadOrder = (vortexApi: VortexApi) =>
             vortexApi.log(`info`, `${me}: Successfully deserialized load order id: ${Date.parse(loadOrder.generatedAt)} (${loadOrder.generatedAt})`);
             vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
             return loadOrder.entriesInOrderWithEarlierWinning;
+          }),
+        )),
+    );
+const deserializeModsDotJson = (vortexApi: VortexApi) =>
+  (loadOrderPathForCurrentProfile: string): TaskEither<Error, readonly ModsDotJsonEntry[]> =>
+    pipe(
+      fileFromDiskTE({ relativePath: loadOrderPathForCurrentProfile, pathOnDisk: loadOrderPathForCurrentProfile }),
+      swapTE,
+      mapTE((error) => {
+        vortexApi.log(`warn`, `${me}: Couldn't open mods.json file, proceeding with an empty list: ${error.message}`);
+        return [] as ModsDotJsonEntry[];
+      }),
+      orElseTE(({ content }) =>
+        pipe(
+          decodeModsDotJsonLoadOrder(content),
+          fromEitherTE,
+          mapLeftTE((error) =>
+            new Error(`Couldn't decode mods.json file: ${error.message}`)),
+          mapTE((loadOrder) => {
+            vortexApi.log(`info`, `${me}: Successfully deserialized mods.json file`);
+            return loadOrder.mods;
           }),
         )),
     );
@@ -453,6 +484,14 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
     redmodVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
     redmodPath: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
     enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
+    modsDotJsonEntry: {
+      folder: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
+      enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
+      deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
+      deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
+      customSounds:
+        (modDetesWeNeedForLoadOrder.redmodInfo.customSounds ? modDetesWeNeedForLoadOrder.redmodInfo.customSounds : []),
+    },
   };
 
   return V2077LoadOrderEntry;
@@ -474,6 +513,34 @@ export const makeV2077LoadOrderFrom = (
     ownerVortexProfileId,
     generatedAt: new Date(dateAsLoadOrderId).toISOString(),
     entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
+  };
+};
+
+const makeModsDotJsonLoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): ModsDotJsonEntry => {
+  const modDetesWeNeedForLoadOrder: LoadOrderEntryDataForVortex = vortexEntry.data;
+
+  const V2077LoadOrderEntry: ModsDotJsonEntry = {
+    folder: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
+    enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
+    deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
+    deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
+    customSounds: modDetesWeNeedForLoadOrder.redmodInfo.customSounds,
+  };
+
+  return V2077LoadOrderEntry;
+};
+
+export const makeModsDotJsonLoadOrderFrom = (
+  vortexLoadOrder: VortexLoadOrder,
+): ModsDotJson => {
+  const modsDotJsonLoadOrderEntries = pipe(
+    vortexLoadOrder,
+    map(makeModsDotJsonLoadOrderEntryFrom),
+    toMutableArray,
+  );
+
+  return {
+    mods: modsDotJsonLoadOrderEntries,
   };
 };
 
@@ -617,6 +684,33 @@ const writeLoadOrderToDisk = (
   );
 
 
+const rebuildModsDotJsonLoadOrder =
+(
+  vortexApi: VortexApi,
+  allMods: ModsDotJsonEntry[],
+  modsInModsDotJson: ModsDotJsonEntry[],
+): ModsDotJson => {
+  const rebuiltMods = allMods;
+  // const mergeWithoutOverwrite =
+  //   (compiledEntry: ModsDotJsonEntry, newEntry: ModsDotJsonEntry) => newEntry.folder == compiledEntry.folder ? compiledEntry : newEntry
+  modsInModsDotJson.forEach((newEntry) => {
+    const meow = allMods.findIndex((entry) => entry.folder === newEntry.folder);
+    if (typeof meow === `number` && meow !== -1) {
+      rebuiltMods[meow] = newEntry;
+    } else {
+      // I don't like this. I'd rather an error or something be thrown here or something... but this
+      // might be okay? It would allow a deployment of their own with non-vortex mods to be done and
+      // include them on them on the bottom of the load order... I think.
+      vortexApi.log(`error`, `${me}: rebuildModsDotJsonLoadOrder: Compiled and vortex mods list mismatch! adding onto the end.`);
+      rebuiltMods.push(newEntry);
+    }
+  });
+
+  return {
+    mods: rebuiltMods,
+  };
+};
+
 //
 // 'Serialize' is what Vortex calls this
 //
@@ -639,7 +733,7 @@ const writeLoadOrderToDisk = (
 // the one we return from compile (above) by matching the content. That means
 // that we *shouldn't* get this function being invoked twice for 'the same' LO.
 //
-const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
+const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
   vortexApi: VortexApi,
   vortexLoadOrder: VortexLoadOrder,
 ): Promise<void> => {
@@ -665,6 +759,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   const loID = Date.now();
 
   const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
+  const modsDotJsonLoadOrder = makeModsDotJsonLoadOrderFrom(vortexLoadOrder);
 
   vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
   vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
@@ -681,6 +776,22 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
   const serializedLoadOrder =
     encodeLoadOrder(v2077LoadOrder);
 
+  const maybeRebuiltModsDotJson: TaskEither<Error, string> = pipe(
+    modsDotJsonPathFor(gameDirPath),
+    deserializeModsDotJson(vortexApi),
+    mapLeftTE((error) => {
+      vortexApi.log(`error`, `${me}: Error rebuilding mods.json: ${error.message}`);
+      showInvalidLoadOrderFileErrorDialog(vortexApi, loadOrderPathFor(activeProfile, gameDirPath));
+      // new Error(`Couldn't decode mods.json file: ${error.message}`);
+      return Promise.reject(error);
+    }),
+    mapTE((modsDotJsonList) => {
+      vortexApi.log(`info`, `${me}: Successfully rebuilt mods.json...`);
+      return rebuildModsDotJsonLoadOrder(vortexApi, modsDotJsonLoadOrder.mods, toMutableArray(modsDotJsonList));
+    }),
+    mapTE((rebuiltModsDotJsonLoadOrder) => encodeModsDotJsonLoadOrder(rebuiltModsDotJsonLoadOrder)),
+  );
+
   const loadOrderFilePathForThisProfile =
     loadOrderPathFor(activeProfile, gameDirPath);
 
@@ -696,9 +807,26 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
       }),
     );
 
-  return maybeSuccessfullyWroteLoadOrderToDisk();
-};
+  const maybeSuccessfullyReWroteModsDotJsonToDisk =
+    pipe(
+      maybeRebuiltModsDotJson,
+      mapLeftTE((error) => {
+        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+        return error;
+      }),
+      mapTE((rebuiltModsDotJson) => {
+        writeLoadOrderToDisk(loID, modsDotJsonPathFor(gameDirPath), rebuiltModsDotJson);
+      }),
+      mapLeftTE((error) => {
+        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+        return error;
+      }),
+    );
 
+  return maybeSuccessfullyWroteLoadOrderToDisk() && maybeSuccessfullyReWroteModsDotJsonToDisk();
+};
 
 //
 // 'Validate' the load order

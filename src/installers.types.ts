@@ -220,7 +220,7 @@ export const decodeREDmodInfo = (json: J.Json): Either<Error, REDmodInfo> => pip
   ),
 );
 
-export interface REDmodInfoForVortex extends Pick<REDmodInfo, `name` | `version`> {
+export interface REDmodInfoForVortex extends REDmodInfo {
   relativePath: string;
   vortexModId: string;
 }
