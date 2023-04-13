@@ -1,98 +1,99 @@
-import { LoadOrder } from "../../src/load_order.types";
+import { LoadOrder, ModsDotJson } from "../../src/load_order.types";
 import { VortexLoadOrderEntry } from "../../src/vortex-wrapper";
 
 
-export const vortexLoadOrder: VortexLoadOrderEntry[] = [{
-  id: `#POPPY DRESS`,
-  enabled: true,
-  name: `✅ #POPPY DRESS (V2077 Autoconverted) 0.0.1-V2077+V2077RED (from #POPPY DRESS.zip )`,
-  data: {
-    ownerVortexProfileId: `xyZzyZx`,
-    vortexId: `#POPPY DRESS`,
-    vortexModVersion: ``,
-    vortexEnabled: true,
-    redmodInfo: {
-      name: `#POPPY DRESS (V2077 Autoconverted)`,
-      version: `0.0.1-V2077+V2077RED`,
-      relativePath: `mods\\#POPPY DRESS (V2077 Autoconverted)`,
-      vortexModId: `#POPPY DRESS (V2077)`,
+export const vortexLoadOrder: VortexLoadOrderEntry[] = [
+  {
+    id: `#POPPY DRESS`,
+    enabled: true,
+    name: `✅ #POPPY DRESS (V2077 Autoconverted) 0.0.1-V2077+V2077RED (from #POPPY DRESS.zip )`,
+    data: {
+      ownerVortexProfileId: `xyZzyZx`,
+      vortexId: `#POPPY DRESS`,
+      vortexModVersion: ``,
+      vortexEnabled: true,
+      redmodInfo: {
+        name: `#POPPY DRESS (V2077 Autoconverted)`,
+        version: `0.0.1-V2077+V2077RED`,
+        relativePath: `mods\\#POPPY DRESS (V2077 Autoconverted)`,
+        vortexModId: `#POPPY DRESS (V2077)`,
+      },
     },
   },
-},
-{
-  id: `Guinevere's Always-On Chrome v1.0.0`,
-  enabled: true,
-  name: `✅ AuskaWorks - Guinevere's Always-On Chrome 1.0 (from AuskaWorks Guinevere's Always-On Chrome v1.0.0 - nim's extra more head slots - slot08 enabled )`,
-  data: {
-    ownerVortexProfileId: `xyZzyZx`,
-    vortexId: `Guinevere's Always-On Chrome v1.0.0`,
-    vortexModVersion: ``,
-    vortexEnabled: true,
-    redmodInfo: {
-      name: `AuskaWorks - Guinevere's Always-On Chrome`,
-      version: `1.0`,
-      relativePath: `mods\\AuskaWorks - Guinevere's Always-On Chrome`,
-      vortexModId: `Guinevere's Always-On Chrome v1.0.0 (V2077)`,
+  {
+    id: `Guinevere's Always-On Chrome v1.0.0`,
+    enabled: true,
+    name: `✅ AuskaWorks - Guinevere's Always-On Chrome 1.0 (from AuskaWorks Guinevere's Always-On Chrome v1.0.0 - nim's extra more head slots - slot08 enabled )`,
+    data: {
+      ownerVortexProfileId: `xyZzyZx`,
+      vortexId: `Guinevere's Always-On Chrome v1.0.0`,
+      vortexModVersion: ``,
+      vortexEnabled: true,
+      redmodInfo: {
+        name: `AuskaWorks - Guinevere's Always-On Chrome`,
+        version: `1.0`,
+        relativePath: `mods\\AuskaWorks - Guinevere's Always-On Chrome`,
+        vortexModId: `Guinevere's Always-On Chrome v1.0.0 (V2077)`,
+      },
     },
   },
-},
-{
-  id: `redmod version-5401-1-e3-1664115429`,
-  modId: `5401`,
-  enabled: true,
-  name: `✅ Better_Apartment_Views 1.e3 (from Better Apartment Views - redmod version 1.e3)`,
-  data: {
-    ownerVortexProfileId: `xyZzyZx`,
-    vortexId: `redmod version-5401-1-e3-1664115429`,
-    vortexModId: `5401`,
-    vortexModVersion: `1.e3`,
-    vortexEnabled: true,
-    redmodInfo: {
-      name: `Better_Apartment_Views`,
-      version: `1.e3`,
-      relativePath: `mods\\Better_Apartment_Views`,
+  {
+    id: `redmod version-5401-1-e3-1664115429`,
+    modId: `5401`,
+    enabled: true,
+    name: `✅ Better_Apartment_Views 1.e3 (from Better Apartment Views - redmod version 1.e3)`,
+    data: {
+      ownerVortexProfileId: `xyZzyZx`,
+      vortexId: `redmod version-5401-1-e3-1664115429`,
       vortexModId: `5401`,
+      vortexModVersion: `1.e3`,
+      vortexEnabled: true,
+      redmodInfo: {
+        name: `Better_Apartment_Views`,
+        version: `1.e3`,
+        relativePath: `mods\\Better_Apartment_Views`,
+        vortexModId: `5401`,
+      },
     },
   },
-},
-{
-  id: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
-  modId: `4626`,
-  enabled: true,
-  name: `✅ PanamRomancedEnhanced 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
-  data: {
-    ownerVortexProfileId: `xyZzyZx`,
-    vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
-    vortexModId: `4626`,
-    vortexModVersion: `1.4`,
-    vortexEnabled: true,
-    redmodInfo: {
-      name: `PanamRomancedEnhanced`,
-      version: `1.4`,
-      relativePath: `mods\\PanamRomancedEnhanced`,
+  {
+    id: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
+    modId: `4626`,
+    enabled: true,
+    name: `✅ PanamRomancedEnhanced 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
+    data: {
+      ownerVortexProfileId: `xyZzyZx`,
+      vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
       vortexModId: `4626`,
+      vortexModVersion: `1.4`,
+      vortexEnabled: true,
+      redmodInfo: {
+        name: `PanamRomancedEnhanced`,
+        version: `1.4`,
+        relativePath: `mods\\PanamRomancedEnhanced`,
+        vortexModId: `4626`,
+      },
     },
   },
-},
-{
-  id: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950-V2077-1`,
-  modId: `4626-V2077-1`,
-  enabled: true,
-  name: `✅ PanamRomancedEnhancedPrivacy 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
-  data: {
-    ownerVortexProfileId: `xyZzyZx`,
-    vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
-    vortexModId: `4626`,
-    vortexModVersion: `1.4`,
-    vortexEnabled: true,
-    redmodInfo: {
-      name: `PanamRomancedEnhancedPrivacy`,
-      version: `1.4`,
-      relativePath: `mods\\PanamRomancedEnhancedPrivacy`,
+  {
+    id: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950-V2077-1`,
+    modId: `4626-V2077-1`,
+    enabled: true,
+    name: `✅ PanamRomancedEnhancedPrivacy 1.4 (from Panam Romanced Enhanced v1.4 REDmod 1.4)`,
+    data: {
+      ownerVortexProfileId: `xyZzyZx`,
+      vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
       vortexModId: `4626`,
+      vortexModVersion: `1.4`,
+      vortexEnabled: true,
+      redmodInfo: {
+        name: `PanamRomancedEnhancedPrivacy`,
+        version: `1.4`,
+        relativePath: `mods\\PanamRomancedEnhancedPrivacy`,
+        vortexModId: `4626`,
+      },
     },
   },
-},
 ];
 
 export const v2077LoadOrder: LoadOrder = {
@@ -101,12 +102,51 @@ export const v2077LoadOrder: LoadOrder = {
   generatedAt: `2022-11-11T06:43:55.038Z`,
   entriesInOrderWithEarlierWinning: [
     {
+      vortexId: `Tweaking for Tweaks REDmod-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Tweaking for Tweaks`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\Tweaking for Tweaks`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `Tweaking for Tweaks`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
+    },
+    {
       vortexId: `#POPPY DRESS`,
       vortexModVersion: ``,
       redmodName: `#POPPY DRESS (V2077 Autoconverted)`,
       redmodVersion: `0.0.1-V2077+V2077RED`,
       redmodPath: `mods\\#POPPY DRESS (V2077 Autoconverted)`,
       enabled: true,
+      modsDotJsonEntry: {
+        folder: `#POPPY DRESS (V2077 Autoconverted)`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `0.0.1-V2077+V2077RED`,
+        customSounds: [],
+      },
+    },
+    {
+      vortexId: `Script kiddies plusplus-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Script kiddies plusplus`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\ScriptKitties`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `ScriptKitties`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
     },
     {
       vortexId: `Guinevere's Always-On Chrome v1.0.0`,
@@ -115,6 +155,13 @@ export const v2077LoadOrder: LoadOrder = {
       redmodVersion: `1.0`,
       redmodPath: `mods\\AuskaWorks - Guinevere's Always-On Chrome`,
       enabled: true,
+      modsDotJsonEntry: {
+        folder: `AuskaWorks - Guinevere's Always-On Chrome`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.0`,
+        customSounds: [],
+      },
     },
     {
       vortexId: `redmod version-5401-1-e3-1664115429`,
@@ -124,6 +171,13 @@ export const v2077LoadOrder: LoadOrder = {
       redmodVersion: `1.e3`,
       redmodPath: `mods\\Better_Apartment_Views`,
       enabled: true,
+      modsDotJsonEntry: {
+        folder: `Better_Apartment_Views`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.e3`,
+        customSounds: [],
+      },
     },
     {
       vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
@@ -133,6 +187,13 @@ export const v2077LoadOrder: LoadOrder = {
       redmodVersion: `1.4`,
       redmodPath: `mods\\PanamRomancedEnhanced`,
       enabled: true,
+      modsDotJsonEntry: {
+        folder: `PanamRomancedEnhanced`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
     },
     {
       vortexId: `Panam Romanced Enhanced v1.4 REDmod-4626-1-4-1663254950`,
@@ -142,6 +203,77 @@ export const v2077LoadOrder: LoadOrder = {
       redmodVersion: `1.4`,
       redmodPath: `mods\\PanamRomancedEnhancedPrivacy`,
       enabled: true,
+      modsDotJsonEntry: {
+        folder: `PanamRomancedEnhancedPrivacy`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
+    },
+    {
+      vortexId: `Awesome sound mod les gooooo REDmod-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Awesome sound mod les gooooo`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\AwesomeSound`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `AwesomeSound`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [
+          {
+            name: `mySound`,
+            type: `mod_sfx_2d`,
+            file: `mySound.wav`,
+            gain: 1.0,
+            pitch: 0.09999999900092341,
+          },
+        ],
+      },
+    },
+  ],
+};
+
+export const modsDotJsonLoadOrder: ModsDotJson = {
+  mods: [
+    {
+      folder: `#POPPY DRESS (V2077 Autoconverted)`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `0.0.1-V2077+V2077RED`,
+      customSounds: [],
+    },
+    {
+      folder: `AuskaWorks - Guinevere's Always-On Chrome`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.0`,
+      customSounds: [],
+    },
+    {
+      folder: `Better_Apartment_Views`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.e3`,
+      customSounds: [],
+    },
+    {
+      folder: `PanamRomancedEnhanced`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.4`,
+      customSounds: [],
+    },
+    {
+      folder: `PanamRomancedEnhancedPrivacy`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.4`,
+      customSounds: [],
     },
   ],
 };

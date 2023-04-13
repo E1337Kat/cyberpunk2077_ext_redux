@@ -44,7 +44,7 @@ const myREDmodInfoForVortex: REDmodInfoForVortex = {
   relativePath: path.join(REDMOD_BASEDIR, myREDmodInfo.name),
   vortexModId: FAKE_MOD_INFO.id,
 };
-const myREDmodInfoJson = jsonpp(myREDmodInfo);
+export const myREDmodInfoJson = jsonpp(myREDmodInfo);
 
 const myREDmodInfoWithSound: REDmodInfo = {
   name: `myRedMod`,
@@ -64,7 +64,7 @@ const myREDmodInfoWithSoundForVortex: REDmodInfoForVortex = {
   relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoWithSound.name),
   vortexModId: FAKE_MOD_INFO.id,
 };
-const myREDmodInfoWithSoundJson = jsonpp(myREDmodInfoWithSound);
+export const myREDmodInfoWithSoundJson = jsonpp(myREDmodInfoWithSound);
 
 
 const myREDmodInfoWithSkipSound: REDmodInfo = {
@@ -84,7 +84,7 @@ const myREDmodInfoWithSkipSoundForVortex: REDmodInfoForVortex = {
   relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoWithSkipSound.name),
   vortexModId: FAKE_MOD_INFO.id,
 };
-const myREDmodInfoWithSkipSoundJson = jsonpp(myREDmodInfoWithSkipSound);
+export const myREDmodInfoWithSkipSoundJson = jsonpp(myREDmodInfoWithSkipSound);
 
 
 const invalidREDmodInfo = {
