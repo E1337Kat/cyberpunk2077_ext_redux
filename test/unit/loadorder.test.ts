@@ -17,6 +17,7 @@ import {
   loadOrderToREDdeployRunParameters,
   makeModsDotJsonLoadOrderFrom,
   makeV2077LoadOrderFrom,
+  rebuildModsDotJsonLoadOrder,
 } from "../../src/load_order";
 import {
   REDdeployManual,
@@ -30,6 +31,7 @@ import {
 
 import * as loTestData from "./loadorder.example";
 import {
+  getMockVortexLog,
   mockedFsLayout,
 } from "./utils.helper";
 import {
@@ -240,7 +242,7 @@ describe(`Load Order`, () => {
       const { vortexLoadOrder } = loTestData;
 
       const expectedV2077LoadOrder: ModsDotJson = {
-        ...loTestData.modsDotJsonLoadOrder,
+        ...loTestData.savedModsDotJsonLoadOrder,
       };
 
       const generatedV2077LoadOrder =
@@ -249,7 +251,7 @@ describe(`Load Order`, () => {
       expect(generatedV2077LoadOrder).toEqual(expectedV2077LoadOrder);
     });
 
-  });
+  }); // Load Order Mapping
 
 
   describe(`REDdeploy parameter generation`, () => {
@@ -356,5 +358,23 @@ describe(`Load Order`, () => {
     });
 
   }); // Load Order
+
+  describe(`Merging mods.json with full LO`, () => {
+    test(`merges together the mods.json preferring the deployed listing`, () => {
+      const expectedV2077LoadOrder: ModsDotJson = {
+        ...loTestData.rebuiltModsDotJsonLoadOrder,
+      };
+
+      const generatedModsDotJsonLoadOrder =
+      rebuildModsDotJsonLoadOrder(
+        { log: getMockVortexLog() },
+        loTestData.savedModsDotJsonLoadOrder.mods,
+        loTestData.deployedModsDotJsonLoadOrder.mods,
+      );
+
+      expect(generatedModsDotJsonLoadOrder).toEqual(expectedV2077LoadOrder);
+
+    });
+  }); // Rebuild mods.json
 
 }); // Load Order

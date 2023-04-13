@@ -1,8 +1,29 @@
-import { LoadOrder, ModsDotJson } from "../../src/load_order.types";
+import { LoadOrder, ModsDotJson, ModsDotJsonEntry } from "../../src/load_order.types";
 import { VortexLoadOrderEntry } from "../../src/vortex-wrapper";
 
 
 export const vortexLoadOrder: VortexLoadOrderEntry[] = [
+  {
+    id: `Tweaking for Tweaks`,
+    enabled: true,
+    name: `✅ Tweaking for Tweaks 1.4 (from Tweaking for Tweaks REDmod 1.4)`,
+    data: {
+      vortexId: `Tweaking for Tweaks REDmod-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Tweaking for Tweaks`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\Tweaking for Tweaks`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `Tweaking for Tweaks`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
+    },
+  },
   {
     id: `#POPPY DRESS`,
     enabled: true,
@@ -17,6 +38,27 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [
         version: `0.0.1-V2077+V2077RED`,
         relativePath: `mods\\#POPPY DRESS (V2077 Autoconverted)`,
         vortexModId: `#POPPY DRESS (V2077)`,
+      },
+    },
+  },
+  {
+    id: `Script kiddies plusplus`,
+    enabled: true,
+    name: `✅ Script kiddies plusplus 1.4 (from Script kiddies plusplus REDmod 1.4)`,
+    data: {
+      vortexId: `Script kiddies plusplus-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Script kiddies plusplus`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\ScriptKitties`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `ScriptKitties`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
       },
     },
   },
@@ -93,6 +135,101 @@ export const vortexLoadOrder: VortexLoadOrderEntry[] = [
         vortexModId: `4626`,
       },
     },
+  },
+  {
+    id: `Awesome sound mod les gooooo`,
+    enabled: true,
+    name: `✅ Awesome sound mod les gooooo 1.4 (from Awesome sound mod les gooooo REDmod 1.4)`,
+    data: {
+      vortexId: `Awesome sound mod les gooooo REDmod-4628-2-4-8-1663254950`,
+      vortexModId: `4628`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Awesome sound mod les gooooo`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\AwesomeSound`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `AwesomeSound`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [
+          {
+            name: `mySound`,
+            type: `mod_sfx_2d`,
+            file: `mySound.wav`,
+            gain: 1.0,
+            pitch: 0.1,
+          },
+        ],
+      },
+    },
+  },
+];
+export const modsDotJsonLoadOrder: ModsDotJsonEntry[] = [
+  {
+    folder: `Tweaking for Tweaks`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `#POPPY DRESS (V2077 Autoconverted)`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `0.0.1-V2077+V2077RED`,
+    customSounds: [],
+  },
+  {
+    folder: `ScriptKitties`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `AuskaWorks - Guinevere's Always-On Chrome`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.0`,
+    customSounds: [],
+  },
+  {
+    folder: `Better_Apartment_Views`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.e3`,
+    customSounds: [],
+  },
+  {
+    folder: `PanamRomancedEnhanced`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `PanamRomancedEnhancedPrivacy`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `AwesomeSound`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [
+      {
+        name: `mySound`,
+        type: `mod_sfx_2d`,
+        file: `mySound.wav`,
+        gain: 1.0,
+        pitch: 0.1,
+      },
+    ],
   },
 ];
 
@@ -230,7 +367,7 @@ export const v2077LoadOrder: LoadOrder = {
             type: `mod_sfx_2d`,
             file: `mySound.wav`,
             gain: 1.0,
-            pitch: 0.09999999900092341,
+            pitch: 0.1,
           },
         ],
       },
@@ -238,42 +375,130 @@ export const v2077LoadOrder: LoadOrder = {
   ],
 };
 
-export const modsDotJsonLoadOrder: ModsDotJson = {
+export const deployedModsDotJsonLoadOrder: ModsDotJson = {
   mods: [
     {
-      folder: `#POPPY DRESS (V2077 Autoconverted)`,
-      enabled: true,
-      deployed: true,
-      deployedVersion: `0.0.1-V2077+V2077RED`,
-      customSounds: [],
-    },
-    {
-      folder: `AuskaWorks - Guinevere's Always-On Chrome`,
-      enabled: true,
-      deployed: true,
-      deployedVersion: `1.0`,
-      customSounds: [],
-    },
-    {
-      folder: `Better_Apartment_Views`,
-      enabled: true,
-      deployed: true,
-      deployedVersion: `1.e3`,
-      customSounds: [],
-    },
-    {
-      folder: `PanamRomancedEnhanced`,
+      folder: `Tweaking for Tweaks`,
       enabled: true,
       deployed: true,
       deployedVersion: `1.4`,
       customSounds: [],
     },
     {
-      folder: `PanamRomancedEnhancedPrivacy`,
+      folder: `ScriptKitties`,
       enabled: true,
       deployed: true,
       deployedVersion: `1.4`,
       customSounds: [],
+    },
+    {
+      folder: `AwesomeSound`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.4`,
+      customSounds: [
+        {
+          name: `mySound`,
+          type: `mod_sfx_2d`,
+          file: `mySound.wav`,
+          gain: 1.0,
+          pitch: 0.09999999999902312,
+        },
+      ],
+    },
+  ],
+};
+
+const fullMDJLoadOrderWithoutSound: ModsDotJsonEntry[] = [
+  {
+    folder: `Tweaking for Tweaks`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `#POPPY DRESS (V2077 Autoconverted)`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `0.0.1-V2077+V2077RED`,
+    customSounds: [],
+  },
+  {
+    folder: `ScriptKitties`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `AuskaWorks - Guinevere's Always-On Chrome`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.0`,
+    customSounds: [],
+  },
+  {
+    folder: `Better_Apartment_Views`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.e3`,
+    customSounds: [],
+  },
+  {
+    folder: `PanamRomancedEnhanced`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+  {
+    folder: `PanamRomancedEnhancedPrivacy`,
+    enabled: true,
+    deployed: true,
+    deployedVersion: `1.4`,
+    customSounds: [],
+  },
+];
+
+export const savedModsDotJsonLoadOrder: ModsDotJson = {
+  mods: [
+    ...fullMDJLoadOrderWithoutSound,
+    {
+      folder: `AwesomeSound`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.4`,
+      customSounds: [
+        {
+          name: `mySound`,
+          type: `mod_sfx_2d`,
+          file: `mySound.wav`,
+          gain: 1.0,
+          pitch: 0.1,
+        },
+      ],
+    },
+  ],
+};
+
+export const rebuiltModsDotJsonLoadOrder: ModsDotJson = {
+  mods: [
+    ...fullMDJLoadOrderWithoutSound,
+    {
+      folder: `AwesomeSound`,
+      enabled: true,
+      deployed: true,
+      deployedVersion: `1.4`,
+      customSounds: [
+        {
+          name: `mySound`,
+          type: `mod_sfx_2d`,
+          file: `mySound.wav`,
+          gain: 1.0,
+          pitch: 0.09999999999902312,
+        },
+      ],
     },
   ],
 };

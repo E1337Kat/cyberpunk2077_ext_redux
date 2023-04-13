@@ -501,6 +501,21 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
 // Serialize
 //
 
+const makeModsDotJsonLoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): ModsDotJsonEntry => {
+  const modDetesWeNeedForLoadOrder: LoadOrderEntryDataForVortex = vortexEntry.data;
+
+  const V2077LoadOrderEntry: ModsDotJsonEntry = {
+    folder: path.basename(modDetesWeNeedForLoadOrder.redmodInfo.relativePath),
+    enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
+    deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
+    deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
+    customSounds:
+      (modDetesWeNeedForLoadOrder.redmodInfo.customSounds ? modDetesWeNeedForLoadOrder.redmodInfo.customSounds : []),
+  };
+
+  return V2077LoadOrderEntry;
+};
+
 const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrderEntry => {
   const modDetesWeNeedForLoadOrder: LoadOrderEntryDataForVortex = vortexEntry.data;
 
@@ -512,14 +527,7 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
     redmodVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
     redmodPath: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
     enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
-    modsDotJsonEntry: {
-      folder: path.basename(modDetesWeNeedForLoadOrder.redmodInfo.relativePath),
-      enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
-      deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
-      deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
-      customSounds:
-        (modDetesWeNeedForLoadOrder.redmodInfo.customSounds ? modDetesWeNeedForLoadOrder.redmodInfo.customSounds : []),
-    },
+    modsDotJsonEntry: makeModsDotJsonLoadOrderEntryFrom(vortexEntry),
   };
 
   return V2077LoadOrderEntry;
@@ -542,20 +550,6 @@ export const makeV2077LoadOrderFrom = (
     generatedAt: new Date(dateAsLoadOrderId).toISOString(),
     entriesInOrderWithEarlierWinning: v2077LoadOrderEntries,
   };
-};
-
-const makeModsDotJsonLoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): ModsDotJsonEntry => {
-  const modDetesWeNeedForLoadOrder: LoadOrderEntryDataForVortex = vortexEntry.data;
-
-  const V2077LoadOrderEntry: ModsDotJsonEntry = {
-    folder: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
-    enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
-    deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
-    deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
-    customSounds: modDetesWeNeedForLoadOrder.redmodInfo.customSounds,
-  };
-
-  return V2077LoadOrderEntry;
 };
 
 export const makeModsDotJsonLoadOrderFrom = (
@@ -753,9 +747,9 @@ const writeLoadOrderToDisk = (
   );
 
 
-const rebuildModsDotJsonLoadOrder =
+export const rebuildModsDotJsonLoadOrder =
 (
-  vortexApi: VortexApi,
+  vortexApi: VortexApi | { log: () => unknown },
   allMods: ModsDotJsonEntry[],
   modsInModsDotJson: ModsDotJsonEntry[],
 ): ModsDotJson => {
