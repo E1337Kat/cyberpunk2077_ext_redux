@@ -83,61 +83,63 @@ const soundREDmodInfoJson = jsonpp(soundREDmodInfo);
 
 const fileSystem = mockedFsLayout(
   {
-    [REDMOD_BASEDIR]: {
-      [`Tweaking for Tweaks`]: {
-        [REDMOD_INFO_FILENAME]: tweakREDmodInfoJson,
-        [REDMOD_TWEAKS_DIRNAME]: {
-          [`base`]: {
-            [`gameplay`]: {
-              [`static_data`]: {
-                [`tweak_tweak_baby.tweak`]: ``,
+    [FAKE_GAMEDIR_PATH]: {
+      [REDMOD_BASEDIR]: {
+        [`Tweaking for Tweaks`]: {
+          [REDMOD_INFO_FILENAME]: tweakREDmodInfoJson,
+          [REDMOD_TWEAKS_DIRNAME]: {
+            [`base`]: {
+              [`gameplay`]: {
+                [`static_data`]: {
+                  [`tweak_tweak_baby.tweak`]: ``,
+                },
               },
             },
           },
         },
-      },
-      [`#POPPY DRESS (V2077 Autoconverted)`]: {
-        [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-        [REDMOD_ARCHIVES_DIRNAME]: {
-          [`meow.archive`]: ``,
-        },
-      },
-      [`ScriptKitties`]: {
-        [REDMOD_INFO_FILENAME]: scriptREDmodInfoJson,
-        [REDMOD_SCRIPTS_DIRNAME]: {
-          [`exec`]: {
-            [`cool_scripts.script`]: ``,
+        [`#POPPY DRESS (V2077 Autoconverted)`]: {
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+          [REDMOD_ARCHIVES_DIRNAME]: {
+            [`meow.archive`]: ``,
           },
         },
-      },
-      [`AuskaWorks - Guinevere's Always-On Chrome`]: {
-        [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-        [REDMOD_ARCHIVES_DIRNAME]: {
-          [`meow.archive`]: ``,
+        [`ScriptKitties`]: {
+          [REDMOD_INFO_FILENAME]: scriptREDmodInfoJson,
+          [REDMOD_SCRIPTS_DIRNAME]: {
+            [`exec`]: {
+              [`cool_scripts.script`]: ``,
+            },
+          },
         },
-      },
-      [`Better_Apartment_Views`]: {
-        [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-        [REDMOD_ARCHIVES_DIRNAME]: {
-          [`meow.archive`]: ``,
+        [`AuskaWorks - Guinevere's Always-On Chrome`]: {
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+          [REDMOD_ARCHIVES_DIRNAME]: {
+            [`meow.archive`]: ``,
+          },
         },
-      },
-      [`PanamRomancedEnhanced`]: {
-        [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-        [REDMOD_ARCHIVES_DIRNAME]: {
-          [`meow.archive`]: ``,
+        [`Better_Apartment_Views`]: {
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+          [REDMOD_ARCHIVES_DIRNAME]: {
+            [`meow.archive`]: ``,
+          },
         },
-      },
-      [`PanamRomancedEnhancedPrivacy`]: {
-        [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
-        [REDMOD_ARCHIVES_DIRNAME]: {
-          [`meow.archive`]: ``,
+        [`PanamRomancedEnhanced`]: {
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+          [REDMOD_ARCHIVES_DIRNAME]: {
+            [`meow.archive`]: ``,
+          },
         },
-      },
-      [`AwesomeSound`]: {
-        [REDMOD_INFO_FILENAME]: soundREDmodInfoJson,
-        [REDMOD_CUSTOMSOUNDS_DIRNAME]: {
-          [`cool_sound.wav`]: ``,
+        [`PanamRomancedEnhancedPrivacy`]: {
+          [REDMOD_INFO_FILENAME]: myREDmodInfoJson,
+          [REDMOD_ARCHIVES_DIRNAME]: {
+            [`meow.archive`]: ``,
+          },
+        },
+        [`AwesomeSound`]: {
+          [REDMOD_INFO_FILENAME]: soundREDmodInfoJson,
+          [REDMOD_CUSTOMSOUNDS_DIRNAME]: {
+            [`cool_sound.wav`]: ``,
+          },
         },
       },
     },
@@ -145,9 +147,14 @@ const fileSystem = mockedFsLayout(
 );
 
 describe(`Load Order`, () => {
+  beforeEach(() => {
+    mockFs.restore();
+    mockFs(fileSystem);
+  });
+  afterEach(() => { mockFs.restore(); });
+
 
   describe(`Types and Serialization`, () => {
-
     test(`LoadOrder encodes and decodes roundtrip`, () => {
       const loadOrder: LoadOrder = {
         loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
@@ -255,13 +262,9 @@ describe(`Load Order`, () => {
 
 
   describe(`REDdeploy parameter generation`, () => {
-    beforeEach(() => { mockFs.restore(); });
-    afterEach(() => { mockFs.restore(); });
 
     test(`does not use unecessary amount of mods`, () => {
-      mockFs.restore();
-      mockFs(fileSystem);
-
+      // const v2077LoadOrderToDeploy = pruneToSparseLoadOrder({ log: getMockVortexLog() }, loTestData.v2077LoadOrder);
       const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
       const expectedRedDeployParameters: VortexRunParameters = {
         executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
@@ -273,11 +276,14 @@ describe(`Load Order`, () => {
           `-rttiSchemaFile=`,
           `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
           `-mod=`,
+          `"Tweaking for Tweaks"`,
           `"#POPPY DRESS (V2077 Autoconverted)"`,
+          `"ScriptKitties"`,
           `"AuskaWorks - Guinevere's Always-On Chrome"`,
           `"Better_Apartment_Views"`,
           `"PanamRomancedEnhanced"`,
           `"PanamRomancedEnhancedPrivacy"`,
+          `"AwesomeSound"`,
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
@@ -294,9 +300,7 @@ describe(`Load Order`, () => {
     });
 
     test(`produces sparse parameter list only`, () => {
-      mockFs.restore();
-      mockFs(fileSystem);
-
+      // const v2077LoadOrderToDeploy = pruneToSparseLoadOrder({ log: getMockVortexLog() }, loTestData.v2077LoadOrder);
       const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
       const expectedRedDeployParameters: VortexRunParameters = {
         executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
@@ -360,6 +364,7 @@ describe(`Load Order`, () => {
   }); // Load Order
 
   describe(`Merging mods.json with full LO`, () => {
+
     test(`merges together the mods.json preferring the deployed listing`, () => {
       const expectedV2077LoadOrder: ModsDotJson = {
         ...loTestData.rebuiltModsDotJsonLoadOrder,

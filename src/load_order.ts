@@ -190,7 +190,7 @@ const REDMOD_COMPILABLE_DIRNAMES = [
 //
 
 const getDiscoveryPath = (
-  api: VortexApi,
+  api: VortexApi | { store: { getState: () => unknown } },
 ): string => {
   //
   const state = api.store.getState();
@@ -574,26 +574,29 @@ const getDirectories = async (source: string): Promise<readonly string[]> =>
 
 
 const maybeCompilableMod = (
+  vortexApi: VortexApi | { log: () => unknown },
   redmodFolder: string,
 ): boolean => {
+  vortexApi.log(`info`, `looking for folders`);
   try {
     getDirectories(redmodFolder).then((dirs) =>
       pipe(dirs, any(pathIn(REDMOD_COMPILABLE_DIRNAMES))));
   } catch (error) {
+    vortexApi.log(`error`, `Failed to find the folder: ${S(error)}`);
     return false;
   }
 
   return true;
 };
 
-const pruneToSparseLoadOrder = (
-  vortexApi: VortexApi,
+export const pruneToSparseLoadOrder = (
+  vortexApi: VortexApi | { log: () => unknown },
   loadOrderFromVortex: LoadOrder,
 ): LoadOrder => {
   vortexApi.log(`info`, `${me}: Sparsing out the load order`);
 
   const newLoadOrderEntries =
-    loadOrderFromVortex.entriesInOrderWithEarlierWinning.filter((entry) => maybeCompilableMod(entry.redmodPath));
+    loadOrderFromVortex.entriesInOrderWithEarlierWinning.filter((entry) => maybeCompilableMod(vortexApi, entry.redmodPath));
 
   const newLoadOrder = loadOrderFromVortex;
 

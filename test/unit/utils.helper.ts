@@ -57,7 +57,9 @@ import {
 import {
   S,
 } from "../../src/util.functions";
+import { util } from "../shimmed/vortex-api-test-shimmed";
 
+const FAKE_GAMEDIR_PATH = `C:\\fake\\gamedir`;
 // This is the most nonsense of all nonsense, but under some
 // conditions it seems to be possible for jest to override
 // `console`...
@@ -77,6 +79,17 @@ export const getMockVortexLog = () => {
   }
 
   return mockLog;
+};
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getMockVortexDiscoveryResult = () => {
+  const mockGetSafe = util.getSafe();
+
+  if (process.env.DEBUG) {
+    mockGetSafe.mockImplementation((..._args) => FAKE_GAMEDIR_PATH);
+  }
+
+  return mockGetSafe;
 };
 
 //
