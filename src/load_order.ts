@@ -3,6 +3,7 @@ import {
 } from "path";
 import {
   execFile,
+  PromiseWithChild,
 } from "node:child_process";
 import {
   promisify,
@@ -512,7 +513,7 @@ const makeV2077LoadOrderEntryFrom = (vortexEntry: VortexLoadOrderEntry): LoadOrd
     redmodPath: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
     enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
     modsDotJsonEntry: {
-      folder: modDetesWeNeedForLoadOrder.redmodInfo.relativePath,
+      folder: path.basename(modDetesWeNeedForLoadOrder.redmodInfo.relativePath),
       enabled: modDetesWeNeedForLoadOrder.vortexEnabled,
       deployed: modDetesWeNeedForLoadOrder.vortexEnabled,
       deployedVersion: modDetesWeNeedForLoadOrder.redmodInfo.version,
@@ -646,7 +647,7 @@ export const loadOrderToREDdeployRunParameters = (
 
   const runOptions: VortexRunOptions = {
     cwd: path.dirname(exePath),
-    shell: true,
+    shell: false,
     detach: true,
     expectSuccess: true,
   };
@@ -665,7 +666,7 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
   vortexFormatLoadOrderForComparison: VortexLoadOrder,
-): Promise<void> => {
+): PromiseWithChild<{ stdout: string, stderr: string }> => {
   const tag = `${me}: REDmod Background Deploy`;
 
   vortexApi.log(`info`, `${tag}: Starting background deploy for load order ${loID}`);
@@ -719,8 +720,9 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
 
   vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
 
-  const REDdeployment: Promise<void> =
-    promisify(() => execFile(
+  const exec = promisify(execFile);
+  const REDdeployment: PromiseWithChild<{ stdout: string, stderr: string }> =
+    exec(
       redDeploy.executable,
       [...redDeploy.args],
       {
@@ -730,19 +732,7 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
         maxBuffer: (1024 * 1024),
         windowsHide: true,
       },
-      (err, stdout, stderr) => {
-        if (err) {
-          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(err));
-          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(stderr));
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-          throw err;
-        } else {
-          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} output: ${stdout}`);
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-        }
-      },
-    ));
+    );
 
   return REDdeployment;
 };
@@ -770,8 +760,6 @@ const rebuildModsDotJsonLoadOrder =
   modsInModsDotJson: ModsDotJsonEntry[],
 ): ModsDotJson => {
   const rebuiltMods = allMods;
-  // const mergeWithoutOverwrite =
-  //   (compiledEntry: ModsDotJsonEntry, newEntry: ModsDotJsonEntry) => newEntry.folder == compiledEntry.folder ? compiledEntry : newEntry
   modsInModsDotJson.forEach((newEntry) => {
     const meow = allMods.findIndex((entry) => entry.folder === newEntry.folder);
     if (typeof meow === `number` && meow !== -1) {
@@ -843,10 +831,54 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
   vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
   vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
 
+  let maybeSuccessfullyReWroteModsDotJsonToDisk: TaskEither<{ stdout: string; stderr: string; }, void>;
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
   vortexApi.events.once(`did-deploy`, () => {
-    startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder);
+    maybeSuccessfullyReWroteModsDotJsonToDisk =
+    pipe(
+      tryCatchTE(
+        () =>
+          startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder),
+        (err) => {
+          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(err));
+          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+          throw err;
+        },
+      ),
+      mapTE(({ stdout, stderr: _stderr }) => {
+        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} output: ${stdout}`);
+        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+        pipe(
+          modsDotJsonPathFor(gameDirPath),
+          deserializeModsDotJson(vortexApi),
+          mapLeftTE((error) => {
+            vortexApi.log(`error`, `${me}: Error rebuilding mods.json: ${error.message}`);
+            showInvalidLoadOrderFileErrorDialog(vortexApi, loadOrderPathFor(activeProfile, gameDirPath));
+            return Promise.reject(error);
+          }),
+          mapTE((modsDotJsonList) => {
+            vortexApi.log(`info`, `${me}: Successfully rebuilt mods.json...`);
+            return rebuildModsDotJsonLoadOrder(vortexApi, modsDotJsonLoadOrder.mods, toMutableArray(modsDotJsonList));
+          }),
+          mapTE((rebuiltModsDotJsonLoadOrder) => encodeModsDotJsonLoadOrder(rebuiltModsDotJsonLoadOrder)),
+          mapLeftTE((error) => {
+            vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+            showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+            return error;
+          }),
+          mapTE((rebuiltModsDotJson) => {
+            writeLoadOrderToDisk(loID, modsDotJsonPathFor(gameDirPath), rebuiltModsDotJson);
+          }),
+          mapLeftTE((error) => {
+            vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+            showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+            return error;
+          }),
+        );
+      }),
+    );
   });
 
   vortexApi.log(`info`, `${me}: Queuing REDmod deployment for load order ${loID} to run after next Vortex deployment!`);
@@ -854,22 +886,6 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
 
   const serializedLoadOrder =
     encodeLoadOrder(v2077LoadOrder);
-
-  const maybeRebuiltModsDotJson: TaskEither<Error, string> = pipe(
-    modsDotJsonPathFor(gameDirPath),
-    deserializeModsDotJson(vortexApi),
-    mapLeftTE((error) => {
-      vortexApi.log(`error`, `${me}: Error rebuilding mods.json: ${error.message}`);
-      showInvalidLoadOrderFileErrorDialog(vortexApi, loadOrderPathFor(activeProfile, gameDirPath));
-      // new Error(`Couldn't decode mods.json file: ${error.message}`);
-      return Promise.reject(error);
-    }),
-    mapTE((modsDotJsonList) => {
-      vortexApi.log(`info`, `${me}: Successfully rebuilt mods.json...`);
-      return rebuildModsDotJsonLoadOrder(vortexApi, modsDotJsonLoadOrder.mods, toMutableArray(modsDotJsonList));
-    }),
-    mapTE((rebuiltModsDotJsonLoadOrder) => encodeModsDotJsonLoadOrder(rebuiltModsDotJsonLoadOrder)),
-  );
 
   const loadOrderFilePathForThisProfile =
     loadOrderPathFor(activeProfile, gameDirPath);
@@ -879,24 +895,6 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
   const maybeSuccessfullyWroteLoadOrderToDisk =
     pipe(
       writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
-      mapLeftTE((error) => {
-        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
-        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
-        return error;
-      }),
-    );
-
-  const maybeSuccessfullyReWroteModsDotJsonToDisk =
-    pipe(
-      maybeRebuiltModsDotJson,
-      mapLeftTE((error) => {
-        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
-        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
-        return error;
-      }),
-      mapTE((rebuiltModsDotJson) => {
-        writeLoadOrderToDisk(loID, modsDotJsonPathFor(gameDirPath), rebuiltModsDotJson);
-      }),
       mapLeftTE((error) => {
         vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
         showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
