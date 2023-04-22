@@ -1,5 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 import nodejsPath from "path";
+import {
+  Dirent,
+} from "fs";
 import KeyTree from "key-tree";
 import {
   pipe,
@@ -22,6 +25,10 @@ export interface Path {
 
 export interface File extends Path {
   readonly content: string;
+}
+
+export interface Dir extends Path {
+  readonly entry: Dirent;
 }
 
 export interface FileMove extends File {

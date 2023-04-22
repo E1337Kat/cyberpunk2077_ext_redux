@@ -17,6 +17,8 @@ import {
   loadOrderToREDdeployRunParameters,
   makeModsDotJsonLoadOrderFrom,
   makeV2077LoadOrderFrom,
+  maybeCompilableMod,
+  pruneToSparseLoadOrder,
   rebuildModsDotJsonLoadOrder,
 } from "../../src/load_order";
 import {
@@ -32,7 +34,6 @@ import {
 import * as loTestData from "./loadorder.example";
 import {
   getMockVortexLog,
-  mockedFsLayout,
 } from "./utils.helper";
 import {
   REDMOD_ARCHIVES_DIRNAME,
@@ -49,7 +50,9 @@ import {
 import {
   REDmodInfo,
 } from "../../src/installers.types";
-import { myREDmodInfoJson } from "./mods.example.redmod";
+import {
+  myREDmodInfoJson,
+} from "./mods.example.redmod";
 
 const FAKE_GAMEDIR_PATH = `C:\\fake\\gamedir`;
 
@@ -81,7 +84,7 @@ const soundREDmodInfo: REDmodInfo = {
 const soundREDmodInfoJson = jsonpp(soundREDmodInfo);
 
 
-const fileSystem = mockedFsLayout(
+const fileSystem =
   {
     [FAKE_GAMEDIR_PATH]: {
       [REDMOD_BASEDIR]: {
@@ -143,12 +146,10 @@ const fileSystem = mockedFsLayout(
         },
       },
     },
-  },
-);
+  };
 
 describe(`Load Order`, () => {
   beforeEach(() => {
-    mockFs.restore();
     mockFs(fileSystem);
   });
   afterEach(() => { mockFs.restore(); });
@@ -262,103 +263,219 @@ describe(`Load Order`, () => {
 
 
   describe(`REDdeploy parameter generation`, () => {
+    describe(`maybeCompilableMod()`, () => {
+      describe(`when compilable redmod`, () => {
+        test(`should be compilable `, async () => {
+          const scriptkitty = {
+            vortexId: `Script kiddies plusplus-345345-2-4-8-1663254950`,
+            vortexModId: `345345`,
+            vortexModVersion: `2.4.8`,
+            redmodName: `Script kiddies plusplus`,
+            redmodVersion: `1.4`,
+            redmodPath: `mods\\ScriptKitties`,
+            enabled: true,
+            modsDotJsonEntry: {
+              folder: `ScriptKitties`,
+              enabled: true,
+              deployed: true,
+              deployedVersion: `1.4`,
+              customSounds: [],
+            },
+          };
 
-    test(`does not use unecessary amount of mods`, () => {
-      // const v2077LoadOrderToDeploy = pruneToSparseLoadOrder({ log: getMockVortexLog() }, loTestData.v2077LoadOrder);
-      const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-mod=`,
-          `"Tweaking for Tweaks"`,
-          `"#POPPY DRESS (V2077 Autoconverted)"`,
-          `"ScriptKitties"`,
-          `"AuskaWorks - Guinevere's Always-On Chrome"`,
-          `"Better_Apartment_Views"`,
-          `"PanamRomancedEnhanced"`,
-          `"PanamRomancedEnhancedPrivacy"`,
-          `"AwesomeSound"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: false,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
+          const actual = await maybeCompilableMod({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, scriptkitty);
 
-      const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+          expect(actual).toBeTruthy();
+        });
+      });
 
-      expect(redDeployParamsGenerated).not.toEqual(expectedRedDeployParameters);
+      describe(`when non-compilable redmod`, () => {
+        test(`should be non compilable `, async () => {
+          const someRedmodPath = {
+            vortexId: `redmod version-5401-1-e3-1664115429`,
+            vortexModId: `5401`,
+            vortexModVersion: `1.e3`,
+            redmodName: `Better_Apartment_Views`,
+            redmodVersion: `1.e3`,
+            redmodPath: `mods\\Better_Apartment_Views`,
+            enabled: true,
+            modsDotJsonEntry: {
+              folder: `Better_Apartment_Views`,
+              enabled: true,
+              deployed: true,
+              deployedVersion: `1.e3`,
+              customSounds: [],
+            },
+          };
+
+          const actual = await maybeCompilableMod({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, someRedmodPath);
+
+          expect(actual).toBeFalsy();
+        });
+      });
+
+      describe(`when non-existant`, () => {
+        test(`should produce valid error`, async () => {
+          const someRedmodPath = {
+            vortexId: `nothing`,
+            vortexModId: `5401`,
+            vortexModVersion: `1`,
+            redmodName: `Nothing`,
+            redmodVersion: `1`,
+            redmodPath: `mods\\not_a_prespecified_mod`,
+            enabled: true,
+            modsDotJsonEntry: {
+              folder: `not_a_prespecified_mod`,
+              enabled: true,
+              deployed: true,
+              deployedVersion: `1`,
+              customSounds: [],
+            },
+          };
+
+          const actual = await maybeCompilableMod({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, someRedmodPath);
+
+          expect(actual).toBeFalsy();
+        });
+      });
+
     });
 
-    test(`produces sparse parameter list only`, () => {
-      // const v2077LoadOrderToDeploy = pruneToSparseLoadOrder({ log: getMockVortexLog() }, loTestData.v2077LoadOrder);
-      const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-mod=`,
-          `"Tweaking for Tweaks"`,
-          `"ScriptKitties"`,
-          `"AwesomeSound"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: false,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
+    describe(`pruneToSparseLoadOrder()`, () => {
 
-      const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+      describe(`when prunable LO exists`, () => {
+        const expected = loTestData.v2077CompilableLoadOrder;
 
-      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+        test(`does not equal the previous`, async () => {
+
+          mockFs(fileSystem);
+          const actual: LoadOrder =
+            await pruneToSparseLoadOrder({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, loTestData.v2077LoadOrder);
+          expect(actual).not.toEqual(loTestData.v2077LoadOrder);
+          mockFs.restore();
+        });
+
+        test(`gets pruned`, async () => {
+          const actual: LoadOrder =
+            await pruneToSparseLoadOrder({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, loTestData.v2077LoadOrder);
+          expect(actual).toEqual(expected);
+        });
+      });
+
+      describe(`when not pruneable`, () => {
+        const expected = loTestData.v2077CompilableLoadOrder;
+
+        test(`is not different`, async () => {
+          const actual: LoadOrder =
+            await pruneToSparseLoadOrder({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, expected);
+          expect(actual).toEqual(expected);
+        });
+      });
     });
 
-    test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
+    describe(`loadOrderToREDdeployRunParameters()`, () => {
 
-      const noModsInLoadOrder: LoadOrder = {
-        ...loTestData.v2077LoadOrder,
-        entriesInOrderWithEarlierWinning: [],
-      };
+      test(`does not use unecessary amount of mods`, async () => {
+        const v2077LoadOrderToDeploy =
+          await pruneToSparseLoadOrder({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, loTestData.v2077LoadOrder);
 
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: false,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
+        const expectedRedDeployParameters: VortexRunParameters = {
+          executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
+          args: [
+            `deploy`,
+            `-force`,
+            `-root=`,
+            `"${FAKE_GAMEDIR_PATH}"`,
+            `-rttiSchemaFile=`,
+            `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+            `-mod=`,
+            `"Tweaking for Tweaks"`,
+            `"#POPPY DRESS (V2077 Autoconverted)"`,
+            `"ScriptKitties"`,
+            `"AuskaWorks - Guinevere's Always-On Chrome"`,
+            `"Better_Apartment_Views"`,
+            `"PanamRomancedEnhanced"`,
+            `"PanamRomancedEnhancedPrivacy"`,
+            `"AwesomeSound"`,
+          ],
+          options: {
+            cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
+            shell: false,
+            detach: true,
+            expectSuccess: true,
+          },
+        };
 
-      const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, noModsInLoadOrder);
+        const redDeployParamsGenerated =
+          loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
 
-      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+        expect(redDeployParamsGenerated).not.toEqual(expectedRedDeployParameters);
+      });
+
+      test(`produces sparse parameter list only`, async () => {
+
+        const v2077LoadOrderToDeploy =
+          await pruneToSparseLoadOrder({ log: getMockVortexLog() }, FAKE_GAMEDIR_PATH, loTestData.v2077LoadOrder);
+
+        const expectedRedDeployParameters: VortexRunParameters = {
+          executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
+          args: [
+            `deploy`,
+            `-force`,
+            `-root=`,
+            `"${FAKE_GAMEDIR_PATH}"`,
+            `-rttiSchemaFile=`,
+            `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+            `-mod=`,
+            `"Tweaking for Tweaks"`,
+            `"ScriptKitties"`,
+            `"AwesomeSound"`,
+          ],
+          options: {
+            cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
+            shell: false,
+            detach: true,
+            expectSuccess: true,
+          },
+        };
+
+        const redDeployParamsGenerated =
+          loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+
+        expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+      });
+
+      test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
+
+        const noModsInLoadOrder: LoadOrder = {
+          ...loTestData.v2077LoadOrder,
+          entriesInOrderWithEarlierWinning: [],
+        };
+
+        const expectedRedDeployParameters: VortexRunParameters = {
+          executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
+          args: [
+            `deploy`,
+            `-force`,
+            `-root=`,
+            `"${FAKE_GAMEDIR_PATH}"`,
+            `-rttiSchemaFile=`,
+            `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+          ],
+          options: {
+            cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
+            shell: false,
+            detach: true,
+            expectSuccess: true,
+          },
+        };
+
+        const redDeployParamsGenerated =
+          loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, noModsInLoadOrder);
+
+        expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+      });
+
     });
 
   }); // Load Order

@@ -372,6 +372,70 @@ export const v2077LoadOrder: LoadOrder = {
   ],
 };
 
+export const v2077CompilableLoadOrder: LoadOrder = {
+  loadOrderFormatVersion: `1.0.0`,
+  ownerVortexProfileId: `xyZzyZx`,
+  generatedAt: `2022-11-11T06:43:55.038Z`,
+  entriesInOrderWithEarlierWinning: [
+    {
+      vortexId: `Tweaking for Tweaks REDmod-555528-2-4-8-1663254950`,
+      vortexModId: `555528`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Tweaking for Tweaks`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\Tweaking for Tweaks`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `Tweaking for Tweaks`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
+    },
+    {
+      vortexId: `Script kiddies plusplus-345345-2-4-8-1663254950`,
+      vortexModId: `345345`,
+      vortexModVersion: `2.4.8`,
+      redmodName: `Script kiddies plusplus`,
+      redmodVersion: `1.4`,
+      redmodPath: `mods\\ScriptKitties`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `ScriptKitties`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.4`,
+        customSounds: [],
+      },
+    },
+    {
+      vortexId: `Awesome sound mod les gooooo REDmod-465400-2-1-1-1663254950`,
+      vortexModId: `465400`,
+      vortexModVersion: `2.1.1`,
+      redmodName: `Awesome sound mod les gooooo`,
+      redmodVersion: `1.0.1`,
+      redmodPath: `mods\\AwesomeSound`,
+      enabled: true,
+      modsDotJsonEntry: {
+        folder: `AwesomeSound`,
+        enabled: true,
+        deployed: true,
+        deployedVersion: `1.0.1`,
+        customSounds: [
+          {
+            name: `mySound`,
+            type: `mod_sfx_2d`,
+            file: `mySound.wav`,
+            gain: 1.0,
+            pitch: 0.1,
+          },
+        ],
+      },
+    },
+  ],
+};
+
 export const deployedModsDotJsonLoadOrder: ModsDotJson = {
   mods: [
     {

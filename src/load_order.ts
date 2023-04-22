@@ -8,12 +8,6 @@ import {
 import {
   promisify,
 } from "util";
-import {
-  Dirent,
-} from "fs";
-import {
-  readdir,
-} from "fs/promises";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Promise,
@@ -34,6 +28,7 @@ import {
   map,
   some as any,
   mapWithIndex,
+  reduce,
   reduceWithIndex,
   sortBy,
   toArray as toMutableArray,
@@ -46,6 +41,7 @@ import {
   swap as swapTE,
   TaskEither,
   tryCatch as tryCatchTE,
+  getOrElse as getOrElseTE,
 } from "fp-ts/lib/TaskEither";
 import {
   fs,
@@ -111,6 +107,7 @@ import {
   S,
 } from "./util.functions";
 import {
+  dirFromDiskTE,
   fileFromDiskTE,
 } from "./installers.shared";
 import {
@@ -566,41 +563,65 @@ export const makeModsDotJsonLoadOrderFrom = (
   };
 };
 
-const getDirectories = async (source: string): Promise<readonly string[]> =>
-  (readdir(source, { withFileTypes: true })).then((directoryContents: Dirent[]): string[] =>
-    directoryContents
-      .filter((directoryEntry: Dirent) => directoryEntry.isDirectory())
-      .map((directoryEntry: Dirent) => directoryEntry.name));
-
-
-const maybeCompilableMod = (
+export const maybeCompilableMod = (
   vortexApi: VortexApi | { log: () => unknown },
-  redmodFolder: string,
-): boolean => {
+  gameDirPath: string,
+  entry: LoadOrderEntry,
+): Promise<boolean> => {
+  const tag = `${me}: REDmod Background Deploy`;
   vortexApi.log(`info`, `looking for folders`);
-  try {
-    getDirectories(redmodFolder).then((dirs) =>
-      pipe(dirs, any(pathIn(REDMOD_COMPILABLE_DIRNAMES))));
-  } catch (error) {
-    vortexApi.log(`error`, `Failed to find the folder: ${S(error)}`);
-    return false;
-  }
 
-  return true;
+  const fullPath = path.join(gameDirPath, entry.redmodPath);
+  return pipe(
+    dirFromDiskTE({ relativePath: entry.redmodPath, pathOnDisk: fullPath }),
+    mapTE(((dirs) => dirs.filter((dir) => dir.entry.isDirectory()))),
+    mapTE((dirs) => dirs.map((dir) => dir.entry.name)),
+    mapTE(((dirs) => pipe(dirs, any(pathIn(REDMOD_COMPILABLE_DIRNAMES))))),
+    (entries) => entries,
+    mapLeftTE((e) => {
+      vortexApi.log(`error`, `${tag}: Could not parse folder for mod \`${entry.vortexId}\` with error: \`${e.message}\`.`);
+      return e;
+    }),
+    mapTE((isCompilable) => {
+      vortexApi.log(`debug`, `${tag}: redmod exists \`${entry.vortexId}\` and is compilable: \`${isCompilable}\`.`);
+      return isCompilable;
+    }),
+    getOrElseTE(
+      // We want to just run the unpruned mod if reading it fails... that way the deploy commandlet will fail and tell the user.
+      () => async () => false,
+    ),
+  )();
 };
 
-export const pruneToSparseLoadOrder = (
+export const pruneToSparseLoadOrder = async (
   vortexApi: VortexApi | { log: () => unknown },
+  gameDirPath: string,
   loadOrderFromVortex: LoadOrder,
-): LoadOrder => {
+): Promise<LoadOrder> => {
   vortexApi.log(`info`, `${me}: Sparsing out the load order`);
 
   const newLoadOrderEntries =
-    loadOrderFromVortex.entriesInOrderWithEarlierWinning.filter((entry) => maybeCompilableMod(vortexApi, entry.redmodPath));
+    pipe(
+      loadOrderFromVortex.entriesInOrderWithEarlierWinning,
+      (entries) => {
+        vortexApi.log(`debug`, `${me}: Load order before pruning: ${entries.map((entry) => entry.redmodName)}`);
+        return entries;
+      },
+      reduce(
+        [],
+        async (memo: Promise<LoadOrderEntry[]>, e) =>
+          (await maybeCompilableMod(vortexApi, gameDirPath, e) ? [...await memo, e] : memo),
+      ),
+      async (entries) => {
+        vortexApi.log(`debug`, `${me}: Load order after pruning: ${(await entries).map((entry) => entry.redmodName)}`);
+        return entries;
+      },
+    );
 
-  const newLoadOrder = loadOrderFromVortex;
-
-  newLoadOrder.entriesInOrderWithEarlierWinning = newLoadOrderEntries;
+  const newLoadOrder = {
+    ...loadOrderFromVortex,
+    entriesInOrderWithEarlierWinning: await newLoadOrderEntries,
+  };
 
   return newLoadOrder;
 };
@@ -701,7 +722,7 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
 
   // Need to only deploy that which is necessary for compilation. This is any redmod with a script, sound, or tweak change.
   // After that, we can take all of the plain archive based redmods and selectively inject them into the mods.json.
-  const sparseLOforDeploy = pruneToSparseLoadOrder(vortexApi, v2077LoadOrderToDeploy);
+  const sparseLOforDeploy = pruneToSparseLoadOrder(vortexApi, gameDirPath, v2077LoadOrderToDeploy);
 
   const redDeploy =
     loadOrderToREDdeployRunParameters(gameDirPath, sparseLOforDeploy);
@@ -860,11 +881,6 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
             return rebuildModsDotJsonLoadOrder(vortexApi, modsDotJsonLoadOrder.mods, toMutableArray(modsDotJsonList));
           }),
           mapTE((rebuiltModsDotJsonLoadOrder) => encodeModsDotJsonLoadOrder(rebuiltModsDotJsonLoadOrder)),
-          mapLeftTE((error) => {
-            vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
-            showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
-            return error;
-          }),
           mapTE((rebuiltModsDotJson) => {
             writeLoadOrderToDisk(loID, modsDotJsonPathFor(gameDirPath), rebuiltModsDotJson);
           }),

@@ -1,4 +1,7 @@
 import fs from "fs/promises";
+import {
+  Dirent,
+} from "fs";
 import path from "path";
 
 import * as A from "fp-ts/Array";
@@ -30,6 +33,7 @@ import {
   FileTree,
   FILETREE_ROOT,
   normalizeDir,
+  Dir,
 } from "./filetree";
 import {
   V2077_GENERATED_MOD_NAME_TAG,
@@ -62,7 +66,6 @@ import {
   IsFeatureEnabled,
 } from "./features";
 
-
 //
 // Filesystem abstraction
 //
@@ -79,6 +82,21 @@ export const fileFromDiskTE = ({ relativePath, pathOnDisk }: Path): TaskEither<E
   tryCatch(
     fileFromDisk({ relativePath, pathOnDisk }),
     (reason) => new Error(`Failed to read file ${relativePath} (on disk ${pathOnDisk}): ${reason}`),
+  );
+
+export const dirFromDisk = ({ relativePath, pathOnDisk }: Path): Task<Dir[]> => pipe(
+  () => fs.readdir(pathOnDisk, { withFileTypes: true }),
+  mapT(
+    (directoryContents: Dirent[]) =>
+      directoryContents.map((directoryEntry: Dirent) =>
+        ({ relativePath, pathOnDisk, entry: directoryEntry })),
+  ),
+);
+
+export const dirFromDiskTE = ({ relativePath, pathOnDisk }: Path): TaskEither<Error, Dir[]> =>
+  tryCatch(
+    dirFromDisk({ relativePath, pathOnDisk }),
+    (reason) => new Error(`Failed to read directory ${relativePath} (on disk ${pathOnDisk}): ${reason}`),
   );
 
 export const fileMove = (to: string, file: File): FileMove => ({
