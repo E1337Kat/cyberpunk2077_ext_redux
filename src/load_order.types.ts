@@ -1,6 +1,19 @@
-import { pipe } from "fp-ts/lib/function";
-import { Ord as NumericOrd } from "fp-ts/lib/number";
-import { Ord as StringOrd } from "fp-ts/lib/string";
+import {
+  flow,
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  Ord as NumericOrd,
+} from "fp-ts/lib/number";
+import {
+  Ord as StringOrd,
+} from "fp-ts/lib/string";
+import {
+  map as mapRight,
+  mapLeft,
+  Either,
+  orElse,
+} from "fp-ts/lib/Either";
 import {
   contramap,
   Ord,
@@ -12,11 +25,18 @@ import {
 import * as t from "io-ts";
 import path from "path";
 import {
+  map,
+  toArray as toMutableArray,
+} from "fp-ts/lib/ReadonlyArray";
+import {
   decodeWith,
   REDmodCustomSoundType,
   REDmodInfoForVortex,
 } from "./installers.types";
-import { jsonpp } from "./util.functions";
+import {
+  S,
+  jsonpp,
+} from "./util.functions";
 import {
   VortexLoadOrderEntry,
   VortexModWithEnabledStatus,
@@ -25,7 +45,7 @@ import {
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 
-export const LOAD_ORDER_TYPE_VERSION = `1.0.0`;
+export const LOAD_ORDER_TYPE_VERSION = `1.1.0`;
 
 export interface LoadOrderer {
   validate: VortexWrappedValidateFunc;
@@ -127,12 +147,84 @@ export const LoadOrderType =
   );
 export type LoadOrder = t.TypeOf<typeof LoadOrderType>;
 
+// Need to migrate old formats
+export const V100LoadOrderEntryType =
+  t.intersection([
+    t.partial({
+      vortexModId: t.string,
+    }),
+    t.type({
+      vortexId: t.string,
+      vortexModVersion: t.string,
+      redmodName: t.string,
+      redmodVersion: t.string,
+      redmodPath: t.string,
+      enabled: t.boolean,
+    }),
+  ], `V100LoadOrderEntryType`);
+export type V100LoadOrderEntry = t.TypeOf<typeof V100LoadOrderEntryType>;
 
-export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
-  jsonpp(loadOrder);
+export const V100LoadOrderType =
+  t.type(
+    {
+      loadOrderFormatVersion: t.literal(`1.0.0`),
+      generatedAt: t.string,
+      ownerVortexProfileId: t.string,
+      entriesInOrderWithEarlierWinning: t.array(V100LoadOrderEntryType),
+    },
+    `LoadOrderVortexType`,
+  );
+export type V100LoadOrder = t.TypeOf<typeof V100LoadOrderType>;
 
+// Need to unify this with the LO creation code
+const migrateV100ToV110 = (v100LoadOrder: V100LoadOrder): LoadOrder => {
+  const entriesMigrated = pipe(
+    v100LoadOrder.entriesInOrderWithEarlierWinning,
+    map((entry): LoadOrderEntry => ({
+      ...entry,
+      modsDotJsonEntry: {
+        folder: path.basename(entry.redmodPath),
+        enabled: entry.enabled,
+        deployed: true,
+        deployedVersion: entry.redmodVersion,
+        customSounds: [],
+      },
+    })),
+    toMutableArray,
+  );
 
-export const decodeLoadOrder = decodeWith(LoadOrderType.decode);
+  return {
+    ...v100LoadOrder,
+    loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
+    entriesInOrderWithEarlierWinning: entriesMigrated,
+  };
+};
+
+// Hidey hide
+const decodeLoadOrder = decodeWith(LoadOrderType.decode);
+
+const decodeOldLoadOrderVersion = flow(
+  decodeWith(V100LoadOrderType.decode),
+  mapLeft((error) => new Error(`Unable to decode as v1.0.0 load order for migration: ${S(error)}`)),
+  mapRight(migrateV100ToV110),
+);
+
+// Codec interface
+
+export const encodeLoadOrder = (loadOrder: LoadOrder): string => jsonpp(loadOrder);
+
+// This needs to become a proper migration stepper but for now, we
+// can be lazy because the old load order is only used to retain
+// the previously set order.
+export const decodeAndMigrateLoadOrder = (encodedLO: string): Either<Error, LoadOrder> =>
+  pipe(
+    decodeLoadOrder(encodedLO),
+    orElse((errorForCurrentLO) => pipe(
+      decodeOldLoadOrderVersion(encodedLO),
+      mapLeft((errorForOldLO) =>
+        new Error(`Couldn't decode load order file neither as current nor as old version:\n${errorForCurrentLO.message}\n${errorForOldLO.message}`)),
+    )),
+  );
 
 
 export type IndexableMaybeEnabledMod = VortexModWithEnabledStatus & { index: Option<number> };

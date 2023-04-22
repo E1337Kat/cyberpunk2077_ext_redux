@@ -52,6 +52,7 @@ import {
 } from "spectacles-ts";
 import {
   isLeft,
+  map as mapRight,
 } from "fp-ts/lib/Either";
 import {
   EXTENSION_NAME_INTERNAL,
@@ -63,7 +64,6 @@ import {
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
   encodeLoadOrder,
-  decodeLoadOrder,
   LoadOrderEntryDataForVortex,
   IdToIndex,
   IndexableMaybeEnabledMod,
@@ -76,6 +76,7 @@ import {
   decodeModsDotJsonLoadOrder,
   encodeModsDotJsonLoadOrder,
   ModsDotJson,
+  decodeAndMigrateLoadOrder,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -264,17 +265,16 @@ const deserializeLoadOrder = (vortexApi: VortexApi) =>
       }),
       orElseTE(({ content }) =>
         pipe(
-          decodeLoadOrder(content),
-          fromEitherTE,
-          mapLeftTE((error) =>
-            new Error(`Couldn't decode load order file: ${error.message}`)),
-          mapTE((loadOrder) => {
+          decodeAndMigrateLoadOrder(content),
+          mapRight((loadOrder) => {
             vortexApi.log(`info`, `${me}: Successfully deserialized load order id: ${Date.parse(loadOrder.generatedAt)} (${loadOrder.generatedAt})`);
             vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
             return loadOrder.entriesInOrderWithEarlierWinning;
           }),
+          fromEitherTE,
         )),
     );
+
 const deserializeModsDotJson = (vortexApi: VortexApi) =>
   (loadOrderPathForCurrentProfile: string): TaskEither<Error, readonly ModsDotJsonEntry[]> =>
     pipe(
