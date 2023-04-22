@@ -4,7 +4,7 @@ import {
 import {
   execFile,
   PromiseWithChild,
-} from "node:child_process";
+} from "child_process";
 import {
   promisify,
 } from "util";
