@@ -17,7 +17,9 @@ import {
   fromNullable,
   getOrElse as getOrElseO,
 } from "fp-ts/lib/Option";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 import {
   FileTree,
   Path,
@@ -28,7 +30,9 @@ import {
   VortexInstallResult,
   VortexMod,
 } from "./vortex-wrapper";
-import { S } from "./util.functions";
+import {
+  S,
+} from "./util.functions";
 
 export enum InstallerType {
   // Meta-installer, won't be in the pipeline itself
