@@ -1,5 +1,11 @@
-import { LoadOrder, ModsDotJson, ModsDotJsonEntry } from "../../src/load_order.types";
-import { VortexLoadOrderEntry } from "../../src/vortex-wrapper";
+import {
+  LoadOrder,
+  ModsDotJson,
+  ModsDotJsonEntry,
+} from "../../src/load_order.types";
+import {
+  VortexLoadOrderEntry,
+} from "../../src/vortex-wrapper";
 
 
 export const vortexLoadOrder: VortexLoadOrderEntry[] = [
@@ -229,7 +235,7 @@ export const modsDotJsonLoadOrder: ModsDotJsonEntry[] = [
 ];
 
 export const v2077LoadOrder: LoadOrder = {
-  loadOrderFormatVersion: `1.0.0`,
+  loadOrderFormatVersion: `1.1.0`,
   ownerVortexProfileId: `xyZzyZx`,
   generatedAt: `2022-11-11T06:43:55.038Z`,
   entriesInOrderWithEarlierWinning: [
@@ -373,7 +379,7 @@ export const v2077LoadOrder: LoadOrder = {
 };
 
 export const v2077CompilableLoadOrder: LoadOrder = {
-  loadOrderFormatVersion: `1.0.0`,
+  loadOrderFormatVersion: `1.1.0`,
   ownerVortexProfileId: `xyZzyZx`,
   generatedAt: `2022-11-11T06:43:55.038Z`,
   entriesInOrderWithEarlierWinning: [

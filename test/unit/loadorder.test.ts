@@ -3,15 +3,17 @@ import path from "path";
 import mockFs from "mock-fs";
 import {
   isLeft,
+  isRight,
 } from "fp-ts/lib/Either";
 import {
-  decodeLoadOrder,
   encodeLoadOrder,
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
   ModsDotJson,
   encodeModsDotJsonLoadOrder,
   decodeModsDotJsonLoadOrder,
+  V100LoadOrder,
+  decodeAndMigrateLoadOrder,
 } from "../../src/load_order.types";
 import {
   loadOrderToREDdeployRunParameters,
@@ -186,13 +188,71 @@ describe(`Load Order`, () => {
 
       const encoded = encodeLoadOrder(loadOrder);
 
-      const decoded = decodeLoadOrder(encoded);
+      const decoded = decodeAndMigrateLoadOrder(encoded);
 
       if (isLeft(decoded)) {
         throw decoded.left;
       }
 
       expect(decoded.right).toEqual(loadOrder);
+    });
+
+    test(`Old Load Order is migrated to current`, () => {
+      const v100loadOrder: V100LoadOrder = {
+        loadOrderFormatVersion: `1.0.0`,
+        ownerVortexProfileId: `testprofileid`,
+        generatedAt: `2021-01-01T00:00:00.000Z`,
+        entriesInOrderWithEarlierWinning: [
+          {
+            vortexId: `testvortexid`,
+            vortexModId: `testvortexmodid`,
+            vortexModVersion: `testvortexmodversion`,
+            redmodName: `testredmodname`,
+            redmodVersion: `testredmodversion`,
+            redmodPath: `testredmodpath`,
+            enabled: true,
+          },
+        ],
+      };
+
+      const v100Entry = v100loadOrder.entriesInOrderWithEarlierWinning[0];
+
+      const expectedCurrentLO: LoadOrder = {
+        ...v100loadOrder,
+        loadOrderFormatVersion: LOAD_ORDER_TYPE_VERSION,
+        entriesInOrderWithEarlierWinning: [
+          {
+            ...v100Entry,
+            modsDotJsonEntry: {
+              folder: path.basename(v100Entry.redmodPath),
+              enabled: v100Entry.enabled,
+              deployed: true,
+              deployedVersion: v100Entry.redmodVersion,
+              customSounds: [],
+            },
+          },
+        ],
+      };
+
+      const encoded = jsonpp(v100loadOrder);
+
+      const decoded = decodeAndMigrateLoadOrder(encoded);
+
+      if (isLeft(decoded)) {
+        throw decoded.left;
+      }
+
+      expect(decoded.right).toEqual(expectedCurrentLO);
+    });
+
+    test(`Load Order decoding fails if not current nor migratable version`, () => {
+      const junk = jsonpp({ yay: 3 });
+
+      const decoded = decodeAndMigrateLoadOrder(junk);
+
+      if (isRight(decoded)) {
+        throw new Error(`Expected decoding to fail`);
+      }
     });
 
     test(`ModsDotJson encodes and decodes roundtrip`, () => {
