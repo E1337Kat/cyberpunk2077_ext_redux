@@ -42,6 +42,7 @@ import {
   TaskEither,
   tryCatch as tryCatchTE,
   getOrElse as getOrElseTE,
+  chain as chainTE,
 } from "fp-ts/lib/TaskEither";
 import {
   fs,
@@ -105,7 +106,9 @@ import {
   bbcodeBasics,
   heredoc,
   jsonp,
+  ret,
   S,
+  task,
 } from "./util.functions";
 import {
   dirFromDiskTE,
@@ -268,7 +271,6 @@ const deserializeLoadOrder = (vortexApi: VortexApi) =>
           decodeAndMigrateLoadOrder(content),
           mapRight((loadOrder) => {
             vortexApi.log(`info`, `${me}: Successfully deserialized load order id: ${Date.parse(loadOrder.generatedAt)} (${loadOrder.generatedAt})`);
-            vortexApi.log(`debug`, `${me}: Current stored load order deserialized: ${S(loadOrder)}`);
             return loadOrder.entriesInOrderWithEarlierWinning;
           }),
           fromEitherTE,
@@ -488,7 +490,7 @@ const compileDetesToGenerateLoadOrderUi: VortexWrappedDeserializeFunc = async (
       toMutableArray,
     );
 
-  vortexApi.log(`debug`, `${me}: Collected detes to create load order selection: `, S(loadOrderableModsInOrderWithoutAnyVariableDataThatWouldConfuseVortex));
+  vortexApi.log(`debug`, `${me}: Collected detes to create load order selection`);
 
   return Promise.resolve(loadOrderableModsInOrderWithoutAnyVariableDataThatWouldConfuseVortex);
 };
@@ -569,10 +571,10 @@ export const maybeCompilableMod = (
   entry: LoadOrderEntry,
 ): Promise<boolean> => {
   const tag = `${me}: REDmod Background Deploy`;
-  vortexApi.log(`info`, `looking for folders`);
 
   const fullPath = path.join(gameDirPath, entry.redmodPath);
-  return pipe(
+
+  const needsCompilation = pipe(
     dirFromDiskTE({ relativePath: entry.redmodPath, pathOnDisk: fullPath }),
     mapTE(((dirs) => dirs.filter((dir) => dir.entry.isDirectory()))),
     mapTE((dirs) => dirs.map((dir) => dir.entry.name)),
@@ -586,11 +588,11 @@ export const maybeCompilableMod = (
       vortexApi.log(`debug`, `${tag}: redmod exists \`${entry.vortexId}\` and is compilable: \`${isCompilable}\`.`);
       return isCompilable;
     }),
-    getOrElseTE(
-      // We want to just run the unpruned mod if reading it fails... that way the deploy commandlet will fail and tell the user.
-      () => async () => false,
-    ),
-  )();
+    // We want to just run the unpruned mod if reading it fails... that way the deploy commandlet will fail and tell the user.
+    getOrElseTE(ret(task(false))),
+  );
+
+  return needsCompilation();
 };
 
 export const pruneToSparseLoadOrder = async (
@@ -598,24 +600,16 @@ export const pruneToSparseLoadOrder = async (
   gameDirPath: string,
   loadOrderFromVortex: LoadOrder,
 ): Promise<LoadOrder> => {
-  vortexApi.log(`info`, `${me}: Sparsing out the load order`);
+  vortexApi.log(`debug`, `${me}: Sparsing out the load order`);
 
   const newLoadOrderEntries =
     pipe(
       loadOrderFromVortex.entriesInOrderWithEarlierWinning,
-      (entries) => {
-        vortexApi.log(`debug`, `${me}: Load order before pruning: ${entries.map((entry) => entry.redmodName)}`);
-        return entries;
-      },
       reduce(
         [],
         async (memo: Promise<LoadOrderEntry[]>, e) =>
           (await maybeCompilableMod(vortexApi, gameDirPath, e) ? [...await memo, e] : memo),
       ),
-      async (entries) => {
-        vortexApi.log(`debug`, `${me}: Load order after pruning: ${(await entries).map((entry) => entry.redmodName)}`);
-        return entries;
-      },
     );
 
   const newLoadOrder = {
@@ -650,13 +644,16 @@ export const loadOrderToREDdeployRunParameters = (
         ...loadOrderForREDmodDeployWithShellQuotes,
       ];
 
-  const redModDeployParametersToCreateNewManifest = [
+  const redModDeployParameters = [
     `deploy`,
     `-force`, // TODO: Required until https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/297
-    `-root=`,
-    `"${gameDirPath}"`,
+    // leave -root out
     `-rttiSchemaFile=`,
     `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
+  ];
+
+  const redModDeployParametersToCreateNewManifest = [
+    ...redModDeployParameters,
     ...loadOrderedModListToDeploy,
   ];
 
@@ -666,7 +663,7 @@ export const loadOrderToREDdeployRunParameters = (
   const runOptions: VortexRunOptions = {
     cwd: path.dirname(exePath),
     shell: false,
-    detach: true,
+    detach: false,
     expectSuccess: true,
   };
 
@@ -678,13 +675,13 @@ export const loadOrderToREDdeployRunParameters = (
 };
 
 
-export const startREDmodDeployInTheBackgroundWithNotifications = (
+export const startREDmodDeployInTheBackgroundWithNotifications = async (
   vortexApi: VortexApi,
   gameDirPath: string,
   loID: number,
   v2077LoadOrderToDeploy: LoadOrder,
   vortexFormatLoadOrderForComparison: VortexLoadOrder,
-): PromiseWithChild<{ stdout: string, stderr: string }> => {
+): Promise<{ stdout: string, stderr: string }> => {
   const tag = `${me}: REDmod Background Deploy`;
 
   vortexApi.log(`info`, `${tag}: Starting background deploy for load order ${loID}`);
@@ -722,11 +719,16 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
 
   // Need to only deploy that which is necessary for compilation. This is any redmod with a script, sound, or tweak change.
   // After that, we can take all of the plain archive based redmods and selectively inject them into the mods.json.
-  const sparseLOforDeploy = pruneToSparseLoadOrder(vortexApi, gameDirPath, v2077LoadOrderToDeploy);
+  const sparseLOforDeploy = await pruneToSparseLoadOrder(vortexApi, gameDirPath, v2077LoadOrderToDeploy);
+
+  if (sparseLOforDeploy.entriesInOrderWithEarlierWinning.length === 0) {
+    vortexApi.log(`info`, `${tag}: No mods that require running redMod.exe, skipping!`);
+    vortexApi.log(`debug`, `${tag}: Deleted existing mods.json so we don't have to deal with outdated data`);
+    return Promise.resolve({ stdout: `<redMod.exe run skipped>`, stderr: `` });
+  }
 
   const redDeploy =
     loadOrderToREDdeployRunParameters(gameDirPath, sparseLOforDeploy);
-
 
   if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
     vortexApi.log(`warn`, `${me}: No mods in load order, running default REDdeploy!`);
@@ -736,9 +738,12 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
     showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
   }
 
-  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
-
   const exec = promisify(execFile);
+
+  // TS doesn't allow PromiseWithChild, but we can get the child out if we need it later
+  // Should probably print these but it's so fucking spammy the logs are almost useless
+  // Just use a debugger instead I guess..
+
   const REDdeployment: PromiseWithChild<{ stdout: string, stderr: string }> =
     exec(
       redDeploy.executable,
@@ -830,11 +835,10 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
   }
 
   if (vortexLoadOrder === undefined || vortexLoadOrder?.length === 0) {
+    // Need to delete the file if it exists, otherwise the game will try to load it?
     vortexApi.log(`info`, `${me}: Serialize: No mods in load order, skipping writing to disk..`);
     return Promise.resolve();
   }
-
-  vortexApi.log(`info`, `${me}: Serializing new load order from Vortex load order`, S(vortexLoadOrder));
 
   // Is there any risk there could be a mismatch of profiles here? Surely not?
   const vortexState: VortexState = vortexApi.store.getState();
@@ -847,28 +851,39 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
   const modsDotJsonLoadOrder = makeModsDotJsonLoadOrderFrom(vortexLoadOrder);
 
   vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
-  vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
 
-  let maybeSuccessfullyReWroteModsDotJsonToDisk: TaskEither<{ stdout: string; stderr: string; }, void>;
   // We want to wait until there's been a deployment - either the automatic one
   // from an enable or something like that, or a manually triggered one.
-  vortexApi.events.once(`did-deploy`, () => {
-    maybeSuccessfullyReWroteModsDotJsonToDisk =
-    pipe(
-      tryCatchTE(
-        () =>
-          startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder),
-        (err) => {
-          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(err));
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-          throw err;
-        },
-      ),
-      mapTE(({ stdout, stderr: _stderr }) => {
-        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} output: ${stdout}`);
-        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-        pipe(
+  vortexApi.events.once(`did-deploy`, async () => {
+
+    // This is aggressively stupid, couldn't find a way to split the segments
+    // without rerunning the earlier ones...
+    const maybeREDdeployed =
+      pipe(
+        tryCatchTE(
+          () =>
+            startREDmodDeployInTheBackgroundWithNotifications(
+              vortexApi,
+              gameDirPath,
+              loID,
+              v2077LoadOrder,
+              vortexLoadOrder,
+            ),
+          (err) => {
+            vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(err));
+            throw err;
+          },
+        ),
+        mapTE(({ stdout, stderr }) => {
+          if (stderr !== ``) {
+            vortexApi.log(`warn`, `${me}: redMod.exe produced some error/warning output (this is probably ok since the command didn't fail): ${stderr}`);
+          }
+
+          vortexApi.log(`info`, `${me}: redMod.exe output: ${stdout}`);
+          return true;
+        }),
+        // Serialize mods.json
+        chainTE((_ok) => pipe(
           modsDotJsonPathFor(gameDirPath),
           deserializeModsDotJson(vortexApi),
           mapLeftTE((error) => {
@@ -877,11 +892,12 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
             return Promise.reject(error);
           }),
           mapTE((modsDotJsonList) => {
-            vortexApi.log(`info`, `${me}: Successfully rebuilt mods.json...`);
+            vortexApi.log(`debug`, `${me}: Successfully rebuilt mods.json with all mods...`);
             return rebuildModsDotJsonLoadOrder(vortexApi, modsDotJsonLoadOrder.mods, toMutableArray(modsDotJsonList));
           }),
           mapTE((rebuiltModsDotJsonLoadOrder) => encodeModsDotJsonLoadOrder(rebuiltModsDotJsonLoadOrder)),
           mapTE((rebuiltModsDotJson) => {
+            vortexApi.log(`info`, `${me}: Saving load order ${loID} in r6/cache/modded/mods.json...`);
             writeLoadOrderToDisk(loID, modsDotJsonPathFor(gameDirPath), rebuiltModsDotJson);
           }),
           mapLeftTE((error) => {
@@ -889,33 +905,44 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = async (
             showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
             return error;
           }),
-        );
-      }),
-    );
+        )),
+        // Serialize load order
+        chainTE((_ok) => {
+          const serializedLoadOrder =
+            encodeLoadOrder(v2077LoadOrder);
+
+          const loadOrderFilePathForThisProfile =
+            loadOrderPathFor(activeProfile, gameDirPath);
+
+          vortexApi.log(`info`, `${me}: Saving V2077-format load order ${loID} to disk in ${loadOrderFilePathForThisProfile}`);
+
+          return pipe(
+            writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
+            mapLeftTE((error) => {
+              vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
+              showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
+              return error;
+            }),
+          );
+        }),
+      );
+
+    const REDdeployRun = await maybeREDdeployed();
+
+    if (isLeft(REDdeployRun)) {
+      // boo
+      vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed! ${S(REDdeployRun.left)}`);
+      return showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+    }
+
+    vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+    return showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
   });
 
+  // And the rest, as they say, is callback
+
   vortexApi.log(`info`, `${me}: Queuing REDmod deployment for load order ${loID} to run after next Vortex deployment!`);
-  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentQueued);
-
-  const serializedLoadOrder =
-    encodeLoadOrder(v2077LoadOrder);
-
-  const loadOrderFilePathForThisProfile =
-    loadOrderPathFor(activeProfile, gameDirPath);
-
-  vortexApi.log(`info`, `${me}: Saving load order ${loID} to disk as JSON: ${loadOrderFilePathForThisProfile}`);
-
-  const maybeSuccessfullyWroteLoadOrderToDisk =
-    pipe(
-      writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
-      mapLeftTE((error) => {
-        vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
-        showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
-        return error;
-      }),
-    );
-
-  return maybeSuccessfullyWroteLoadOrderToDisk() && maybeSuccessfullyReWroteModsDotJsonToDisk();
+  return showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentQueued);
 };
 
 //

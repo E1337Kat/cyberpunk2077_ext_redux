@@ -444,8 +444,6 @@ describe(`Load Order`, () => {
           args: [
             `deploy`,
             `-force`,
-            `-root=`,
-            `"${FAKE_GAMEDIR_PATH}"`,
             `-rttiSchemaFile=`,
             `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
             `-mod=`,
@@ -461,7 +459,7 @@ describe(`Load Order`, () => {
           options: {
             cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
             shell: false,
-            detach: true,
+            detach: false,
             expectSuccess: true,
           },
         };
@@ -482,8 +480,6 @@ describe(`Load Order`, () => {
           args: [
             `deploy`,
             `-force`,
-            `-root=`,
-            `"${FAKE_GAMEDIR_PATH}"`,
             `-rttiSchemaFile=`,
             `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
             `-mod=`,
@@ -494,7 +490,7 @@ describe(`Load Order`, () => {
           options: {
             cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
             shell: false,
-            detach: true,
+            detach: false,
             expectSuccess: true,
           },
         };
@@ -517,15 +513,13 @@ describe(`Load Order`, () => {
           args: [
             `deploy`,
             `-force`,
-            `-root=`,
-            `"${FAKE_GAMEDIR_PATH}"`,
             `-rttiSchemaFile=`,
             `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
           ],
           options: {
             cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
             shell: false,
-            detach: true,
+            detach: false,
             expectSuccess: true,
           },
         };

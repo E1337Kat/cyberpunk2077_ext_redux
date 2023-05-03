@@ -14,6 +14,9 @@ import {
 import {
   replace as replaceIn,
 } from "fp-ts/lib/string";
+import {
+  Task,
+} from "fp-ts/lib/Task";
 
 //
 // Utility stuff. Judge /very/ carefully before adding anything here.
@@ -51,7 +54,9 @@ export const alwaysTrue = (): boolean => true;
 export const alwaysFalse = (): boolean => false;
 
 export const constant = <T>(t: T): Dynamic<T> => () => t;
+export const task = <T>(t: T): Task<T> => constant(Promise.resolve(t));
 
+export const ret = <T>(t: T) => <U>(_: U): T => t;
 export const noop = (): void => undefined;
 
 export type Effect = () => Either<Error, void>;
