@@ -1,3 +1,16 @@
+# Cyberpunk 2077 Vortex Support v0.9.8
+
+## Main Jobs
+
+- ✨ **Input Loader v0.1.1 Support** (and you can still install v0.1.0, too, but shouldn't.)
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+
+- 🛡️ **More Robust Load Order Protection** There were some cases in which a race condition or unexpectedly deleted `V2077` directory could cause the Load Order to be reset. Put a Cerberus on it, see 'em weefles try it now.
+
+---
+
+
 # Cyberpunk 2077 Vortex Support v0.9.7
 
 ## Fixer Gigs
