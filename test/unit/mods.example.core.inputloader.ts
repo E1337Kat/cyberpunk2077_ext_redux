@@ -1,9 +1,17 @@
 import path from "path";
 import {
+  map,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
   CONFIG_INI_MOD_BASEDIR,
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+} from "../../src/installers.types";
 import {
   copiedToSamePath,
   createdDirectory,
@@ -15,48 +23,96 @@ import {
   pathHierarchyFor,
   RED4EXT_PREFIX,
 } from "./utils.helper";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
+
+const inputLoaderInFiles = {
+  v011: [
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\license.md`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\readme.md`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader_uninstall.bat`),
+  ],
+  v010: [
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
+  ],
+};
+
 
 const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
   [
-    `Core Input Loader installs without prompting when all required paths present`,
+    `Core Input Loader version v0.1.1 installs without prompting when all required paths present`,
     {
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-        path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
-        path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
+        ...inputLoaderInFiles.v011,
       ],
       outInstructions: [
         generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
-        copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
-        copiedToSamePath(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
+        ...pipe(
+          inputLoaderInFiles.v011,
+          map(copiedToSamePath),
+        ),
       ],
     },
   ],
 ]);
 
-const CoreInputLoaderInstallFails = new Map<string, ExampleFailingMod>([
+
+const CoreInputLoaderDeprecatedPromptsToInstall = new Map<string, ExamplePromptInstallableMod>([
   [
-    `Core Input Loader fails without prompting when extra files are present`,
+    `Deprecated Core Input Loader version v0.1.0 installs when all required paths present`,
     {
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-        path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
-        ...pathHierarchyFor(`${CONFIG_INI_MOD_BASEDIR}`),
-        path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
+        ...inputLoaderInFiles.v010,
       ],
-      failure: `Didn't Find Expected Input Loader Installation!`,
-      errorDialogTitle: `Didn't Find Expected Input Loader Installation!`,
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
+        createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
+        ...pipe(
+          inputLoaderInFiles.v010,
+          map(copiedToSamePath),
+        ),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.CoreInputLoader}: user chose to cancel installing deprecated version`,
     },
   ],
 ]);
 
+
+const CoreInputLoaderInstallFails = new Map<string, ExampleFailingMod>(
+  pipe(
+    Object.entries(inputLoaderInFiles),
+    map(([version, files]) => [
+      `Core Input Loader verson ${version} fails without prompting when extra files are present`,
+      {
+        expectedInstallerType: InstallerType.CoreInputLoader,
+        inFiles: [
+          ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
+          ...files,
+          path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
+        ],
+        failure: `Didn't Find Expected Input Loader Installation!`,
+        errorDialogTitle: `Didn't Find Expected Input Loader Installation!`,
+      },
+    ]),
+  ),
+);
+
+
 const examples: ExamplesForType = {
   AllExpectedSuccesses: CoreInputLoaderInstallSucceeds,
   AllExpectedDirectFailures: CoreInputLoaderInstallFails,
-  AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
+  AllExpectedPromptInstalls: CoreInputLoaderDeprecatedPromptsToInstall,
 };
 
 export default examples;

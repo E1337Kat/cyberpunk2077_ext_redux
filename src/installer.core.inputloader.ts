@@ -10,19 +10,28 @@ import {
   sourcePaths,
 } from "./filetree";
 import {
+  InstallDecision,
   InstallerType,
   ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import {
+  promptUserToInstallOrCancelOnDeprecatedCoreMod,
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
 import {
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
-  INPUT_LOADER_CORE_FILES,
+  DEPRECATED_INPUT_LOADER_CORE_FILES,
+  INPUT_LOADER_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 
-const CoreInputLoaderInstructions: VortexInstruction[] = [
+const me = InstallerType.CoreInputLoader;
+
+const DeprecatedCoreInputLoaderInstructions: VortexInstruction[] = [
   {
     type: `generatefile`,
     data: `[Player/Input]\n`,
@@ -44,12 +53,41 @@ const CoreInputLoaderInstructions: VortexInstruction[] = [
   },
 ];
 
-const findCoreInputLoaderFiles = (fileTree: FileTree): string[] =>
-  INPUT_LOADER_CORE_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
+const CoreInputLoaderInstructions: VortexInstruction[] = [
+  {
+    type: `copy`,
+    source: `red4ext\\plugins\\input_loader\\license.md`,
+    destination: `red4ext\\plugins\\input_loader\\license.md`,
+  },
+  {
+    type: `copy`,
+    source: `red4ext\\plugins\\input_loader\\readme.md`,
+    destination: `red4ext\\plugins\\input_loader\\readme.md`,
+  },
+  {
+    type: `copy`,
+    source: `red4ext\\plugins\\input_loader_uninstall.bat`,
+    destination: `red4ext\\plugins\\input_loader_uninstall.bat`,
+  },
+  ...DeprecatedCoreInputLoaderInstructions,
+];
+
+
+const findCoreInputLoaderFiles = (fileTree: FileTree): string[] => [
+  ...INPUT_LOADER_CORE_REQUIRED_FILES.V011.filter((requiredFile) => pathInTree(requiredFile, fileTree)),
+];
+
+const findDeprecatedCoreInputLoaderFiles = (fileTree: FileTree): string[] => [
+  ...DEPRECATED_INPUT_LOADER_CORE_FILES.V010.filter((deprecatedFile) => pathInTree(deprecatedFile, fileTree)),
+];
 
 const detectCoreInputLoader = (fileTree: FileTree): boolean =>
-  // We just need to know this looks right, not that it is
-  findCoreInputLoaderFiles(fileTree).length > 0;
+  // We just need to know this looks like it should be a core input loader installation, for errors
+  findCoreInputLoaderFiles(fileTree).length > 0
+  || findDeprecatedCoreInputLoaderFiles(fileTree).length > 0;
+
+
+// test
 
 export const testForCoreInputLoader: V2077TestFunc = (
   _api: VortexApi,
@@ -57,32 +95,60 @@ export const testForCoreInputLoader: V2077TestFunc = (
 ): Promise<VortexTestResult> =>
   Promise.resolve({ supported: detectCoreInputLoader(fileTree), requiredFiles: [] });
 
+
+// install
+
+
 export const installCoreInputLoader: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
   _modInfo: ModInfo,
   _features: FeatureSet,
 ) => {
-  if (
-    fileCount(fileTree) !== INPUT_LOADER_CORE_FILES.length ||
-    findCoreInputLoaderFiles(fileTree).length !== fileCount(fileTree)
-  ) {
-    const errorMessage = `Didn't Find Expected Input Loader Installation!`;
-    api.log(
-      `error`,
-      `${InstallerType.CoreInputLoader}: ${errorMessage}`,
-      sourcePaths(fileTree),
-    );
+  const currentInstallationFiles = findCoreInputLoaderFiles(fileTree);
 
-    showWarningForUnrecoverableStructureError(
-      api,
-      InstallerType.CoreInputLoader,
-      errorMessage,
-      sourcePaths(fileTree),
-    );
-
-    return Promise.reject(new Error(errorMessage));
+  if (currentInstallationFiles.length === fileCount(fileTree)
+    && currentInstallationFiles.length === INPUT_LOADER_CORE_REQUIRED_FILES.V011.length) {
+    return Promise.resolve({ instructions: CoreInputLoaderInstructions });
   }
 
-  return Promise.resolve({ instructions: CoreInputLoaderInstructions });
+  const deprecatedInstallationFiles = findDeprecatedCoreInputLoaderFiles(fileTree);
+
+  if (deprecatedInstallationFiles.length === fileCount(fileTree)
+      && deprecatedInstallationFiles.length === DEPRECATED_INPUT_LOADER_CORE_FILES.V010.length) {
+    const infoMessage = `Old core mod version!`;
+    api.log(`info`, `${me}: ${infoMessage} Confirming installation.`);
+
+    const confirmedInstructions = await promptUserToInstallOrCancelOnDeprecatedCoreMod(
+      api,
+      InstallerType.CoreInputLoader,
+      [] as string[],
+    );
+
+    if (confirmedInstructions === InstallDecision.UserWantsToCancel) {
+      const cancelMessage = `${me}: user chose to cancel installing deprecated version`;
+
+      api.log(`warn`, cancelMessage);
+      return Promise.reject(new Error(cancelMessage));
+    }
+
+    api.log(`info`, `${me}: User confirmed installing deprecated version`);
+    return Promise.resolve({ instructions: DeprecatedCoreInputLoaderInstructions });
+  }
+
+  const errorMessage = `Didn't Find Expected Input Loader Installation!`;
+  api.log(
+    `error`,
+    `${InstallerType.CoreInputLoader}: ${errorMessage}`,
+    sourcePaths(fileTree),
+  );
+
+  showWarningForUnrecoverableStructureError(
+    api,
+    InstallerType.CoreInputLoader,
+    errorMessage,
+    sourcePaths(fileTree),
+  );
+
+  return Promise.reject(new Error(errorMessage));
 };

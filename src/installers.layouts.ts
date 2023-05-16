@@ -141,7 +141,16 @@ export const DEPRECATED_REDSCRIPT_CORE_REQUIRED_FILES = DEPRECATED_REDSCRIPT_COR
 // Core Input_Loader
 
 export const enum CoreInputLoaderLayout {
-  OnlyValid = `
+  CurrentV011 = `
+              - .\\engine\\config\\platform\\pc\\input_loader.ini
+              - .\\r6\\input\\                       (note, empty directory is an exception)
+              - .\\red4ext\\plugins\\input_loader\\input_loader.dll
+              - .\\red4ext\\plugins\\input_loader\\inputUserMappings.xml
+              - .\\red4ext\\plugins\\input_loader\\license.md
+              - .\\red4ext\\plugins\\input_loader\\readme.md
+              - .\\red4ext\\plugins\\input_loader_uninstall.bat
+              `,
+  PreviousV010 = `
               - .\\engine\\config\\platform\\pc\\input_loader.ini
               - .\\r6\\input\\                       (note, empty directory is an exception)
               - .\\red4ext\\plugins\\input_loader\\input_loader.dll
@@ -149,10 +158,25 @@ export const enum CoreInputLoaderLayout {
               `,
 }
 
-export const INPUT_LOADER_CORE_FILES = [
-  path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
-  path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
-];
+export const INPUT_LOADER_CORE_FILES = {
+  V011: [
+    path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
+    path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
+    path.join(`red4ext\\plugins\\input_loader\\license.md`),
+    path.join(`red4ext\\plugins\\input_loader\\readme.md`),
+    path.join(`red4ext\\plugins\\input_loader_uninstall.bat`),
+  ],
+};
+export const INPUT_LOADER_CORE_REQUIRED_FILES = INPUT_LOADER_CORE_FILES;
+
+export const DEPRECATED_INPUT_LOADER_CORE_FILES = {
+  V010: [
+    path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
+    path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
+  ],
+};
+export const DEPRECATED_INPUT_LOADER_CORE_REQUIRED_FILES = DEPRECATED_INPUT_LOADER_CORE_FILES;
+
 
 //
 // Core TweakXL
@@ -861,9 +885,12 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
   [
     InstallerType.CoreInputLoader,
     `
-        \`${CoreInputLoaderLayout.OnlyValid}\`
+        \`${CoreInputLoaderLayout.CurrentV011}\`
 
         This is the only possible valid layout for ${InstallerType.CoreInputLoader} that I know of.
+        This older version can still be installed, but should be updated:
+
+        \`${CoreInputLoaderLayout.PreviousV010}\`
     `,
   ],
   [
