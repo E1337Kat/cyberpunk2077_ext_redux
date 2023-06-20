@@ -62,6 +62,7 @@ import {
   TypedVortexLoadOrderEntry,
   OrderableLoadOrderEntryForVortex,
   TypedOrderableVortexLoadOrderEntry,
+  ModList,
 } from "./load_order.types";
 import {
   VortexApi,
@@ -105,6 +106,7 @@ import {
   REDdeployExeRelativePath,
   REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
+  V2077_MODLIST_PATH,
 } from "./redmodding.metadata";
 import {
   InfoNotification,
@@ -478,28 +480,9 @@ export const makeV2077LoadOrderFrom = (
 };
 
 
-export const loadOrderToREDdeployRunParameters = (
+export const redmodDeployRunParameters = (
   gameDirPath: string,
-  v2077LoadOrderToDeploy: LoadOrder,
 ): VortexRunParameters => {
-  const v2077LoadOrderEntries =
-    v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning;
-
-  const loadOrderForREDmodDeployWithShellQuotes = pipe(
-    v2077LoadOrderEntries,
-    filterMap((mod) =>
-      (mod.enabled
-        ? some(`"${path.basename(mod.redmodPath)}"`)
-        : none)),
-  );
-
-  const loadOrderedModListToDeploy =
-    isEmpty(loadOrderForREDmodDeployWithShellQuotes)
-      ? []
-      : [
-        `-mod=`,
-        ...loadOrderForREDmodDeployWithShellQuotes,
-      ];
 
   const redModDeployParametersToCreateNewManifest = [
     `deploy`,
@@ -508,7 +491,8 @@ export const loadOrderToREDdeployRunParameters = (
     `"${gameDirPath}"`,
     `-rttiSchemaFile=`,
     `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
-    ...loadOrderedModListToDeploy,
+    `-modlist=`,
+    `"${path.join(gameDirPath, V2077_MODLIST_PATH)}`,
   ];
 
   const exePath =
@@ -527,6 +511,17 @@ export const loadOrderToREDdeployRunParameters = (
     options: runOptions,
   };
 };
+
+
+export const loadOrderToREDdeployModList = (
+  v2077LoadOrderToDeploy: LoadOrder,
+): ModList => pipe(
+  v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning,
+  filterMap((mod) =>
+    (mod.enabled
+      ? some(`${path.basename(mod.redmodPath)}`)
+      : none)),
+);
 
 
 export const startREDmodDeployInTheBackgroundWithNotifications = (
@@ -572,7 +567,7 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
   }
 
   const redDeploy =
-    loadOrderToREDdeployRunParameters(gameDirPath, v2077LoadOrderToDeploy);
+    redmodDeployRunParameters(gameDirPath);
 
 
   if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
@@ -587,16 +582,28 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
 
   // Should really figure out how to get the output from this.
   // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/321
+  const modListPath = path.join(gameDirPath, V2077_MODLIST_PATH);
   const REDdeployment: Promise<void> =
-    vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
-      .then(() => {
-        vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-      })
-      .catch((error) => {
-        vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
-        showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-      });
+    pipe(
+      loadOrderToREDdeployModList(v2077LoadOrderToDeploy),
+      (generatedModList) => generatedModList.join(`\n`),
+      (encodedLoadOrder) => tryCatchTE(
+        () =>
+          fs.statAsync(path.dirname(modListPath)).then(() =>
+            fs.writeFileAsync(`${modListPath}.${loID}.tmp`, encodedLoadOrder, { encoding: `utf8` })).then(() =>
+            fs.renameAsync(`${modListPath}.${loID}.tmp`, modListPath)).then(() => true),
+        (error) => new Error(`Unable to write load order to disk: ${S(error)}`),
+      ),
+    )().then(() =>
+      vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
+        .then(() => {
+          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+        })
+        .catch((error) => {
+          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
+          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
+        }));
 
   return REDdeployment;
 };

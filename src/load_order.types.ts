@@ -90,6 +90,22 @@ export const encodeLoadOrder = (loadOrder: LoadOrder): string =>
 
 export const decodeLoadOrder = decodeWith(LoadOrderType.decode);
 
+// We're not explicitly storing the index for now,
+// but it might not be a bad idea in the long run.
+export const ModListEntryType = t.string;
+export type ModListEntry = t.TypeOf<typeof ModListEntryType>;
+
+export const ModListType =
+    t.readonlyArray(ModListEntryType);
+export type ModList = t.TypeOf<typeof ModListType>;
+
+
+export const encodeModList = (loadOrder: LoadOrder): string =>
+  jsonpp(loadOrder);
+
+
+export const decodeModList = decodeWith(LoadOrderType.decode);
+
 
 export type IndexableMaybeEnabledMod = VortexModWithEnabledStatus & { index: Option<number> };
 export type IdToIndex = { [id: string]: number };

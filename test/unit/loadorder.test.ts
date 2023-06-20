@@ -8,10 +8,12 @@ import {
   encodeLoadOrder,
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
+  ModList,
 } from "../../src/load_order.types";
 import {
-  loadOrderToREDdeployRunParameters,
+  loadOrderToREDdeployModList,
   makeV2077LoadOrderFrom,
+  redmodDeployRunParameters,
 } from "../../src/load_order";
 import {
   REDdeployManual,
@@ -21,6 +23,7 @@ import {
 } from "../../src/vortex-wrapper";
 import {
   REDMODDING_RTTI_METADATA_FILE_PATH,
+  V2077_MODLIST_PATH,
 } from "../../src/redmodding.metadata";
 
 import * as loTestData from "./loadorder.example";
@@ -102,12 +105,8 @@ describe(`Load Order`, () => {
           `"${FAKE_GAMEDIR_PATH}"`,
           `-rttiSchemaFile=`,
           `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-mod=`,
-          `"#POPPY DRESS (V2077 Autoconverted)"`,
-          `"AuskaWorks - Guinevere's Always-On Chrome"`,
-          `"Better_Apartment_Views"`,
-          `"PanamRomancedEnhanced"`,
-          `"PanamRomancedEnhancedPrivacy"`,
+          `-modlist=`,
+          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}`,
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
@@ -116,11 +115,17 @@ describe(`Load Order`, () => {
           expectSuccess: true,
         },
       };
+      const expectedModList: ModList = loTestData.v2077ModList;
 
       const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, v2077LoadOrderToDeploy);
+        redmodDeployRunParameters(FAKE_GAMEDIR_PATH);
 
       expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+
+      const redDeployModListGenerated =
+        loadOrderToREDdeployModList(v2077LoadOrderToDeploy);
+
+      expect(redDeployModListGenerated).toEqual(expectedModList);
     });
 
     test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
@@ -139,6 +144,8 @@ describe(`Load Order`, () => {
           `"${FAKE_GAMEDIR_PATH}"`,
           `-rttiSchemaFile=`,
           `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
+          `-modlist=`,
+          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}`,
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
@@ -148,10 +155,17 @@ describe(`Load Order`, () => {
         },
       };
 
+      const expectedModList: ModList = loTestData.emptyV2077ModList;
+
       const redDeployParamsGenerated =
-        loadOrderToREDdeployRunParameters(FAKE_GAMEDIR_PATH, noModsInLoadOrder);
+        redmodDeployRunParameters(FAKE_GAMEDIR_PATH);
 
       expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
+
+      const redDeployModListGenerated =
+        loadOrderToREDdeployModList(noModsInLoadOrder);
+
+      expect(redDeployModListGenerated).toEqual(expectedModList);
     });
 
   }); // Load Order

@@ -1,4 +1,4 @@
-import { LoadOrder } from "../../src/load_order.types";
+import { LoadOrder, ModList } from "../../src/load_order.types";
 import { VortexLoadOrderEntry } from "../../src/vortex-wrapper";
 
 
@@ -145,3 +145,14 @@ export const v2077LoadOrder: LoadOrder = {
     },
   ],
 };
+
+export const v2077ModList: ModList = [
+  `#POPPY DRESS (V2077 Autoconverted)`,
+  `AuskaWorks - Guinevere's Always-On Chrome`,
+  `Better_Apartment_Views`,
+  `PanamRomancedEnhanced`,
+  `PanamRomancedEnhancedPrivacy`,
+];
+
+export const emptyV2077ModList: ModList = [
+];
