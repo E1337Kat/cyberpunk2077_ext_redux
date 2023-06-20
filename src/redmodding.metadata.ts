@@ -9,6 +9,7 @@ export const REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES = path.join(`r6\\cache\
 export const REDMODDING_RTTI_METADATA_FILE_PATH = path.join(`tools\\redmod\\metadata.json`);
 
 export const V2077_LOAD_ORDER_DIR = path.join(`${V2077_DIR}\\Load Order`);
+export const V2077_MODLIST_PATH = path.join(`${V2077_DIR}\\modlist.txt`);
 
 export const REDlauncherExeRelativePath = path.join(`REDprelauncher.exe`);
 export const REDdeployExeRelativePath = path.join(`tools\\redmod\\bin\\redMod.exe`);
