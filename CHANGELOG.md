@@ -1,3 +1,41 @@
+# Cyberpunk 2077 Vortex Support v0.10.0-a "River"
+
+> [Insert good copy that is clever, engaging, and better than something a simple developer can come up with]
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+Why use a mod manager? In addition to supporting REDmods and every other kind of mod there is for CP2077, there's the quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
+
+As always, all feedback is appreciated so we can ensure that no bugs or oversights have slipped through our testing — and any suggestions and ideas are welcome too! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+
+- ✨ **Modlist File Support** The latest cyberpunk update added a feature to redmod to allow deploying mods specified in a file. When we read that, we knew we had to get right on it since many people have been running into a limit on mods because of how long the deploy command is. This will fix that right up.
+
+
+**Full Changelog**: [v0.8.3...v0.10.0-a](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.8.3...v0.10.0-a-gonk)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+Mostly Auska (@effs) and Ellie (@E1337Kat) this time around, but we're grateful for the help from CDPR and @rfuzzo for adding this feature (and another feature we will be adding in part b of River's quest)!
+
+As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.10.0-a "River"'
+
+---
+
+
 # Cyberpunk 2077 Vortex Support v0.9.8
 
 ## Main Jobs
