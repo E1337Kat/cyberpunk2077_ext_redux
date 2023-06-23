@@ -492,7 +492,7 @@ export const redmodDeployRunParameters = (
     `-rttiSchemaFile=`,
     `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
     `-modlist=`,
-    `"${path.join(gameDirPath, V2077_MODLIST_PATH)}`,
+    `"${path.join(gameDirPath, V2077_MODLIST_PATH)}"`,
   ];
 
   const exePath =
@@ -586,7 +586,8 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
   const REDdeployment: Promise<void> =
     pipe(
       loadOrderToREDdeployModList(v2077LoadOrderToDeploy),
-      (generatedModList) => generatedModList.join(`\n`),
+      // The line joining MUST be \r\n so that it is Windows line endings. otherwise redmod fails
+      (generatedModList) => generatedModList.join(`\r\n`),
       (encodedLoadOrder) => tryCatchTE(
         () =>
           fs.statAsync(path.dirname(modListPath)).then(() =>
