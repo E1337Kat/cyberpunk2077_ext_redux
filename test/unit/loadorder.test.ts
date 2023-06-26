@@ -106,7 +106,7 @@ describe(`Load Order`, () => {
           `-rttiSchemaFile=`,
           `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
           `-modlist=`,
-          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}`,
+          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}"`,
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
@@ -145,7 +145,7 @@ describe(`Load Order`, () => {
           `-rttiSchemaFile=`,
           `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
           `-modlist=`,
-          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}`,
+          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}"`,
         ],
         options: {
           cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
