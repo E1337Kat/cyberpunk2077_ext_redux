@@ -1,6 +1,6 @@
 # Cyberpunk 2077 Vortex Support v0.10.0-a "River"
 
-> [Insert good copy that is clever, engaging, and better than something a simple developer can come up with]
+> Lead developer and not good at writing person here. I went with the name River for this release because we are planning for it in two parts (an 'A' and 'B') like a river flows from point A to point B because I like puns. Also like a river, we, the development team, is still flowing forward to try and add features, fix bugs that we are able to fix, and hopefully continue to make it easier to use Vortex for Cyberpunk 2077 modding as we go forward. I wish I had the creative spark to write up the fun passages that my co-dev writes, but hopefully this isn't too trash. if it is, let me know. It won't change anything, but I can at least know I affected someone with my shit writing. 
 
 Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
 
@@ -10,7 +10,7 @@ As always, all feedback is appreciated so we can ensure that no bugs or oversigh
 
 ## Main Jobs
 
-- ✨ **Modlist File Support** The latest cyberpunk update added a feature to redmod to allow deploying mods specified in a file. When we read that, we knew we had to get right on it since many people have been running into a limit on mods because of how long the deploy command is. This will fix that right up.
+- ✨ **Modlist File Support** The latest cyberpunk update added a feature to redmod to allow deploying mods specified in a file. When we read that, we knew we had to get right on it to fully remove the mod count limit on REDmods (Eat it NetWatch!)
 
 
 **Full Changelog**: [v0.8.3...v0.10.0-a](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.8.3...v0.10.0-a-gonk)
