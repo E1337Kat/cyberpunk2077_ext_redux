@@ -1,6 +1,7 @@
 import {
   win32,
 } from "path";
+import os from "os";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Promise,
@@ -587,7 +588,7 @@ export const startREDmodDeployInTheBackgroundWithNotifications = (
     pipe(
       loadOrderToREDdeployModList(v2077LoadOrderToDeploy),
       // The line joining MUST be \r\n so that it is Windows line endings. otherwise redmod fails
-      (generatedModList) => generatedModList.join(`\r\n`),
+      (generatedModList) => generatedModList.join(os.EOL),
       (encodedLoadOrder) => tryCatchTE(
         () =>
           fs.statAsync(path.dirname(modListPath)).then(() =>
