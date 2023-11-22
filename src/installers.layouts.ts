@@ -177,6 +177,31 @@ export const DEPRECATED_INPUT_LOADER_CORE_FILES = {
 };
 export const DEPRECATED_INPUT_LOADER_CORE_REQUIRED_FILES = DEPRECATED_INPUT_LOADER_CORE_FILES;
 
+//
+// Core Mod Settings
+
+export const enum CoreModSettingsLayout {
+  OnlyValid = `
+              - .\\red4ext\\plugins\\mod_settings\\ModSettings.archive
+              - .\\red4ext\\plugins\\mod_settings\\ModSettings.archive.xl
+              - .\\red4ext\\plugins\\mod_settings\\mod_settings.dll
+              - .\\red4ext\\plugins\\mod_settings\\module.reds
+              - .\\red4ext\\plugins\\mod_settings\\packed.reds
+              - .\\red4ext\\plugins\\mod_settings\\license.md
+              - .\\red4ext\\plugins\\mod_settings\\readme.md
+              `,
+}
+
+export const MOD_SETTINGS_CORE_FILES = [
+  path.join(`red4ext\\plugins\\mod_settings\\ModSettings.archive`),
+  path.join(`red4ext\\plugins\\mod_settings\\ModSettings.archive.xl`),
+  path.join(`red4ext\\plugins\\mod_settings\\mod_settings.dll`),
+  path.join(`red4ext\\plugins\\mod_settings\\module.reds`),
+  path.join(`red4ext\\plugins\\mod_settings\\packed.reds`),
+  path.join(`red4ext\\plugins\\mod_settings\\license.md`),
+  path.join(`red4ext\\plugins\\mod_settings\\readme.md`),
+];
+
 
 //
 // Core TweakXL
@@ -639,7 +664,7 @@ export const REDS_MOD_CANONICAL_HINTS_PATH_PREFIX = path.normalize(`r6/config/re
 
 export const enum Red4ExtLayout {
   Canon = `.\\red4ext\\plugins\\[modname]\\[*.dll, any files or subdirs]`,
-  Basedir = `.\\red4ext\\plugins\\[*.dll, any files or subdirs]`,
+  Basedir = `.\\red4ext\\plugins\\[*.dll, any files or subdirs]`, // @TODO: No longer supported by Red4ext core
   Modnamed = `.\\[modname]\\[*.dll, any files or subdirs]`,
   Toplevel = `.\\[*.dll, any files or subdirs]`,
 }
@@ -896,6 +921,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
         This older version can still be installed, but should be updated:
 
         \`${CoreInputLoaderLayout.PreviousV010}\`
+    `,
+  ],
+  [
+    InstallerType.CoreModSettings,
+    `
+    \`${CoreModSettingsLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreModSettings} that I know of.
     `,
   ],
   [
