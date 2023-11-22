@@ -42,6 +42,7 @@ export enum InstallerType {
   CoreRedscript = `Core Redscript Installer`,
   CoreRed4ext = `Core RED4ext Installer`,
   CoreInputLoader = `Core Input Loader Installer (special case of Red4Ext)`,
+  CoreModSettings = `Core Mod Settings Installer (special case of Red4Ext)`,
   CoreCSVMerge = `(DEPRECATED - use TweakXL/ArchiveXL) Core CSVMerge Installer`,
   CoreCyberCat = `CyberCAT Save Editor Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
