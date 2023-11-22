@@ -70,12 +70,11 @@ export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
 export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree)
   && !detectRedscriptCanonOnlyLayout(fileTree)
-  && !detectRed4ExtCanonOnlyLayout(fileTree) // since Red4Ext mods can have embedded reds, we don't want to mistake oe for the other
   && dirWithSomeIn(FILETREE_ROOT, matchRedscriptFile, fileTree);
 
 const detectRedscriptLayout = (fileTree: FileTree): boolean =>
-  allRedscriptConfigFiles(fileTree).length > 0
-  || dirWithSomeUnder(FILETREE_ROOT, matchRedscriptFile, fileTree);
+  (allRedscriptConfigFiles(fileTree).length > 0 || dirWithSomeUnder(FILETREE_ROOT, matchRedscriptFile, fileTree))
+  && !detectRed4ExtCanonOnlyLayout(fileTree); // since Red4Ext mods can have embedded reds, we don't want to mistake oe for the other
 
 
 //
