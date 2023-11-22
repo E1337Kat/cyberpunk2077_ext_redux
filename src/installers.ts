@@ -1,11 +1,17 @@
-import { win32 } from "path";
-import { pipe } from "fp-ts/lib/function";
+import {
+  win32,
+} from "path";
+import {
+  pipe,
+} from "fp-ts/lib/function";
 import {
   filter,
   map,
   toArray,
 } from "fp-ts/lib/ReadonlyArray";
-import { not } from "fp-ts/lib/Predicate";
+import {
+  not,
+} from "fp-ts/lib/Predicate";
 import {
   fileCount,
   FileTree,
@@ -36,7 +42,9 @@ import {
   testForCetCore,
   installCetCore,
 } from "./installer.core";
-import { GAME_ID } from "./index.metadata";
+import {
+  GAME_ID,
+} from "./index.metadata";
 import {
   Installer,
   InstallerType,
@@ -97,8 +105,12 @@ import {
   testForRedscriptMod,
   installRedscriptMod,
 } from "./installer.redscript";
-import { modInfoFromArchiveNameOrSynthetic } from "./installers.shared";
-import { extraFilesAllowedInOtherModTypesInstructions } from "./installer.special.extrafiles";
+import {
+  modInfoFromArchiveNameOrSynthetic,
+} from "./installers.shared";
+import {
+  extraFilesAllowedInOtherModTypesInstructions,
+} from "./installer.special.extrafiles";
 import {
   InfoNotification,
   showInfoNotification,
@@ -143,7 +155,13 @@ import {
   installCoreRedscript,
   testForCoreRedscript,
 } from "./installer.core.redscript";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
+import {
+  installCoreModSettings,
+  testForCoreModSettings,
+} from "./installer.core.modsettings";
 
 // Ensure we're using win32 conventions
 const path = win32;

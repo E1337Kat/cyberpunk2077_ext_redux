@@ -46,6 +46,7 @@ import {
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
+import { detectRed4ExtCanonOnlyLayout } from "./installer.red4ext";
 
 const matchRedscriptFile = (file: string): boolean =>
   pathEq(REDS_MOD_CANONICAL_EXTENSION)(path.extname(file));
@@ -69,6 +70,7 @@ export const detectRedscriptCanonOnlyLayout = (fileTree: FileTree): boolean =>
 export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
   !detectRedscriptBasedirLayout(fileTree)
   && !detectRedscriptCanonOnlyLayout(fileTree)
+  && !detectRed4ExtCanonOnlyLayout(fileTree) // since Red4Ext mods can have embedded reds, we don't want to mistake oe for the other
   && dirWithSomeIn(FILETREE_ROOT, matchRedscriptFile, fileTree);
 
 const detectRedscriptLayout = (fileTree: FileTree): boolean =>
