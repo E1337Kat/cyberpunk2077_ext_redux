@@ -244,6 +244,12 @@ const installers: Installer[] = [
     install: installCoreInputLoader,
   },
   {
+    type: InstallerType.CoreModSettings,
+    id: InstallerType.CoreModSettings,
+    testSupported: testForCoreModSettings,
+    install: installCoreModSettings,
+  },
+  {
     type: InstallerType.CoreCyberCat,
     id: InstallerType.CoreCyberCat,
     testSupported: testForCyberCatCore,
