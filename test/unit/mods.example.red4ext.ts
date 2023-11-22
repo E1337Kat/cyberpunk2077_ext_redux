@@ -1,10 +1,20 @@
 import path from "path";
 import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  map,
+} from "fp-ts/lib/ReadonlyArray";
+import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
 } from "../../src/installers.layouts";
-import { InstallerType } from "../../src/installers.types";
-import { InstallChoices } from "../../src/ui.dialogs";
+import {
+  InstallerType,
+} from "../../src/installers.types";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
 import {
   ExampleSucceedingMod,
   RED4EXT_PREFIXES,
@@ -15,6 +25,7 @@ import {
   expectedUserCancelMessageFor,
   expectedUserCancelMessageForHittingFallback,
   ExamplesForType,
+  copiedToSamePath,
 } from "./utils.helper";
 
 const Red4ExtModSucceeds = new Map<string, ExampleSucceedingMod>(
@@ -53,6 +64,26 @@ const Red4ExtModSucceeds = new Map<string, ExampleSucceedingMod>(
           source: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
           destination: path.join(`${RED4EXT_PREFIX}/r4emod/notascript.dll`),
         },
+      ],
+    },
+    red4extWithRedScriptEmbeddedCanonical: {
+      expectedInstallerType: InstallerType.Red4Ext,
+      inFiles: [
+        ...RED4EXT_PREFIXES,
+        path.join(`${RED4EXT_PREFIX}/r4emod/`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/module.reds`),
+        path.join(`${RED4EXT_PREFIX}/r4emod/readme.md`),
+      ],
+      outInstructions: [
+        ...pipe(
+          [
+            path.join(`${RED4EXT_PREFIX}/r4emod/script.dll`),
+            path.join(`${RED4EXT_PREFIX}/r4emod/module.reds`),
+            path.join(`${RED4EXT_PREFIX}/r4emod/readme.md`),
+          ],
+          map(copiedToSamePath),
+        ),
       ],
     },
     red4extIncludingNonRedsAndNonemptySubdirsCanonical: {
