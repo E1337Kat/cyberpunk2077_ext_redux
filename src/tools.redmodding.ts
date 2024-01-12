@@ -100,7 +100,7 @@ export const REDdeployManual: VortexToolShim = {
   relative: true,
   requiredFiles: [REDdeployExeRelativePath],
   executable: constant(REDdeployExeRelativePath),
-  parameters: [REDdeployManualToolNeedsLOGenerated],
+  parameters: [REDdeployManualToolNeedsLOGenerated, ' & pause'],
   shell: true,
   exclusive: true,
   // Can't be set here for some reason, we do this in the hook instead
