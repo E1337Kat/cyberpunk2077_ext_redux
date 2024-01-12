@@ -1,89 +1,61 @@
 import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  fromNullable,
+  getOrElse,
   Option,
-  none,
-  some,
 } from "fp-ts/lib/Option";
+import {
+  ComplexActionCreator1,
+  createAction,
+} from "redux-act";
+import {
+  FeatureSet,
+  FeatureState,
+  VersionedStaticFeatureSet,
+  UserControlledFeatureDefaults,
+  UserControlledFeature,
+  boolAsFeature,
+  RuntimeFeatureInitializers,
+  UserControlledFeatureSet,
+  RuntimeFeatureSet,
+  featureAsBool,
+  RuntimeFeature,
+} from "./features.types";
 import {
   VORTEX_STORE_PATHS,
 } from "./index.metadata";
 import {
-  Dynamic,
-  Versioned,
+  Effect,
+  constant,
+  forEffect,
 } from "./util.functions";
 import {
   VortexExtensionApi,
+  VortexReducerSpec,
 } from "./vortex-wrapper";
 
-
-//
-// Features are simple things, but not as simple as booleans
-//
-
-export const enum FeatureState {
-  Enabled = `This feature is enabled`,
-  Disabled = `This feature is disabled`,
-  Deprecated = `This feature should be removed`,
-}
-
-const boolAsFeature = (currentState: boolean): FeatureState =>
-  (currentState ? FeatureState.Enabled : FeatureState.Disabled);
-
-export const IsFeatureEnabled = (featureState: FeatureState): boolean =>
-  featureState === FeatureState.Enabled;
-
-export const IsDynamicFeatureEnabled = (featureState: Dynamic<FeatureState>): boolean =>
-  featureState() === FeatureState.Enabled;
-
-export const IfFeatureEnabled = <T>(featureState: FeatureState, then: Dynamic<T>): Option<T> =>
-  (IsFeatureEnabled(featureState)
-    ? some(then())
-    : none);
-
-//
-// Some features can be changed, some can't
-//
-
-export const enum StaticFeature {
-  REDmodding = `v2077_feature_redmodding`,
-  REDmodLoadOrder = `v2077_feature_redmod_load_order`,
-  REDmodAutoconversionTag = `v2077_feature_redmod_autoconversion_tag`,
-}
-
-// Need to be underscored since it isn't always just a string... thanks react...
-export const enum DynamicFeature {
-  REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
-}
-
-export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, string[]>;
+// Let's keep the single-file interface for now
+export * from "./features.types";
 
 
-// FeatureSets are what user code uses...
-
-export type StaticFeatureSet = Record<keyof typeof StaticFeature, FeatureState>;
-
-export type DynamicFeatureSet = Record<keyof typeof DynamicFeature, Dynamic<FeatureState>>;
-export type DynamicFeatureDefaults = Record<DynamicFeature, boolean>;
-
-export type VersionedStaticFeatureSet = StaticFeatureSet & Versioned;
-
-export type FeatureSet = VersionedStaticFeatureSet & DynamicFeatureSet;
-
-
-// ...Through these records
+// Default setup
 
 export const BaselineFeatureSetForTests: FeatureSet = {
-  fromVersion: `0.9.3`,
-  REDmodding: FeatureState.Disabled,
-  REDmodLoadOrder: FeatureState.Disabled,
-  REDmodAutoconversionTag: FeatureState.Enabled,
-  REDmodAutoconvertArchives: () => FeatureState.Disabled,
+  fromVersion: `0.9.6`,
+  REDmodding: constant(FeatureState.Disabled),
+  REDmodLoadOrder: constant(FeatureState.Disabled),
+  REDmodAutoconversionTag: constant(FeatureState.Enabled),
+  REDmoddingDlc: constant(FeatureState.Enabled),
+  REDmodAutoconvertArchives: constant(FeatureState.Disabled),
 };
 
 export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
-  fromVersion: `0.9.3`,
-  REDmodding: FeatureState.Enabled,
-  REDmodLoadOrder: FeatureState.Enabled,
-  REDmodAutoconversionTag: FeatureState.Disabled,
+  fromVersion: `0.9.6`,
+  REDmodding: constant(FeatureState.Enabled),
+  REDmodLoadOrder: constant(FeatureState.Enabled),
+  REDmodAutoconversionTag: constant(FeatureState.Disabled),
 };
 
 
@@ -91,8 +63,8 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
 // Helpers for the store so we don't repeat this everywhere
 //
 
-export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
-  [DynamicFeature.REDmodAutoconvertArchives]: false,
+export const DefaultEnabledStateForUserControlledFeatures: UserControlledFeatureDefaults = {
+  [UserControlledFeature.REDmodAutoconvertArchives]: featureAsBool(FeatureState.Disabled),
 };
 
 
@@ -107,37 +79,94 @@ interface StoreUtil {
 
 // Subtlety here: get will get the full state, but set only gets the slice. Should reconsider.
 
-export const storeGetDynamicFeature =
-  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: unknown): boolean => storeUtil.getSafe(
-    stateSlice,
-    [...VORTEX_STORE_PATHS.settings, feature],
-    DefaultEnabledStateForDynamicFeatures[feature],
+export const storeGetRuntimeFeature =
+  (storeUtil: StoreUtil, feature: RuntimeFeature, vortexState: unknown): Option<boolean> =>
+    pipe(
+      storeUtil.getSafe(
+        vortexState,
+        [...VORTEX_STORE_PATHS.settings, feature],
+        undefined,
+      ),
+      fromNullable,
+    );
+
+const storeSetRuntimeFeature =
+  (storeUtil: StoreUtil, feature: RuntimeFeature, v2077SubtreeOfVortexState: object, value: boolean): object =>
+    storeUtil.setSafe(v2077SubtreeOfVortexState, [feature], value);
+
+
+export const storeGetUserControlledFeature =
+  (storeUtil: StoreUtil, feature: UserControlledFeature, vortexState: unknown): boolean =>
+    storeUtil.getSafe(
+      vortexState,
+      [...VORTEX_STORE_PATHS.settings, feature],
+      DefaultEnabledStateForUserControlledFeatures[feature],
+    );
+
+export const storeSetUserControlledFeature =
+  (storeUtil: StoreUtil, feature: UserControlledFeature, v2077SubtreeOfVortexState: object, value: boolean): object =>
+    storeUtil.setSafe(v2077SubtreeOfVortexState, [feature], value);
+
+// Derive Redux stuff from the Features
+export const makeSettingsReducerForUserControlledFeatures = (): readonly [string[], VortexReducerSpec] =>
+  [VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForUserControlledFeatures)];
+
+
+export type SetFeatureStateCacheAction = ComplexActionCreator1<boolean, boolean>;
+
+export const setCachedRuntimeFeatureState: SetFeatureStateCacheAction =
+  createAction<boolean, boolean>(
+    `SET_REDMOD_AUTOCONVERT_ARCHIVES`,
+    (enabled: boolean): boolean => enabled,
   );
+// Assembling the feature set
 
-export const storeSetDynamicFeature =
-  (storeUtil: StoreUtil, feature: DynamicFeature, stateSlice: object, value: boolean): object =>
-    storeUtil.setSafe(stateSlice, [feature], value);
+const doEffect = <A>(e: (a: A) => void) => (a: A): A => { e(a); return a; };
 
-//
-// Create the complete feature set once we're ready
-//
-// This /may/ need to be delayed because the Vortex API /object/ isn't
-// permitted to be used until after the extension is initialized.
-//
-// One way around it might just be to use the `once()` function but
-// I'm not a huge fan plus this doesn't really harm anything.. it's
-// just a bit more explicit.
-//
-
-export const FullFeatureSetFromStaticAndDynamic = (
-  staticFeatures: VersionedStaticFeatureSet,
+const makeRuntimeFeatureGetters = (
   vortexExtApi: VortexExtensionApi,
-  storeUtil: StoreUtil, // JFC peer dependencies
+  storeUtil: StoreUtil,
+  runtimeFeatureInitializers: RuntimeFeatureInitializers,
+): RuntimeFeatureSet => ({
+  REDmoddingDlc: () =>
+    pipe(
+      // This needs to be session storage
+      storeGetRuntimeFeature(
+        storeUtil,
+        RuntimeFeature.REDmoddingDlc,
+        vortexExtApi.store.getState(),
+      ),
+      getOrElse(runtimeFeatureInitializers.REDmoddingDlc),
+      doEffect((isFeatureOn) => {
+        if (isFeatureOn) {
+          vortexExtApi.store.dispatch(setCachedRuntimeFeatureState(true));
+        }
+      }),
+      boolAsFeature,
+    ),
+});
+
+const makeUserControlledFeatureGetters =
+  (vortexExtApi: VortexExtensionApi, storeUtil: StoreUtil): UserControlledFeatureSet => ({
+    REDmodAutoconvertArchives: () =>
+      pipe(
+        storeGetUserControlledFeature(
+          storeUtil,
+          UserControlledFeature.REDmodAutoconvertArchives,
+          vortexExtApi.store.getState(),
+        ),
+        boolAsFeature,
+      ),
+  });
+
+export const MakeCompleteFeatureSet = (
+  vortexExtApi: VortexExtensionApi,
+  storeUtil: StoreUtil,
+  staticFeatures: VersionedStaticFeatureSet,
+  runtimeFeatureInitializers: RuntimeFeatureInitializers,
 ): FeatureSet => ({
   ...staticFeatures,
-  REDmodAutoconvertArchives: () =>
-    boolAsFeature(
-      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
-    ),
+  ...makeRuntimeFeatureGetters(vortexExtApi, storeUtil, runtimeFeatureInitializers),
+  ...makeUserControlledFeatureGetters(vortexExtApi, storeUtil),
 });
 

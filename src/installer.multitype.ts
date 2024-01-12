@@ -51,6 +51,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import {
+  constant,
   trueish,
 } from "./util.functions";
 import {
@@ -213,7 +214,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
 
   const enforceTagWhenREDmodPresentToAvoidConflict: FeatureSet =
     !isEmpty(maybeREDmodInstructions.right)
-      ? { ...features, REDmodAutoconversionTag: FeatureState.Enabled }
+      ? { ...features, REDmodAutoconversionTag: constant(FeatureState.Enabled) }
       : features;
 
   const archiveInstructions =

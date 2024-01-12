@@ -1,5 +1,7 @@
 
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 import {
   IREDmodProps,
   VortexActionConditionResult,

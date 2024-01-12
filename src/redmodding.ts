@@ -3,8 +3,18 @@ import {
   fs,
   util as VortexUtil,
 } from "@vortex-api-test-shimmed";
-import { map } from "fp-ts/lib/ReadonlyArray";
-import { pipe } from "fp-ts/lib/function";
+import {
+  every,
+} from "fp-ts/lib/ReadonlyArray";
+import {
+  pipe,
+} from "fp-ts/lib/function";
+import {
+  Either,
+  isRight,
+  left,
+  right,
+} from "fp-ts/lib/Either";
 import {
   GOGAPP_ID,
   STEAMAPP_ID,
@@ -15,18 +25,21 @@ import {
   REDMODDING_REQUIRED_DIR_FOR_MODS,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
+import {
+  promptUserInstallREDmoddingDlc,
+} from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
-  VortexState,
-  VortexToolDiscovered,
 } from "./vortex-wrapper";
 import {
   REDdeployManual,
   REDlauncher,
 } from "./tools.redmodding";
+import {
+  jsonp,
+} from "./util.functions";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game.
 // This may need to be converted to a test, but the UI for tests is less flexible.
@@ -36,14 +49,6 @@ interface REDmoddingDlcDetails {
   url: string;
   openCommand: () => Promise<void>;
 }
-
-
-export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
-  const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
-  return Object.keys(tools).map((id) => tools[id])
-    .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
-    .find((iter) => path.basename(iter.path).toLowerCase() === `redMod.exe`);
-};
 
 
 const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
@@ -76,6 +81,7 @@ const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   return gameStoreData[id];
 };
 
+
 const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
   const redModDetails = fetchREDmoddingDlcDetails(gameStoreId);
 
@@ -85,6 +91,34 @@ const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: str
     () => VortexUtil.opn(redModDetails.url),
   );
 };
+
+
+// Returning an Either means we don't need vortexApi to be passed in for errors
+export const isREDmoddingDlcAvailable = (
+  gameDirPath: string,
+): Either<Error, true> => {
+
+  const requiredREDmoddingFiles = [
+    ...REDlauncher.requiredFiles,
+    ...REDdeployManual.requiredFiles,
+  ];
+
+  try {
+    const foundRequiredFiles =
+      pipe(
+        requiredREDmoddingFiles,
+        every((file) => !!fs.statSync(path.join(gameDirPath, file))),
+      );
+
+    return foundRequiredFiles
+      ? right(true)
+      : left(new Error(`isREDmoddingDlcAvailable: expected required files to exist: ${jsonp({ requiredREDmoddingFiles })}`));
+
+  } catch (error) {
+    return left(new Error(`isREDmoddingDlcAvailable: expected error checking for required files ${jsonp({ error, requiredREDmoddingFiles })}`));
+  }
+};
+
 
 const prepareForModdingWithREDmodding = async (
   vortexApi: VortexApi,
@@ -109,26 +143,17 @@ const prepareForModdingWithREDmodding = async (
     vortexApi.log(`error`, `Unable to create or access load order storage dir ${V2077_LOAD_ORDER_DIR} under ${discovery.path}`, err);
   }
 
-  // Attempt to detect if the user has the REDmodding DLC installed
-  const requiredREDmoddingFiles = [
-    ...REDlauncher.requiredFiles,
-    ...REDdeployManual.requiredFiles,
-  ];
+  const foundREDmoddingDlcFiles =
+      isREDmoddingDlcAvailable(discovery.path);
 
-  try {
-    await pipe(
-      requiredREDmoddingFiles,
-      map((file) =>
-        fs.statAsync(path.join(discovery.path, file))),
-      Promise.all,
-    );
+  if (isRight(foundREDmoddingDlcFiles)) {
+    vortexApi.log(`info`, `REDmodding DLC files found, good!`);
 
-    // Only need to run the DLC finder if the files aren't there yet
     return;
-
-  } catch (err) {
-    vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`, err);
   }
+
+  vortexApi.log(`warn`, foundREDmoddingDlcFiles.left.message);
+  vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`);
 
   const gameStoreIfInstalledThroughStore =
     await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]).catch(() => undefined);
@@ -140,6 +165,7 @@ const prepareForModdingWithREDmodding = async (
   await promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
 };
 
+
 export const wrappedPrepareForModdingWithREDmodding = async (
   vortex: VortexExtensionContext,
   vortexApiThing,
@@ -147,7 +173,7 @@ export const wrappedPrepareForModdingWithREDmodding = async (
 ): Promise<void> => {
   const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
 
-  vortexApi.log(`info`, `Checking for REDmod install`);
+  vortexApi.log(`info`, `REDmodding: checking for the REDmodding DLC and necessary directories...`);
 
   return prepareForModdingWithREDmodding(vortexApi, discovery);
 };

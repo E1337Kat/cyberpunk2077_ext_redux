@@ -116,7 +116,7 @@ import {
 } from "./ui.dialogs";
 import {
   FeatureSet,
-  IsDynamicFeatureEnabled,
+  IsFeatureEnabled,
 } from "./features";
 import {
   jsonp,
@@ -810,7 +810,7 @@ export const transformToREDmodArchiveInstructions = async (
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (!IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
+  if (!IsFeatureEnabled(features.REDmodAutoconvertArchives)) {
     api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
     return right(originalInstructions);
   }

@@ -11,8 +11,8 @@ import {
 } from 'vortex-api';
 import { setREDmodAutoconvertArchivesAction } from '../actions';
 import {
-  DynamicFeature,
-  storeGetDynamicFeature,
+  UserControlledFeature,
+  storeGetUserControlledFeature,
 } from '../features';
 import { squashAllWhitespace } from '../util.functions';
 import { VortexState } from '../vortex-wrapper';
@@ -62,7 +62,7 @@ const Settings = (props: IProps): JSX.Element => {
 };
 
 export const mapStateToProps = (fullVortexState: unknown): IConnectedProps => ({
-  redmodAutoconvertArchives: storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, fullVortexState),
+  redmodAutoconvertArchives: storeGetUserControlledFeature(vortexUtil, UserControlledFeature.REDmodAutoconvertArchives, fullVortexState),
 });
 
 

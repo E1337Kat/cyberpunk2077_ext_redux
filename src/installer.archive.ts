@@ -67,7 +67,7 @@ import {
 } from "./vortex-wrapper";
 import {
   FeatureSet,
-  IsDynamicFeatureEnabled,
+  IsFeatureEnabled,
 } from "./features";
 import {
   transformToREDmodArchiveInstructions,
@@ -401,7 +401,7 @@ const transformAndValidateAndFinalizeInstructions = async (
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
+  if (IsFeatureEnabled(features.REDmodAutoconvertArchives)) {
     return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
   }
 
