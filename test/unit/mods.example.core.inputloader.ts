@@ -8,6 +8,7 @@ import {
 import {
   CONFIG_INI_MOD_BASEDIR,
   CONFIG_XML_MOD_MERGEABLE_BASEDIR,
+  CYBERPUNK_CACHE_PATH,
 } from "../../src/installers.layouts";
 import {
   InstallerType,
@@ -28,6 +29,15 @@ import {
 } from "../../src/ui.dialogs";
 
 const inputLoaderInFiles = {
+  v012: [
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\license.md`),
+    path.join(`${RED4EXT_PREFIX}\\input_loader\\readme.md`),
+    path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
+    path.join(`${CYBERPUNK_CACHE_PATH}\\inputContexts.xml`),
+    path.join(`${CYBERPUNK_CACHE_PATH}\\inputUserMappings.xml`),
+  ],
   v011: [
     path.join(`${RED4EXT_PREFIX}\\input_loader\\input_loader.dll`),
     path.join(`${RED4EXT_PREFIX}\\input_loader\\inputUserMappings.xml`),
@@ -44,18 +54,18 @@ const inputLoaderInFiles = {
 
 const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
   [
-    `Core Input Loader version v0.1.1 installs without prompting when all required paths present`,
+    `Core Input Loader version v0.1.2 installs without prompting when all required paths present`,
     {
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-        ...inputLoaderInFiles.v011,
+        ...inputLoaderInFiles.v012,
       ],
       outInstructions: [
         generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
         ...pipe(
-          inputLoaderInFiles.v011,
+          inputLoaderInFiles.v012,
           map(copiedToSamePath),
         ),
       ],
@@ -65,6 +75,27 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
 
 
 const CoreInputLoaderDeprecatedPromptsToInstall = new Map<string, ExamplePromptInstallableMod>([
+  [
+    `Deprecated Core Input Loader version v0.1.1 installs when all required paths present`,
+    {
+      expectedInstallerType: InstallerType.CoreInputLoader,
+      inFiles: [
+        ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
+        ...inputLoaderInFiles.v011,
+      ],
+      proceedLabel: InstallChoices.Proceed,
+      proceedOutInstructions: [
+        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
+        createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
+        ...pipe(
+          inputLoaderInFiles.v011,
+          map(copiedToSamePath),
+        ),
+      ],
+      cancelLabel: InstallChoices.Cancel,
+      cancelErrorMessage: `${InstallerType.CoreInputLoader}: user chose to cancel installing deprecated version`,
+    },
+  ],
   [
     `Deprecated Core Input Loader version v0.1.0 installs when all required paths present`,
     {
