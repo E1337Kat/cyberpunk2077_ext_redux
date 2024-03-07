@@ -59,10 +59,11 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
         ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
+        ...pathHierarchyFor(`${CONFIG_INI_MOD_BASEDIR}\\`),
+        ...pathHierarchyFor(`${CYBERPUNK_CACHE_PATH}\\`),
         ...inputLoaderInFiles.v012,
       ],
       outInstructions: [
-        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
         ...pipe(
           inputLoaderInFiles.v012,
