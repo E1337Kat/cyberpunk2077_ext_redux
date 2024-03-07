@@ -121,15 +121,19 @@ const findCoreInputLoaderFiles = (fileTree: FileTree): string[] => [
   ...INPUT_LOADER_CORE_REQUIRED_FILES.V012.filter((requiredFile) => pathInTree(requiredFile, fileTree)),
 ];
 
-const findDeprecatedCoreInputLoaderFiles = (fileTree: FileTree): string[] => [
+const findDeprecated010CoreInputLoaderFiles = (fileTree: FileTree): string[] => [
   ...DEPRECATED_INPUT_LOADER_CORE_FILES.V010.filter((deprecatedFile) => pathInTree(deprecatedFile, fileTree)),
+];
+
+const findDeprecated011CoreInputLoaderFiles = (fileTree: FileTree): string[] => [
   ...DEPRECATED_INPUT_LOADER_CORE_FILES.V011.filter((deprecatedFile) => pathInTree(deprecatedFile, fileTree)),
 ];
 
 const detectCoreInputLoader = (fileTree: FileTree): boolean =>
   // We just need to know this looks like it should be a core input loader installation, for errors
   findCoreInputLoaderFiles(fileTree).length > 0
-  || findDeprecatedCoreInputLoaderFiles(fileTree).length > 0;
+  || findDeprecated010CoreInputLoaderFiles(fileTree).length > 0
+  || findDeprecated011CoreInputLoaderFiles(fileTree).length > 0;
 
 
 // test
@@ -145,21 +149,23 @@ export const testForCoreInputLoader: V2077TestFunc = (
 
 
 const shouldHandleDeprecated010Installation = (
-  deprecatedInstallationFiles: string[],
   fileTree: FileTree,
-): boolean => (deprecatedInstallationFiles.length === fileCount(fileTree)
+): boolean => {
+  const deprecatedInstallationFiles = findDeprecated010CoreInputLoaderFiles(fileTree);
+  return (deprecatedInstallationFiles.length === fileCount(fileTree)
       && deprecatedInstallationFiles.length === DEPRECATED_INPUT_LOADER_CORE_FILES.V010.length);
+};
 
 const shouldHandleDeprecated011Installation = (
-  deprecatedInstallationFiles: string[],
   fileTree: FileTree,
-): boolean => (deprecatedInstallationFiles.length === fileCount(fileTree)
+): boolean => {
+  const deprecatedInstallationFiles = findDeprecated011CoreInputLoaderFiles(fileTree);
+  return (deprecatedInstallationFiles.length === fileCount(fileTree)
       && deprecatedInstallationFiles.length === DEPRECATED_INPUT_LOADER_CORE_FILES.V011.length);
+};
 
 const handleDeprecated010Installation = async (
   api: VortexApi,
-  _deprecatedInstallationFiles: string[],
-  _fileTree: FileTree,
 ): Promise<VortexInstallResult | never> => {
   const infoMessage = `Old core mod version!`;
   api.log(`info`, `${me}: ${infoMessage} Confirming installation.`);
@@ -183,8 +189,6 @@ const handleDeprecated010Installation = async (
 
 const handleDeprecated011Installation = async (
   api: VortexApi,
-  _deprecatedInstallationFiles: string[],
-  _fileTree: FileTree,
 ): Promise<VortexInstallResult | never> => {
   const infoMessage = `Old core mod version!`;
   api.log(`info`, `${me}: ${infoMessage} Confirming installation.`);
@@ -219,13 +223,12 @@ export const installCoreInputLoader: V2077InstallFunc = async (
     return Promise.resolve({ instructions: CoreInputLoaderInstructions });
   }
 
-  const deprecatedInstallationFiles = findDeprecatedCoreInputLoaderFiles(fileTree);
-
-  if (shouldHandleDeprecated010Installation(deprecatedInstallationFiles, fileTree)) {
-    return handleDeprecated010Installation(api, deprecatedInstallationFiles, fileTree);
+  if (shouldHandleDeprecated010Installation(fileTree)) {
+    return handleDeprecated010Installation(api);
   }
-  if (shouldHandleDeprecated011Installation(deprecatedInstallationFiles, fileTree)) {
-    return handleDeprecated011Installation(api, deprecatedInstallationFiles, fileTree);
+
+  if (shouldHandleDeprecated011Installation(fileTree)) {
+    return handleDeprecated011Installation(api);
   }
 
   const errorMessage = `Didn't Find Expected Input Loader Installation!`;
