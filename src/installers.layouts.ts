@@ -770,7 +770,7 @@ export const REDMOD_TWEAKS_VALID_EXTENSIONS = [`.tweak`];
 
 // Some extra rules for these, since they are required to retain the paths
 export const REDMOD_SCRIPTS_VALID_SUBDIR_NAMES = [`core`, `cyberpunk`, `exec`, `samples`, `tests`];
-export const REDMOD_TWEAKS_VALID_SUBDIR = path.join(`base\\gameplay\\static_data`);
+export const REDMOD_TWEAKS_VALID_SUBDIRS = [`base\\gameplay\\static_data`, `ep1\\gameplay\\static_data`];
 
 export const REDMOD_SUBTYPE_DIRNAMES = [
   REDMOD_ARCHIVES_DIRNAME,
