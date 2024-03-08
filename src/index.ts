@@ -5,12 +5,15 @@ import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-depen
 
 // Our stuff
 import {
+  filter,
   findFirst,
+  isNonEmpty,
   map,
   mapWithIndex,
   toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import {
+  constTrue,
   pipe,
 } from "fp-ts/lib/function";
 import {
@@ -48,7 +51,9 @@ import {
 import {
   VortexDiscoveryResult,
   VortexExtensionContext,
+  VortexGame,
   VortexGameStoreEntry,
+  VortexInstruction,
   VortexState,
   vortexUtil,
 } from "./vortex-wrapper";
@@ -87,6 +92,10 @@ import {
 import {
   isSupported,
 } from "./state.functions";
+import {
+  ModAttributeKey,
+  ModType,
+} from "./installers.types";
 
 
 //
@@ -324,7 +333,23 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
       undefined,
     );
-  } // if (IsFeatureEnabled(features.REDmodding))
+
+    vortexExt.registerModType(
+      ModType.REDmod,
+      100,
+      constTrue,
+      (_game: VortexGame) => ``,
+      (instructions: VortexInstruction[]) => pipe(
+        instructions,
+        filter((instruction) =>
+          instruction.key === ModAttributeKey.ModType && instruction.value?.data === ModType.REDmod),
+        isNonEmpty,
+      ),
+      {
+        name: `REDmod`,
+      },
+    );
+  }
 
   vortexExt.once(() => {
 
@@ -346,29 +371,8 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       vortexExt.api.emitAndAwait(`discover-tools`, GAME_ID);
       return Promise.resolve();
     });
+  });
 
-  }); // vortexExt.once(() => {
-
-  // This makes Vortex unable to deploy anything because the type didn't exist previously :D
-  //
-  // https://github.com/Nexus-Mods/Vortex/issues/13376
-  /*
-    vortex.registerModType(
-      ModType.REDmod,
-      100,
-      constTrue,
-      (_game: VortexGame) => ``,
-      (instructions: VortexInstruction[]) => pipe(
-        instructions,
-        filter((instruction) =>
-          instruction.key === ModAttributeKey.ModType && instruction.value?.data === ModType.REDmod),
-        isNonEmpty,
-      ),
-      {
-        name: `REDmod`,
-      },
-    );
-    */
   return true;
 };
 
