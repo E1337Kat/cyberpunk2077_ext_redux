@@ -1,3 +1,55 @@
+# Cyberpunk 2077 Vortex Support v0.10.1
+
+Loading input.
+.
+.
+.
+Input loaded:
+
+## Fixer Gigs
+
+* ✨ [#376] Add support for Input Loader 0.1.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/379
+* 🔖 [release] bump version to 0.10.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/381
+
+**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.1...v0.10.2
+
+---
+
+# Cyberpunk 2077 Vortex Support v0.10.0-a "River"
+
+> Lead developer and not good at writing person here, again. This is not part 'B' of River. This is just a tribute. I will try to continue picking off the things that I can when I see them. I fixed my dev environment a bit and real world is letting up for the holidays, so I will try and get things going a bit more, but I know better than to make a promise.
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+
+## Main Jobs
+
+- ✨Add explicit support for Mod Settings. Sorry about that one, I probably would have noticed it sooner had I been playing lately.
+- ✨Add support for Red4Ext mods to install with bundled redscript files without complaining. I think this is actually gonna fix a long standing bug that I didn't catch before... so we'll see.
+
+**Full Changelog**: [v0.10.0-a...v0.10.1](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.0-a...v0.10.1)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+Just Ellie (@E1337Kat) this time around, but we're grateful for the help from that has not let me slip away quietly. Really need to get back into the game.
+
+As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.10.1 "River? Still?"'
+
+---
+
+
 # Cyberpunk 2077 Vortex Support v0.10.0-a "River"
 
 > Lead developer and not good at writing person here. I went with the name River for this release because we are planning for it in two parts (an 'A' and 'B') like a river flows from point A to point B because I like puns. Also like a river, we, the development team, is still flowing forward to try and add features, fix bugs that we are able to fix, and hopefully continue to make it easier to use Vortex for Cyberpunk 2077 modding as we go forward. I wish I had the creative spark to write up the fun passages that my co-dev writes, but hopefully this isn't too trash. if it is, let me know. It won't change anything, but I can at least know I affected someone with my shit writing. 
