@@ -391,6 +391,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/`),
         path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/static_data/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
       ],
       outInstructions: [
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
@@ -400,6 +404,7 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/exec/yay_its_javascript.ws`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
@@ -514,6 +519,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`myRedMod/tweaks/base/gameplay/`),
         path.join(`myRedMod/tweaks/base/gameplay/static_data/`),
         path.join(`myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        path.join(`myRedMod/tweaks/ep1/`),
+        path.join(`myRedMod/tweaks/ep1/gameplay/`),
+        path.join(`myRedMod/tweaks/ep1/gameplay/static_data/`),
+        path.join(`myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
       ],
       outInstructions: [
         movedFromTo(
@@ -543,6 +552,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         movedFromTo(
           path.join(`myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
           path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        ),
+        movedFromTo(
+          path.join(`myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
@@ -606,6 +619,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         path.join(`tweaks/base/gameplay/`),
         path.join(`tweaks/base/gameplay/static_data/`),
         path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        path.join(`tweaks/ep1/`),
+        path.join(`tweaks/ep1/gameplay/`),
+        path.join(`tweaks/ep1/gameplay/static_data/`),
+        path.join(`tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
       ],
       outInstructions: [
         movedFromTo(
@@ -635,6 +652,10 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         movedFromTo(
           path.join(`tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
           path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
+        ),
+        movedFromTo(
+          path.join(`tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
+          path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/ep1/gameplay/static_data/idris_tweakba.tweak`),
         ),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),

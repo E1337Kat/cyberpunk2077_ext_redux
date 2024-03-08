@@ -69,7 +69,6 @@ import {
   REDMOD_ARCHIVES_DIRNAME,
   REDMOD_CUSTOMSOUNDS_DIRNAME,
   REDMOD_TWEAKS_DIRNAME,
-  REDMOD_TWEAKS_VALID_SUBDIR,
   REDMOD_ARCHIVES_VALID_EXTENSIONS,
   REDMOD_CUSTOMSOUNDS_VALID_EXTENSIONS,
   REDMOD_SCRIPTS_VALID_EXTENSIONS,
@@ -82,6 +81,7 @@ import {
   REDmodTransformedLayout,
   REDMOD_MODTYPE_ATTRIBUTE,
   ARCHIVE_MOD_XL_EXTENSION,
+  REDMOD_TWEAKS_VALID_SUBDIRS,
 } from "./installers.layouts";
 import {
   fileFromDiskTE,
@@ -511,14 +511,19 @@ const tweakLayoutAndValidation = (
   const tweaksDir =
     path.join(relativeSourceDir, REDMOD_TWEAKS_DIRNAME);
 
-  const tweaksDirWithValidBasedir =
-    path.join(tweaksDir, REDMOD_TWEAKS_VALID_SUBDIR);
-
   const allTweakFiles =
     filesUnder(tweaksDir, matchREDmodTweak, fileTree);
 
-  const allTweakFilesInValidBasedir =
-    filesUnder(tweaksDirWithValidBasedir, matchREDmodTweak, fileTree);
+  const allTweakFilesInValidBasedir = pipe(
+    REDMOD_TWEAKS_VALID_SUBDIRS,
+    map((validTweakSubdir) =>
+      filesUnder(
+        path.join(tweaksDir, validTweakSubdir),
+        matchREDmodTweak,
+        fileTree,
+      )),
+    flatten,
+  );
 
   if (allTweakFiles.length !== allTweakFilesInValidBasedir.length) {
     const invalidTweakFiles = pipe(
