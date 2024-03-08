@@ -165,7 +165,7 @@ export interface ModInfo {
 
 // REDmod type info
 
-// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#parameters
+// https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-creators/modding-tools/redmod/audio-modding#parameters
 
 // We still need to figure out if there's a need to model `mod_skip`
 // at the type level rather than just in logic.
@@ -200,7 +200,7 @@ export const REDmodCustomSoundType =
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface REDmodCustomSound extends t.TypeOf<typeof REDmodCustomSoundType> {}
 
-// https://wiki.redmodding.org/cyberpunk-2077-modding/modding/redmod/quick-guide#info.json
+// https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-creators/modding-tools/redmod#info.json
 
 export const REDmodInfoType =
   t.intersection([
