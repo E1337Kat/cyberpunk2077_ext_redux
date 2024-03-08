@@ -67,6 +67,26 @@ const myREDmodInfoWithSoundForVortex: REDmodInfoForVortex = {
 };
 const myREDmodInfoWithSoundJson = jsonpp(myREDmodInfoWithSound);
 
+const myREDmodInfoWithUISound: REDmodInfo = {
+  name: `myRedMod`,
+  version: `1.0.0`,
+  description: `This is a description I guess`,
+  customSounds: [
+    {
+      name: `mySound`,
+      type: `mod_sfx_ui`,
+      file: `cool_sounds.wav`,
+    },
+  ],
+};
+const myREDmodInfoWithUISoundForVortex: REDmodInfoForVortex = {
+  name: myREDmodInfoWithUISound.name,
+  version: myREDmodInfoWithUISound.version,
+  relativePath: path.join(REDMOD_BASEDIR, myREDmodInfoWithUISound.name),
+  vortexModId: FAKE_MOD_INFO.id,
+};
+const myREDmodInfoWithUISoundJson = jsonpp(myREDmodInfoWithUISound);
+
 
 const myREDmodInfoWithSkipSound: REDmodInfo = {
   name: `myRedMod`,
@@ -318,6 +338,35 @@ const REDmodSucceeds = new Map<string, ExampleSucceedingMod>([
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(myREDmodInfoWithSoundForVortex),
+      ],
+    },
+  ],
+  [
+    `canonical REDmod with ui sound info.json`,
+    {
+      expectedInstallerType: InstallerType.REDmod,
+      fsMocked: mockedFsLayout(
+        {
+          [REDMOD_BASEDIR]: {
+            myRedMod: {
+              [REDMOD_INFO_FILENAME]: myREDmodInfoWithUISoundJson,
+            },
+          },
+        },
+      ),
+      inFiles: [
+        path.join(`${REDMOD_BASEDIR}/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/`),
+        path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
+        copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sounds.wav`),
+        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
+        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
+        addedREDmodInfoArrayAttribute(myREDmodInfoWithUISoundForVortex),
       ],
     },
   ],

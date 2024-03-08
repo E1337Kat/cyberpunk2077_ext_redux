@@ -179,6 +179,7 @@ export const REDmodAudioType =
     mod_sfx_radio: null,
     mod_sfx_room: null,
     mod_sfx_street: null,
+    mod_sfx_ui: null,
   }, `REDmodAudioType`);
 
 export type REDmodAudio = t.TypeOf<typeof REDmodAudioType>;
