@@ -1,4 +1,18 @@
-# Cyberpunk 2077 Vortex Support v0.10.1
+# Cyberpunk 2077 Vortex Support v0.10.3
+
+Some smol long standing bugs that I had sudden inspiration on fixing. Had another PR I was gonna add in, but it was gonna add a prompt that would confuse people and I need to figure out a way around that. anyways, this should open up some install types to be much better.
+
+## Fixer Gigs
+
+* ✨ [#382] Add support for ep1 tweaks by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/383
+* ✨ [#384] Support mod_sfx_ui audio type on redmods by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/385
+* 🔖 [release] bump version to 0.10.3 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/386
+
+**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.2...v0.10.3
+
+---
+
+# Cyberpunk 2077 Vortex Support v0.10.2
 
 Loading input.
 .
@@ -15,7 +29,7 @@ Input loaded:
 
 ---
 
-# Cyberpunk 2077 Vortex Support v0.10.0-a "River"
+# Cyberpunk 2077 Vortex Support v0.10.1
 
 > Lead developer and not good at writing person here, again. This is not part 'B' of River. This is just a tribute. I will try to continue picking off the things that I can when I see them. I fixed my dev environment a bit and real world is letting up for the holidays, so I will try and get things going a bit more, but I know better than to make a promise.
 
