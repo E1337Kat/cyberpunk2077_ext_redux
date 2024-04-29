@@ -51,6 +51,7 @@ import {
   V2077TestFunc,
 } from "./installers.types";
 import {
+  S,
   trueish,
 } from "./util.functions";
 import {

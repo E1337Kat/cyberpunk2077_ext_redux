@@ -1,11 +1,9 @@
 import {
   VortexApi,
   VortexTestResult,
-  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   FileTree,
-  fileCount,
   pathInTree,
   sourcePaths,
 } from "./filetree";
@@ -15,29 +13,21 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
 import {
-  TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
+import {
   TWEAK_XL_CORE_FILES,
+  TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
 } from "./installers.layouts";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
+import {
+  instructionsForSameSourceAndDestPaths,
+  instructionsToGenerateDirs,
+} from "./installers.shared";
 
-const coreTweakXLInstructions: VortexInstruction[] = [
-  {
-    type: `mkdir`,
-    destination: TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
-  },
-  {
-    type: `copy`,
-    source: `r6\\scripts\\TweakXL\\TweakXL.reds`,
-    destination: `r6\\scripts\\TweakXL\\TweakXL.reds`,
-  },
-  {
-    type: `copy`,
-    source: `red4ext\\plugins\\TweakXL\\TweakXL.dll`,
-    destination: `red4ext\\plugins\\TweakXL\\TweakXL.dll`,
-  },
-];
 
 const findCoreTweakXLFiles = (fileTree: FileTree): string[] =>
   TWEAK_XL_CORE_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
@@ -58,10 +48,7 @@ export const installCoreTweakXL: V2077InstallFunc = async (
   _modInfo: ModInfo,
   _features: FeatureSet,
 ) => {
-  if (
-    fileCount(fileTree) !== TWEAK_XL_CORE_FILES.length ||
-    findCoreTweakXLFiles(fileTree).length !== fileCount(fileTree)
-  ) {
+  if (findCoreTweakXLFiles(fileTree).length !== TWEAK_XL_CORE_FILES.length) {
     const errorMessage = `Didn't Find Expected TweakXL Installation!`;
     api.log(
       `error`,
@@ -78,6 +65,11 @@ export const installCoreTweakXL: V2077InstallFunc = async (
 
     return Promise.reject(new Error(errorMessage));
   }
+
+  const coreTweakXLInstructions = [
+    ...instructionsForSameSourceAndDestPaths(sourcePaths(fileTree)),
+    ...instructionsToGenerateDirs([TWEAK_XL_MOD_CANONICAL_PATH_PREFIX]),
+  ];
 
   return Promise.resolve({ instructions: coreTweakXLInstructions });
 };

@@ -1,5 +1,7 @@
 import * as RA from 'fp-ts/ReadonlyArray';
-import { pipe } from 'fp-ts/function';
+import {
+  pipe,
+} from 'fp-ts/function';
 import {
   FileTree,
   sourcePaths,
@@ -42,7 +44,9 @@ import {
   promptUserToInstallOrCancelOnDeprecatedCoreMod,
   showWarningForUnrecoverableStructureError,
 } from './ui.dialogs';
-import { FeatureSet } from './features';
+import {
+  FeatureSet,
+} from './features';
 
 // Recognizers
 
@@ -71,9 +75,9 @@ const detectCoreRed4extOneNineLayout = (fileTree: FileTree): boolean =>
   );
 
 const detectCoreRed4ext = (fileTree: FileTree): boolean =>
-  detectCoreRed4extOneNineLayout(fileTree) ||
-  detectCoreRed4extOneSevenLayout(fileTree) ||
-  detectDeprecatedCoreRed4extLayout(fileTree);
+  detectCoreRed4extOneNineLayout(fileTree)
+  || detectCoreRed4extOneSevenLayout(fileTree)
+  || detectDeprecatedCoreRed4extLayout(fileTree);
 
 export const testRed4ExtCore: V2077TestFunc = (
   _api: VortexApi,
@@ -176,8 +180,8 @@ export const coreRed4extInstructions = async (
     allPossibleCoreRed4extLayouts,
   );
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     //
     const errorMessage = `Didn't Find Expected Core RED4ext Installation!`;

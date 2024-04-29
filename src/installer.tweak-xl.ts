@@ -19,15 +19,21 @@ import {
   Instructions,
   NoLayout,
 } from "./installers.layouts";
-import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
+import {
+  instructionsForSameSourceAndDestPaths,
+} from "./installers.shared";
 import {
   InstallerType,
   ModInfo,
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
-import { FeatureSet } from "./features";
+import {
+  promptToFallbackOrFailOnUnresolvableLayout,
+} from "./installer.fallback";
+import {
+  FeatureSet,
+} from "./features";
 
 const matchTweakYaml = (filePath: string): boolean =>
   TWEAK_XL_MOD_CANONICAL_EXTENSIONS.includes(path.extname(filePath));

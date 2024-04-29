@@ -1,5 +1,7 @@
 import * as RA from 'fp-ts/ReadonlyArray';
-import { pipe } from 'fp-ts/function';
+import {
+  pipe,
+} from 'fp-ts/function';
 import {
   FileTree,
   sourcePaths,
@@ -36,7 +38,9 @@ import {
   promptUserToInstallOrCancelOnDeprecatedCoreMod,
   showWarningForUnrecoverableStructureError,
 } from './ui.dialogs';
-import { FeatureSet } from './features';
+import {
+  FeatureSet,
+} from './features';
 
 // Recognizers
 
@@ -139,8 +143,8 @@ export const installCoreRedscript: V2077InstallFunc = async (
   );
 
   if (
-    selectedInstructions === NoInstructions.NoMatch ||
-    selectedInstructions === InvalidLayout.Conflict
+    selectedInstructions === NoInstructions.NoMatch
+    || selectedInstructions === InvalidLayout.Conflict
   ) {
     //
     const errorMessage = `Didn't Find Expected Core Redscript Installation!`;
