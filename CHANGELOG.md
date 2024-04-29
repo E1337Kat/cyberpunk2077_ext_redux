@@ -1,3 +1,13 @@
+# Cyberpunk 2077 Vortex Support v0.10.4
+
+## Fixer Gigs
+
+* ✨ New Core ArchiveXL and Core TweakXL layout compatibility
+
+**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.3...v0.10.4
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.10.3
 
 Some smol long standing bugs that I had sudden inspiration on fixing. Had another PR I was gonna add in, but it was gonna add a prompt that would confuse people and I need to figure out a way around that. anyways, this should open up some install types to be much better.
@@ -9,8 +19,6 @@ Some smol long standing bugs that I had sudden inspiration on fixing. Had anothe
 * 🔖 [release] bump version to 0.10.3 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/386
 
 **Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.2...v0.10.3
-
----
 
 # Cyberpunk 2077 Vortex Support v0.10.2
 
