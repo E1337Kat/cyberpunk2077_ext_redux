@@ -298,6 +298,12 @@ const installers: Installer[] = [
     install: installMultiTypeMod,
   },
   {
+    type: InstallerType.Red4Ext,
+    id: InstallerType.Red4Ext,
+    testSupported: testForRed4ExtMod,
+    install: installRed4ExtMod,
+  },
+  {
     type: InstallerType.REDmod,
     id: InstallerType.REDmod,
     testSupported: testForREDmod,
@@ -320,12 +326,6 @@ const installers: Installer[] = [
     id: InstallerType.Redscript,
     testSupported: testForRedscriptMod,
     install: installRedscriptMod,
-  },
-  {
-    type: InstallerType.Red4Ext,
-    id: InstallerType.Red4Ext,
-    testSupported: testForRed4ExtMod,
-    install: installRed4ExtMod,
   },
   {
     type: InstallerType.TweakXL,

@@ -1,5 +1,7 @@
 import path from "path";
-import { InstallerType } from "../../src/installers.types";
+import {
+  InstallerType,
+} from "../../src/installers.types";
 import {
   ExampleSucceedingMod,
   createdDirectory,
@@ -15,20 +17,39 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
     coreTweakXLInstallCanon: {
       expectedInstallerType: InstallerType.CoreTweakXL,
       inFiles: [
-        path.join(`r6\\`),
         path.join(`red4ext\\`),
-        path.join(`r6\\scripts\\`),
-        path.join(`r6\\scripts\\TweakXL\\`),
-        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
-        path.join(`r6\\tweaks\\`),
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\TweakXL\\`),
         path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
       ],
       outInstructions: [
         createdDirectory(`r6\\tweaks\\`), // This is a special case
-        copiedToSamePath(`r6\\scripts\\TweakXL\\TweakXL.reds`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
+      ],
+    },
+    coreTweakXLInstallCanonWithRandomStuff: {
+      expectedInstallerType: InstallerType.CoreTweakXL,
+      inFiles: [
+        path.join(`red4ext\\`),
+        path.join(`red4ext\\plugins\\`),
+        path.join(`red4ext\\plugins\\iguesswhatever.archive`),
+        path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\shruggies.reds`),
+      ],
+      outInstructions: [
+        createdDirectory(`r6\\tweaks\\`), // This is a special case
+        copiedToSamePath(`red4ext\\plugins\\iguesswhatever.archive`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\shruggies.reds`),
       ],
     },
   }),
@@ -36,7 +57,7 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
 
 const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFailingMod>(
   Object.entries({
-    coreTweakXLWithExtraFiles: {
+    coreTweakXLOutdated: {
       expectedInstallerType: InstallerType.CoreTweakXL,
       inFiles: [
         path.join(`r6\\`),
@@ -47,23 +68,18 @@ const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFa
         path.join(`r6\\tweaks\\`),
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\TweakXL\\`),
-        path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
-        path.join(`archive\\pc\\mod\\tweakarchive.archive`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
       ],
       failure: `Didn't Find Expected TweakXL Installation!`,
       errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
     },
-    coreTweakXLWithMissingFiles: {
+    coreTweakXLWithMissing: {
       expectedInstallerType: InstallerType.CoreTweakXL,
       inFiles: [
-        path.join(`r6\\`),
         path.join(`red4ext\\`),
-        path.join(`r6\\scripts\\`),
-        path.join(`r6\\scripts\\TweakXL\\`),
-        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
-        path.join(`r6\\tweaks\\`),
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\TweakXL\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
       ],
       failure: `Didn't Find Expected TweakXL Installation!`,
       errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,

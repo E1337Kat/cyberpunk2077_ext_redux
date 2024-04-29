@@ -1,5 +1,7 @@
 import path from "path";
-import { showRed4ExtReservedDllErrorDialog } from "./ui.dialogs";
+import {
+  showRed4ExtReservedDllErrorDialog,
+} from "./ui.dialogs";
 import {
   FileTree,
   filesUnder,
@@ -12,7 +14,9 @@ import {
   pathInTree,
   sourcePaths,
 } from "./filetree";
-import { promptToFallbackOrFailOnUnresolvableLayout } from "./installer.fallback";
+import {
+  promptToFallbackOrFailOnUnresolvableLayout,
+} from "./installer.fallback";
 import {
   RED4EXT_KNOWN_NONOVERRIDABLE_DLL_DIRS,
   RED4EXT_KNOWN_NONOVERRIDABLE_DLLS,
@@ -41,7 +45,9 @@ import {
   VortexTestResult,
   VortexInstallResult,
 } from "./vortex-wrapper";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 
 const matchDll = (file: string) => path.extname(file) === `.dll`;
 const reservedDllDir = (dir: string) =>

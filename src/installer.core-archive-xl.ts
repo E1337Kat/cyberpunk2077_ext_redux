@@ -1,11 +1,9 @@
 import {
   VortexApi,
   VortexTestResult,
-  VortexInstruction,
 } from "./vortex-wrapper";
 import {
   FileTree,
-  fileCount,
   pathInTree,
   sourcePaths,
 } from "./filetree";
@@ -24,19 +22,9 @@ import {
 import {
   FeatureSet,
 } from "./features";
-
-const coreArchiveXLInstructions: VortexInstruction[] = [
-  {
-    type: `copy`,
-    source: `red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`,
-    destination: `red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`,
-  },
-  {
-    type: `copy`,
-    source: `r6\\scripts\\ArchiveXL\\ArchiveXL.reds`,
-    destination: `r6\\scripts\\ArchiveXL\\ArchiveXL.reds`,
-  },
-];
+import {
+  instructionsForSameSourceAndDestPaths,
+} from "./installers.shared";
 
 const findCoreArchiveXLFiles = (fileTree: FileTree): string[] =>
   ARCHIVE_XL_CORE_FILES.filter((requiredFile) => pathInTree(requiredFile, fileTree));
@@ -57,10 +45,7 @@ export const installCoreArchiveXL: V2077InstallFunc = async (
   _modInfo: ModInfo,
   _features: FeatureSet,
 ) => {
-  if (
-    fileCount(fileTree) !== ARCHIVE_XL_CORE_FILES.length
-    || findCoreArchiveXLFiles(fileTree).length !== fileCount(fileTree)
-  ) {
+  if (findCoreArchiveXLFiles(fileTree).length !== ARCHIVE_XL_CORE_FILES.length) {
     const errorMessage = `Didn't Find Expected ArchiveXL Installation!`;
     api.log(
       `error`,
@@ -77,6 +62,10 @@ export const installCoreArchiveXL: V2077InstallFunc = async (
 
     return Promise.reject(new Error(errorMessage));
   }
+
+  const coreArchiveXLInstructions = [
+    ...instructionsForSameSourceAndDestPaths(sourcePaths(fileTree)),
+  ];
 
   return Promise.resolve({ instructions: coreArchiveXLInstructions });
 };

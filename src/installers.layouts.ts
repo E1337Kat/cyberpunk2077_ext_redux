@@ -228,15 +228,17 @@ export const MOD_SETTINGS_CORE_FILES = [
 
 export const enum CoreTweakXLLayout {
   OnlyValid = `
-              - .\\r6\\scripts\\TweakXL\\TweakXL.reds
               - .\\r6\\tweaks\\                       (note, empty directory is an exception)
               - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
+              - .\\red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds
+              - .\\red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds
               `,
 }
 
 export const TWEAK_XL_CORE_FILES = [
-  path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
   path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+  path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+  path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
 ];
 
 //
@@ -264,13 +266,15 @@ export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 export const enum CoreArchiveXLLayout {
   OnlyValid = `
           - .\\red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll
-          - .\\r6\\scripts\\ArchiveXL\\ArchiveXL.reds
+          - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds
+          - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds
           `,
 }
 
 export const ARCHIVE_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
-  path.join(`r6\\scripts\\ArchiveXL\\ArchiveXL.reds`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
 ];
 
 //
