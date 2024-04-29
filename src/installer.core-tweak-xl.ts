@@ -15,12 +15,16 @@ import {
   V2077InstallFunc,
   V2077TestFunc,
 } from "./installers.types";
-import { showWarningForUnrecoverableStructureError } from "./ui.dialogs";
+import {
+  showWarningForUnrecoverableStructureError,
+} from "./ui.dialogs";
 import {
   TWEAK_XL_MOD_CANONICAL_PATH_PREFIX,
   TWEAK_XL_CORE_FILES,
 } from "./installers.layouts";
-import { FeatureSet } from "./features";
+import {
+  FeatureSet,
+} from "./features";
 
 const coreTweakXLInstructions: VortexInstruction[] = [
   {
@@ -59,8 +63,8 @@ export const installCoreTweakXL: V2077InstallFunc = async (
   _features: FeatureSet,
 ) => {
   if (
-    fileCount(fileTree) !== TWEAK_XL_CORE_FILES.length ||
-    findCoreTweakXLFiles(fileTree).length !== fileCount(fileTree)
+    fileCount(fileTree) !== TWEAK_XL_CORE_FILES.length
+    || findCoreTweakXLFiles(fileTree).length !== fileCount(fileTree)
   ) {
     const errorMessage = `Didn't Find Expected TweakXL Installation!`;
     api.log(
