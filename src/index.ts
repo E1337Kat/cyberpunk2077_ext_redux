@@ -87,6 +87,7 @@ import {
 import {
   isSupported,
 } from "./state.functions";
+import { getFileVersion, getProductVersion } from "exe-version";
 
 
 //
@@ -166,6 +167,11 @@ const prepStartHooks =
     return hooksWithState;
   };
 
+const getGameVersion = () => {
+  const exeVersion = require('exe-version');
+  return Bluebird.resolve(exeVersion.getProductVersionLocalized(path.join(gamePath, EXECUTABLE)));
+}
+
 //
 // Register extension in entry point
 //
@@ -226,6 +232,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     compatible: {
       symlinks: false,
     },
+    getGameVersion,
     requiresLauncher: requiresGoGLauncher,
     environment: {
       SteamAPPId: STEAMAPP_ID,
