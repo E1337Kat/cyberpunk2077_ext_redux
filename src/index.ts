@@ -1,7 +1,10 @@
 import path from "path";
 import * as vortexApiLib from "vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 import I18next from 'i18next'; // eslint-disable-line import/no-extraneous-dependencies
-
+import {
+  getFileVersion,
+  getProductVersion,
+} from "exe-version";
 
 // Our stuff
 import {
@@ -87,7 +90,6 @@ import {
 import {
   isSupported,
 } from "./state.functions";
-import { getFileVersion, getProductVersion } from "exe-version";
 
 
 //
@@ -167,10 +169,21 @@ const prepStartHooks =
     return hooksWithState;
   };
 
-const getGameVersion = () => {
-  const exeVersion = require('exe-version');
-  return Bluebird.resolve(exeVersion.getProductVersionLocalized(path.join(gamePath, EXECUTABLE)));
-}
+const getGameVersion = async (gamePath: string): Promise<string> => {
+  try {
+    const prodVer = await getProductVersion(path.join(gamePath, GAME_EXE_RELATIVE_PATH))
+    return prodVer;
+  } catch (err) {
+    vortexApiLib.log(`error`, `Failed to get product version for Cyberpunk EXE`, err);
+    try {
+      const fileVer = await getFileVersion(path.join(gamePath, GAME_EXE_RELATIVE_PATH));
+      return fileVer;
+    } catch (fileErr) {
+      vortexApiLib.log(`error`, `Failed to get file version for Cyberpunk EXE`, fileErr);
+      return `0.0.0`;
+    }
+  }
+};
 
 //
 // Register extension in entry point
