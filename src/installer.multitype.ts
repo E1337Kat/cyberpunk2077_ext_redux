@@ -30,6 +30,10 @@ import {
   redscriptAllowedInMultiInstructions,
 } from "./installer.redscript";
 import {
+  detectAllowedAudiowareLayouts,
+  audiowareAllowedInMultiInstructions,
+} from "./installer.audioware";
+import {
   detectAllowedTweakXLLayouts,
   tweakXLAllowedInMultiInstructions,
 } from "./installer.tweak-xl";
@@ -91,6 +95,7 @@ export const testForMultiTypeMod: V2077TestFunc = (
   const hasAllowedConfigJson = detectAllowedConfigJsonLayouts(fileTree);
   const hasAllowedConfigXml = detectAllowedConfigXmlLayouts(fileTree);
   const hasAllowedTweakXL = detectAllowedTweakXLLayouts(fileTree);
+  const hasAllowedAudioware = detectAllowedAudiowareLayouts(fileTree);
   const hasAllowedArchives = detectCanonArchiveLayoutsAllowedExternally(fileTree);
 
   const hasAtLeastTwoTypes =
@@ -190,6 +195,9 @@ export const installMultiTypeMod: V2077InstallFunc = async (
   const tweakXLInstructions =
     tweakXLAllowedInMultiInstructions(api, fileTree);
 
+    const audiowareInstructions =
+    audiowareAllowedInMultiInstructions(api, fileTree);
+
   const redscriptInstructions =
     redscriptAllowedInMultiInstructions(api, modInfo.name, fileTree);
 
@@ -227,6 +235,7 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     ...allPromptedInstructions,
     ...allInstructionsDirectedByUs,
     ...tweakXLInstructions.instructions,
+    ...audiowareInstructions.instructions,
     ...redscriptInstructions.instructions,
     ...archiveAndREDmodInstructions,
   ];

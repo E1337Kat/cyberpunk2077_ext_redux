@@ -34,6 +34,8 @@ import {
   REDS_PREFIXES,
   TWEAK_XL_PATH,
   TWEAK_XL_PATHS,
+  AUDIOWARE_PATH,
+  AUDIOWARE_PATHS,
   XML_PREFIXES,
   expectedUserCancelProtectedMessageInMultiType,
   ExamplesForType,
@@ -245,7 +247,7 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
           copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         ],
       },
-    "MultiType: CET, Redscript, TweakXL, Archive Canonical + Basedir Red4Ext": {
+    "MultiType: CET, Redscript, TweakXL, Audioware, Archive Canonical + Basedir Red4Ext": {
       expectedInstallerType: InstallerType.MultiType,
       inFiles: [
         ...CET_PREFIXES,
@@ -257,6 +259,8 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         path.join(`${REDS_PREFIX}/rexmod/script.reds`),
         ...TWEAK_XL_PATHS,
         path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        ...AUDIOWARE_PATHS,
+        path.join(`${AUDIOWARE_PATH}\\tw\\mytweak.yaml`),
         ...RED4EXT_PREFIXES,
         path.join(`${RED4EXT_PREFIX}/script.dll`),
         ...ARCHIVE_PREFIXES,
@@ -273,6 +277,7 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
         },
         copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
         copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+        copiedToSamePath(`${AUDIOWARE_PATH}\\tw\\mytweak.yaml`),
       ],
     },
     "MultiType: CET, Redscript, TweakXL, ArchiveXL Canonical + Basedir Red4Ext": {
@@ -733,6 +738,8 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
           path.join(`${RED4EXT_PREFIX}/r4xmod/sub/subscript.dll`),
           ...TWEAK_XL_PATHS,
           path.join(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+          ...AUDIOWARE_PATHS,
+          path.join(`${AUDIOWARE_PATH}\\tw\\mytweak.yaml`),
           ...ARCHIVE_PREFIXES,
           path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
@@ -749,6 +756,7 @@ const MultiTypeModShouldPromptForInstall = new Map<string, ExamplePromptInstalla
           copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
           copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
           copiedToSamePath(`${TWEAK_XL_PATH}\\tw\\mytweak.yaml`),
+          copiedToSamePath(`${AUDIOWARE_PATH}\\tw\\mytweak.yaml`),
         ],
         cancelLabel: InstallChoices.Cancel,
         cancelErrorMessage: expectedUserCancelProtectedMessageInMultiType,

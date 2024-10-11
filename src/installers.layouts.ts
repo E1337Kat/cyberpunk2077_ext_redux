@@ -1004,6 +1004,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.CoreAudioware,
+    `
+    \`${CoreAudiowareLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreAudioware} that I know of.
+    `,
+  ],
+  [
     InstallerType.CoreArchiveXL,
     `
     \`${CoreArchiveXLLayout.OnlyValid}\`
@@ -1098,6 +1106,12 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.TweakXL,
     `
     \`${TweakXLLayout.Canon}\`
+    `,
+  ],
+  [
+    InstallerType.Audioware,
+    `
+    \`${AudiowareLayout.Canon}\`
     `,
   ],
   [
@@ -1240,6 +1254,7 @@ export type Layout =
   | REDmodLayout
   | REDmodTransformedLayout
   | TweakXLLayout
+  | AudiowareLayout
   | PresetLayout
   | ArchiveLayout
   | FallbackLayout
