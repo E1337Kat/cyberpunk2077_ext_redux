@@ -31,6 +31,7 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES`),
       ],
       outInstructions: [
+        createdDirectory(`r6\\tweaks\\`), // This is a special case
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
@@ -48,9 +49,14 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\iguesswhatever.archive`),
         path.join(`red4ext\\plugins\\TweakXL\\`),
         path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\`),
         path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
         path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
-        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\shruggies.reds`),
+        path.join(`red4ext\\plugins\\TweakXL\\Data\\`),
+        path.join(`red4ext\\plugins\\TweakXL\\Data\\ExtraFlats.dat`),
+        path.join(`red4ext\\plugins\\TweakXL\\Data\\InheritanceMap.dat`),
+        path.join(`red4ext\\plugins\\TweakXL\\LICENSE`),
+        path.join(`red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES`),
       ],
       outInstructions: [
         createdDirectory(`r6\\tweaks\\`), // This is a special case
@@ -58,7 +64,10 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
         copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
-        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\shruggies.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Data\\ExtraFlats.dat`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Data\\InheritanceMap.dat`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\LICENSE`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES`),
       ],
     },
   }),
