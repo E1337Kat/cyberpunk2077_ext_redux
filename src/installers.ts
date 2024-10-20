@@ -166,6 +166,10 @@ import {
   installCoreAudioware,
   testForCoreAudioware,
 } from "./installer.core-audioware";
+import {
+  installAudiowareMod,
+  testForAudiowareMod,
+} from "./installer.audioware";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -342,6 +346,12 @@ const installers: Installer[] = [
     id: InstallerType.TweakXL,
     testSupported: testForTweakXLMod,
     install: installTweakXLMod,
+  },
+  {
+    type: InstallerType.Audioware,
+    id: InstallerType.Audioware,
+    testSupported: testForAudiowareMod,
+    install: installAudiowareMod,
   },
   /*
   {

@@ -77,8 +77,6 @@ export enum InstallerType {
   Fallback = `Fallback Installer`,
   // Used as a marker
   NotSupported = `<NONEXISTING INSTALLER - THIS SHOULD NOT BE SEEN OUTSIDE TESTS>`,
-  
-  
 }
 
 //

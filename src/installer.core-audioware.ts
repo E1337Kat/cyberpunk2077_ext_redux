@@ -52,7 +52,7 @@ export const installCoreAudioware: V2077InstallFunc = async (
     const errorMessage = `Didn't Find Expected Audioware Installation!`;
     api.log(
       `error`,
-      `${InstallerType.Audioware}: ${errorMessage}`,
+      `${InstallerType.CoreAudioware}: ${errorMessage}`,
       sourcePaths(fileTree),
     );
 
