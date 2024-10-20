@@ -228,10 +228,13 @@ export const MOD_SETTINGS_CORE_FILES = [
 
 export const enum CoreTweakXLLayout {
   OnlyValid = `
-              - .\\r6\\tweaks\\                       (note, empty directory is an exception)
               - .\\red4ext\\plugins\\TweakXL\\TweakXL.dll
               - .\\red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds
               - .\\red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds
+              - .\\red4ext\\plugins\\TweakXL\\Data\\ExtraFlats.dat
+              - .\\red4ext\\plugins\\TweakXL\\Data\\InheritanceMap.dat
+              - .\\red4ext\\plugins\\TweakXL\\LICENSE
+              - .\\red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES
               `,
 }
 
@@ -239,6 +242,10 @@ export const TWEAK_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
   path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
   path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
+  path.join(`red4ext\\plugins\\TweakXL\\Data\\ExtraFlats.dat`),
+  path.join(`red4ext\\plugins\\TweakXL\\Data\\InheritanceMap.dat`),
+  path.join(`red4ext\\plugins\\TweakXL\\LICENSE`),
+  path.join(`red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES`),
 ];
 
 //
@@ -265,16 +272,28 @@ export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 
 export const enum CoreArchiveXLLayout {
   OnlyValid = `
+          - .\\r6\\config\\redsUserHints\\ArchiveXL.toml
           - .\\red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerBaseScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\LICENSE
           - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds
           - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds
+          - .\\red4ext\\plugins\\ArchiveXL\\THIRD_PARTY_LICENSES
           `,
 }
 
 export const ARCHIVE_XL_CORE_FILES = [
+  path.join(`r6\\config\\redsUserHints\\ArchiveXL.toml`),
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerBaseScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\THIRD_PARTY_LICENSES`),
 ];
 
 //
