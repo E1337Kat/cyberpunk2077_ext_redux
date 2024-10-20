@@ -44,7 +44,8 @@
     ],
     "license": "GPL-3.0",
     "peerDependencies": {
-        "vortex-api": "github:Nexus-Mods/vortex-api"
+        "vortex-api": "github:Nexus-Mods/vortex-api",
+        "exe-version": "github:Nexus-Mods/node-exe-version"
     },
     "devDependencies": {
         "@jest/types": "^27.5.1",
