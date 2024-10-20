@@ -416,31 +416,30 @@ export const CET_MOD_CANONICAL_PATH_PREFIX = path.normalize(
 // CyberScript
 //
 
-// CyberScript is a special case of both ASI and CET
+// CyberScript is a special case of both Redmod and CET
 
 export const enum CoreCyberScriptLayout {
   OnlyValid = `
-              - .\\bin\\x64\\plugins\\ImmersiveRoleplayFramework.asi
-              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\quest_mod\\init.lua
-              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\quest_mod\\[any files + subdirs]
-              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\CPStyling\\[any files + subdirs]  (plugin only)
+            
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\cyberscript\\init.lua
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\cyberscript\\[any files + subdirs]
+              - .\\mods\\[modname]\\info.json { name: modname, ... }
+              - .\\mods\\[modname]\\archives\\[*.archive, *.xl]
+              - .\\mods\\[modname]\\customSounds\\*.wav
+              - .\\mods\\[modname]\\scripts\\[valid script subdir]\\[*.script, *.ws]
+              - .\\mods\\[modname]\\tweaks\\base\\gameplay\\static_data\\*.tweak
               `,
 }
 
 export const CYBERSCRIPT_CORE_BASEDIR = path.normalize(`bin\\x64\\plugins`);
 export const CYBERSCRIPT_CORE_CETBASEDIR = path.normalize(
-  `${CET_MOD_CANONICAL_PATH_PREFIX}\\quest_mod`,
-);
-export const CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR = path.normalize(
-  `${CET_MOD_CANONICAL_PATH_PREFIX}\\CPStyling`,
+  `${CET_MOD_CANONICAL_PATH_PREFIX}\\cyberscript`,
 );
 
-export const CYBERSCRIPT_CORE_ASI = path.normalize(
-  `${CYBERSCRIPT_CORE_BASEDIR}\\ImmersiveRoleplayFramework.asi`,
-);
+
 
 export const CYBERSCRIPT_CORE_REQUIRED_FILES = [
-  CYBERSCRIPT_CORE_ASI,
+  
   path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\init.lua`),
 ];
 

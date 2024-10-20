@@ -12,9 +12,7 @@ import {
   sourcePaths,
 } from "./filetree";
 import {
-  CYBERSCRIPT_CORE_ASI,
   CYBERSCRIPT_CORE_CETBASEDIR,
-  CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR,
   CYBERSCRIPT_CORE_REQUIRED_FILES,
 } from "./installers.layouts";
 import { instructionsForSameSourceAndDestPaths } from "./installers.shared";
@@ -44,9 +42,7 @@ export const installCoreCyberScript: V2077InstallFunc = (
   _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const allCoreCyberScriptFiles = [
-    CYBERSCRIPT_CORE_ASI,
     ...filesUnder(CYBERSCRIPT_CORE_CETBASEDIR, Glob.Any, fileTree),
-    ...filesUnder(CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR, Glob.Any, fileTree),
   ];
 
   const missingRequiredCoreCyberScriptFiles = !CYBERSCRIPT_CORE_REQUIRED_FILES.every(
