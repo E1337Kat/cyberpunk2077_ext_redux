@@ -485,7 +485,12 @@ export const redmodDeployRunParameters = (
   gameDirPath: string,
 ): VortexRunParameters => {
 
+  const exePath =
+    path.join(gameDirPath, REDdeployExeRelativePath);
+
   const redModDeployParametersToCreateNewManifest = [
+    '/k',
+    exePath,
     `deploy`,
     `-force`, // TODO: Required until https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/297
     `-root=`,
@@ -496,8 +501,7 @@ export const redmodDeployRunParameters = (
     `"${path.join(gameDirPath, V2077_MODLIST_PATH)}"`,
   ];
 
-  const exePath =
-    path.join(gameDirPath, REDdeployExeRelativePath);
+  const wrapperExe = "cmd.exe"
 
   const runOptions: VortexRunOptions = {
     cwd: path.dirname(exePath),
@@ -507,7 +511,7 @@ export const redmodDeployRunParameters = (
   };
 
   return {
-    executable: exePath,
+    executable: wrapperExe,
     args: redModDeployParametersToCreateNewManifest,
     options: runOptions,
   };
