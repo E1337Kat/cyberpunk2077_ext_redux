@@ -2,8 +2,8 @@ import path from "path";
 import {
   CET_MOD_CANONICAL_PATH_PREFIX,
   CYBERSCRIPT_CORE_CETBASEDIR,
-  CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR,
   CYBERSCRIPT_CORE_REQUIRED_FILES,
+  REDMOD_BASEDIR,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
 import {
@@ -16,161 +16,46 @@ import {
 } from "./utils.helper";
 
 const CYBERSCRIPT_PREFIXES = [
+  ...pathHierarchyFor(REDMOD_BASEDIR),
   ...pathHierarchyFor(CYBERSCRIPT_CORE_CETBASEDIR),
-  ...pathHierarchyFor(`${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\event`),
+  ...pathHierarchyFor(`${CYBERSCRIPT_CORE_CETBASEDIR}\\datapack\\`),
 ];
 
 // This isn’t quite exhaustive, but covers all existing dirs at least.
 const CYBERSCRIPT_EXAMPLE_CONTENTS_WITHOUT_REQUIRED = [
-  path.normalize(`${CYBERSCRIPT_CORE_CPSTYLING_PLUGINDIR}\\whatevs.json`),
   path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\changelog.json`),
   path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\db.sqlite3`),
   path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\desc.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\env.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\inputUserMappings.xml`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\multi.txt`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\music.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\sound.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\db\\actiontemplate.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\db\\appearances.csv`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\db\\CharacterTable.xlsx`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\db\\districts.json`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\db\\attitudegroup\\Group_6thStreet.json`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\img\\cyberpunk.png`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\img\\phonelog.png`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\lang\\default.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\data\\sessions\\placeholder`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\external\\AIControl.lua`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\external\\Cron.lua`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\desc.json`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\dialog\\nash_special01.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\event\\tutorial_help.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\faction\\faction_afterlife.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\fixer\\fixer_captain.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\function\\current_star_follower.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\function\\del_av_service.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\help\\credit.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\interact\\open_datapack_group_ui.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\interfaces\\delamain_services.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\lang\\lang_1.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\phone_dialog\\del_taxi_service.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\place\\place_1.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\place\\vapart.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\poi\\Ambush_ARR_1.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\sound\\ono.mp3`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\datapack\\default\\sound\\test.mp3`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\mydatapack\\desc.json`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\json\\mydatapack\\circuit\\placeholder`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\modules\\av.lua`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\action.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\mymissions.json`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\res.txt`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\userInput.txt`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\missions\\placeholder`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\modpack\\placeholder`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\net\\multi\\player\\faction.txt`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\DotNetZip.dll`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\Frameworklog.txt`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\framework_setting.json`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.deps.json`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.dll`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.exe`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.pdb`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.runtimeconfig.dev.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\ImmersiveRoleplayFramework.runtimeconfig.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\Microsoft.EntityFrameworkCore.Abstractions.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\Microsoft.EntityFrameworkCore.dll`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\NAudio.Asio.dll`),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\Newtonsoft.Json.dll`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\System.Collections.Immutable.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\runtimes\\win\\lib\\netcoreapp2.0`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\tools\\runtimes\\win\\lib\\netcoreapp2.0\\System.Text.Encoding.CodePages.dll`,
-  ),
-  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\DotNetZip.dll`),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.deps.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.exe`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.pdb`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.runtimeconfig.dev.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ImmersiveRoleplayFrameworkUpdater.runtimeconfig.json`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\System.Security.Permissions.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\System.Windows.Extensions.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\ref\\ImmersiveRoleplayFrameworkUpdater.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\runtimes\\unix\\lib\\netcoreapp3.0\\System.Drawing.Common.dll`,
-  ),
-  path.normalize(
-    `${CYBERSCRIPT_CORE_CETBASEDIR}\\updater\\runtimes\\win\\lib\\netcoreapp3.0\\Microsoft.Win32.SystemEvents.dll`,
-  ),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\assets\\fixer\\fixer_rogue.json`),
+
+  
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\datapack\\placeholder`),
+
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\editor\\editor.lua`),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\appearances.csv`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\CharacterTable.xlsx`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\districts.json`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\attitudegroup\\Group_6thStreet.json`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\anims\\CharacterEntryLibrary.json`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\data\\anims\\workspot\\cyberscript_workspot_base.json`),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\external\\AIControl.lua`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\external\\Cron.lua`),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\lang\\default.json`),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\modules\\av.lua`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\mod\\modules\\observers\\gamecontroller.lua`),
+
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\user\\cache\\placeholder`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\user\\editor_output\\placeholder`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\user\\sessions\\placeholder`),
+  path.normalize(`${CYBERSCRIPT_CORE_CETBASEDIR}\\user\\settings\\placeholder`),
+
+ 
 ];
 
 const CYBERSCRIPT_EXAMPLE_CONTENTS_WITHOUT_ALL_REQUIRED = [
