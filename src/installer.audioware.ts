@@ -35,11 +35,11 @@ import {
   FeatureSet,
 } from "./features";
 
-const matchTweakYaml = (filePath: string): boolean =>
+const matchAudiowareFiles = (filePath: string): boolean =>
   AUDIOWARE_MOD_CANONICAL_EXTENSIONS.includes(path.extname(filePath));
 
 export const findAudiowareCanonFiles = (fileTree: FileTree): string[] =>
-  filesUnder(AUDIOWARE_MOD_CANONICAL_PATH_PREFIX, matchTweakYaml, fileTree);
+  filesUnder(AUDIOWARE_MOD_CANONICAL_PATH_PREFIX, matchAudiowareFiles, fileTree);
 
 export const detectAudiowareCanonLayout = (fileTree: FileTree): boolean =>
   // Anything here must be ours to deal with

@@ -1,6 +1,10 @@
 import path from "path";
-import { InstallerType } from "../../src/installers.types";
-import { InstallChoices } from "../../src/ui.dialogs";
+import {
+  InstallerType,
+} from "../../src/installers.types";
+import {
+  InstallChoices,
+} from "../../src/ui.dialogs";
 import {
   ExampleSucceedingMod,
   AUDIOWARE_PATH,
@@ -21,11 +25,11 @@ const AudiowareModSucceeds = new Map<string, ExampleSucceedingMod>(
       inFiles: [
         ...AUDIOWARE_PATHS,
         path.join(`${AUDIOWARE_PATH}\\mytweak.yaml`),
-        path.join(`${AUDIOWARE_PATH}\\myothertweak.yml`),
+        path.join(`${AUDIOWARE_PATH}\\theaudio.wav`),
       ],
       outInstructions: [
         copiedToSamePath(`${AUDIOWARE_PATH}\\mytweak.yaml`),
-        copiedToSamePath(`${AUDIOWARE_PATH}\\myothertweak.yml`),
+        copiedToSamePath(`${AUDIOWARE_PATH}\\theaudio.wav`),
       ],
     },
     audiowareWithFilesInSubdirsCanonical: {
@@ -33,12 +37,12 @@ const AudiowareModSucceeds = new Map<string, ExampleSucceedingMod>(
       inFiles: [
         ...AUDIOWARE_PATHS,
         path.join(`${AUDIOWARE_PATH}\\sub1\\mytweak.yaml`),
-        path.join(`${AUDIOWARE_PATH}\\sub2\\myothertweak.yml`),
+        path.join(`${AUDIOWARE_PATH}\\sub2\\theaudio.wav`),
         path.join(`${AUDIOWARE_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
       ],
       outInstructions: [
         copiedToSamePath(`${AUDIOWARE_PATH}\\sub1\\mytweak.yaml`),
-        copiedToSamePath(`${AUDIOWARE_PATH}\\sub2\\myothertweak.yml`),
+        copiedToSamePath(`${AUDIOWARE_PATH}\\sub2\\theaudio.wav`),
         copiedToSamePath(`${AUDIOWARE_PATH}\\sub3\\sub4\\mythirdtweak.yml`),
       ],
     },

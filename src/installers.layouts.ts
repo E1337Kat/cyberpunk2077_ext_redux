@@ -300,9 +300,7 @@ export const AUDIOWARE_CORE_FILES = [
   path.join(`r6\\scripts\\Audioware\\Settings.reds`),
   path.join(`r6\\scripts\\Audioware\\System.reds`),
   path.join(`r6\\scripts\\Audioware\\Tween.reds`),
-  path.join(`r6\\scripts\\Audioware\\Utils.reds`)
-
- 
+  path.join(`r6\\scripts\\Audioware\\Utils.reds`),
 ];
 
 //
@@ -320,7 +318,7 @@ export const enum AudiowareLayout {
 }
 
 export const AUDIOWARE_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\audioware\\`);
-export const AUDIOWARE_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`, `.wav`,`.ogg`,`.mp3`,`.flac`];
+export const AUDIOWARE_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`, `.wav`, `.ogg`, `.mp3`, `.flac`];
 
 //
 // Core ArchiveXL
