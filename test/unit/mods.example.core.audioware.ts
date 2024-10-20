@@ -71,7 +71,7 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`r6\\scripts\\Audioware\\Utils.reds`),
       ],
       outInstructions: [
-        createdDirectory(`r6\\tweaks\\`), // This is a special case
+        createdDirectory(`r6\\audioware\\`), // This is a special case
         copiedToSamePath(`red4ext\\plugins\\iguesswhatever.archive`),
         copiedToSamePath(`red4ext\\plugins\\Audioware\\audioware.dll`),
         copiedToSamePath(`r6\\scripts\\Audioware\\Codeware.reds`),
@@ -97,6 +97,8 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
       inFiles: [
         path.join(`r6\\`),
         path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
         path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
         path.join(`r6\\scripts\\Audioware\\Config.reds`),
         path.join(`r6\\scripts\\Audioware\\Ext.reds`),
@@ -118,9 +120,17 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
     coreAudiowareWithMissing: {
       expectedInstallerType: InstallerType.CoreAudioware,
       inFiles: [
+        path.join(`r6\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
+        path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
+        path.join(`r6\\scripts\\Audioware\\System.reds`),
+        path.join(`r6\\scripts\\Audioware\\Tween.reds`),
+        path.join(`r6\\scripts\\Audioware\\Utils.reds`),
         path.join(`red4ext\\`),
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\Audioware\\`),
+        path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
       ],
       failure: `Didn't Find Expected Audioware Installation!`,
       errorDialogTitle: `Didn't Find Expected Audioware Installation!`,
