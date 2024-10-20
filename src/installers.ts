@@ -252,16 +252,16 @@ const installers: Installer[] = [
     install: notInstallableMod,
   },
   {
-    type: InstallerType.CoreTweakXL,
-    id: InstallerType.CoreTweakXL,
-    testSupported: testForCoreTweakXL,
-    install: installCoreTweakXL,
-  },
-  {
     type: InstallerType.CoreAudioware,
     id: InstallerType.CoreAudioware,
     testSupported: testForCoreAudioware,
     install: installCoreAudioware,
+  },
+  {
+    type: InstallerType.CoreTweakXL,
+    id: InstallerType.CoreTweakXL,
+    testSupported: testForCoreTweakXL,
+    install: installCoreTweakXL,
   },
   {
     type: InstallerType.CoreArchiveXL,
@@ -342,16 +342,16 @@ const installers: Installer[] = [
     install: installRedscriptMod,
   },
   {
-    type: InstallerType.TweakXL,
-    id: InstallerType.TweakXL,
-    testSupported: testForTweakXLMod,
-    install: installTweakXLMod,
-  },
-  {
     type: InstallerType.Audioware,
     id: InstallerType.Audioware,
     testSupported: testForAudiowareMod,
     install: installAudiowareMod,
+  },
+  {
+    type: InstallerType.TweakXL,
+    id: InstallerType.TweakXL,
+    testSupported: testForTweakXLMod,
+    install: installTweakXLMod,
   },
   /*
   {
