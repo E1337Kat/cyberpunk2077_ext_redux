@@ -266,6 +266,60 @@ export const enum TweakXLLayout {
 export const TWEAK_XL_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\tweaks\\`);
 export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 
+
+//
+// Core Audioware
+//
+
+export const enum CoreAudiowareLayout {
+  OnlyValid = `
+          - .\\red4ext\\plugins\\Audioware\\audioware.dll
+          - .\\r6\\scripts\\Audioware\\Codeware.reds
+          - .\\r6\\scripts\\Audioware\\Config.reds
+          - .\\r6\\scripts\\Audioware\\Ext.reds
+          - .\\r6\\scripts\\Audioware\\Hooks.reds
+          - .\\r6\\scripts\\Audioware\\Natives.reds
+          - .\\r6\\scripts\\Audioware\\Preset.reds
+          - .\\r6\\scripts\\Audioware\\Service.reds
+          - .\\r6\\scripts\\Audioware\\Settings.reds
+          - .\\r6\\scripts\\Audioware\\System.reds
+          - .\\r6\\scripts\\Audioware\\Tween.reds
+          - .\\r6\\scripts\\Audioware\\Utils.reds
+          `,
+}
+
+export const AUDIOWARE_CORE_FILES = [
+  path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
+  path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
+  path.join(`r6\\scripts\\Audioware\\Config.reds`),
+  path.join(`r6\\scripts\\Audioware\\Ext.reds`),
+  path.join(`r6\\scripts\\Audioware\\Hooks.reds`),
+  path.join(`r6\\scripts\\Audioware\\Natives.reds`),
+  path.join(`r6\\scripts\\Audioware\\Preset.reds`),
+  path.join(`r6\\scripts\\Audioware\\Service.reds`),
+  path.join(`r6\\scripts\\Audioware\\Settings.reds`),
+  path.join(`r6\\scripts\\Audioware\\System.reds`),
+  path.join(`r6\\scripts\\Audioware\\Tween.reds`),
+  path.join(`r6\\scripts\\Audioware\\Utils.reds`),
+];
+
+//
+// Audioware Mods
+//
+
+// This is the required layout, so enforce it
+//
+// https://github.com/cyb3rpsych0s1s/audioware
+
+export const enum AudiowareLayout {
+  Canon = `
+          - .\\r6\\audioware\\[any files + subdirs]
+          `,
+}
+
+export const AUDIOWARE_MOD_CANONICAL_PATH_PREFIX = path.join(`r6\\audioware\\`);
+export const AUDIOWARE_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`, `.wav`, `.ogg`, `.mp3`, `.flac`];
+
 //
 // Core ArchiveXL
 //
@@ -947,6 +1001,14 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
+    InstallerType.CoreAudioware,
+    `
+    \`${CoreAudiowareLayout.OnlyValid}\`
+
+    This is the only possible valid layout for ${InstallerType.CoreAudioware} that I know of.
+    `,
+  ],
+  [
     InstallerType.CoreArchiveXL,
     `
     \`${CoreArchiveXLLayout.OnlyValid}\`
@@ -1041,6 +1103,12 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     InstallerType.TweakXL,
     `
     \`${TweakXLLayout.Canon}\`
+    `,
+  ],
+  [
+    InstallerType.Audioware,
+    `
+    \`${AudiowareLayout.Canon}\`
     `,
   ],
   [
@@ -1183,6 +1251,7 @@ export type Layout =
   | REDmodLayout
   | REDmodTransformedLayout
   | TweakXLLayout
+  | AudiowareLayout
   | PresetLayout
   | ArchiveLayout
   | FallbackLayout

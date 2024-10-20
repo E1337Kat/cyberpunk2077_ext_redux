@@ -50,6 +50,7 @@ export enum InstallerType {
   CoreCSVMerge = `(DEPRECATED - use TweakXL/ArchiveXL) Core CSVMerge Installer`,
   CoreCyberCat = `CyberCAT Save Editor Installer`,
   CoreTweakXL = `Core TweakXL Installer`,
+  CoreAudioware = `Core Audioware Installer`,
   CoreArchiveXL = `Core ArchiveXL Installer`,
   CoreWolvenKit = `Core WolvenKitCLI Installer`,
   // MultiType
@@ -71,6 +72,7 @@ export enum InstallerType {
   LUT = `LUT Mod Installer`,
   Preset = `Character Preset Installer`,
   Archive = `Archive + ArchiveXL Mod Installer`,
+  Audioware = `Audioware Mod Installer`,
   // Fallback that installs everything, last in the pipeline
   Fallback = `Fallback Installer`,
   // Used as a marker

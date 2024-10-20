@@ -162,6 +162,14 @@ import {
   installCoreModSettings,
   testForCoreModSettings,
 } from "./installer.core.modsettings";
+import {
+  installCoreAudioware,
+  testForCoreAudioware,
+} from "./installer.core-audioware";
+import {
+  installAudiowareMod,
+  testForAudiowareMod,
+} from "./installer.audioware";
 
 // Ensure we're using win32 conventions
 const path = win32;
@@ -242,6 +250,12 @@ const installers: Installer[] = [
     id: InstallerType.CoreWolvenKit,
     testSupported: testCoreWolvenKitCli,
     install: notInstallableMod,
+  },
+  {
+    type: InstallerType.CoreAudioware,
+    id: InstallerType.CoreAudioware,
+    testSupported: testForCoreAudioware,
+    install: installCoreAudioware,
   },
   {
     type: InstallerType.CoreTweakXL,
@@ -326,6 +340,12 @@ const installers: Installer[] = [
     id: InstallerType.Redscript,
     testSupported: testForRedscriptMod,
     install: installRedscriptMod,
+  },
+  {
+    type: InstallerType.Audioware,
+    id: InstallerType.Audioware,
+    testSupported: testForAudiowareMod,
+    install: installAudiowareMod,
   },
   {
     type: InstallerType.TweakXL,

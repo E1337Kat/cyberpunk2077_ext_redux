@@ -43,6 +43,7 @@ import {
   REDSCRIPT_CORE_FILES,
   DEPRECATED_REDSCRIPT_CORE_FILES,
   REDS_MOD_CANONICAL_HINTS_PATH_PREFIX,
+  AUDIOWARE_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import {
   InfoNotification,
@@ -312,6 +313,9 @@ export const REDMOD_PREFIXES = pathHierarchyFor(REDMOD_PREFIX);
 
 export const TWEAK_XL_PATH = TWEAK_XL_MOD_CANONICAL_PATH_PREFIX;
 export const TWEAK_XL_PATHS = pathHierarchyFor(TWEAK_XL_PATH);
+
+export const AUDIOWARE_PATH = AUDIOWARE_MOD_CANONICAL_PATH_PREFIX;
+export const AUDIOWARE_PATHS = pathHierarchyFor(AUDIOWARE_PATH);
 
 export const ARCHIVE_PREFIX = ARCHIVE_MOD_CANONICAL_PREFIX;
 export const ARCHIVE_PREFIXES = pathHierarchyFor(ARCHIVE_PREFIX);

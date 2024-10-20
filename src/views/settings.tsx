@@ -43,18 +43,16 @@ const Settings = (props: IProps): JSX.Element => {
         checked={redmodAutoconvertArchives}
         onToggle={onREDmodAutoconvertArchives}
       >
-        {t(`Automatically convert old-style 'archive' mods to REDmods on install (recommended)`)}
+        {t(`Automatically convert legacy-style '.archive' mods to REDmods on install (NOT recommended)`)}
         <More
           id='red-autoconvert-setting'
           name={t(`Autoconvert old mods for Load Order`)}>
           {t(`${squashAllWhitespace(`
-            Whenever you install a standard 'archive' mod, we can instead install it to the REDmods folder
-            as if it were a REDmod from the outset. We do this using mod magic by generating a folder and mod
-            from the mod details we can glean. After autoconverting during installation, you can then use
-            the mod in the load order tools. This process is very straightforward and should Just Work, but
-            If you encounter a problem, you can always temporarily turn this setting off and install the old
-            way. (And please let us know so that we can fix the problem!)
-          `)}\n\n`)}
+            Whenever you install a standard 'archive' mod, we can instead convert it to CDPR's native REDmod 
+            format. This is required to use the internal load order tools, but can cause compatibility issues
+            with many of the more complex mods. You can learn more about this here:\n
+            https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-users/users-modding-cyberpunk-2077#mod-format-redmod-or-vanilla
+            `)}\n\n`)}
         </More>
       </Toggle>
     </div>
