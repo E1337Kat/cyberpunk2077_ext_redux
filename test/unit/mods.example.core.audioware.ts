@@ -21,6 +21,9 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\`),
         path.join(`red4ext\\plugins\\Audioware\\`),
         path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
+        path.join(`r6\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
         path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
         path.join(`r6\\scripts\\Audioware\\Config.reds`),
         path.join(`r6\\scripts\\Audioware\\Ext.reds`),
@@ -31,7 +34,7 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`r6\\scripts\\Audioware\\Settings.reds`),
         path.join(`r6\\scripts\\Audioware\\System.reds`),
         path.join(`r6\\scripts\\Audioware\\Tween.reds`),
-        path.join(`r6\\scripts\\Audioware\\Utils.reds`)
+        path.join(`r6\\scripts\\Audioware\\Utils.reds`),
       ],
       outInstructions: [
         createdDirectory(`r6\\audioware\\`), // This is a special case
@@ -46,8 +49,7 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`r6\\scripts\\Audioware\\Settings.reds`),
         copiedToSamePath(`r6\\scripts\\Audioware\\System.reds`),
         copiedToSamePath(`r6\\scripts\\Audioware\\Tween.reds`),
-        copiedToSamePath(`r6\\scripts\\Audioware\\Utils.reds`)
-       
+        copiedToSamePath(`r6\\scripts\\Audioware\\Utils.reds`),
       ],
     },
     coreAudiowareInstallCanonWithRandomStuff: {
@@ -58,6 +60,9 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`red4ext\\plugins\\iguesswhatever.archive`),
         path.join(`red4ext\\plugins\\Audioware\\`),
         path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
+        path.join(`r6\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
         path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
         path.join(`r6\\scripts\\Audioware\\Config.reds`),
         path.join(`r6\\scripts\\Audioware\\Ext.reds`),
@@ -68,10 +73,10 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         path.join(`r6\\scripts\\Audioware\\Settings.reds`),
         path.join(`r6\\scripts\\Audioware\\System.reds`),
         path.join(`r6\\scripts\\Audioware\\Tween.reds`),
-        path.join(`r6\\scripts\\Audioware\\Utils.reds`)
+        path.join(`r6\\scripts\\Audioware\\Utils.reds`),
       ],
       outInstructions: [
-        createdDirectory(`r6\\tweaks\\`), // This is a special case
+        createdDirectory(`r6\\audioware\\`), // This is a special case
         copiedToSamePath(`red4ext\\plugins\\iguesswhatever.archive`),
         copiedToSamePath(`red4ext\\plugins\\Audioware\\audioware.dll`),
         copiedToSamePath(`r6\\scripts\\Audioware\\Codeware.reds`),
@@ -84,7 +89,7 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
         copiedToSamePath(`r6\\scripts\\Audioware\\Settings.reds`),
         copiedToSamePath(`r6\\scripts\\Audioware\\System.reds`),
         copiedToSamePath(`r6\\scripts\\Audioware\\Tween.reds`),
-        copiedToSamePath(`r6\\scripts\\Audioware\\Utils.reds`)
+        copiedToSamePath(`r6\\scripts\\Audioware\\Utils.reds`),
       ],
     },
   }),
@@ -97,6 +102,8 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
       inFiles: [
         path.join(`r6\\`),
         path.join(`red4ext\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
         path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
         path.join(`r6\\scripts\\Audioware\\Config.reds`),
         path.join(`r6\\scripts\\Audioware\\Ext.reds`),
@@ -108,9 +115,8 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
         path.join(`r6\\scripts\\Audioware\\System.reds`),
         path.join(`r6\\scripts\\Audioware\\Tween.reds`),
         path.join(`r6\\scripts\\Audioware\\Utils.reds`),
-        path.join(`r6\\audioware\\`),
         path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\Audioware\\`)
+        path.join(`red4ext\\plugins\\audioware.dll`),
       ],
       failure: `Didn't Find Expected Audioware Installation!`,
       errorDialogTitle: `Didn't Find Expected Audioware Installation!`,
@@ -120,7 +126,12 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
       inFiles: [
         path.join(`red4ext\\`),
         path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\Audioware\\`)
+        path.join(`red4ext\\plugins\\Audioware\\`),
+        path.join(`red4ext\\plugins\\Audioware\\audioware.txt`),
+        path.join(`r6\\`),
+        path.join(`r6\\scripts\\`),
+        path.join(`r6\\scripts\\Audioware\\`),
+        path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
       ],
       failure: `Didn't Find Expected Audioware Installation!`,
       errorDialogTitle: `Didn't Find Expected Audioware Installation!`,
