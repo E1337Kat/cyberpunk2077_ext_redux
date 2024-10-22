@@ -1,10 +1,50 @@
+# Cyberpunk 2077 Vortex Support v0.11.0 "Silverhand"
+
+> Lead developer and not good at writing person here. Calling this release the "Silverhand" release. Why? Well because the project was all but dead and has miraculously returned to "life" like a certain rocker boy. While I can't promise you that this release blew up a nuke at arasaka, the same anti-corpo sentiment exists nonetheless. I guess it also works out that the main job this time was adding audioware support.
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+Why use a mod manager? In addition to supporting REDmods and every other kind of mod there is for CP2077, there's the quality-of-life improvements like automatically fixing many common types of mod structure problems that you'd have to do by hand, clear (?) instructions on any possile additional steps for any given mod or problem encountered, and the easy ability to enable/disable mods, you also get profiles to manage separate sets of mods more easily, update notifications, much easier game upgrades, easy toggling between multiple versions or variants (e.g. colors) of a mod, Collections, and all sorts of nice things. And you can of course install mods from any source - even the mod showcase channel, and they do not even need to be in a zipfile. We gotchu.
+
+As always, all feedback is appreciated so we can ensure that no bugs or oversights have slipped through our testing — and any suggestions and ideas are welcome too! Please get in touch either on Discord, Github, or Nexus (links at the bottom).
+
+## Main Jobs
+
+- Added Audioware by @donk7413 in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/398
+
+## Fixer Gigs
+
+- 🐛 [#394] Update tweak and archive XLs by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/399
+- Update settings.tsx by @manavortex in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/390
+- Allow Vortex to get the correct version of the game by @Pickysaurus in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/395
+
+**Full Changelog**: [v0.10.4...v0.11.0](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.4...v0.11.0)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+This time we were joined by @donk7413 for the audioware support and also had @manavortex and @Pickysaurus for a some other items! We also had @E1337kat around to update some existing support for Tweak and Archive XLs
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.11.0 "Silverhand"'
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.10.4
 
 ## Fixer Gigs
 
-* ✨ New Core ArchiveXL and Core TweakXL layout compatibility
+- ✨ New Core ArchiveXL and Core TweakXL layout compatibility
 
-**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.3...v0.10.4
+**Full Changelog**: [v0.10.3...v0.10.4](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.3...v0.10.4)
 
 ---
 
@@ -14,11 +54,11 @@ Some smol long standing bugs that I had sudden inspiration on fixing. Had anothe
 
 ## Fixer Gigs
 
-* ✨ [#382] Add support for ep1 tweaks by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/383
-* ✨ [#384] Support mod_sfx_ui audio type on redmods by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/385
-* 🔖 [release] bump version to 0.10.3 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/386
+- ✨ [#382] Add support for ep1 tweaks by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/383
+- ✨ [#384] Support mod_sfx_ui audio type on redmods by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/385
+- 🔖 [release] bump version to 0.10.3 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/386
 
-**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.2...v0.10.3
+**Full Changelog**: [v0.10.2...v0.10.3](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.2...v0.10.3)
 
 # Cyberpunk 2077 Vortex Support v0.10.2
 
@@ -30,10 +70,10 @@ Input loaded:
 
 ## Fixer Gigs
 
-* ✨ [#376] Add support for Input Loader 0.1.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/379
-* 🔖 [release] bump version to 0.10.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/381
+- ✨ [#376] Add support for Input Loader 0.1.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/379
+- 🔖 [release] bump version to 0.10.2 by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/381
 
-**Full Changelog**: https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.1...v0.10.2
+**Full Changelog**: [v0.10.1...v0.10.2](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.10.1...v0.10.2)
 
 ---
 
@@ -42,7 +82,6 @@ Input loaded:
 > Lead developer and not good at writing person here, again. This is not part 'B' of River. This is just a tribute. I will try to continue picking off the things that I can when I see them. I fixed my dev environment a bit and real world is letting up for the holidays, so I will try and get things going a bit more, but I know better than to make a promise.
 
 Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
-
 
 ## Main Jobs
 
@@ -71,10 +110,9 @@ End of transmission, subject: 'v0.10.1 "River? Still?"'
 
 ---
 
-
 # Cyberpunk 2077 Vortex Support v0.10.0-a "River"
 
-> Lead developer and not good at writing person here. I went with the name River for this release because we are planning for it in two parts (an 'A' and 'B') like a river flows from point A to point B because I like puns. Also like a river, we, the development team, is still flowing forward to try and add features, fix bugs that we are able to fix, and hopefully continue to make it easier to use Vortex for Cyberpunk 2077 modding as we go forward. I wish I had the creative spark to write up the fun passages that my co-dev writes, but hopefully this isn't too trash. if it is, let me know. It won't change anything, but I can at least know I affected someone with my shit writing. 
+> Lead developer and not good at writing person here. I went with the name River for this release because we are planning for it in two parts (an 'A' and 'B') like a river flows from point A to point B because I like puns. Also like a river, we, the development team, is still flowing forward to try and add features, fix bugs that we are able to fix, and hopefully continue to make it easier to use Vortex for Cyberpunk 2077 modding as we go forward. I wish I had the creative spark to write up the fun passages that my co-dev writes, but hopefully this isn't too trash. if it is, let me know. It won't change anything, but I can at least know I affected someone with my shit writing.
 
 Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
 
@@ -86,8 +124,7 @@ As always, all feedback is appreciated so we can ensure that no bugs or oversigh
 
 - ✨ **Modlist File Support** The latest cyberpunk update added a feature to redmod to allow deploying mods specified in a file. When we read that, we knew we had to get right on it to fully remove the mod count limit on REDmods (Eat it NetWatch!)
 
-
-**Full Changelog**: [v0.8.3...v0.10.0-a](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.8.3...v0.10.0-a-gonk)
+**Full Changelog**: [v0.9.8...v0.10.0-a](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.9.8...v0.10.0-a)
 
 ## Detes
 
@@ -109,7 +146,6 @@ End of transmission, subject: 'v0.10.0-a "River"'
 
 ---
 
-
 # Cyberpunk 2077 Vortex Support v0.9.8
 
 ## Main Jobs
@@ -121,7 +157,6 @@ End of transmission, subject: 'v0.10.0-a "River"'
 - 🛡️ **More Robust Load Order Protection** There were some cases in which a race condition or unexpectedly deleted `V2077` directory could cause the Load Order to be reset. Put a Cerberus on it, see 'em weefles try it now.
 
 ---
-
 
 # Cyberpunk 2077 Vortex Support v0.9.7
 
@@ -154,6 +189,7 @@ End of transmission, subject: 'v0.10.0-a "River"'
 - 🐛 **Wear the Colors** The few mods that were proactively splitting archives between REDmod and classic now work correctly in the load order when autoconverted — both halves show up and can be independently ordered (they are still a single Vortex mod, though, so you can only enable or disable _both_.)
 
 ---
+
 # Cyberpunk 2077 Vortex Support v0.9.3
 
 Quick and dirty, 'cause what else is there in Night City?
@@ -167,6 +203,7 @@ Quick and dirty, 'cause what else is there in Night City?
 - 🐛 **DND: off** Show notifications for starting _and_ completing an on-demand REDdeployment.
 
 ---
+
 # Cyberpunk 2077 Vortex Support v0.9.2
 
 A nice new gig and a bit of fixing for v0.9.0
@@ -179,17 +216,18 @@ A nice new gig and a bit of fixing for v0.9.0
 
 - 🐛 **redMod.exe will now always deploy order-only changes too!** The `redMod.exe` tool doesn't currently correctly handle cases where only the load order is changed without enabling/disabling mods at the same time. Until that's fixed upstream, Vortex will default to force deployment. It's unfortunately slower, but hopefully won't get in the way too much because it's running in the background.
 
-- 🐛 **REDmodding DLC check won't fail on non-store games!** 
+- 🐛 **REDmodding DLC check won't fail on non-store games!**
 
 ## Chippin' In - Tools of the Trade
 
-- ⚒️ **Run the game directly, `-modded`, no launcher.** If you don't need the launcher, you can launch the game directly and still get the modded goodness (it's in the toolbar at the top, or on your dashboard.) 
+- ⚒️ **Run the game directly, `-modded`, no launcher.** If you don't need the launcher, you can launch the game directly and still get the modded goodness (it's in the toolbar at the top, or on your dashboard.)
 
 ---
 
 # Cyberpunk 2077 Vortex Support v0.9.1
 
 Bugfix update to v0.9.0, see full changelog below.
+
 ## Fixer Gigs
 
 - 🐞 **Tools from other games won't crash if user has our extension but the game is not installed**. Until and if Vortex offers isolation from other games touching our stuff, we need to be extra careful not to touch any CP2077-specific stuff until we know that the user is actually invoking one of our tools.
@@ -210,7 +248,7 @@ As always, all feedback is appreciated so we can ensure that no bugs or oversigh
 
 ## Main Jobs
 
-- ✨ **Full REDmod support!** You can install and manage REDmods alongside all the others. *Note:* this is for new installations or reinstalls only. We don't want to accidentally break your existing mods, so you can choose when and if you want to migrate them yourself! Just hit Reinstall when you're ready.
+- ✨ **Full REDmod support!** You can install and manage REDmods alongside all the others. _Note:_ this is for new installations or reinstalls only. We don't want to accidentally break your existing mods, so you can choose when and if you want to migrate them yourself! Just hit Reinstall when you're ready.
 
 - ✨ **Load Ordering!** Drag and drop to order any mods that need ordering! Topmost is highest priority. Note that load order _only_ works on REDmods, and that the game will always load old-style archives at a higher priority and therefore override REDmods (this is where autoconversion comes in handy). Unmanaged REDmods are not supported at this time, so you'll need to reinstall them through Vortex to get everything to play nice together.
 
@@ -249,7 +287,6 @@ Nexus: https://www.nexusmods.com/site/mods/196
 
 End of transmission, subject: 'v0.9.0 "Rogue"'
 
-
 ---
 
 # Cyberpunk2077 Vortex Support v0.8.3 "Third's the Charm, TAKEMURA"
@@ -268,7 +305,6 @@ already supported, so you can just install that normally.
 FIXES Core Input Loader to support the new 1.6-compatible version.
 
 (It also adds the ability to install REDmods but that's of limited utility until full REDmod support that's coming in v0.9 "Rogue".)
-
 
 # Cyberpunk2077 Vortex Support v0.8.0 "TAKEMURA"
 
@@ -295,7 +331,6 @@ No time to advance the story this sesh, just doing side gigs!
 - 🎨 Replace Prettier with Eslint Rules [\#189 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/189)
 - 📝 Explicitly State That The ASCII Art Structure Is Incomplete [\#179 by Auska](https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/179)
 
-
 **Full Changelog**: [v0.7.0...v0.8.0](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.7.0...v0.8.0)
 
 ## Detes
@@ -308,7 +343,7 @@ No new contributors this time around, but we got good bug reports, thank you - a
 
 ## Holo at us
 
-[Discord](<https://discord.gg/7NUQJ2b4ZN>) (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
+[Discord](https://discord.gg/7NUQJ2b4ZN) (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
 [Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux)
 [Nexus](https://www.nexusmods.com/site/mods/196)
 
