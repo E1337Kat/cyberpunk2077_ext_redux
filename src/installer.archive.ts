@@ -64,6 +64,7 @@ import {
   VortexApi,
   VortexTestResult,
   VortexInstallResult,
+  VortexDiscoveryResult,
 } from "./vortex-wrapper";
 import {
   FeatureSet,
@@ -72,6 +73,12 @@ import {
 import {
   transformToREDmodArchiveInstructions,
 } from "./installer.redmod";
+import {
+  hasREDmodDLCBeenInstalled,
+} from "./redmodding";
+import {
+  getDiscoveryResult,
+} from "./load_order";
 
 const me = InstallerType.Archive;
 
@@ -401,13 +408,20 @@ const transformAndValidateAndFinalizeInstructions = async (
   modInfo: ModInfo,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
-    return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
-  }
+  const discovery: VortexDiscoveryResult = getDiscoveryResult(api);
 
-  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+  return hasREDmodDLCBeenInstalled(api, discovery)
+    .then((dlcExists: boolean) => {
+      api.log(`info`, `Do we listen to the settings??? `, dlcExists);
 
-  return right(originalInstructions);
+      if (IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives) && dlcExists) {
+        return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
+      }
+
+      warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
+
+      return right(originalInstructions);
+    });
 };
 
 //
