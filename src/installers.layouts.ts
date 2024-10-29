@@ -273,7 +273,7 @@ export const TWEAK_XL_MOD_CANONICAL_EXTENSIONS = [`.yaml`, `.yml`];
 
 export const enum CoreAudiowareLayout {
   OnlyValid = `
-          - .\\red4ext\\plugins\\Audioware\\audioware.dll
+          - .\\red4ext\\plugins\\audioware\\audioware.dll
           - .\\r6\\scripts\\Audioware\\Codeware.reds
           - .\\r6\\scripts\\Audioware\\Config.reds
           - .\\r6\\scripts\\Audioware\\Ext.reds
