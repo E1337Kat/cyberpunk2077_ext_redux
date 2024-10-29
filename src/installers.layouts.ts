@@ -289,7 +289,7 @@ export const enum CoreAudiowareLayout {
 }
 
 export const AUDIOWARE_CORE_FILES = [
-  path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
+  path.join(`red4ext\\plugins\\audioware\\audioware.dll`),
   path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
   path.join(`r6\\scripts\\Audioware\\Config.reds`),
   path.join(`r6\\scripts\\Audioware\\Ext.reds`),
