@@ -19,8 +19,8 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
       inFiles: [
         path.join(`red4ext\\`),
         path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\Audioware\\`),
-        path.join(`red4ext\\plugins\\Audioware\\audioware.dll`),
+        path.join(`red4ext\\plugins\\audioware\\`),
+        path.join(`red4ext\\plugins\\audioware\\audioware.dll`),
         path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
         path.join(`r6\\scripts\\Audioware\\Config.reds`),
         path.join(`r6\\scripts\\Audioware\\Ext.reds`),
