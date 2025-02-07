@@ -96,7 +96,7 @@ jobs:
         run: npm run pack-dev
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dev-release-zip
           path: 'cyberpunk2077-dev-*.7z'
@@ -130,7 +130,7 @@ jobs:
       - name: package it up
         run: npm run pack
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-zip
           path: 'cyberpunk2077-*.7z'
