@@ -328,8 +328,20 @@ export const enum CoreArchiveXLLayout {
   OnlyValid = `
           - .\\r6\\config\\redsUserHints\\ArchiveXL.toml
           - .\\red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\ArchiveXL.archive
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PhotoModeScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerBaseScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardFix.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsFix.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsPatch.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairPatch.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesFix.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\LICENSE
           - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds
@@ -341,8 +353,20 @@ export const enum CoreArchiveXLLayout {
 export const ARCHIVE_XL_CORE_FILES = [
   path.join(`r6\\config\\redsUserHints\\ArchiveXL.toml`),
   path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\ArchiveXL.archive`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PhotoModeScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerBaseScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardFix.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsFix.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsPatch.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairPatch.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesFix.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
