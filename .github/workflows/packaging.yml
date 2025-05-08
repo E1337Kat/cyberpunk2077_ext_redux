@@ -23,7 +23,7 @@ jobs:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
       - name: Setup Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: 16.x
           cache: "npm"
@@ -52,7 +52,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 16.x
           cache: "npm"
@@ -80,7 +80,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 16.x
           cache: "npm"
@@ -116,7 +116,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         with:
           node-version: 16.x
           cache: "npm"
