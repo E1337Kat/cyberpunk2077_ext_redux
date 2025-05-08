@@ -1,3 +1,35 @@
+# Cyberpunk 2077 Vortex Support v0.11.3
+
+> All things must change. This usually means things are getting better. One must learn to adapt to keep moving forward.
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+## Main Jobs
+
+- ✨ Updating the archiveXL version
+
+**Full Changelog**: [v0.11.2...v0.11.3](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.11.2...v0.11.3)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+Just ellie this time
+
+As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.11.3'
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.11.2
 
 > All things must change. This usually means things are getting better. One must learn to adapt to keep moving forward.

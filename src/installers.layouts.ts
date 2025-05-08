@@ -343,6 +343,7 @@ export const enum CoreArchiveXLLayout {
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl
+          - .\\red4ext\\plugins\\ArchiveXL\\Bundle\\QuestBaseScope.xl
           - .\\red4ext\\plugins\\ArchiveXL\\LICENSE
           - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds
           - .\\red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds
@@ -368,6 +369,7 @@ export const ARCHIVE_XL_CORE_FILES = [
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
+  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\QuestBaseScope.xl`),
   path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
   path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
