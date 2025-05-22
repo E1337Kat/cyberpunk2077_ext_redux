@@ -26,6 +26,7 @@ import {
   FILETREE_ROOT,
   filesIn,
   FileMove,
+  findAllSubdirsWithSome,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -85,8 +86,7 @@ const findAmmFiles = (
   ammDir: string,
   kindMatcher: PathFilter,
   fileTree: FileTree,
-): string[] =>
-  findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
+): string[] => findAllSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
     filesUnder(dir, Glob.Any, fileTree));
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
