@@ -619,6 +619,7 @@ export const enum CoreAmmLayout {
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\API.lua
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\[placeholder]
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\[placeholder]
+              - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Poses\\[placeholder]
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\[placeholder]
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Themes\\Default.json
               - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\[placeholder]
@@ -651,7 +652,6 @@ export const AMM_CORE_REQUIRED_CET_PATHS = [
 
 export const AMM_CORE_REQUIRED_ARCHIVE_PATHS = [
   path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_Props.archive`),
-  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_requirement.archive`),
 ];
 
 export const AMM_CORE_REQUIRED_PATHS = [
@@ -669,6 +669,7 @@ export const enum AmmLayout {
   Canon = `
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Poses\\*.lua + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Decor\\*.json + [any files or subdirs]
     - .\\bin\\x64\\plugins\\cyber_engine_tweaks\\mods\\AppearanceMenuMod\\User\\Locations\\*.json + [any files or subdirs]
@@ -678,6 +679,7 @@ export const enum AmmLayout {
   ToplevelCanonSubdir = `
     - .\\Collabs\\Custom Appearances\\*.lua + [any files or subdirs]
     - .\\Collabs\\Custom Entities\\*.lua + [any files or subdirs]
+    - .\\Collabs\\Custom Poses\\*.lua + [any files or subdirs]
     - .\\Collabs\\Custom Props\\*.lua + [any files or subdirs]
     - .\\User\\Decor\\*.json + [any files or subdirs]
     - .\\User\\Locations\\*.json + [any files or subdirs]
@@ -723,6 +725,17 @@ export const AMM_MOD_ENTITIES_REQUIRED_MATCHES = [
   /modder\s*=/,
   /unique_identifier\s*=/,
   /entity_info\s*=/,
+];
+
+export const AMM_MOD_CUSTOM_POSES_CANON_DIR = path.join(
+  `${AMM_MOD_CUSTOMS_CANON_DIR}\\Custom Poses`,
+);
+
+export const AMM_MOD_POSES_REQUIRED_MATCHES = [
+  /modder\s*=/,
+  /category\s*=/,
+  /entity_path\s*=/,
+  /anims\s*=/,
 ];
 
 export const AMM_MOD_CUSTOM_PROPS_CANON_DIR = path.join(

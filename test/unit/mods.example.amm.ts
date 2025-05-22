@@ -3,6 +3,7 @@ import {
   AMM_BASEDIR_PATH,
   AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR,
   AMM_MOD_CUSTOM_ENTITIES_CANON_DIR,
+  AMM_MOD_CUSTOM_POSES_CANON_DIR,
   AMM_MOD_CUSTOM_PROPS_CANON_DIR,
   AMM_MOD_DECOR_CANON_DIR,
   AMM_MOD_LOCATIONS_CANON_DIR,
@@ -80,6 +81,22 @@ const AmmModCanonicalCollabsInstallSucceeds = new Map<string, ExampleSucceedingM
             movedFromTo(
               path.join(`${ammPrefix}\\Collabs\\Custom Entities\\custent.lua`),
               `${AMM_BASEDIR_PATH}\\Collabs\\Custom Entities\\custent.lua`,
+            ),
+          ],
+        },
+      ],
+      [
+        `custom pose lua in ${kind}`,
+        {
+          expectedInstallerType: InstallerType.AMM,
+          inFiles: [
+            ...ammPrefixes,
+            path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
+          ],
+          outInstructions: [
+            movedFromTo(
+              path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
+              `${AMM_BASEDIR_PATH}\\Collabs\\Custom Poses\\custpose.lua`,
             ),
           ],
         },
@@ -278,6 +295,7 @@ const AmmModCanonicalCombinationsInstallSucceeds = new Map<string, ExampleSuccee
             ...ammPrefixes,
             path.join(`${ammPrefix}\\Collabs\\Custom Props\\custprop.lua`),
             path.join(`${ammPrefix}\\Collabs\\Custom Entities\\custent.lua`),
+            path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
             path.join(`${ammPrefix}\\User\\Decor\\custdecor.json`),
             ...archivePrefixes,
             path.join(`${archivePrefix}\\custent.archive`),
@@ -290,6 +308,10 @@ const AmmModCanonicalCombinationsInstallSucceeds = new Map<string, ExampleSuccee
             movedFromTo(
               path.join(`${ammPrefix}\\Collabs\\Custom Entities\\custent.lua`),
               `${AMM_BASEDIR_PATH}\\Collabs\\Custom Entities\\custent.lua`,
+            ),
+            movedFromTo(
+              path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
+              `${AMM_BASEDIR_PATH}\\Collabs\\Custom Poses\\custpose.lua`,
             ),
             movedFromTo(
               path.join(`${ammPrefix}\\User\\Decor\\custdecor.json`),
@@ -359,6 +381,7 @@ const AmmModNonConformingLayoutsPromptToInstall =
               ...ammPrefixes,
               path.join(`${ammPrefix}\\Collabs\\Custom Props\\custprop.lua`),
               path.join(`${ammPrefix}\\Collabs\\Custom Entities\\custent.lua`),
+              path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
               path.join(`${ammPrefix}\\User\\Decor\\custdecor.json`),
               path.join(`${ammPrefix}\\wtf.md`),
               path.join(`${ammPrefix}\\swhatisaid.lua`),
@@ -372,6 +395,9 @@ const AmmModNonConformingLayoutsPromptToInstall =
               ),
               copiedToSamePath(
                 path.join(`${ammPrefix}\\Collabs\\Custom Entities\\custent.lua`),
+              ),
+              copiedToSamePath(
+                path.join(`${ammPrefix}\\Collabs\\Custom Poses\\custpose.lua`),
               ),
               copiedToSamePath(path.join(`${ammPrefix}\\User\\Decor\\custdecor.json`)),
               copiedToSamePath(path.join(`${ammPrefix}\\wtf.md`)),
@@ -417,6 +443,14 @@ return {
   modder = "ray",
   unique_identifier = "itsactuallyanapparition",
   entity_info = { dunno something goes here probably }
+}`;
+
+const minimalCustomPoseLua = `
+return {
+  modder = "MickyGoldenHand",
+  category = "ContortionistPoses",
+  entity_path = "base\\eap_57975636\\controller\\entity_01.ent",
+  anims = { an associative array of body types and pose names }
 }`;
 
 const minimalCustomPropLua = `
@@ -472,6 +506,20 @@ const AmmModToplevelsMatchingSchemaInstallSucceeds =
           movedFromTo(
             path.join(`.\\custent.lua`),
             path.join(`${AMM_MOD_CUSTOM_ENTITIES_CANON_DIR}\\custent.lua`),
+          ),
+        ],
+      },
+    ],
+    [
+      `top-level custom pose recognized and moved to canonical dir`,
+      {
+        expectedInstallerType: InstallerType.AMM,
+        inFiles: [path.join(`.\\custpose.lua`)],
+        fsMocked: mockedFsLayout({ "custpose.lua": minimalCustomPoseLua }),
+        outInstructions: [
+          movedFromTo(
+            path.join(`.\\custpose.lua`),
+            path.join(`${AMM_MOD_CUSTOM_POSES_CANON_DIR}\\custpose.lua`),
           ),
         ],
       },
@@ -557,6 +605,7 @@ const AmmModToplevelsMatchingSchemaInstallSucceeds =
           path.join(`.\\custscript.json`),
           path.join(`.\\custprop.lua`),
           path.join(`.\\custent.lua`),
+          path.join(`.\\custpose.lua`),
           path.join(`.\\custapp.lua`),
           path.join(`.\\some.archive`),
         ],
@@ -567,6 +616,7 @@ const AmmModToplevelsMatchingSchemaInstallSucceeds =
           "custscript.json": minimalScriptJson,
           "custprop.lua": minimalCustomPropLua,
           "custent.lua": minimalCustomEntityLua,
+          "custpose.lua": minimalCustomPoseLua,
           "custapp.lua": minimalCustomAppearanceLua,
         // No archive required here
         }),
@@ -594,6 +644,10 @@ const AmmModToplevelsMatchingSchemaInstallSucceeds =
           movedFromTo(
             path.join(`.\\custent.lua`),
             path.join(`${AMM_MOD_CUSTOM_ENTITIES_CANON_DIR}\\custent.lua`),
+          ),
+          movedFromTo(
+            path.join(`.\\custpose.lua`),
+            path.join(`${AMM_MOD_CUSTOM_POSES_CANON_DIR}\\custpose.lua`)
           ),
           movedFromTo(
             path.join(`.\\custapp.lua`),

@@ -26,6 +26,7 @@ import {
   FILETREE_ROOT,
   filesIn,
   FileMove,
+  findAllSubdirsWithSome,
 } from "./filetree";
 import {
   MaybeInstructions,
@@ -44,9 +45,11 @@ import {
   AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR,
   AMM_MOD_APPEARANCES_REQUIRED_MATCHES,
   AMM_MOD_CUSTOM_ENTITIES_CANON_DIR,
+  AMM_MOD_CUSTOM_POSES_CANON_DIR,
   AMM_MOD_CUSTOM_PROPS_CANON_DIR,
   AMM_MOD_DECOR_REQUIRED_KEYS,
   AMM_MOD_ENTITIES_REQUIRED_MATCHES,
+  AMM_MOD_POSES_REQUIRED_MATCHES,
   AMM_MOD_LOCATION_REQUIRED_KEYS,
   AMM_MOD_PROPS_REQUIRED_MATCHES,
   AMM_MOD_SCRIPT_REQUIRED_KEYS,
@@ -83,8 +86,7 @@ const findAmmFiles = (
   ammDir: string,
   kindMatcher: PathFilter,
   fileTree: FileTree,
-): string[] =>
-  findDirectSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
+): string[] => findAllSubdirsWithSome(ammDir, kindMatcher, fileTree).flatMap((dir) =>
     filesUnder(dir, Glob.Any, fileTree));
 
 const findAmmCanonFiles = (fileTree: FileTree): string[] => [
@@ -110,6 +112,7 @@ const detectAmmToplevelCanonSubdirLayout = (fileTree: FileTree): boolean =>
 const ammLuaContentToPath: [RegExp[], string][] = [
   [AMM_MOD_APPEARANCES_REQUIRED_MATCHES, AMM_MOD_CUSTOM_APPEARANCES_CANON_DIR],
   [AMM_MOD_ENTITIES_REQUIRED_MATCHES, AMM_MOD_CUSTOM_ENTITIES_CANON_DIR],
+  [AMM_MOD_POSES_REQUIRED_MATCHES, AMM_MOD_CUSTOM_POSES_CANON_DIR],
   [AMM_MOD_PROPS_REQUIRED_MATCHES, AMM_MOD_CUSTOM_PROPS_CANON_DIR],
 ];
 
