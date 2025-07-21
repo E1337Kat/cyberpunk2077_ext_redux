@@ -154,9 +154,9 @@ const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
 // Helpers
 //
 
-const getDiscoveryPath = (
+export const getDiscoveryResult = (
   api: VortexApi,
-): string => {
+): VortexDiscoveryResult => {
   //
   const state = api.store.getState();
   const discovery: VortexDiscoveryResult = vortexUtil.getSafe(
@@ -164,6 +164,15 @@ const getDiscoveryPath = (
     [`settings`, `gameMode`, `discovered`, GAME_ID],
     {},
   );
+
+  return discovery;
+};
+
+const getDiscoveryPath = (
+  api: VortexApi,
+): string => {
+  //
+  const discovery: VortexDiscoveryResult = getDiscoveryResult(api);
 
   return discovery?.path;
 };

@@ -76,6 +76,34 @@ const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
   return gameStoreData[id];
 };
 
+export const hasREDmodDLCBeenInstalled = async (
+  vortexApi: VortexApi,
+  discovery: VortexDiscoveryResult,
+): Promise<boolean> => {
+  // Attempt to detect if the user has the REDmodding DLC installed
+  const requiredREDmoddingFiles = [
+    ...REDlauncher.requiredFiles,
+    ...REDdeployManual.requiredFiles,
+  ];
+
+  try {
+    await pipe(
+      requiredREDmoddingFiles,
+      map((file) =>
+        fs.statAsync(path.join(discovery.path, file))),
+      Promise.all,
+    );
+
+    // Only need to run the DLC finder if the files aren't there yet
+    return true;
+
+  } catch (err) {
+    vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077...`, err);
+  }
+
+  return false;
+};
+
 const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
   const redModDetails = fetchREDmoddingDlcDetails(gameStoreId);
 
@@ -109,35 +137,26 @@ const prepareForModdingWithREDmodding = async (
     vortexApi.log(`error`, `Unable to create or access load order storage dir ${V2077_LOAD_ORDER_DIR} under ${discovery.path}`, err);
   }
 
-  // Attempt to detect if the user has the REDmodding DLC installed
-  const requiredREDmoddingFiles = [
-    ...REDlauncher.requiredFiles,
-    ...REDdeployManual.requiredFiles,
-  ];
+  // let shouldPrompt: boolean;
+  hasREDmodDLCBeenInstalled(vortexApi, discovery)
+    .then((dlcExists: boolean) => {
+      vortexApi.log(`info`, `Do we offer the download???`, !dlcExists);
 
-  try {
-    await pipe(
-      requiredREDmoddingFiles,
-      map((file) =>
-        fs.statAsync(path.join(discovery.path, file))),
-      Promise.all,
-    );
+      if (dlcExists) {
+        return;
+      }
 
-    // Only need to run the DLC finder if the files aren't there yet
-    return;
+      vortexApi.log(`info`, `Offering the download...`);
 
-  } catch (err) {
-    vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`, err);
-  }
+      const gameStoreIfInstalledThroughStore =
+        VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]).catch(() => undefined);
 
-  const gameStoreIfInstalledThroughStore =
-    await VortexUtil.GameStoreHelper.findByAppId([GOGAPP_ID, STEAMAPP_ID, EPICAPP_ID]).catch(() => undefined);
+      if (gameStoreIfInstalledThroughStore?.gamePath !== discovery.path) {
+        vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, gameStoreIfInstalledThroughStore });
+      }
 
-  if (gameStoreIfInstalledThroughStore?.gamePath !== discovery.path) {
-    vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, gameStoreIfInstalledThroughStore });
-  }
-
-  await promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
+      promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
+    });
 };
 
 export const wrappedPrepareForModdingWithREDmodding = async (
