@@ -1,3 +1,39 @@
+# Cyberpunk 2077 Vortex Support v0.11.4
+
+> I think I might have forgotten to put up GH releases for the last few changes??? That is very bad form on my part and I apologize. At least this one will be made?
+
+Update directly in Vortex, or get the release on the Nexus page (or Github): https://www.nexusmods.com/site/mods/196?tab=files
+
+## Main Jobs
+
+* Fixes for AMM, poses & no-longer-required requirement file by @megapatato in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/408
+
+## Cyberdeck Upgrades aka Internal Stuff(tm)
+
+* 👷‍♀️ update CI config by @E1337Kat in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/407
+
+**Full Changelog**: [v0.11.1...v0.11.4](https://github.com/E1337Kat/cyberpunk2077_ext_redux/compare/v0.11.1...v0.11.4)
+
+## Detes
+
+We'll collect any tutorials, walkthroughs and other info on the [Nexus page](https://www.nexusmods.com/site/mods/196) for you!
+
+## The Crew
+
+* @megapatato made their first contribution in https://github.com/E1337Kat/cyberpunk2077_ext_redux/pull/408 Thanks for the help!
+
+As always, thanks to all of you for your feedback, suggestions, bug reports, support, and in this case a little patience too!
+
+## Holo at us
+
+Discord: https://discord.gg/7NUQJ2b4ZN (\#vortex-support on the CP2077 Modding Community server)
+Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Nexus: https://www.nexusmods.com/site/mods/196
+
+End of transmission, subject: 'v0.11.4'
+
+---
+
 # Cyberpunk 2077 Vortex Support v0.11.3
 
 > All things must change. This usually means things are getting better. One must learn to adapt to keep moving forward.
