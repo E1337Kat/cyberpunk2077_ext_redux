@@ -40,6 +40,12 @@ const detectExtraFilesLayout: LayoutDetectFunc = (fileTree: FileTree): boolean =
     prunedTreeFrom(isKnownToplevelDir, fileTree),
   );
   */
+  
+const windows_reserved_names = new Set<string>([
+  "CON","PRN","AUX","NUL",
+  "COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9",
+  "LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9",
+]);
 
 const extraFilesLayout: LayoutToInstructions = (
   _api: VortexApi,
@@ -51,8 +57,12 @@ const extraFilesLayout: LayoutToInstructions = (
   if (allExtraFiles.length < 1) {
     return NoInstructions.NoMatch;
   }
+  const sanitizedModNameForExtraFilesDir = modName.trim().replace(/[. ]+$/g, "").replace(/[<>:"\/\\|?*\x00-\x1F]/g, "_");
+  const modNameForExtraFilesDir = (sanitizedModNameForExtraFilesDir && !windows_reserved_names.has(sanitizedModNameForExtraFilesDir.toUpperCase())) 
+									? sanitizedModNameForExtraFilesDir
+									: `mod-${Date.now()}`;
 
-  const extraFilesDirForMod = path.normalize(`.\\${MODS_EXTRA_BASEDIR}\\${modName}`);
+  const extraFilesDirForMod = path.normalize(`.\\${MODS_EXTRA_BASEDIR}\\${modNameForExtraFilesDir}`);
 
   const allFromOriginalPathToOurExtraDir = allExtraFiles.map(
     moveFromTo(FILETREE_ROOT, extraFilesDirForMod),
