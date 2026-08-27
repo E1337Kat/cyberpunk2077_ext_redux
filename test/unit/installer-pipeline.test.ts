@@ -5,8 +5,8 @@ import {
 } from "jest-mock-extended";
 import mockFs from "mock-fs";
 import {
-  IState,
-} from "vortex-api/lib/types/IState";
+  types,
+} from "@nexusmods/vortex-api";
 import {
   InstallChoices,
 } from "../../src/ui.dialogs";
@@ -71,7 +71,7 @@ describe(`Transforming modules to instructions`, () => {
 
           const stateMock = mockVortexExtensionContext.api.getState.calledWith();
 
-          const mockState: DeepMockProxy<IState> = mockDeep<IState>({
+          const mockState: DeepMockProxy<types.IState> = mockDeep<types.IState>({
             settings: { automation: { enable: true, deploy: true } },
           });
 
@@ -95,7 +95,7 @@ describe(`Transforming modules to instructions`, () => {
             notEmpty(),
             notEmpty(),
           );
-          emitAndAwaitMock.mockResolvedValue(`Irrelevant`);
+          emitAndAwaitMock.mockResolvedValue([`Irrelevant`]);
 
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
 

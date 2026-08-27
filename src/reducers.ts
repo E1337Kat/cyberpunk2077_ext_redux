@@ -1,4 +1,4 @@
-import { util as vortexUtil } from "vortex-api";
+import { util as vortexUtil } from "@nexusmods/vortex-api";
 import * as actions from './actions';
 import {
   DynamicFeature,
@@ -8,12 +8,15 @@ import {
 import { VortexReducerSpec } from "./vortex-wrapper";
 
 
+const LEGACY_AUTOCONVERT_SETTING_KEY = `v2077_feature_redmod_autoconvert_archives`;
+
 export const makeSettingsReducer = (settingsDefaultsUnnested: DynamicFeatureDefaults): VortexReducerSpec => ({
   reducers: {
-    [actions.setREDmodAutoconvertArchivesAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
-      storeSetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, stateSliceForJustOurStuff, payload),
     [actions.setREDmodFallbackInstallAnywaysAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
       storeSetDynamicFeature(vortexUtil, DynamicFeature.REDmodFallbackInstallAnyways, stateSliceForJustOurStuff, payload),
+    [actions.clearREDmodAutoconvertArchivesSettingAction.toString()]:
+      (stateSliceForJustOurStuff): object =>
+        vortexUtil.deleteOrNop(stateSliceForJustOurStuff, [LEGACY_AUTOCONVERT_SETTING_KEY]),
   },
   defaults: settingsDefaultsUnnested,
 });

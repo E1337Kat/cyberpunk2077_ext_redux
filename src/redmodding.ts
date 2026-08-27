@@ -1,25 +1,39 @@
 import path from "path";
 import {
   fs,
+  selectors,
   util as VortexUtil,
 } from "@vortex-api-test-shimmed";
-import { map } from "fp-ts/lib/ReadonlyArray";
+import {
+  map,
+  some as any,
+} from "fp-ts/lib/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import {
+  GAME_ID,
   GOGAPP_ID,
   STEAMAPP_ID,
   EPICAPP_ID,
 } from './index.metadata';
 import {
+  attrModType,
+  ModType,
+} from "./installers.types";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
+import {
   REDMODDING_REQUIRED_DIR_FOR_GENERATED_FILES,
   REDMODDING_REQUIRED_DIR_FOR_MODS,
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
-import { promptUserInstallREDmoddingDlc } from "./ui.dialogs";
 import {
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
+  VortexMod,
+  VortexNotificationAction,
   VortexState,
   VortexToolDiscovered,
 } from "./vortex-wrapper";
@@ -32,9 +46,9 @@ import {
 // This may need to be converted to a test, but the UI for tests is less flexible.
 
 interface REDmoddingDlcDetails {
-  name: string;
+  // Absent when we can't tell which store the game came from
+  name?: string;
   url: string;
-  openCommand: () => Promise<void>;
 }
 
 
@@ -46,43 +60,63 @@ export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexT
 };
 
 
-const fetchREDmoddingDlcDetails = (id: string): REDmoddingDlcDetails => {
-  const genericHelpUrl = `https://www.cyberpunk.net/en/modding-support`;
-
-  const isRedModSupportingGamePlatform = [`epic`, `gog`, `steam`].includes(id);
-
-  if (!isRedModSupportingGamePlatform) {
-    return { name: undefined, url: genericHelpUrl, openCommand: () => VortexUtil.opn(genericHelpUrl) };
-  }
-
-  const gameStoreData: { [id: string]: REDmoddingDlcDetails } = {
+// Store pages rather than launcher deep links: the protocols open the client on
+// an empty page and report success either way.
+export const fetchREDmoddingDlcDetails = (gameStoreId?: string): REDmoddingDlcDetails => {
+  const storePages: Record<string, REDmoddingDlcDetails> = { // keyed by Vortex game store id
     epic: {
-      name: `Epic Games Store`,
+      name: `the Epic Games Store`,
       url: `https://store.epicgames.com/en-US/p/cyberpunk-2077`,
-      openCommand: () => VortexUtil.opn(`com.epicgames.launcher://store/p/cyberpunk-2077`),
     },
     steam: {
       name: `Steam`,
       url: `https://store.steampowered.com/app/2060310/Cyberpunk_2077_REDmod/`,
-      openCommand: () => VortexUtil.opn(`steam://run/2060310`),
     },
     gog: {
       name: `GOG`,
       url: `https://www.gog.com/en/game/cyberpunk_2077_redmod`,
-      openCommand: (): Promise<void> => VortexUtil.opn(`goggalaxy://openStoreUrl/embed.gog.com/game/cyberpunk_2077_redmod`),
     },
   };
 
-  return gameStoreData[id];
+  return storePages[gameStoreId] ?? { url: `https://www.cyberpunk.net/en/modding-support` };
 };
 
-const promptREDmoddingDlcInstall = async (vortexApi: VortexApi, gameStoreId: string): Promise<void> => {
-  const redModDetails = fetchREDmoddingDlcDetails(gameStoreId);
+export const anyREDmodsIn = (mods: readonly VortexMod[]): boolean =>
+  pipe(
+    mods,
+    any((mod) => mod.state === `installed` && attrModType(mod) === ModType.REDmod),
+  );
 
-  await promptUserInstallREDmoddingDlc(
+const anyREDmodsAreInstalled = (vortexApi: VortexApi): boolean => {
+  const allMods: Record<string, VortexMod> = // keyed by Vortex mod id
+    selectors.modsForGame(vortexApi.store.getState(), GAME_ID) ?? {};
+
+  return anyREDmodsIn(Object.values(allMods));
+};
+
+// A notification rather than a dialog: the user has something to fix, but it
+// doesn't have to be answered before they can carry on doing anything else.
+const warnREDmoddingDlcIsMissing = (vortexApi: VortexApi, gameStoreId?: string): void => {
+  const { name, url } = fetchREDmoddingDlcDetails(gameStoreId);
+
+  const whereToGetIt =
+    name === undefined
+      ? `You can get it for free from wherever you bought the game.`
+      : `You can get it for free from ${name}.`;
+
+  const openTheStorePage: VortexNotificationAction[] = [{
+    title: `Get REDmod`,
+    action: (dismiss: () => void): void => {
+      VortexUtil.opn(url).catch(() => undefined);
+      dismiss();
+    },
+  }];
+
+  showInfoNotification(
     vortexApi,
-    redModDetails,
-    () => VortexUtil.opn(redModDetails.url),
+    InfoNotification.REDmodDlcMissing,
+    `You have REDmods installed, and they won't load without the free REDmod DLC. ${whereToGetIt}`,
+    openTheStorePage,
   );
 };
 
@@ -127,7 +161,13 @@ const prepareForModdingWithREDmodding = async (
     return;
 
   } catch (err) {
-    vortexApi.log(`warn`, `REDmod not found for Cyberpunk 2077, offering the download...`, err);
+    vortexApi.log(`info`, `REDmod not found for Cyberpunk 2077`, err);
+  }
+
+  // Only someone with a REDmod to load has any use for the DLC
+  if (!anyREDmodsAreInstalled(vortexApi)) {
+    vortexApi.log(`info`, `No REDmods installed, so REDmod isn't needed yet - saying nothing`);
+    return;
   }
 
   const gameStoreIfInstalledThroughStore =
@@ -137,7 +177,7 @@ const prepareForModdingWithREDmodding = async (
     vortexApi.log(`warn`, `Cyberpunk discovery doesn't match auto-detected path`, { discovery: discovery.path, gameStoreIfInstalledThroughStore });
   }
 
-  await promptREDmoddingDlcInstall(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
+  warnREDmoddingDlcIsMissing(vortexApi, gameStoreIfInstalledThroughStore?.gameStoreId);
 };
 
 export const wrappedPrepareForModdingWithREDmodding = async (

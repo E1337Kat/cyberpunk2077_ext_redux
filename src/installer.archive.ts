@@ -1,10 +1,5 @@
 import path from "path";
 import {
-  Either,
-  isLeft,
-  right,
-} from "fp-ts/lib/Either";
-import {
   pipe,
 } from "fp-ts/lib/function";
 import {
@@ -67,11 +62,7 @@ import {
 } from "./vortex-wrapper";
 import {
   FeatureSet,
-  IsDynamicFeatureEnabled,
 } from "./features";
-import {
-  transformToREDmodArchiveInstructions,
-} from "./installer.redmod";
 
 const me = InstallerType.Archive;
 
@@ -391,26 +382,6 @@ const instructionsForToplevelExtras = (
 };
 
 //
-// REDmod stuff
-//
-
-
-const transformAndValidateAndFinalizeInstructions = async (
-  api: VortexApi,
-  features: FeatureSet,
-  modInfo: ModInfo,
-  originalInstructions: Instructions,
-): Promise<Either<Error, Instructions>> => {
-  if (IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
-    return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
-  }
-
-  warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
-
-  return right(originalInstructions);
-};
-
-//
 // Vortex API
 //
 
@@ -491,8 +462,8 @@ export const testForArchiveMod: V2077TestFunc = (
 export const installArchiveMod: V2077InstallFunc = async (
   api: VortexApi,
   fileTree: FileTree,
-  modInfo: ModInfo,
-  features: FeatureSet,
+  _modInfo: ModInfo,
+  _features: FeatureSet,
 ): Promise<VortexInstallResult> => {
   const chosenInstructions = instructionsForStandaloneMod(api, fileTree);
 
@@ -515,26 +486,19 @@ export const installArchiveMod: V2077InstallFunc = async (
     );
   }
 
-  const finalInstructions =
-    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
+  warnUserIfArchivesMightNeedManualReview(api, chosenInstructions);
 
-  if (isLeft(finalInstructions)) {
-    return Promise.reject(finalInstructions.left);
-  }
-
-  return Promise.resolve({ instructions: finalInstructions.right.instructions });
+  return Promise.resolve({ instructions: chosenInstructions.instructions });
 };
 
 //
 // Internal API for including in other installers
 //
 
-export const archiveCanonInstructionsAllowedForMultiType = async (
+export const archiveCanonInstructionsAllowedForMultiType = (
   api: VortexApi,
   fileTree: FileTree,
-  modInfo: ModInfo,
-  features: FeatureSet,
-): Promise<Instructions> => {
+): Instructions => {
   const canonicalInstructions = instructionsForCanonicalAllowedInMultiType(api, fileTree);
 
   if (canonicalInstructions.kind === NoLayout.Optional) {
@@ -542,16 +506,9 @@ export const archiveCanonInstructionsAllowedForMultiType = async (
     return canonicalInstructions;
   }
 
-  const finalInstructions =
-    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, canonicalInstructions);
+  warnUserIfArchivesMightNeedManualReview(api, canonicalInstructions);
 
-  if (isLeft(finalInstructions)) {
-    api.log(`warn`, `${me} (MultiType): Unable to autoconvert to REDmod, falling back to archive install: ${finalInstructions.left.message}`);
-    return canonicalInstructions;
-  }
-
-  api.log(`info`, `${me} (MultiType): Autoconverted Archive to REDmod`);
-  return finalInstructions.right;
+  return canonicalInstructions;
 };
 
 // This should all be done in MultiType, not spread around

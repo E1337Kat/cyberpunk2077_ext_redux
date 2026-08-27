@@ -17,9 +17,13 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@vortex-api-test-shimmed": ["node_modules/vortex-api"]
+      // @nexusmods/vortex-api's `types` field points at a file it doesn't ship;
+      // only its `exports` map is correct. Resolve the declarations directly
+      // until we move to a moduleResolution that honours `exports`.
+      "@nexusmods/vortex-api": ["node_modules/@nexusmods/vortex-api/lib/api.d.ts"],
+      "@vortex-api-test-shimmed": ["node_modules/@nexusmods/vortex-api/lib/api.d.ts"]
     }
   },
   "exclude": ["test", "node_modules"],
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "typings/**/*.d.ts"]
 }

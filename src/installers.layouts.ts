@@ -169,33 +169,10 @@ export const enum CoreInputLoaderLayout {
 
 export const CYBERPUNK_CACHE_PATH = path.join(`r6\\cache`);
 
-export const INPUT_LOADER_CORE_FILES = {
-  V012: [
-    path.join(`engine\\config\\platform\\pc\\input_loader.ini`),
-    path.join(`r6\\cache\\inputContexts.xml`),
-    path.join(`r6\\cache\\inputUserMappings.xml`),
-    path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
-    path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
-    path.join(`red4ext\\plugins\\input_loader\\license.md`),
-    path.join(`red4ext\\plugins\\input_loader\\readme.md`),
-  ],
-};
-export const INPUT_LOADER_CORE_REQUIRED_FILES = INPUT_LOADER_CORE_FILES;
-
-export const DEPRECATED_INPUT_LOADER_CORE_FILES = {
-  V011: [
-    path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
-    path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
-    path.join(`red4ext\\plugins\\input_loader\\license.md`),
-    path.join(`red4ext\\plugins\\input_loader\\readme.md`),
-    path.join(`red4ext\\plugins\\input_loader_uninstall.bat`),
-  ],
-  V010: [
-    path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`),
-    path.join(`red4ext\\plugins\\input_loader\\inputUserMappings.xml`),
-  ],
-};
-export const DEPRECATED_INPUT_LOADER_CORE_REQUIRED_FILES = DEPRECATED_INPUT_LOADER_CORE_FILES;
+// Input Loader has shipped several different file sets, but every one of them
+// carries the DLL, and nothing else does.
+export const INPUT_LOADER_CORE_IDENTIFIER =
+  path.join(`red4ext\\plugins\\input_loader\\input_loader.dll`);
 
 //
 // Core Mod Settings
@@ -212,15 +189,10 @@ export const enum CoreModSettingsLayout {
               `,
 }
 
-export const MOD_SETTINGS_CORE_FILES = [
-  path.join(`red4ext\\plugins\\mod_settings\\ModSettings.archive`),
-  path.join(`red4ext\\plugins\\mod_settings\\ModSettings.archive.xl`),
-  path.join(`red4ext\\plugins\\mod_settings\\mod_settings.dll`),
-  path.join(`red4ext\\plugins\\mod_settings\\module.reds`),
-  path.join(`red4ext\\plugins\\mod_settings\\packed.reds`),
-  path.join(`red4ext\\plugins\\mod_settings\\license.md`),
-  path.join(`red4ext\\plugins\\mod_settings\\readme.md`),
-];
+// Mod Settings ships its archive, scripts and docs alongside the DLL, and the
+// set moves between releases. The DLL is the stable, unique part.
+export const MOD_SETTINGS_CORE_IDENTIFIER =
+  path.join(`red4ext\\plugins\\mod_settings\\mod_settings.dll`);
 
 
 //
@@ -238,15 +210,10 @@ export const enum CoreTweakXLLayout {
               `,
 }
 
-export const TWEAK_XL_CORE_FILES = [
-  path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
-  path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
-  path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
-  path.join(`red4ext\\plugins\\TweakXL\\Data\\ExtraFlats.dat`),
-  path.join(`red4ext\\plugins\\TweakXL\\Data\\InheritanceMap.dat`),
-  path.join(`red4ext\\plugins\\TweakXL\\LICENSE`),
-  path.join(`red4ext\\plugins\\TweakXL\\THIRD_PARTY_LICENSES`),
-];
+// As with ArchiveXL, the DLL is both unique to TweakXL and the one file every
+// release ships, so it alone identifies a core install.
+export const TWEAK_XL_CORE_IDENTIFIER =
+  path.join(`red4ext\\plugins\\TweakXL\\TweakXL.dll`);
 
 //
 // TweakXL Mods
@@ -288,20 +255,9 @@ export const enum CoreAudiowareLayout {
           `,
 }
 
-export const AUDIOWARE_CORE_FILES = [
-  path.join(`red4ext\\plugins\\audioware\\audioware.dll`),
-  path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
-  path.join(`r6\\scripts\\Audioware\\Config.reds`),
-  path.join(`r6\\scripts\\Audioware\\Ext.reds`),
-  path.join(`r6\\scripts\\Audioware\\Hooks.reds`),
-  path.join(`r6\\scripts\\Audioware\\Natives.reds`),
-  path.join(`r6\\scripts\\Audioware\\Preset.reds`),
-  path.join(`r6\\scripts\\Audioware\\Service.reds`),
-  path.join(`r6\\scripts\\Audioware\\Settings.reds`),
-  path.join(`r6\\scripts\\Audioware\\System.reds`),
-  path.join(`r6\\scripts\\Audioware\\Tween.reds`),
-  path.join(`r6\\scripts\\Audioware\\Utils.reds`),
-];
+// Audioware's script set changes as the mod grows, but the DLL is constant.
+export const AUDIOWARE_CORE_IDENTIFIER =
+  path.join(`red4ext\\plugins\\audioware\\audioware.dll`);
 
 //
 // Audioware Mods
@@ -351,30 +307,10 @@ export const enum CoreArchiveXLLayout {
           `,
 }
 
-export const ARCHIVE_XL_CORE_FILES = [
-  path.join(`r6\\config\\redsUserHints\\ArchiveXL.toml`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\ArchiveXL.archive`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PhotoModeScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerBaseScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardFix.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBeardScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsFix.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsPatch.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairPatch.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationHairScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesFix.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Bundle\\QuestBaseScope.xl`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
-  path.join(`red4ext\\plugins\\ArchiveXL\\THIRD_PARTY_LICENSES`),
-];
+// The bundled scopes, scripts and licence files vary between releases, so the
+// DLL is the only file every ArchiveXL ships, and it is unique to ArchiveXL.
+export const ARCHIVE_XL_CORE_IDENTIFIER =
+  path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`);
 
 //
 // Config mods of all sorts
@@ -648,20 +584,9 @@ export const enum CoreAmmLayout {
 // it's probably better to just leave that to AMM itself and
 // focus maybe only on protected paths etc.
 //
-export const AMM_CORE_REQUIRED_CET_PATHS = [
-  path.join(`${AMM_BASEDIR_PATH}/init.lua`),
-  path.join(`${AMM_BASEDIR_PATH}/db.sqlite3`),
-  path.join(`${AMM_BASEDIR_PATH}/Collabs/API.lua`),
-];
-
-export const AMM_CORE_REQUIRED_ARCHIVE_PATHS = [
-  path.join(`${ARCHIVE_MOD_CANONICAL_PREFIX}\\basegame_AMM_Props.archive`),
-];
-
-export const AMM_CORE_REQUIRED_PATHS = [
-  ...AMM_CORE_REQUIRED_CET_PATHS,
-  ...AMM_CORE_REQUIRED_ARCHIVE_PATHS,
-];
+// AMM is a CET mod, so its init.lua is always present, and the path is unique
+// to it. What it ships alongside varies with the release.
+export const AMM_CORE_IDENTIFIER = path.join(`${AMM_BASEDIR_PATH}/init.lua`);
 
 export const AMM_MOD_BASEDIR_PATH = AMM_BASEDIR_PATH;
 
@@ -1037,64 +962,11 @@ export const LayoutDescriptions = new Map<InstallerType, string>([
     `,
   ],
   [
-    InstallerType.CoreTweakXL,
-    `
-    \`${CoreTweakXLLayout.OnlyValid}\`
-
-    This is the only possible valid layout for ${InstallerType.CoreTweakXL} that I know of.
-    `,
-  ],
-  [
-    InstallerType.CoreAudioware,
-    `
-    \`${CoreAudiowareLayout.OnlyValid}\`
-
-    This is the only possible valid layout for ${InstallerType.CoreAudioware} that I know of.
-    `,
-  ],
-  [
-    InstallerType.CoreArchiveXL,
-    `
-    \`${CoreArchiveXLLayout.OnlyValid}\`
-
-    This is the only possible valid layout for ${InstallerType.CoreArchiveXL} that I know of.
-    `,
-  ],
-  [
-    InstallerType.CoreInputLoader,
-    `
-        \`${CoreInputLoaderLayout.CurrentV012}\`
-
-        This is the only possible valid layout for ${InstallerType.CoreInputLoader} that I know of.
-        These older versions can still be installed, but should be updated:
-
-        \`${CoreInputLoaderLayout.PreviousV011}\`
-        AND
-        \`${CoreInputLoaderLayout.PreviousV010}\`
-    `,
-  ],
-  [
-    InstallerType.CoreModSettings,
-    `
-    \`${CoreModSettingsLayout.OnlyValid}\`
-
-    This is the only possible valid layout for ${InstallerType.CoreModSettings} that I know of.
-    `,
-  ],
-  [
     InstallerType.CoreCyberCat,
     `
     \`${CyberCatLayout.OnlyValid}\`
 
     This is the only possible valid layout for ${InstallerType.CoreCyberCat} that I know of.
-    `,
-  ],
-  [
-    InstallerType.CoreAmm,
-    `
-    ${CoreAmmLayout.OnlyValid}
-
-    This is the only possible valid layout for ${InstallerType.CoreAmm} that I know of.
     `,
   ],
   [

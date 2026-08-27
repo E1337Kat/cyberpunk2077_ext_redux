@@ -25,7 +25,6 @@ import {
   chain,
   traverseArray as traverseArrayTE,
   chainEitherK,
-  fromEither as TEfromEither,
 } from "fp-ts/lib/TaskEither";
 import * as J from "fp-ts/lib/Json";
 import {
@@ -76,9 +75,6 @@ import {
   REDMOD_SCRIPTS_DIRNAME,
   REDMOD_SCRIPTS_VALID_SUBDIR_NAMES,
   REDMOD_SCRIPTS_MODDED_DIR,
-  ARCHIVE_MOD_CANONICAL_PREFIX,
-  Instructions,
-  REDmodTransformedLayout,
   REDMOD_MODTYPE_ATTRIBUTE,
   ARCHIVE_MOD_XL_EXTENSION,
   REDMOD_TWEAKS_VALID_SUBDIRS,
@@ -88,7 +84,6 @@ import {
   instructionsForSourceToDestPairs,
   instructionsToGenerateDirs,
   instructionToGenerateMetadataAttribute,
-  modInfoTaggedAsAutoconverted,
   moveFromTo,
 } from "./installers.shared";
 import {
@@ -104,7 +99,6 @@ import {
   ModAttributeKey,
   ModAttributeValue,
   ModInfo,
-  ModType,
   REDmodInfo,
   REDmodInfoForVortex,
   V2077InstallFunc,
@@ -116,20 +110,13 @@ import {
 } from "./ui.dialogs";
 import {
   FeatureSet,
-  IsDynamicFeatureEnabled,
 } from "./features";
 import {
   jsonp,
-  jsonpp,
   S,
 } from "./util.functions";
-import {
-  showInfoNotification,
-  InfoNotification,
-} from "./ui.notifications";
 
 const me = `${InstallerType.REDmod}`;
-const transMe = `${InstallerType.SpecialREDmodAutoconversion}`;
 
 
 //
@@ -744,10 +731,6 @@ const layoutsAllowedInMultitype = [
   canonLayoutMatches,
 ];
 
-const layoutsAllowedForConversion = [
-  canonLayoutMatches,
-];
-
 
 //
 // Vortex
@@ -806,200 +789,4 @@ export const redmodAllowedInstructionsForMultitype = async (
   const allInstructionsForEverySubmodInside = await pipelineForInstructions();
 
   return allInstructionsForEverySubmodInside;
-};
-
-
-export const transformToREDmodArchiveInstructions = async (
-  api: VortexApi,
-  features: FeatureSet,
-  modInfo: ModInfo,
-  originalInstructions: Instructions,
-): Promise<Either<Error, Instructions>> => {
-  if (!IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
-    api.log(`error`, `${transMe}: REDmod transform function called but feature is disabled`);
-    return right(originalInstructions);
-  }
-
-  const redmodInfoWithAutoconvertTag =
-    modInfoTaggedAsAutoconverted(features, modInfo);
-
-  const redmodModuleName =
-    redmodInfoWithAutoconvertTag.name;
-
-  const redmodVersion =
-    redmodInfoWithAutoconvertTag.version.v;
-
-  const realDestAndVirtualSourceDirWithModname =
-    path.join(REDMOD_BASEDIR, redmodModuleName);
-
-  const RealDestAndVirtualSourceArchiveDirWithModname =
-    path.join(realDestAndVirtualSourceDirWithModname, REDMOD_ARCHIVES_DIRNAME);
-
-  api.log(`debug`, `Transforming Archive instructions to REDmod`);
-  api.log(`debug`, `Original instructions: ${jsonpp(originalInstructions)}`);
-
-  const virtualAndRealArchiveSourcePairs = pipe(
-    originalInstructions.instructions,
-    filter((instruction) => instruction.type === `copy`),
-    map((instruction): [string, string] => [
-      instruction.destination.replace(
-        normalizeDir(ARCHIVE_MOD_CANONICAL_PREFIX),
-        normalizeDir(RealDestAndVirtualSourceArchiveDirWithModname),
-      ),
-      instruction.source,
-    ]),
-  );
-
-  const infoJson: REDmodInfo = {
-    name: redmodModuleName,
-    version: redmodVersion,
-  };
-
-  const generateInfoJsonInstruction: VortexInstruction = {
-    type: `generatefile`,
-    data: jsonpp(infoJson),
-    destination: path.join(realDestAndVirtualSourceDirWithModname, REDMOD_INFO_FILENAME),
-  };
-
-  const mapFromVirtualSourceToRealSource =
-    new Map<string, string>([
-      ...virtualAndRealArchiveSourcePairs,
-    ]);
-
-  const fileTreeForVirtualREDmodSources =
-    fileTreeFromPaths([
-      ...mapFromVirtualSourceToRealSource.keys(),
-      generateInfoJsonInstruction.destination,
-    ]);
-
-  const returnMatchingVirtualInfoJson =
-  (generatedInfoJson: REDmodInfo): InfoJsonReaderFunc =>
-    (attemptedModInfo: ModInfo, attemptedRelativeModDir: string) => {
-      const jsonWhenMatched =
-        (attemptedModInfo.name === modInfo.name && attemptedRelativeModDir === realDestAndVirtualSourceDirWithModname)
-          ? right(generatedInfoJson)
-          : left(new Error(`${transMe}: Info doesn't match (this should NOT happen)! ${S({ attemptedModInfo, attemptedRelativeModDir, generatedInfoJson })}`));
-
-      return pipe(
-        jsonWhenMatched,
-        TEfromEither,
-      );
-    };
-
-  const redmodInstructionsGeneratedByREDmodPipeline =
-    await instructionsForLayoutsPipeline(
-      api,
-      fileTreeForVirtualREDmodSources,
-      modInfo,
-      features,
-      layoutsAllowedForConversion,
-      returnMatchingVirtualInfoJson(infoJson),
-    )();
-
-
-  if (isLeft(redmodInstructionsGeneratedByREDmodPipeline)) {
-    const errorMessage = `${transMe}: Failed to generate archive instructions for REDmod: ${S(redmodInstructionsGeneratedByREDmodPipeline)}`;
-
-    api.log(`error`, errorMessage, {
-      originalInstructions, modInfo, infoJson, virtualSourceTree: fileTreeForVirtualREDmodSources,
-    });
-    return left(new Error(errorMessage));
-  }
-
-  const redmodInstructionsMappedBackToRealSources = pipe(
-    redmodInstructionsGeneratedByREDmodPipeline.right,
-    map((redmodInstruction) =>
-      (redmodInstruction.type !== `copy` || path.basename(redmodInstruction.destination) !== REDMOD_INFO_FILENAME
-        ? redmodInstruction
-        : {
-          ...generateInfoJsonInstruction,
-          destination: redmodInstruction.destination,
-        })),
-    map((redmodInstruction) =>
-      (redmodInstruction.source && mapFromVirtualSourceToRealSource.get(redmodInstruction.source)
-        ? {
-          ...redmodInstruction,
-          source: mapFromVirtualSourceToRealSource.get(redmodInstruction.source),
-        }
-        : redmodInstruction)),
-    toMutableArray,
-  );
-
-  const instructionsToInstallArchiveAsREDmod = {
-    kind: REDmodTransformedLayout.Archive,
-    instructions: redmodInstructionsMappedBackToRealSources,
-  };
-
-  api.log(`info`, `${transMe}: Generated REDmod instructions for archive`, instructionsToInstallArchiveAsREDmod);
-
-  showInfoNotification(
-    api,
-    InfoNotification.REDmodArchiveAutoconverted,
-    `${modInfo.name} was automatically converted and will be installed as a REDmod (${redmodModuleName})!`,
-  );
-
-  return right(instructionsToInstallArchiveAsREDmod);
-};
-
-
-export const consolidateREDmodInstructionsForMultiType = (
-  api: VortexApi,
-  maybeAutoconvertedArchiveInstructions: readonly VortexInstruction[],
-  redmodInstructions: readonly VortexInstruction[],
-): readonly VortexInstruction[] => {
-
-  // I guess we could also check whether autoconvert is enabled, but
-  // call this looking both ways on a one-way street...
-  const archivesWereAutoconverted = pipe(
-    maybeAutoconvertedArchiveInstructions,
-    any((instruction) =>
-      instruction.key === ModAttributeKey.ModType && instruction.value.data === ModType.REDmod),
-  );
-
-  if (!archivesWereAutoconverted) {
-    api.log(`debug`, `${transMe}: Consolidating for MultiType: no autoconverted archives found`);
-    return [...maybeAutoconvertedArchiveInstructions, ...redmodInstructions];
-  }
-
-  api.log(`debug`, `${transMe}: Consolidating for MultiType: ${S({ maybeAutoconvertedArchiveInstructions, redmodInstructions })}`);
-
-  const allInstructions = pipe(
-    maybeAutoconvertedArchiveInstructions,
-    concat(redmodInstructions),
-  );
-
-  const moddedDirInstruction =
-    ensureModdedDirExistsInstruction()[0];
-
-  const justRealInstructions = pipe(
-    allInstructions,
-    filter((instruction) =>
-      instruction.key !== ModAttributeKey.ModType
-      && instruction.key !== ModAttributeKey.REDmodInfoArray
-      && instruction.destination !== moddedDirInstruction.destination),
-  );
-
-  const redmodInfoArraysConsolidatedIntoOne = pipe(
-    allInstructions,
-    filter((instruction) =>
-      instruction.key === ModAttributeKey.REDmodInfoArray),
-    map((instruction) =>
-      (instruction.value as ModAttributeValue<readonly REDmodInfoForVortex[]>).data),
-    flatten,
-    (redmodInfos) =>
-      makeAttr(ModAttributeKey.REDmodInfoArray, redmodInfos),
-    (redmodInfoArrayAttr) =>
-      [instructionToGenerateMetadataAttribute(redmodInfoArrayAttr)],
-  );
-
-  const consolidatedREDmodInstructions = pipe(
-    justRealInstructions,
-    concat(redmodInfoArraysConsolidatedIntoOne),
-    concat(redmodModTypeModAttributeInstruction()),
-    concat(ensureModdedDirExistsInstruction()),
-  );
-
-  api.log(`info`, `${transMe}: Consolidating for MultiType: Result: ${S({ consolidatedREDmodInstructions })}`);
-
-  return consolidatedREDmodInstructions;
 };

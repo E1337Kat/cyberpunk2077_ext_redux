@@ -8,8 +8,10 @@ import {
   More,
   Toggle,
   util as vortexUtil,
-} from 'vortex-api';
-import { setREDmodAutoconvertArchivesAction, setREDmodFallbackInstallAnywaysAction } from '../actions';
+} from '@nexusmods/vortex-api';
+import {
+  setREDmodFallbackInstallAnywaysAction,
+} from '../actions';
 import {
   DynamicFeature,
   storeGetDynamicFeature,
@@ -22,12 +24,10 @@ interface IBaseProps {
 }
 
 interface IConnectedProps {
-  redmodAutoconvertArchives: boolean;
   redmodFallbackInstallAnyways: boolean;
 }
 
 interface IActionProps {
-  onREDmodAutoconvertArchives: (enable: boolean) => void;
   onREDmodFallbackInstallAnyways: (enable: boolean) => void;
 }
 
@@ -36,29 +36,11 @@ type IProps = IBaseProps & IConnectedProps & IActionProps;
 const Settings = (props: IProps): JSX.Element => {
   const {
     t,
-    redmodAutoconvertArchives,
-    onREDmodAutoconvertArchives,
     redmodFallbackInstallAnyways,
     onREDmodFallbackInstallAnyways,
   } = props;
   return (
     <div>
-      <Toggle
-        checked={redmodAutoconvertArchives}
-        onToggle={onREDmodAutoconvertArchives}
-      >
-        {t(`Automatically convert legacy-style '.archive' mods to REDmods on install (NOT recommended)`)}
-        <More
-          id='red-autoconvert-setting'
-          name={t(`Autoconvert old mods for Load Order`)}>
-          {t(`${squashAllWhitespace(`
-            Whenever you install a standard 'archive' mod, we can instead convert it to CDPR's native REDmod 
-            format. This is required to use the internal load order tools, but can cause compatibility issues
-            with many of the more complex mods. You can learn more about this here:\n
-            https://wiki.redmodding.org/cyberpunk-2077-modding/for-mod-users/users-modding-cyberpunk-2077#mod-format-redmod-or-vanilla
-            `)}\n\n`)}
-        </More>
-      </Toggle>
       <Toggle
         checked={redmodFallbackInstallAnyways}
         onToggle={onREDmodFallbackInstallAnyways}
@@ -81,14 +63,12 @@ const Settings = (props: IProps): JSX.Element => {
 };
 
 export const mapStateToProps = (fullVortexState: unknown): IConnectedProps => ({
-  redmodAutoconvertArchives: storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, fullVortexState),
   redmodFallbackInstallAnyways:
     storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodFallbackInstallAnyways, fullVortexState),
 });
 
 
 export const mapDispatchToProps = (dispatch: ThunkDispatch<VortexState, null, Redux.Action>): IActionProps => ({
-  onREDmodAutoconvertArchives: (enable: boolean) => dispatch(setREDmodAutoconvertArchivesAction(enable)),
   onREDmodFallbackInstallAnyways: (enable: boolean) => dispatch(setREDmodFallbackInstallAnywaysAction(enable)),
 });
 

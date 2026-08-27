@@ -13,9 +13,9 @@
     "sourceMap": true,
     "baseUrl": "..",
     "paths": {
-      "@vortex-api-test-shimmed": ["test/shimmed/vortex-api-test-shimmed"],
-      "*": ["../node_modules/vortex-api/lib/types/*"]
+      "@nexusmods/vortex-api": ["node_modules/@nexusmods/vortex-api/lib/api.d.ts"],
+      "@vortex-api-test-shimmed": ["test/shimmed/vortex-api-test-shimmed"]
     }
   },
-  "include": [".", "../node_modules/vortex-api"]
+  "include": [".", "../typings"]
 }

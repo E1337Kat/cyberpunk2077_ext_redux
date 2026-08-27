@@ -90,33 +90,10 @@ const CoreAudiowareInstallSucceeds = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFailingMod>(
+// Audioware varies what it ships between releases; each of these is a
+// real shape and all of them install as-is.
+const CoreAudiowareInstallsWhateverTheReleaseShips = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    coreAudiowareOutdated: {
-      expectedInstallerType: InstallerType.CoreAudioware,
-      inFiles: [
-        path.join(`r6\\`),
-        path.join(`red4ext\\`),
-        path.join(`r6\\scripts\\`),
-        path.join(`r6\\scripts\\Audioware\\`),
-        path.join(`r6\\scripts\\Audioware\\Codeware.reds`),
-        path.join(`r6\\scripts\\Audioware\\Config.reds`),
-        path.join(`r6\\scripts\\Audioware\\Ext.reds`),
-        path.join(`r6\\scripts\\Audioware\\Hooks.reds`),
-        path.join(`r6\\scripts\\Audioware\\Natives.reds`),
-        path.join(`r6\\scripts\\Audioware\\Preset.reds`),
-        path.join(`r6\\scripts\\Audioware\\Service.reds`),
-        path.join(`r6\\scripts\\Audioware\\Settings.reds`),
-        path.join(`r6\\scripts\\Audioware\\System.reds`),
-        path.join(`r6\\scripts\\Audioware\\Tween.reds`),
-        path.join(`r6\\scripts\\Audioware\\Utils.reds`),
-        path.join(`r6\\audioware\\`),
-        path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\audioware\\`),
-              ],
-      failure: `Didn't Find Expected Audioware Installation!`,
-      errorDialogTitle: `Didn't Find Expected Audioware Installation!`,
-    },
     coreAudiowareWithMissing: {
       expectedInstallerType: InstallerType.CoreAudioware,
       inFiles: [
@@ -132,15 +109,24 @@ const CoreAudiowareShouldFailOnInstallIfNotExactLayout = new Map<string, Example
         path.join(`red4ext\\plugins\\audioware\\`),
         path.join(`red4ext\\plugins\\audioware\\audioware.dll`),
       ],
-      failure: `Didn't Find Expected Audioware Installation!`,
-      errorDialogTitle: `Didn't Find Expected Audioware Installation!`,
+      outInstructions: [
+        createdDirectory(`r6\\audioware\\`),
+        copiedToSamePath(`r6\\scripts\\Audioware\\Codeware.reds`),
+        copiedToSamePath(`r6\\scripts\\Audioware\\System.reds`),
+        copiedToSamePath(`r6\\scripts\\Audioware\\Tween.reds`),
+        copiedToSamePath(`r6\\scripts\\Audioware\\Utils.reds`),
+        copiedToSamePath(`red4ext\\plugins\\audioware\\audioware.dll`),
+      ],
     },
   }),
 );
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: mergeOrFailOnConflict(CoreAudiowareInstallSucceeds),
-  AllExpectedDirectFailures: mergeOrFailOnConflict(CoreAudiowareShouldFailOnInstallIfNotExactLayout),
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    CoreAudiowareInstallSucceeds,
+    CoreAudiowareInstallsWhateverTheReleaseShips,
+  ),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 

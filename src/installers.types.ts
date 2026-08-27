@@ -112,6 +112,7 @@ export const enum ModAttributeKey {
   ModType = `V2077_mod_attr_mod_type`,
   REDmodInfo = `V2077_mod_attr_redmod_info`,
   REDmodInfoArray = `V2077_mod_attr_redmod_info_array`,
+  ArchiveConversion = `V2077_mod_attr_archive_conversion`,
 }
 
 export interface ModAttributeValue<T> {
@@ -237,6 +238,13 @@ export type REDmodInfoArrayForVortex = readonly REDmodInfoForVortex[];
 
 export const attrREDmodInfos =
   attrOrElse<REDmodInfoArrayForVortex>(ModAttributeKey.REDmodInfoArray, () => []);
+
+// Only a mod converted from archives carries this, which is what makes it the
+// set that can be reverted. Presence is the whole signal.
+export const ARCHIVE_CONVERSION_MARKER = true;
+
+export const attrWasConvertedFromArchives =
+  attrOrElse<boolean>(ModAttributeKey.ArchiveConversion, () => false);
 
 //
 // Installer API functions

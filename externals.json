@@ -1,0 +1,14 @@
+[
+  "bluebird",
+  "exe-version",
+  "glob",
+  "i18next",
+  "react",
+  "react-bootstrap",
+  "react-dom",
+  "react-i18next",
+  "react-redux",
+  "redux",
+  "redux-act",
+  "redux-thunk"
+]

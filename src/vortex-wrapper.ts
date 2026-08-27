@@ -1,7 +1,7 @@
 import {
   util,
 } from "@vortex-api-test-shimmed";
-import * as Vortex from "vortex-api/lib/types/api"; // eslint-disable-line import/no-extraneous-dependencies
+import { types as Vortex } from "@nexusmods/vortex-api"; // eslint-disable-line import/no-extraneous-dependencies
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Promise,
