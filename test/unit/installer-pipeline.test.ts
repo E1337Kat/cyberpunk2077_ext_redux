@@ -24,6 +24,7 @@ import {
 
 import {
   FAKE_STAGING_PATH,
+  RUNNING_WITH_WIN32_PATH_SHIM,
   getMockVortexLog,
   sortInstructionsForComparison,
 } from "./utils.helper";
@@ -40,12 +41,23 @@ import {
 
 const DEFAULT_FEATURES = BaselineFeatureSetForTests;
 
+//
+// Example kinds that cannot run under the win32 `path` shim that
+// `jest.linux.config.ts` installs on a posix host.
+//
+const EXAMPLE_KINDS_NEEDING_REAL_PATHS = [`ini`];
+
+const describeUnlessPathShimBreaksIt = (kind: string): jest.Describe =>
+  (RUNNING_WITH_WIN32_PATH_SHIM && EXAMPLE_KINDS_NEEDING_REAL_PATHS.includes(kind)
+    ? describe.skip
+    : describe);
+
 describe(`Transforming modules to instructions`, () => {
   beforeEach(() => { mockFs.restore(); });
   afterEach(() => { mockFs.restore(); });
 
   AllExpectedSuccesses.forEach((examples, set) => {
-    describe(`${set} mods`, () => {
+    describeUnlessPathShimBreaksIt(set)(`${set} mods`, () => {
       examples.forEach(async (mod, desc) => {
         test(`produce the expected instructions when ${desc}`, async () => {
           if (mod.fsMocked) {
@@ -128,7 +140,7 @@ describe(`Transforming modules to instructions`, () => {
   });
 
   AllExpectedInstallPromptables.forEach((examples, set) => {
-    describe(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
+    describeUnlessPathShimBreaksIt(set)(`install attempts that should prompt to proceed/cancel, ${set}`, () => {
       examples.forEach(async (mod, desc) => {
         test(`proceeds to install when choosing to proceed on ${desc}`, async () => {
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
@@ -225,7 +237,7 @@ describe(`Transforming modules to instructions`, () => {
   });
 
   AllExpectedDirectFailures.forEach((examples, set) => {
-    describe(`mods that installers reject without prompt, ${set}`, () => {
+    describeUnlessPathShimBreaksIt(set)(`mods that installers reject without prompt, ${set}`, () => {
       examples.forEach((mod, desc) => {
         test(`rejects the install outright when ${desc}`, async () => {
           const defaultOrOverriddenFeatures = mod.features ?? DEFAULT_FEATURES;
