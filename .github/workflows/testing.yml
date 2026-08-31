@@ -7,23 +7,27 @@ on:
       - "**"
   workflow_dispatch:
 
+# Replaces styfle/cancel-workflow-action: a new push to the same PR cancels the
+# run that is still in flight.
+concurrency:
+  group: testing-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Typecheck & Test
     runs-on: windows-latest
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.12.1
-        with:
-          access_token: ${{ github.token }}
-
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22.x
           cache: "pnpm"
