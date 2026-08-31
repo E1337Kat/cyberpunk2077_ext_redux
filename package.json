@@ -19,7 +19,7 @@
         "lint-fix": "eslint -c .eslintrc.build.json --fix src test && prettier --write",
         "test": "jest --no-cache --verbose=true --silent=false",
         "test-debug": "jest --clearCache && node --inspect-brk ./node_modules/.bin/jest --runInBand --verbose=true --silent=false --no-cache",
-        "test-posix": "jest -c jest.linux.config.ts --no-cache --verbose=true --silent=false",
+        "test-linux": "jest -c jest.linux.config.ts --no-cache --verbose=true --silent=false",
         "_asset-copy": "extractInfo",
         "bundle": "node ./build.mjs",
         "build": "pnpm run bundle && pnpm run _asset-copy",
