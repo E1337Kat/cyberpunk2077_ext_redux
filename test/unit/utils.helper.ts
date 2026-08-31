@@ -152,6 +152,15 @@ export const mergeOrFailOnConflict = <K extends string, V>(...maps: Map<K, V>[])
 // Mod path stuff
 //
 
+//
+// True when `jest.linux.config.ts` has remapped the `path` module to
+// `path.win32` on a posix host. Some examples cannot survive that shim - see
+// `EXAMPLE_KINDS_NEEDING_REAL_PATHS` in `installer-pipeline.test.ts`.
+//
+// On Windows this is always false: `path` is `path.win32` there for real.
+//
+export const RUNNING_WITH_WIN32_PATH_SHIM = process.platform !== `win32` && path.sep === `\\`;
+
 const FAKE_STAGING_DIR_PREFIXES = [`some`, `dirs`, `to`, `stage`];
 
 const FAKE_MOD_INFO_INSTALLING_DIRNAME =
