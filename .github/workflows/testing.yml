@@ -1,79 +1,41 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# Runs the Jest suite against every pull request.
+# Pushes to main are covered by packaging.yml, so they are not handled here.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Testing
 
-# Packaging will take care of testing on pushes to the main branch, so we don't need it in this workflow.
 on:
   pull_request:
     branches:
       - main
       - "**"
 
-jobs:
-  dependencies:
-    name: Dependencies
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        node: ["16.17.0"]
-        npm: ["8.15.0"]
-    steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.0
-        with:
-          access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-      - name: Setup Node.js 16.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 16.x
-          cache: "npm"
-      - name: Retrieve cached dependencies
-        uses: actions/cache@v3
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies' dependencies
-        run: |
-          pushd ..
-          npm install node-gyp
-          npm install autogypi
-          popd
-      - name: Install all dependencies
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm ci
+# Replaces styfle/cancel-workflow-action: a new push to the same PR cancels the
+# run that is still in flight.
+concurrency:
+  group: testing-${{ github.ref }}
+  cancel-in-progress: true
 
+permissions:
+  contents: read
+
+jobs:
   test:
     name: Tests
-    needs: [dependencies]
-    if: "!contains(github.event.commits[0].message, '[skip ci]')"
     runs-on: windows-latest
-    strategy:
-      matrix:
-        node: ["16.17.0"]
-        npm: ["8.15.0"]
     steps:
-      - name: Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.0
-        with:
-          access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 16.x
           cache: "npm"
-      - name: Retrieve cached dependencies
-        uses: actions/cache@v3
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-          key: ${{ runner.os }}-windows-latest-${{ matrix.npm }}-${{ matrix.node }}-${{ hashFiles('package-lock.json') }}
-      # - run: npm install
+      # --ignore-scripts skips the node-gyp build of winapi-bindings (pulled in
+      # by the exe-version peer dependency). That binary is a webpack external
+      # supplied by Vortex at runtime, so nothing we build or test loads it, and
+      # its pinned node-gyp 9 cannot find the Visual Studio on current runner
+      # images. It also skips husky's git hook install, which CI has no use for.
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
 
       - name: Run The Tests
         run: npm run test
