@@ -12,9 +12,8 @@ import baseConfig from "./jest.config";
 //
 // See `test/shimmed/path-win32.js` and `test/shimmed/glob-posix.js` for why.
 //
-// Known remaining failures with this config (6, all in `ini` examples):
-// the examples that use `mock-fs` register posix paths while the installer
-// reads a win32 path, so `fs.readFileSync` misses. Verify those on Windows.
+// 6 `ini` examples are skipped under this config because reasons.
+// Verify anything about the `ini` examples on Windows.
 //
 const config: Config.InitialOptions = {
   ...baseConfig,
