@@ -1,0 +1,4 @@
+# Posix-host test shims. Plain CommonJS, deliberately outside the TS project
+# (tsconfig.eslint.json only includes *.ts/*.tsx), so the TS parser cannot lint them.
+test/shimmed/path-win32.js
+test/shimmed/glob-posix.js

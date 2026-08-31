@@ -17,6 +17,7 @@
         "lint-fix": "eslint -c .eslintrc.build.json --fix src test && prettier --write",
         "test": "jest --no-cache --verbose=true --silent=false",
         "test-debug": "jest --clearCache && node --inspect-brk ./node_modules/jest/bin/jest.js --runInBand --verbose=true --silent=false --no-cache",
+        "test-posix": "jest -c jest.linux.config.ts --no-cache --verbose=true --silent=false",
         "_asset-copy": "extractInfo && copyfiles -f ./LICENSE ./*.png ./*.jpg ./dist/",
         "_pack-script": "pwsh.exe ./script/package.ps1",
         "_pack-script-linux": "bash ./script/package.sh",
