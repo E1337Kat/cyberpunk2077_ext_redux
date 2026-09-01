@@ -948,8 +948,10 @@ export const consolidateREDmodInstructionsForMultiType = (
   redmodInstructions: readonly VortexInstruction[],
 ): readonly VortexInstruction[] => {
 
-  // I guess we could also check whether autoconvert is enabled, but
-  // call this looking both ways on a one-way street...
+  // MultiType installs never autoconvert their archives, so in practice this is
+  // always false right now - see `extraCanonArchiveInstructions`. Kept because it's
+  // the only thing keeping the two sets of REDmod attributes from colliding if
+  // autoconverted archives ever reach here again.
   const archivesWereAutoconverted = pipe(
     maybeAutoconvertedArchiveInstructions,
     any((instruction) =>

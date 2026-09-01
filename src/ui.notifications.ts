@@ -2,6 +2,9 @@ import {
   MODS_EXTRA_BASEDIR,
 } from "./installers.layouts";
 import {
+  squashAllWhitespace,
+} from "./util.functions";
+import {
   VortexApi,
   VortexNotification,
 } from "./vortex-wrapper";
@@ -22,6 +25,7 @@ export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
   LoadOrderWriteFailed = `V2077-notify-error-loadorder-write-failed`,
+  REDmodAdvancedModdingFeaturesTurnedOff = `V2077-notify-warn-redmod-advanced-modding-features-turned-off`,
   REDmodArchiveAutoconverted = `V2077-notify-success-redmod-archive-autoconverted`,
   REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
   REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
@@ -36,6 +40,18 @@ export const enum InfoNotification {
 //
 
 const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
+  [
+    InfoNotification.REDmodAdvancedModdingFeaturesTurnedOff,
+    {
+      id: InfoNotification.REDmodAdvancedModdingFeaturesTurnedOff,
+      type: `warning`,
+      title: `Advanced Features Turned Off`,
+      message: squashAllWhitespace(`
+        Automatic conversion of '.archive' mods to REDmods is an advanced feature, so it has been
+        turned off too. Turn Advanced Cyberpunk 2077 Modding Features back on if you want to use it.
+        `),
+    },
+  ],
   [
     InfoNotification.InstallerExtraFilesMoved,
     {
@@ -127,6 +143,17 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     },
   ],
 ]);
+
+// For callers that have no `VortexApi` to log through, such as the settings view
+export const infoNotificationOrThrow = (id: InfoNotification): Notification => {
+  const notification = InfoNotificationsUnsafeMap.get(id);
+
+  if (notification === undefined) {
+    throw new Error(`No notification definition found for ${id}`);
+  }
+
+  return notification;
+};
 
 const getInfoNotificationOrThrow = (
   api: VortexApi,

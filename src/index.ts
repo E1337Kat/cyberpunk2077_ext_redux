@@ -73,6 +73,7 @@ import {
   forEffect,
 } from "./util.functions";
 import {
+  setREDmodAdvancedModdingFeaturesAction,
   setREDmodAutoconvertArchivesAction,
 } from "./actions";
 import {
@@ -129,8 +130,12 @@ type TranslationFunction = typeof I18next.t;
 
 interface IREDmodProps {
   gameMode: string;
+  advancedModdingEnabled: boolean;
   archiveAutoConvertEnabled: boolean;
 }
+
+const advancedModding = (state: unknown): boolean =>
+  storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAdvancedModdingFeatures, state);
 
 const archiveAutoConvert = (state: unknown): boolean =>
   storeGetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, state);
@@ -139,6 +144,28 @@ const toggleAutoConvert = (api: vortexApiLib.types.IExtensionApi, _gameMode: str
   const state: vortexApiLib.types.IState = api.store.getState();
   api.store.dispatch(setREDmodAutoconvertArchivesAction(!archiveAutoConvert(state)));
 };
+
+//
+// Autoconvert is now gated behind Advanced Modding Features, which is off by default
+// Anyone who had autoconvert on before this version should have Advanced turned on for them,
+// otherwise their setting would silently stop doing anything.
+//
+const migrateAutoconvertUsersToAdvancedModding =
+  (vortexExt: VortexExtensionContext) =>
+    async (oldVersion: string): Promise<void> => {
+      const state = vortexExt.api.store.getState();
+
+      if (!archiveAutoConvert(state) || advancedModding(state)) {
+        return;
+      }
+
+      vortexApiLib.log(
+        `info`,
+        `${EXTENSION_NAME_INTERNAL} migration from ${oldVersion}: autoconvert was on, enabling Advanced Modding Features to keep it available`,
+      );
+
+      vortexExt.api.store.dispatch(setREDmodAdvancedModdingFeaturesAction(true));
+    };
 
 
 //
@@ -305,6 +332,8 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
 
     vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForDynamicFeatures));
 
+    vortexExt.registerMigration(migrateAutoconvertUsersToAdvancedModding(vortexExt));
+
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () => {
       const state = vortexExt.api.store.getState();
       const gameMode = vortexApiLib.selectors.activeGameId(state);
@@ -324,7 +353,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       undefined,
     );
 
-    // Auto convert TODO
+    // Auto convert TODO. Only shown when Advanced Modding Features is on
     vortexExt.registerToDo(
       `${EXTENSION_NAME_INTERNAL}-todo-redmod-autoconvert`,
       `settings`,
@@ -332,6 +361,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         const gameMode = vortexApiLib.selectors.activeGameId(state);
         return {
           gameMode,
+          advancedModdingEnabled: advancedModding(state),
           archiveAutoConvertEnabled: archiveAutoConvert(state),
         };
       },
@@ -340,7 +370,7 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       (props: IREDmodProps) => {
         toggleAutoConvert(vortexExt.api, props.gameMode);
       },
-      (props: IREDmodProps) => isSupported(props.gameMode),
+      (props: IREDmodProps) => isSupported(props.gameMode) && props.advancedModdingEnabled,
       (t: TranslationFunction, props: IREDmodProps) => (props.archiveAutoConvertEnabled ? t(`Yes`) : t(`No`)),
       undefined,
     );

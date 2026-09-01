@@ -72,6 +72,10 @@ import {
 import {
   transformToREDmodArchiveInstructions,
 } from "./installer.redmod";
+import {
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
 
 const me = InstallerType.Archive;
 
@@ -395,14 +399,44 @@ const instructionsForToplevelExtras = (
 //
 
 
+//
+// Autoconverting is finicky. I think the asset lookup paths for an archive and equivalent redmod is
+// slightly different, so when we autoconvert archives in multitype architectures
+// we would often see various failures. So reasonably, we restrict it to only plain archives
+// until we can know we can convert during some other multitypes
+//
+const modIsNothingButPlainArchives = (fileTree: FileTree): boolean => {
+  const allFilesInMod = filesUnder(FILETREE_ROOT, Glob.Any, fileTree);
+
+  return allFilesInMod.length > 0 && allFilesInMod.every(matchArchive);
+};
+
 const transformAndValidateAndFinalizeInstructions = async (
   api: VortexApi,
   features: FeatureSet,
   modInfo: ModInfo,
+  fileTree: FileTree,
   originalInstructions: Instructions,
 ): Promise<Either<Error, Instructions>> => {
-  if (IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives)) {
+  const autoconvertRequested =
+    IsDynamicFeatureEnabled(features.REDmodAutoconvertArchives);
+
+  if (autoconvertRequested && modIsNothingButPlainArchives(fileTree)) {
     return transformToREDmodArchiveInstructions(api, features, modInfo, originalInstructions);
+  }
+
+  if (autoconvertRequested) {
+    api.log(
+      `info`,
+      `${me}: autoconvert is on, but this mod isn't only '.archive' files, installing it as a regular archive mod`,
+      sourcePaths(fileTree),
+    );
+
+    await showInfoNotification(
+      api,
+      InfoNotification.REDmodArchiveNOTautoconverted,
+      `${modInfo.name} contains more than just '.archive' files, so it was NOT converted and will be installed as a regular mod!`,
+    );
   }
 
   warnUserIfArchivesMightNeedManualReview(api, originalInstructions);
@@ -516,7 +550,7 @@ export const installArchiveMod: V2077InstallFunc = async (
   }
 
   const finalInstructions =
-    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, chosenInstructions);
+    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, fileTree, chosenInstructions);
 
   if (isLeft(finalInstructions)) {
     return Promise.reject(finalInstructions.left);
@@ -529,33 +563,13 @@ export const installArchiveMod: V2077InstallFunc = async (
 // Internal API for including in other installers
 //
 
-export const archiveCanonInstructionsAllowedForMultiType = async (
-  api: VortexApi,
-  fileTree: FileTree,
-  modInfo: ModInfo,
-  features: FeatureSet,
-): Promise<Instructions> => {
-  const canonicalInstructions = instructionsForCanonicalAllowedInMultiType(api, fileTree);
-
-  if (canonicalInstructions.kind === NoLayout.Optional) {
-    api.log(`debug`, `${me} (MultiType): No valid canon archives found for multitype (this is ok)`);
-    return canonicalInstructions;
-  }
-
-  const finalInstructions =
-    await transformAndValidateAndFinalizeInstructions(api, features, modInfo, canonicalInstructions);
-
-  if (isLeft(finalInstructions)) {
-    api.log(`warn`, `${me} (MultiType): Unable to autoconvert to REDmod, falling back to archive install: ${finalInstructions.left.message}`);
-    return canonicalInstructions;
-  }
-
-  api.log(`info`, `${me} (MultiType): Autoconverted Archive to REDmod`);
-  return finalInstructions.right;
-};
-
 // This should all be done in MultiType, not spread around
 // https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/259
+//
+// NOTE: there is deliberately no autoconverting variant of this. A MultiType mod
+//       has at least one other mod type in it, and converting its archives would
+//       move them out from under whatever else in the mod refers to them. See
+//       `modIsNothingButPlainArchives` above.
 export const extraCanonArchiveInstructions = (
   api: VortexApi,
   fileTree: FileTree,

@@ -2,15 +2,12 @@ import {
   isLeft,
 } from "fp-ts/lib/Either";
 import {
-  isEmpty,
-} from "fp-ts/lib/ReadonlyArray";
-import {
   FileTree,
   sourcePaths,
 } from "./filetree";
 import {
   detectCanonArchiveLayoutsAllowedExternally,
-  archiveCanonInstructionsAllowedForMultiType,
+  extraCanonArchiveInstructions,
 } from "./installer.archive";
 import {
   detectCetCanonLayout,
@@ -69,7 +66,6 @@ import {
 } from "./installer.config.json";
 import {
   FeatureSet,
-  FeatureState,
 } from "./features";
 import {
   consolidateREDmodInstructionsForMultiType,
@@ -221,13 +217,9 @@ export const installMultiTypeMod: V2077InstallFunc = async (
     return Promise.reject(new Error(errorMessage));
   }
 
-  const enforceTagWhenREDmodPresentToAvoidConflict: FeatureSet =
-    !isEmpty(maybeREDmodInstructions.right)
-      ? { ...features, REDmodAutoconversionTag: FeatureState.Enabled }
-      : features;
-
+  // Archives in a MultiType mod are never autoconverted to REDmod
   const archiveInstructions =
-    await archiveCanonInstructionsAllowedForMultiType(api, fileTree, modInfo, enforceTagWhenREDmodPresentToAvoidConflict);
+    extraCanonArchiveInstructions(api, fileTree);
 
   const archiveAndREDmodInstructions =
     consolidateREDmodInstructionsForMultiType(api, archiveInstructions.instructions, maybeREDmodInstructions.right);

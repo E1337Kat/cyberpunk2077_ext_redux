@@ -69,6 +69,9 @@ const FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING: FeatureSet = {
   REDmodAutoconvertArchives: () => FeatureState.Enabled,
 };
 
+const MANUAL_ARCHIVE_CHECK_WARNING_TITLE =
+  `Mod Installed But May Need Manual Adjustment!`;
+
 const AUTOCONVERT_MOD_NAME = `${FAKE_MOD_INFO.name} ${REDMOD_AUTOCONVERTED_NAME_TAG}`;
 const AUTOCONVERT_MOD_NAME_UNTAGGED = `${FAKE_MOD_INFO.name}`;
 const AUTOCONVERT_MOD_VERSION = `${FAKE_MOD_INFO.version.v}+V2077RED`;
@@ -113,11 +116,6 @@ const NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX: REDmodInfoForVortex = {
   vortexModId: FAKE_MOD_INFO.id,
 };
 const NATIVE_REDMOD_INFO_IN_MULTITYPE_JSON = jsonpp(NATIVE_REDMOD_INFO_IN_MULTITYPE);
-
-const BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX: REDmodInfoForVortex[] = [
-  AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX,
-  NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX,
-];
 
 const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod>([
   [
@@ -171,61 +169,6 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
     },
   ],
   [
-    `Canonical with archive and .xl migrated to REDmod`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
-      expectedInstallerType: InstallerType.Archive,
-      inFiles: [
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/first.archive`),
-        path.join(`${ARCHIVE_PREFIX}/first.xl`),
-      ],
-      outInstructions: [
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
-        ),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/first.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.xl`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
-    },
-  ],
-  [
-    `Canonical with just .xl migrated to REDmod`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
-      expectedInstallerType: InstallerType.Archive,
-      inFiles: [
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/first.xl`),
-      ],
-      outInstructions: [
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/first.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.xl`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
-    },
-  ],
-  [
     `Heritage with single archive migrated to REDmod`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
@@ -262,40 +205,6 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         movedFromTo(
           path.join(`first.archive`),
           path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
-    },
-  ],
-  [
-    `toplevel archive mod with archives and .xl migrated to REDmod`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
-      expectedInstallerType: InstallerType.Archive,
-      inFiles: [
-        path.join(`first.archive`),
-        path.join(`second.archive`),
-        path.join(`some.xl`),
-      ],
-      outInstructions: [
-        movedFromTo(
-          path.join(`first.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\first.archive`),
-        ),
-        movedFromTo(
-          path.join(`second.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\second.archive`),
-        ),
-        movedFromTo(
-          path.join(`some.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\some.xl`),
         ),
         generatedFile(
           AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
@@ -359,7 +268,7 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
-      infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
@@ -385,12 +294,94 @@ const ArchiveModToREDmodMigrationSucceeds = new Map<string, ExampleSucceedingMod
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
         addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
       ],
-      infoDialogTitle: `Mod Installed But May Need Manual Adjustment!`,
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
       infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
 ]);
 
+
+//
+// Autoconvert only ever touches mods that are nothing but '.archive' files.
+// ArchiveXL '.xl' files and any other leftovers point at the paths conversion
+// would move, so these all install as plain archive mods instead.
+//
+
+const ArchiveModNOTMigratedWhenNotOnlyArchives = new Map<string, ExampleSucceedingMod>([
+  [
+    `Canonical archive next to an ArchiveXL .xl is NOT converted`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/first.archive`),
+        path.join(`${ARCHIVE_PREFIX}/first.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}/first.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/first.xl`),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveNOTautoconverted,
+    },
+  ],
+  [
+    `Canonical with just an ArchiveXL .xl is NOT converted`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/first.xl`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${ARCHIVE_PREFIX}/first.xl`),
+      ],
+      infoNotificationId: InfoNotification.REDmodArchiveNOTautoconverted,
+    },
+  ],
+  [
+    `toplevel archives next to an ArchiveXL .xl are NOT converted`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        path.join(`first.archive`),
+        path.join(`second.archive`),
+        path.join(`some.xl`),
+      ],
+      outInstructions: [
+        movedFromTo(path.join(`first.archive`), path.join(`${ARCHIVE_PREFIX}\\first.archive`)),
+        movedFromTo(path.join(`second.archive`), path.join(`${ARCHIVE_PREFIX}\\second.archive`)),
+        movedFromTo(path.join(`some.xl`), path.join(`${ARCHIVE_PREFIX}\\some.xl`)),
+      ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
+      infoNotificationId: InfoNotification.REDmodArchiveNOTautoconverted,
+    },
+  ],
+  [
+    `archives with extra documentation files alongside them are NOT converted`,
+    {
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
+      expectedInstallerType: InstallerType.Archive,
+      inFiles: [
+        path.join(`fold1/`),
+        path.join(`fold1/first.archive`),
+        path.join(`fold1/foobar.txt`),
+        path.join(`fold1/second.archive`),
+        path.join(`fold1/thisisenough.md`),
+      ],
+      outInstructions: [
+        movedFromTo(path.join(`fold1/first.archive`), path.join(`${ARCHIVE_PREFIX}\\fold1\\first.archive`)),
+        movedFromTo(path.join(`fold1/foobar.txt`), path.join(`${ARCHIVE_PREFIX}\\fold1\\foobar.txt`)),
+        movedFromTo(path.join(`fold1/second.archive`), path.join(`${ARCHIVE_PREFIX}\\fold1\\second.archive`)),
+        movedFromTo(path.join(`fold1/thisisenough.md`), path.join(`${ARCHIVE_PREFIX}\\fold1\\thisisenough.md`)),
+      ],
+      infoDialogTitle: MANUAL_ARCHIVE_CHECK_WARNING_TITLE,
+      infoNotificationId: InfoNotification.REDmodArchiveNOTautoconverted,
+    },
+  ],
+]);
 
 //
 // Regression test, this should go thru same pipeline as regular REDmod
@@ -451,9 +442,9 @@ const ArchiveModToREDmodMigrationWithAutofixSucceeds = new Map<string, ExampleSu
 // Multitype
 //
 
-const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedingMod>([
+const MultiTypeNeverAutoconvertsArchives = new Map<string, ExampleSucceedingMod>([
   [
-    `MultiType with Archive converts Archive to REDmod when autoconversion enabled`,
+    `MultiType with Archive installs the archive as-is even when autoconversion is enabled`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
@@ -479,65 +470,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           source: path.join(`${RED4EXT_PREFIX}/script.dll`),
           destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
         },
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
-    `MultiType with Archive converts Archive to REDmod when autoconversion enabled, and respects tagging feature if there's no REDmod present`,
-    {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
-      expectedInstallerType: InstallerType.MultiType,
-      inFiles: [
-        ...CET_PREFIXES,
-        path.join(`${CET_PREFIX}/exmod/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/`),
-        path.join(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        path.join(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        ...REDS_PREFIXES,
-        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
-        ...RED4EXT_PREFIXES,
-        path.join(`${RED4EXT_PREFIX}/script.dll`),
-        ...ARCHIVE_PREFIXES,
-        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-      ],
-      outInstructions: [
-        copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
-        copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
-        {
-          type: `copy`,
-          source: path.join(`${RED4EXT_PREFIX}/script.dll`),
-          destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
-        },
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON_UNTAGGED,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME_UNTAGGED}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX_UNTAGGED),
-      ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
-    },
-  ],
-  [
-    `MultiType with just Archive and redscript converts Archive to REDmod when autoconversion enabled`,
+    `MultiType with just Archive and redscript installs the archive as-is even when autoconversion is enabled`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
@@ -549,23 +487,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
       ],
       outInstructions: [
         copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
-    `MultiType with just Archive and CET converts Archive to REDmod when autoconversion enabled`,
+    `MultiType with just Archive and CET installs the archive as-is even when autoconversion is enabled`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
@@ -581,23 +508,12 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
       outInstructions: [
         copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
         copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
-    `MultiType with Archive and XL converts to REDmod when autoconversion enabled`,
+    `MultiType with Archive and XL installs both as-is even when autoconversion is enabled`,
     {
       features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
@@ -624,29 +540,15 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
           source: path.join(`${RED4EXT_PREFIX}/script.dll`),
           destination: path.join(`${RED4EXT_PREFIX}/${FAKE_MOD_NAME}/script.dll`),
         },
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
-        createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
-        addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(AUTOCONVERTED_REDMOD_FAKE_INFO_FOR_VORTEX),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
-    `MultiType: native and autoconverting REDmod in same mod are correctly combined so both show in LO with conversion tag forced to avoid name clashes`,
+    `MultiType: a native REDmod and old-style archives in the same mod install side by side, archives NOT converted`,
     {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
       fsMocked: mockedFsLayout(
         {
@@ -670,32 +572,21 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         path.join(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
       ],
       outInstructions: [
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(...BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/archives/cool_stuff.xl`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/customSounds/cool_sound.wav`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
   [
-    `MultiType: REDmod maybe with archive installable with old-style archive + CET converts to REDmod when autoconversion enabled`,
+    `MultiType: a full native REDmod plus old-style archive + CET installs everything, archives NOT converted`,
     {
-      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES_WITHOUT_TAGGING,
+      features: FLAG_ENABLED_REDMOD_AUTOCONVERT_ARCHIVES,
       expectedInstallerType: InstallerType.MultiType,
       fsMocked: mockedFsLayout(
         {
@@ -736,21 +627,11 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         path.join(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
       outInstructions: [
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.archive`),
-        ),
-        movedFromTo(
-          path.join(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_ARCHIVES_DIRNAME}\\magicgoeshere.xl`),
-        ),
-        generatedFile(
-          AUTOCONVERTED_REDMOD_FAKE_INFO_JSON,
-          path.join(`${REDMOD_BASEDIR}\\${AUTOCONVERT_MOD_NAME}\\${REDMOD_INFO_FILENAME}`),
-        ),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
         createdDirectory(REDMOD_SCRIPTS_MODDED_DIR),
         addedMetadataAttribute(REDMOD_MODTYPE_ATTRIBUTE),
-        addedREDmodInfoArrayAttribute(...BOTH_NATIVE_AND_AUTOCONVERTED_REDMOD_INFOS_FOR_VORTEX),
+        addedREDmodInfoArrayAttribute(NATIVE_REDMOD_INFO_IN_MULTITYPE_FOR_VORTEX),
         copiedToSamePath(`${CET_PREFIX}/exmod/${CET_INIT}`),
         copiedToSamePath(`${CET_PREFIX}/exmod/Modules/morelua.lua`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/info.json`),
@@ -762,7 +643,6 @@ const MultiTypeWithArchiveREDmodAutoconversion = new Map<string, ExampleSucceedi
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/scripts/core/ai/deepScripts.script`),
         copiedToSamePath(`${REDMOD_BASEDIR}/myRedMod/tweaks/base/gameplay/static_data/tweak_tweak_baby.tweak`),
       ],
-      infoNotificationId: InfoNotification.REDmodArchiveAutoconverted,
     },
   ],
 ]);
@@ -771,7 +651,8 @@ const examples: ExamplesForType = {
   AllExpectedSuccesses: mergeOrFailOnConflict(
     ArchiveModToREDmodMigrationSucceeds,
     ArchiveModToREDmodMigrationWithAutofixSucceeds,
-    MultiTypeWithArchiveREDmodAutoconversion,
+    ArchiveModNOTMigratedWhenNotOnlyArchives,
+    MultiTypeNeverAutoconvertsArchives,
   ),
   AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
