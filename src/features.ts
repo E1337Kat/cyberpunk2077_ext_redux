@@ -51,9 +51,15 @@ export const enum StaticFeature {
 
 // Need to be underscored since it isn't always just a string... thanks react...
 export const enum DynamicFeature {
+  REDmodAdvancedModdingFeatures = `v2077_feature_advanced_modding_features`,
   REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
   REDmodFallbackInstallAnyways = `v2077_feature_redmod_fallback_install_anyways`,
 }
+
+//
+// `REDmodAutoconvertArchives` is only available when `REDmodAdvancedModdingFeatures`
+// is on. Turning Advanced off in the settings view also turns autoconvert off.
+//
 
 export type FeatureSettingsPathInVortex = Record<keyof typeof DynamicFeature, string[]>;
 
@@ -77,6 +83,7 @@ export const BaselineFeatureSetForTests: FeatureSet = {
   REDmodding: FeatureState.Disabled,
   REDmodLoadOrder: FeatureState.Disabled,
   REDmodAutoconversionTag: FeatureState.Enabled,
+  REDmodAdvancedModdingFeatures: () => FeatureState.Disabled,
   REDmodAutoconvertArchives: () => FeatureState.Disabled,
   REDmodFallbackInstallAnyways: () => FeatureState.Disabled,
 };
@@ -94,6 +101,7 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
 //
 
 export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
+  [DynamicFeature.REDmodAdvancedModdingFeatures]: false,
   [DynamicFeature.REDmodAutoconvertArchives]: false,
   [DynamicFeature.REDmodFallbackInstallAnyways]: false,
 };
@@ -136,15 +144,23 @@ export const FullFeatureSetFromStaticAndDynamic = (
   staticFeatures: VersionedStaticFeatureSet,
   vortexExtApi: VortexExtensionApi,
   storeUtil: StoreUtil, // JFC peer dependencies
-): FeatureSet => ({
-  ...staticFeatures,
-  REDmodAutoconvertArchives: () =>
-    boolAsFeature(
-      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
-    ),
-  REDmodFallbackInstallAnyways: () =>
-    boolAsFeature(
-      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodFallbackInstallAnyways, vortexExtApi.store.getState()),
-    ),
-});
+): FeatureSet => {
+  const advancedModdingEnabled = (): boolean =>
+    storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAdvancedModdingFeatures, vortexExtApi.store.getState());
+
+  return {
+    ...staticFeatures,
+    REDmodAdvancedModdingFeatures: () =>
+      boolAsFeature(advancedModdingEnabled()),
+    REDmodAutoconvertArchives: () =>
+      boolAsFeature(
+        advancedModdingEnabled()
+        && storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
+      ),
+    REDmodFallbackInstallAnyways: () =>
+      boolAsFeature(
+        storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodFallbackInstallAnyways, vortexExtApi.store.getState()),
+      ),
+  };
+};
 

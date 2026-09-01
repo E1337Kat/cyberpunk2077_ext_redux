@@ -10,6 +10,8 @@ import { VortexReducerSpec } from "./vortex-wrapper";
 
 export const makeSettingsReducer = (settingsDefaultsUnnested: DynamicFeatureDefaults): VortexReducerSpec => ({
   reducers: {
+    [actions.setREDmodAdvancedModdingFeaturesAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
+      storeSetDynamicFeature(vortexUtil, DynamicFeature.REDmodAdvancedModdingFeatures, stateSliceForJustOurStuff, payload),
     [actions.setREDmodAutoconvertArchivesAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
       storeSetDynamicFeature(vortexUtil, DynamicFeature.REDmodAutoconvertArchives, stateSliceForJustOurStuff, payload),
     [actions.setREDmodFallbackInstallAnywaysAction.toString()]: (stateSliceForJustOurStuff, payload: boolean) =>
