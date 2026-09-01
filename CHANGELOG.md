@@ -1,3 +1,28 @@
+# Cyberpunk 2077 Vortex Support v0.13.0
+
+The first release maintained by Nexus Mods.
+
+Update directly in Vortex, or download from the [Nexus Mods page](https://www.nexusmods.com/site/mods/196?tab=files).
+
+## Added
+
+- **Convert to REDmod** and **Revert to archive mod**, available from the right-click menu on an installed mod. Converting rearranges the mod so that REDmod loads it, which places it in the load order and allows it to take precedence over plain archive mods. Requires the REDmod DLC, and currently applies to mods that contain only archives.
+
+## Changed
+
+- Core framework mods are now identified by the file that defines them, rather than by an exact list of everything one particular release shipped. ArchiveXL, TweakXL, Audioware, Input Loader, Appearance Menu Mod and Mod Settings install regardless of the version you have, including older releases and any release that adds, renames or removes a file. This previously accounted for the largest share of failed installations, and prevented collections that pin an older ArchiveXL from installing.
+- Archive mods are installed as archive mods. Conversion to REDmod is an explicit action on an installed mod rather than a step during installation. Mods converted by earlier versions continue to work, and the former autoconversion setting has been removed.
+- The REDmod DLC notice is shown only when REDmods are installed, and appears as a notification rather than a dialog that must be dismissed. It links to the store the game was purchased from.
+
+## Removed
+
+- The v0.9.0 update dashlet.
+
+## Links
+
+- [Nexus Mods page](https://www.nexusmods.com/site/mods/196)
+- [GitHub repository](https://github.com/Nexus-Mods/game-cyberpunk2077)
+
 # Cyberpunk2077 Vortex Support v0.12.1 "Brendan"
 
 Brendan is the best boy because he was a true AI for the people. Unlike Brendan though, this release didn't use any AI. So why did I name this release after the sweetest boy? Because it exists. Like brendan. Also like Brendan, a cold Nicola can help ease all your worries.
