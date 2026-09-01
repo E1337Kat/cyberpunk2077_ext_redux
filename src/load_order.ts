@@ -66,6 +66,7 @@ import {
   ModList,
 } from "./load_order.types";
 import {
+  makeVortexApi,
   VortexApi,
   VortexDeserializeFunc,
   VortexDiscoveryResult,
@@ -757,7 +758,7 @@ export const wrapDeserialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexDeserializeFunc => async (): Promise<VortexLoadOrder> => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   return loadOrderer.deserializeLoadOrder(vortexApi);
 };
@@ -775,7 +776,7 @@ export const wrapSerialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexSerializeFunc => async (loadOrder: VortexLoadOrder): Promise<void> => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   return loadOrderer.serializeLoadOrder(vortexApi, loadOrder);
 };
@@ -792,7 +793,7 @@ export const wrapValidate = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexValidateFunc => (prev: VortexLoadOrder, current: VortexLoadOrder) => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   // Unlike in `install`, Vortex doesn't supply us the mod's disk path
   return loadOrderer.validate(

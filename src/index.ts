@@ -359,6 +359,19 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       return Promise.resolve();
     });
 
+    // Enabling a mod can be the moment REDmods start mattering, and setup only
+    // runs when the game is activated.
+    vortexExt.api.events.on(`mods-enabled`, (_modIds: string[], enabled: boolean, gameId: string) => {
+      const discovery =
+        vortexApiLib.selectors.discoveryByGame(vortexExt.api.store.getState(), GAME_ID);
+
+      if (gameId !== GAME_ID || !enabled || discovery?.path === undefined) {
+        return;
+      }
+
+      wrappedPrepareForModdingWithREDmodding(vortexExt, vortexApiLib, discovery);
+    });
+
   }); // vortexExt.once(() => {
 
   // This makes Vortex unable to deploy anything because the type didn't exist previously :D

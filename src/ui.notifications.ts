@@ -89,7 +89,7 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
       id: InfoNotification.REDmodDlcMissing,
       type: `warning`,
       title: `REDmod is not installed`,
-      message: `You have REDmods installed, and they won't load without the free REDmod DLC.`,
+      message: `You have REDmods installed, and they won't load without the free REDmod DLC. You can get it from wherever you bought the game.`,
     },
   ],
   [
@@ -171,9 +171,10 @@ export const showInfoNotification = async (
   overrideMessage?: string,
   actions?: VortexNotificationAction[],
 ): Promise<NotificationStatus> => {
-  const notification = getInfoNotificationOrThrow(api, id, overrideMessage);
-
-  api.sendNotification(actions === undefined ? notification : { ...notification, actions });
+  api.sendNotification({
+    ...getInfoNotificationOrThrow(api, id, overrideMessage),
+    actions,
+  });
 
   return NotificationStatus.Complete;
 };

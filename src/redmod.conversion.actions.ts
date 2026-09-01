@@ -2,16 +2,17 @@ import path from "path";
 import {
   isLeft,
   left as leftE,
+  match as matchE,
   right as rightE,
 } from "fp-ts/lib/Either";
 import {
   pipe,
 } from "fp-ts/lib/function";
 import {
+  every,
   filter,
   map,
   partitionMap,
-  some as any,
   toArray as toMutableArray,
 } from "fp-ts/ReadonlyArray";
 import {
@@ -44,9 +45,11 @@ import {
   StagingFileOps,
 } from "./redmod.conversion";
 import {
-  REDdeployExeRelativePath,
-} from "./redmodding.metadata";
+  redmodToolingIsInstalled,
+  warnREDmoddingDlcIsMissing,
+} from "./redmodding";
 import {
+  gameDirPath,
   isSupported,
 } from "./state.functions";
 import {
@@ -417,38 +420,22 @@ const runStagingConversion = async (
 
 // A converted mod is loaded by REDmod and nothing else, so without the tooling
 // it wouldn't load at all.
-const redmodToolingIsInstalled = async (api: VortexApi): Promise<boolean> => {
-  const gameDir =
-    selectors.discoveryByGame(api.store.getState(), GAME_ID)?.path;
-
-  if (gameDir === undefined) {
-    return false;
-  }
-
-  try {
-    await fs.statAsync(path.join(gameDir, REDdeployExeRelativePath));
-    return true;
-  } catch {
-    return false;
-  }
-};
+const canLoadREDmods = async (api: VortexApi): Promise<boolean> =>
+  pipe(
+    gameDirPath(api),
+    matchE(
+      () => Promise.resolve(false),
+      (gameDir) => redmodToolingIsInstalled(gameDir),
+    ),
+  );
 
 export const convertArchiveModsToREDmods = async (
   api: VortexApi,
   modIds: readonly string[],
 ): Promise<void> => {
-  if (!await redmodToolingIsInstalled(api)) {
+  if (!await canLoadREDmods(api)) {
     api.log(`warn`, `${me}: REDmod tooling missing, refusing to convert`);
-
-    await api.showDialog(
-      `info`,
-      `REDmod is not installed`,
-      {
-        md: `Converted mods are loaded by REDmod, so converting without it would stop this mod loading at all.\n\nInstall the REDmod DLC for Cyberpunk 2077 through your game store, then try again.`,
-      },
-      [{ label: `Close` }],
-    );
-
+    warnREDmoddingDlcIsMissing(api);
     return;
   }
 
@@ -475,12 +462,14 @@ export const revertREDmodsToArchiveMods = (
 // When to offer them
 //
 
+// Vortex calls this on every render of the mods table, including while another
+// game is active, so the api is only resolved once we know the rows are ours.
 const forEveryModInSelection = (
-  api: VortexApi,
+  getApi: () => VortexApi,
   modIds: readonly string[],
   isEligible: (mod: VortexMod) => boolean,
 ): VortexActionConditionResult => {
-  const state = api.store.getState();
+  const state = getApi().store.getState();
 
   if (!isSupported(selectors.activeGameId(state))) {
     return false;
@@ -491,19 +480,19 @@ const forEveryModInSelection = (
   // conversionInProgress is deliberately not reflected here: Redux can't see a
   // plain variable change, so the menu would keep whatever it last rendered.
   // Clicking while busy is turned away with a notification instead.
-  return mods.length > 0 && !pipe(mods, any((mod) => !isEligible(mod)));
+  return mods.length > 0 && pipe(mods, every(isEligible));
 };
 
 // The api is resolved per call rather than captured, since Vortex refuses to
 // hand it over while extensions are still initialising.
 export const canConvertToREDmod = (getApi: () => VortexApi) =>
   (modIds: string[] = []): VortexActionConditionResult =>
-    forEveryModInSelection(getApi(), modIds, (mod) =>
+    forEveryModInSelection(getApi, modIds, (mod) =>
       mod.state === `installed` && attrModType(mod) !== ModType.REDmod);
 
 export const canRevertToArchiveMod = (getApi: () => VortexApi) =>
   (modIds: string[] = []): VortexActionConditionResult =>
-    forEveryModInSelection(getApi(), modIds, (mod) =>
+    forEveryModInSelection(getApi, modIds, (mod) =>
       mod.state === `installed`
       && attrModType(mod) === ModType.REDmod
       && wasConvertedFromArchives(mod));

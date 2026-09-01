@@ -25,6 +25,7 @@ import {
   subtreeFrom,
 } from "./filetree";
 import {
+  makeVortexApi,
   VortexApi,
   VortexTestResult,
   VortexInstallResult,
@@ -541,10 +542,9 @@ export const wrapTestSupported =
     // This is the function that Vortex calls.
     (filesRelativePaths: string[], gameId: string) => {
     //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+      const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
       if (gameId !== GAME_ID) {
-        vortexApi.log(`error`, `Not a ${GAME_ID} mod: ${gameId}`);
         return Promise.resolve({ supported: false, requiredFiles: [] });
       }
 
@@ -588,7 +588,7 @@ export const wrapInstall =
       _progressDelegate: VortexProgressDelegate,
     ): Promise<VortexInstallResult> => {
     //
-      const vortexApi: VortexApi = { ...vortex.api, log: vortexApiLib.log };
+      const vortexApi = makeVortexApi(vortex, vortexApiLib);
 
       vortexApi.log(`info`, `Trying to install using ${installer.type}`);
       vortexApi.log(`debug`, `Input files:`, filesRelativePaths);

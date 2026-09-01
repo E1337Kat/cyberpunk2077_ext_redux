@@ -7,6 +7,7 @@ import {
 import {
   map,
   some as any,
+  toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import {
@@ -29,13 +30,12 @@ import {
   V2077_LOAD_ORDER_DIR,
 } from "./redmodding.metadata";
 import {
+  makeVortexApi,
   VortexApi,
   VortexDiscoveryResult,
   VortexExtensionContext,
   VortexMod,
   VortexNotificationAction,
-  VortexState,
-  VortexToolDiscovered,
 } from "./vortex-wrapper";
 import {
   REDdeployManual,
@@ -52,11 +52,30 @@ interface REDmoddingDlcDetails {
 }
 
 
-export const detectREDmoddingDlc = (state: VortexState, gameId: string): VortexToolDiscovered => {
-  const tools = state.settings.gameMode.discovered[gameId]?.tools || {};
-  return Object.keys(tools).map((id) => tools[id])
-    .filter((iter) => (iter !== undefined) && (iter.path !== undefined))
-    .find((iter) => path.basename(iter.path).toLowerCase() === `redMod.exe`);
+// The one answer to 'can this install load REDmods', so that setup, the
+// conversion action and anything else agree on it.
+export const redmodToolingIsInstalled = async (gameDirPath: string): Promise<boolean> => {
+  const everyFileREDmoddingNeeds = [
+    ...REDlauncher.requiredFiles,
+    ...REDdeployManual.requiredFiles,
+  ];
+
+  // Each stat is caught on its own: a bare Promise.all over rejecting stats
+  // settles on the first and leaves the rest unhandled.
+  const eachFileIsThere = await Promise.all(pipe(
+    everyFileREDmoddingNeeds,
+    map(async (file) => {
+      try {
+        await fs.statAsync(path.join(gameDirPath, file));
+        return true;
+      } catch {
+        return false;
+      }
+    }),
+    toMutableArray,
+  ));
+
+  return eachFileIsThere.every((isThere) => isThere);
 };
 
 
@@ -87,22 +106,13 @@ export const anyREDmodsIn = (mods: readonly VortexMod[]): boolean =>
     any((mod) => mod.state === `installed` && attrModType(mod) === ModType.REDmod),
   );
 
-const anyREDmodsAreInstalled = (vortexApi: VortexApi): boolean => {
-  const allMods: Record<string, VortexMod> = // keyed by Vortex mod id
-    selectors.modsForGame(vortexApi.store.getState(), GAME_ID) ?? {};
-
-  return anyREDmodsIn(Object.values(allMods));
-};
+const anyREDmodsAreInstalled = (vortexApi: VortexApi): boolean =>
+  anyREDmodsIn(Object.values(selectors.modsForGame(vortexApi.store.getState(), GAME_ID)));
 
 // A notification rather than a dialog: the user has something to fix, but it
 // doesn't have to be answered before they can carry on doing anything else.
-const warnREDmoddingDlcIsMissing = (vortexApi: VortexApi, gameStoreId?: string): void => {
+export const warnREDmoddingDlcIsMissing = (vortexApi: VortexApi, gameStoreId?: string): void => {
   const { name, url } = fetchREDmoddingDlcDetails(gameStoreId);
-
-  const whereToGetIt =
-    name === undefined
-      ? `You can get it for free from wherever you bought the game.`
-      : `You can get it for free from ${name}.`;
 
   const openTheStorePage: VortexNotificationAction[] = [{
     title: `Get REDmod`,
@@ -115,7 +125,9 @@ const warnREDmoddingDlcIsMissing = (vortexApi: VortexApi, gameStoreId?: string):
   showInfoNotification(
     vortexApi,
     InfoNotification.REDmodDlcMissing,
-    `You have REDmods installed, and they won't load without the free REDmod DLC. ${whereToGetIt}`,
+    name === undefined
+      ? undefined
+      : `You have REDmods installed, and they won't load without the free REDmod DLC. You can get it from ${name}.`,
     openTheStorePage,
   );
 };
@@ -143,26 +155,11 @@ const prepareForModdingWithREDmodding = async (
     vortexApi.log(`error`, `Unable to create or access load order storage dir ${V2077_LOAD_ORDER_DIR} under ${discovery.path}`, err);
   }
 
-  // Attempt to detect if the user has the REDmodding DLC installed
-  const requiredREDmoddingFiles = [
-    ...REDlauncher.requiredFiles,
-    ...REDdeployManual.requiredFiles,
-  ];
-
-  try {
-    await pipe(
-      requiredREDmoddingFiles,
-      map((file) =>
-        fs.statAsync(path.join(discovery.path, file))),
-      Promise.all,
-    );
-
-    // Only need to run the DLC finder if the files aren't there yet
+  if (await redmodToolingIsInstalled(discovery.path)) {
     return;
-
-  } catch (err) {
-    vortexApi.log(`info`, `REDmod not found for Cyberpunk 2077`, err);
   }
+
+  vortexApi.log(`info`, `REDmod not found for Cyberpunk 2077`);
 
   // Only someone with a REDmod to load has any use for the DLC
   if (!anyREDmodsAreInstalled(vortexApi)) {
@@ -185,7 +182,7 @@ export const wrappedPrepareForModdingWithREDmodding = async (
   vortexApiThing,
   discovery: VortexDiscoveryResult,
 ): Promise<void> => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   vortexApi.log(`info`, `Checking for REDmod install`);
 

@@ -107,6 +107,14 @@ export interface VortexApi extends VortexExtensionApi {
   log: VortexLogFunc;
 }
 
+// Call this when Vortex invokes us, never while the extension is initialising:
+// the spread snapshots `store`, which Vortex hasn't assigned yet during init,
+// and reading `api` at all in an init function throws.
+export const makeVortexApi = (
+  vortexExt: VortexExtensionContext,
+  vortexApiLib: { log: VortexLogFunc },
+): VortexApi => ({ ...vortexExt.api, log: vortexApiLib.log });
+
 export type VortexTestResult = Vortex.ISupportedResult;
 export type VortexTestSupportedFunc = Vortex.TestSupported;
 
