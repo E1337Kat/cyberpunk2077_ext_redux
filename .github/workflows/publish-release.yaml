@@ -69,11 +69,14 @@ jobs:
           fi
 
       - name: Upload to Nexus Mods
-        uses: Nexus-Mods/upload-action@v1.0.0-beta.9
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.10
         with:
           api_key: ${{ secrets.NEXUS_API_KEY }}
           file_id: ${{ secrets.NEXUS_FILE_ID }}
           display_name: Cyberpunk 2077 Support for Vortex
           filename: ${{ steps.meta.outputs.archive_name }}
           version: ${{ steps.meta.outputs.version }}
+          archive_existing_version: true
+          primary_mod_manager_download: true
+          allow_mod_manager_download: true
           update_mod_version: true
