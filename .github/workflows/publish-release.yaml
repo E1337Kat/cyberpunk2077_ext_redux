@@ -1,0 +1,79 @@
+name: Publish to Nexus Mods
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-nexus
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to Nexus Mods
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The version on Nexus has to be the one in info.json, which extractInfo
+      # generates from package.json. If they disagree Vortex won't offer the update.
+      - name: Compute build metadata
+        id: meta
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+.*$ ]]; then
+            echo "::error::Invalid version in package.json: $VERSION (expected semver)"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "archive_name=game-cyberpunk2077-${VERSION}.7z" >> "$GITHUB_OUTPUT"
+
+          echo "Publishing version $VERSION"
+
+      # The build doesn't typecheck, so this has to be its own step
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      # `pack` runs the tests itself before building
+      - name: Package it up
+        run: pnpm run pack
+
+      - name: Verify the archive layout
+        shell: bash
+        run: |
+          ARCHIVE="${{ steps.meta.outputs.archive_name }}"
+          PATHS="$(7z l -ba -slt "$ARCHIVE" | sed -n 's/^Path = //p')"
+          echo "$PATHS"
+
+          if ! grep -qx "index.js" <<< "$PATHS"; then
+            echo "::error::index.js is not at the root of $ARCHIVE"
+            exit 1
+          fi
+
+      - name: Upload to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.9
+        with:
+          api_key: ${{ secrets.NEXUS_API_KEY }}
+          file_id: ${{ secrets.NEXUS_FILE_ID }}
+          display_name: Cyberpunk 2077 Support for Vortex
+          filename: ${{ steps.meta.outputs.archive_name }}
+          version: ${{ steps.meta.outputs.version }}
+          update_mod_version: true
