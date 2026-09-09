@@ -73,24 +73,10 @@ const CoreTweakXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFailingMod>(
+// TweakXL varies what it ships between releases; each of these is a
+// real shape and all of them install as-is.
+const CoreTweakXLInstallsWhateverTheReleaseShips = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    coreTweakXLOutdated: {
-      expectedInstallerType: InstallerType.CoreTweakXL,
-      inFiles: [
-        path.join(`r6\\`),
-        path.join(`red4ext\\`),
-        path.join(`r6\\scripts\\`),
-        path.join(`r6\\scripts\\TweakXL\\`),
-        path.join(`r6\\scripts\\TweakXL\\TweakXL.reds`),
-        path.join(`r6\\tweaks\\`),
-        path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\TweakXL\\`),
-        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
-      ],
-      failure: `Didn't Find Expected TweakXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
-    },
     coreTweakXLOutdatedAgain: {
       expectedInstallerType: InstallerType.CoreTweakXL,
       inFiles: [
@@ -101,26 +87,22 @@ const CoreTweakXLShouldFailOnInstallIfNotExactLayout = new Map<string, ExampleFa
         path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
         path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
       ],
-      failure: `Didn't Find Expected TweakXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
-    },
-    coreTweakXLWithMissing: {
-      expectedInstallerType: InstallerType.CoreTweakXL,
-      inFiles: [
-        path.join(`red4ext\\`),
-        path.join(`red4ext\\plugins\\`),
-        path.join(`red4ext\\plugins\\TweakXL\\`),
-        path.join(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+      outInstructions: [
+        createdDirectory(`r6\\tweaks\\`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\TweakXL.dll`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.Global.reds`),
+        copiedToSamePath(`red4ext\\plugins\\TweakXL\\Scripts\\TweakXL.reds`),
       ],
-      failure: `Didn't Find Expected TweakXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected TweakXL Installation!`,
     },
   }),
 );
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: mergeOrFailOnConflict(CoreTweakXLInstallSucceeds),
-  AllExpectedDirectFailures: mergeOrFailOnConflict(CoreTweakXLShouldFailOnInstallIfNotExactLayout),
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    CoreTweakXLInstallSucceeds,
+    CoreTweakXLInstallsWhateverTheReleaseShips,
+  ),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 

@@ -16,7 +16,7 @@ import {
 import {
   copiedToSamePath,
   createdDirectory,
-  generatedFile,
+  mergeOrFailOnConflict,
   ExampleFailingMod,
   ExamplePromptInstallableMod,
   ExamplesForType,
@@ -24,9 +24,6 @@ import {
   pathHierarchyFor,
   RED4EXT_PREFIX,
 } from "./utils.helper";
-import {
-  InstallChoices,
-} from "../../src/ui.dialogs";
 
 const inputLoaderInFiles = {
   v012: [
@@ -52,9 +49,37 @@ const inputLoaderInFiles = {
 };
 
 
-const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
+// Input Loader has shipped several different file sets. Each installs as-is,
+// alongside the directory input mods drop their mappings into.
+const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>(
+  pipe(
+    Object.entries(inputLoaderInFiles),
+    map(([version, files]) => [
+      `Core Input Loader ${version} installs whatever that release ships`,
+      {
+        expectedInstallerType: InstallerType.CoreInputLoader,
+        inFiles: [
+          ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
+          ...pathHierarchyFor(`${CONFIG_INI_MOD_BASEDIR}\\`),
+          ...pathHierarchyFor(`${CYBERPUNK_CACHE_PATH}\\`),
+          ...files,
+        ],
+        outInstructions: [
+          createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
+          ...pipe(
+            files,
+            map(copiedToSamePath),
+          ),
+        ],
+      },
+    ]),
+  ),
+);
+
+
+const CoreInputLoaderInstallsAlongsideExtraFiles = new Map<string, ExampleSucceedingMod>([
   [
-    `Core Input Loader version v0.1.2 installs without prompting when all required paths present`,
+    `Core Input Loader installs when the archive carries extra files`,
     {
       expectedInstallerType: InstallerType.CoreInputLoader,
       inFiles: [
@@ -62,6 +87,7 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
         ...pathHierarchyFor(`${CONFIG_INI_MOD_BASEDIR}\\`),
         ...pathHierarchyFor(`${CYBERPUNK_CACHE_PATH}\\`),
         ...inputLoaderInFiles.v012,
+        path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
       ],
       outInstructions: [
         createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
@@ -69,82 +95,20 @@ const CoreInputLoaderInstallSucceeds = new Map<string, ExampleSucceedingMod>([
           inputLoaderInFiles.v012,
           map(copiedToSamePath),
         ),
+        copiedToSamePath(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
       ],
     },
   ],
 ]);
-
-
-const CoreInputLoaderDeprecatedPromptsToInstall = new Map<string, ExamplePromptInstallableMod>([
-  [
-    `Deprecated Core Input Loader version v0.1.1 installs when all required paths present`,
-    {
-      expectedInstallerType: InstallerType.CoreInputLoader,
-      inFiles: [
-        ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-        ...inputLoaderInFiles.v011,
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
-        createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
-        ...pipe(
-          inputLoaderInFiles.v011,
-          map(copiedToSamePath),
-        ),
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.CoreInputLoader}: user chose to cancel installing deprecated version`,
-    },
-  ],
-  [
-    `Deprecated Core Input Loader version v0.1.0 installs when all required paths present`,
-    {
-      expectedInstallerType: InstallerType.CoreInputLoader,
-      inFiles: [
-        ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-        ...inputLoaderInFiles.v010,
-      ],
-      proceedLabel: InstallChoices.Proceed,
-      proceedOutInstructions: [
-        generatedFile(`[Player/Input]\n`, `${CONFIG_INI_MOD_BASEDIR}\\input_loader.ini`),
-        createdDirectory(`${CONFIG_XML_MOD_MERGEABLE_BASEDIR}`), // This is a special case
-        ...pipe(
-          inputLoaderInFiles.v010,
-          map(copiedToSamePath),
-        ),
-      ],
-      cancelLabel: InstallChoices.Cancel,
-      cancelErrorMessage: `${InstallerType.CoreInputLoader}: user chose to cancel installing deprecated version`,
-    },
-  ],
-]);
-
-
-const CoreInputLoaderInstallFails = new Map<string, ExampleFailingMod>(
-  pipe(
-    Object.entries(inputLoaderInFiles),
-    map(([version, files]) => [
-      `Core Input Loader verson ${version} fails without prompting when extra files are present`,
-      {
-        expectedInstallerType: InstallerType.CoreInputLoader,
-        inFiles: [
-          ...pathHierarchyFor(`${RED4EXT_PREFIX}\\input_loader\\`),
-          ...files,
-          path.join(`${CONFIG_INI_MOD_BASEDIR}\\input_loader.txt`),
-        ],
-        failure: `Didn't Find Expected Input Loader Installation!`,
-        errorDialogTitle: `Didn't Find Expected Input Loader Installation!`,
-      },
-    ]),
-  ),
-);
 
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: CoreInputLoaderInstallSucceeds,
-  AllExpectedDirectFailures: CoreInputLoaderInstallFails,
-  AllExpectedPromptInstalls: CoreInputLoaderDeprecatedPromptsToInstall,
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    CoreInputLoaderInstallSucceeds,
+    CoreInputLoaderInstallsAlongsideExtraFiles,
+  ),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
+  AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 
 export default examples;

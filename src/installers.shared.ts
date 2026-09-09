@@ -43,8 +43,6 @@ import {
   NoInstructions,
   NotAllowed,
   PromptedOptionalInstructions,
-  REDMOD_AUTOCONVERTED_NAME_TAG,
-  REDMOD_AUTOCONVERTED_VERSION_TAG,
 } from "./installers.layouts";
 import {
   InstallDecision,
@@ -57,10 +55,6 @@ import {
   VortexApi,
   VortexInstruction,
 } from "./vortex-wrapper";
-import {
-  FeatureSet,
-  IsFeatureEnabled,
-} from "./features";
 
 
 //
@@ -151,37 +145,6 @@ export const makeSyntheticModInfo =
      stagingDirPrefix,
      installingDir,
    });
-
-//
-export const modInfoTaggedAsAutoconverted =
-  (features: FeatureSet, modInfo: ModInfo): ModInfo => {
-    const modNameWithoutExtraTag =
-    modInfo.name.replace(V2077_GENERATED_MOD_NAME_TAG, ``);
-
-    const modNameToUseForModInfo =
-      IsFeatureEnabled(features.REDmodAutoconversionTag)
-        ? `${modNameWithoutExtraTag} ${REDMOD_AUTOCONVERTED_NAME_TAG}`
-        : modNameWithoutExtraTag;
-
-    const existingBuildTagMustBeModified =
-    modInfo.version.build && modInfo.version.build !== ``;
-
-    const tagSeparator =
-    existingBuildTagMustBeModified ? `-` : ``;
-
-    const taggedBuildVersion =
-      `${modInfo.version.build || ``}${tagSeparator}${REDMOD_AUTOCONVERTED_VERSION_TAG}`;
-
-    return makeModInfo({
-      ...modInfo,
-      name: modNameToUseForModInfo,
-      version: {
-        ...modInfo.version,
-        build: taggedBuildVersion,
-      },
-      createTime: dateToSeconds(modInfo.createTime),
-    });
-  };
 
 //
 // Parsing

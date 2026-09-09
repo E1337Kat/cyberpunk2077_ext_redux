@@ -66,6 +66,7 @@ import {
   ModList,
 } from "./load_order.types";
 import {
+  makeVortexApi,
   VortexApi,
   VortexDeserializeFunc,
   VortexDiscoveryResult,
@@ -181,25 +182,33 @@ export const loadOrderUsageInstructionsForVortexGui =
     You don't have to order everything. It's best to only order mods that
     require it, or that you otherwise know to conflict with each other.
 
-    Only REDmods and autoconverted heritage mods are orderable. If you don't see
-    something you just installed, click on Refresh.
+    Only REDmods are orderable, including archive mods you've converted into
+    one. If you don't see something you just installed, click on Refresh.
 
     You can order both enabled and disabled mods, but only the enabled ones will
     be included in the REDmod deployment. The disabled ones will remember their
     place in the load order, though, so long as you don't uninstall them!
 
-    All heritage archive mods that are not autoconverted to REDmod will be loaded
-    BEFORE all REDmods, in the usual alphabetical order. That means that if you want
-    to override an archive mod, you need to convert it to REDmod first. You can do
-    this by making sure the autoconvert setting is on and then reinstalling the mod.
+    Every archive mod that isn't a REDmod loads BEFORE all REDmods, in the usual
+    alphabetical order, and the first mod to change a file is the one that wins.
+    So an archive mod always beats a REDmod that touches the same file, whatever
+    you do in this list. If you need it the other way round, or you just want an
+    archive mod to sit in a particular spot here, convert it: right-click it in
+    your mod list and pick Convert to REDmod.
+
+    Converting rearranges the mod in your staging folder so that REDmod loads it,
+    which is what puts it in this list. Revert to archive mod, in the same menu,
+    puts it back exactly as it was. Converting needs the free REDmod DLC, and for
+    now it only works on mods that contain nothing but archives.
 
     REDmods that you have installed outside Vortex are NOT supported right now.
 
     The load order is saved automatically, and will be deployed whenever the next
     Vortex deployment occurs - you can also manually click to deploy, if you like!
 
-    REDmod deployment can take a little while if you have tweak or script mods,
-    so wait for the green success notification before you start the game! :)
+    REDmod deployment recompiles the game's scripts every time it runs, so it can
+    take a few minutes even for a small change - wait for the green success
+    notification before you start the game! :)
 
     You can also click the REDdeploy tool button to run a deployment on-demand. It'll
     (re)deploy the most recently created load order.
@@ -749,7 +758,7 @@ export const wrapDeserialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexDeserializeFunc => async (): Promise<VortexLoadOrder> => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   return loadOrderer.deserializeLoadOrder(vortexApi);
 };
@@ -767,7 +776,7 @@ export const wrapSerialize = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexSerializeFunc => async (loadOrder: VortexLoadOrder): Promise<void> => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   return loadOrderer.serializeLoadOrder(vortexApi, loadOrder);
 };
@@ -784,7 +793,7 @@ export const wrapValidate = (
   vortexApiThing,
   loadOrderer: LoadOrderer,
 ): VortexValidateFunc => (prev: VortexLoadOrder, current: VortexLoadOrder) => {
-  const vortexApi: VortexApi = { ...vortex.api, log: vortexApiThing.log };
+  const vortexApi = makeVortexApi(vortex, vortexApiThing);
 
   // Unlike in `install`, Vortex doesn't supply us the mod's disk path
   return loadOrderer.validate(

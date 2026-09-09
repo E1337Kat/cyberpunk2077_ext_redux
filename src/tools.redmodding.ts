@@ -40,7 +40,7 @@ import {
   S,
 } from "./util.functions";
 import {
-  VortexApi,
+  makeVortexApi,
   VortexExtensionContext,
   VortexLoadOrder,
   VortexRunParameters,
@@ -120,10 +120,7 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
       async ({ executable, args, options }: VortexRunParameters): Promise<VortexRunParameters> => {
         const me = `${EXTENSION_NAME_INTERNAL} REDdeploy hook`;
 
-        const vortexApi: VortexApi = {
-          ...vortexExt.api,
-          log: vortexApiLib.log,
-        };
+        const vortexApi = makeVortexApi(vortexExt, vortexApiLib);
 
         const toolPaths = pipe(
           gameDirPath(vortexApi),

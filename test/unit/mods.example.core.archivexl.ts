@@ -136,12 +136,11 @@ const CoreArchiveXLInstallSucceeds = new Map<string, ExampleSucceedingMod>(
   }),
 );
 
-const CoreArchiveXLShouldFailOnInstallIfNotExactLayout = new Map<
-string,
-ExampleFailingMod
->(
+// ArchiveXL varies what it bundles between releases; each of these is a real
+// shape and all of them install as-is.
+const CoreArchiveXLInstallsWhateverTheReleaseShips = new Map<string, ExampleSucceedingMod>(
   Object.entries({
-    outdatedcoreArchiveXLInstallCanon: {
+    coreArchiveXLWithScriptsUnderR6: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
       inFiles: [
         path.join(`red4ext\\`),
@@ -153,10 +152,12 @@ ExampleFailingMod
         path.join(`r6\\scripts\\ArchiveXL\\`),
         path.join(`r6\\scripts\\ArchiveXL\\ArchiveXL.reds`),
       ],
-      failure: `Didn't Find Expected ArchiveXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
+      outInstructions: [
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+        copiedToSamePath(`r6\\scripts\\ArchiveXL\\ArchiveXL.reds`),
+      ],
     },
-    anotherOutdatedcoreArchiveXLInstallCanon: {
+    coreArchiveXLWithHintsAtOlderPath: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
       inFiles: [
         path.join(`r6\\`),
@@ -169,10 +170,14 @@ ExampleFailingMod
         path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
         path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
       ],
-      failure: `Didn't Find Expected ArchiveXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
+      outInstructions: [
+        copiedToSamePath(`r6\\config\\ArchiveXL.toml`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
+      ],
     },
-    thirdOutdatedcoreArchiveXLInstallCanon: {
+    coreArchiveXLWithFewerBundledScopes: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
       inFiles: [
         path.join(`r6\\`),
@@ -192,10 +197,18 @@ ExampleFailingMod
         path.join(`red4ext\\plugins\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
         path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
       ],
-      failure: `Didn't Find Expected ArchiveXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
+      outInstructions: [
+        copiedToSamePath(`r6\\config\\redsUserHints\\ArchiveXL.toml`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerBaseScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\LICENSE`),
+      ],
     },
-    fourthOutdatedcoreArchiveXLInstallCanon: {
+    coreArchiveXLWithoutQuestBaseScope: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
       inFiles: [
         path.join(`r6\\`),
@@ -228,10 +241,31 @@ ExampleFailingMod
         path.join(`red4ext\\plugins\\ArchiveXL\\LICENSE`),
         path.join(`red4ext\\plugins\\ArchiveXL\\THIRD_PARTY_LICENSES`),
       ],
-      failure: `Didn't Find Expected ArchiveXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
+      outInstructions: [
+        copiedToSamePath(`r6\\config\\redsUserHints\\ArchiveXL.toml`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\ArchiveXL.archive`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PhotoModeScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerBaseScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationBeardFix.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationBeardScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsFix.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsPatch.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationBrowsScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationHairFix.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationHairPatch.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationHairScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationLashesFix.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationLashesPatch.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationLashesScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Bundle\\PlayerCustomizationScope.xl`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.Global.reds`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\Scripts\\ArchiveXL.reds`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\LICENSE`),
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\THIRD_PARTY_LICENSES`),
+      ],
     },
-    coreArchiveXLWithExtraFiles: {
+    coreArchiveXLDllOnly: {
       expectedInstallerType: InstallerType.CoreArchiveXL,
       inFiles: [
         path.join(`red4ext\\`),
@@ -239,14 +273,19 @@ ExampleFailingMod
         path.join(`red4ext\\plugins\\ArchiveXL\\`),
         path.join(`red4ext\\plugins\\ArchiveXL\\ArchiveXL.dll`),
       ],
-      failure: `Didn't Find Expected ArchiveXL Installation!`,
-      errorDialogTitle: `Didn't Find Expected ArchiveXL Installation!`,
+      outInstructions: [
+        copiedToSamePath(`${RED4EXT_PREFIX}\\ArchiveXL\\ArchiveXL.dll`),
+      ],
     },
   }),
 );
+
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: mergeOrFailOnConflict(CoreArchiveXLInstallSucceeds),
-  AllExpectedDirectFailures: mergeOrFailOnConflict(CoreArchiveXLShouldFailOnInstallIfNotExactLayout),
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    CoreArchiveXLInstallSucceeds,
+    CoreArchiveXLInstallsWhateverTheReleaseShips,
+  ),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 

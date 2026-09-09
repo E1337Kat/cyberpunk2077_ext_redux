@@ -46,12 +46,10 @@ export const IfFeatureEnabled = <T>(featureState: FeatureState, then: Dynamic<T>
 export const enum StaticFeature {
   REDmodding = `v2077_feature_redmodding`,
   REDmodLoadOrder = `v2077_feature_redmod_load_order`,
-  REDmodAutoconversionTag = `v2077_feature_redmod_autoconversion_tag`,
 }
 
 // Need to be underscored since it isn't always just a string... thanks react...
 export const enum DynamicFeature {
-  REDmodAutoconvertArchives = `v2077_feature_redmod_autoconvert_archives`,
   REDmodFallbackInstallAnyways = `v2077_feature_redmod_fallback_install_anyways`,
 }
 
@@ -76,8 +74,6 @@ export const BaselineFeatureSetForTests: FeatureSet = {
   fromVersion: `0.9.3`,
   REDmodding: FeatureState.Disabled,
   REDmodLoadOrder: FeatureState.Disabled,
-  REDmodAutoconversionTag: FeatureState.Enabled,
-  REDmodAutoconvertArchives: () => FeatureState.Disabled,
   REDmodFallbackInstallAnyways: () => FeatureState.Disabled,
 };
 
@@ -85,7 +81,6 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
   fromVersion: `0.9.3`,
   REDmodding: FeatureState.Enabled,
   REDmodLoadOrder: FeatureState.Enabled,
-  REDmodAutoconversionTag: FeatureState.Disabled,
 };
 
 
@@ -94,7 +89,6 @@ export const StaticFeaturesForStartup: VersionedStaticFeatureSet = {
 //
 
 export const DefaultEnabledStateForDynamicFeatures: DynamicFeatureDefaults = {
-  [DynamicFeature.REDmodAutoconvertArchives]: false,
   [DynamicFeature.REDmodFallbackInstallAnyways]: false,
 };
 
@@ -138,10 +132,6 @@ export const FullFeatureSetFromStaticAndDynamic = (
   storeUtil: StoreUtil, // JFC peer dependencies
 ): FeatureSet => ({
   ...staticFeatures,
-  REDmodAutoconvertArchives: () =>
-    boolAsFeature(
-      storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodAutoconvertArchives, vortexExtApi.store.getState()),
-    ),
   REDmodFallbackInstallAnyways: () =>
     boolAsFeature(
       storeGetDynamicFeature(storeUtil, DynamicFeature.REDmodFallbackInstallAnyways, vortexExtApi.store.getState()),

@@ -1,96 +1,134 @@
-[![Testing](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/testing.yml/badge.svg)](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/testing.yml)  [![Package](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/packaging.yml/badge.svg)](https://github.com/E1337Kat/cyberpunk2077_ext_redux/actions/workflows/packaging.yml)
+[![Testing](https://github.com/Nexus-Mods/game-cyberpunk2077/actions/workflows/testing.yml/badge.svg)](https://github.com/Nexus-Mods/game-cyberpunk2077/actions/workflows/testing.yml) [![Package](https://github.com/Nexus-Mods/game-cyberpunk2077/actions/workflows/packaging.yml/badge.svg)](https://github.com/Nexus-Mods/game-cyberpunk2077/actions/workflows/packaging.yml)
 
 # Cyberpunk 2077 Support for Vortex Mod Manager
 
 - [Cyberpunk 2077 Vortex Support on Nexus](https://www.nexusmods.com/site/mods/196)
-- [Repository on Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux)
-- Dev chat on the [#vortex-support](https://discord.gg/PxGUQVWk) channel on Cyberpunk 2077 Modding Community Discord
+- [Repository on Github](https://github.com/Nexus-Mods/game-cyberpunk2077)
+- Dev chat on the [#vortex-support](https://discord.gg/PxGUQVWk) channel on the Cyberpunk 2077 Modding Community Discord
 
-## Installation
+## Installing
 
-Install from [the page on Nexus](https://www.nexusmods.com/site/mods/196?tab=files)
-
-## Manual Installation (e.g. for a development version)
-
-Prerequisite: You need either a packaged release from [Nexus](https://www.nexusmods.com/site/mods/196?tab=files) or [Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux/releases), or you can build manually (see developer info below)
-
-Then, in Vortex:
-
-1. Go to the 'Extensions' tab
-2. Find the Cyberpunk 2077 extension in the list
-3. Click on the 'Remove' button on the right side to uninstall it completely. (The button could be covered up by an info pane that pops out of the 4. right hand side. You can make that go away by double clicking on any entry in the list). _This will NOT remove your game, mods, or profiles_.
-4. Vortex will want to be restarted, so go ahead and do that.
-5. Now you will see that Cyberpunk does not show up as a game at all (but it's still there, don't worry)
-6. Go back to the 'Extensions' tab
-7. At the bottom either click where it says "Drop Files" and select the zipped release (or 7z, rar, whatever the package format is), or you can indeed drag-n-drop the zip from Explorer to that field.
-8. Vortex should prompt you to restart. If it doesn't, just close Vortex and restart it manually.
-9. On relaunch, select cyberpunk, and you will be ready to go.
+Install from [the page on Nexus](https://www.nexusmods.com/site/mods/196?tab=files).
 
 ## Reporting Issues, Feature Requests etc.
 
-If possible, [make reports and requests on Github](https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/new/choose). You can also use [Nexus bugs](https://www.nexusmods.com/site/mods/196?tab=bugs) and [Nexus posts](https://www.nexusmods.com/site/mods/196?tab=posts).
+If possible, [make reports and requests on Github](https://github.com/Nexus-Mods/game-cyberpunk2077/issues/new/choose).
+You can also use [Nexus bugs](https://www.nexusmods.com/site/mods/196?tab=bugs) and
+[Nexus posts](https://www.nexusmods.com/site/mods/196?tab=posts).
 
 To help us fix and add things, please:
 
-1. Make sure you've read the usage information on the [our page on Nexus](https://www.nexusmods.com/site/mods/196)
+1. Make sure you've read the usage information on [our page on Nexus](https://www.nexusmods.com/site/mods/196)
 2. Make sure you've read any instructions that the mod you're trying to install comes with
-3. Try to reproduce the problem so that you can tell us how to reproduce it.
+3. Try to reproduce the problem so that you can tell us how to reproduce it
 
-You can use the [ISSUE_TEMPLATE](./ISSUE_TEMPLATE.md) to help us (you can copy it to Nexus too)
+There's an [ISSUE_TEMPLATE](./ISSUE_TEMPLATE.md) to help (you can copy it to Nexus too).
 
-## Developer Info
+---
 
-### Prerequisites
+# Developing
 
-1. Check you can use the terminal either in your IDE, or PowerShell directly (cmd.exe is not ideal)
-2. Install [nodejs 16](https://nodejs.org/en/download/)
-   - Alternatively install using [a package manager](https://nodejs.org/en/download/package-manager/#windows)
-   - To check nodejs works and your path etc. are correct: `node --version`
-3. Install [TypeScript](https://www.typescriptlang.org/download/)
-   - `npm install -g typescript`
-   - To check TS works: `tsc --version`
-4. Install [Vortex Mod Manager](https://www.nexusmods.com/about/vortex/)
+## Setting Up
 
-### Build & Install
+1. Install [Node.js](https://nodejs.org/en/download/)
+2. `corepack enable`
 
-1. `npm install`
-2. `npm run build`
-   - If you're on nodejs 17+ and get an OpenSSL error, use `export NODE_OPTIONS=--openssl-legacy-provider`
-3. Create a zip/rar/7z archive containing everything in .\dist\
-4. Open Vortex > Extensions
-   1. Disable the `Cyberpunk 2077 Support` extension if enabled
-   2. Drag & Drop or click to add the zipfile from step 3 to install/update the new extension
-5. Restart Vortex
-6. Try to install a mod to verify the extension works correctly
+That second step is what gets you pnpm. The version is pinned in `package.json`, so
+corepack fetches the right one for you.
 
-### Running The Tests
+**This repo is pnpm only.** `npm install` will produce a dependency tree the build
+can't use, and there is no `package-lock.json` to install from.
 
-There's a [jest](https://jestjs.io/) test suite in `test/`, and it's automatically run on
-pre-commit. You can also use `npm run test` and/or configure that in your IDE.
+Then:
 
-### "Real" Test Suite
+```
+pnpm install
+```
 
-[Vortex Extension Test Suite](https://next.nexusmods.com/cyberpunk2077/collections/hl2bnl) on Nexus contains a Collection that can be run to test live mods.
+TypeScript, jest, eslint and rolldown all come from the lockfile. Nothing needs
+installing globally.
 
-## Reporting Bugs & Making Suggestions
+## Everyday Commands
 
-Debugging Typescript is great, probably\*, but just using tests and `console.log` works fine. Additionally,
-you can set the `DEBUG` env var to have all Vortex `log` calls logged to console during a test run.
+| Command | What it does |
+| --- | --- |
+| `pnpm run build` | Bundles `src/` into `dist/` with [rolldown](https://rolldown.rs/), then writes `info.json` and copies the images in |
+| `pnpm run test` | The [jest](https://jestjs.io/) suite in `test/`. Also runs on pre-commit |
+| `pnpm run typecheck` | Type checks without emitting |
+| `pnpm run lint` | Lints `src/` and `test/` |
 
-In WSL/posix: `$ DEBUG=1 npm run test`
-In PSH: `> $env:DEBUG=1; npm run test; Remove-Item Env:\DEBUG` (Yes, really. Put it in a function. Reasonable envs might get added in next psh, or might not!)
+`build` does **not** type check, so run `typecheck` yourself. A bundle can build
+cleanly and still be wrong.
 
-\* It's not that bad, really. If you run `npm run test-debug`, it'll print you instructions on how to debug using a chromium browser.
+CI runs `typecheck` and `test` on every pull request.
 
-For VSCode, there are launch scripts in .vscode/. "Debug Jest Tests" will start jest right from VSCode,
-but the second is the more useful one: it attaches to any node process that is launched with the debug config.
+## Trying Your Build In Vortex
 
-Either way:
+The quickest loop is to drop the built files straight into Vortex's plugins folder
+and restart it:
 
-1. Add `debugger;` statement in your code wherever you want to stop (or just set a breakpoint in the IDE)
-2. Use `npm run test-debug` to start jest and run all tests, BUT
-3. `npm run test-debug -- -t 'somestringinyourtestname'` will only run the matching tests. Very helpful.
-4. Once you kick off the tests, go to VSCode's debugger and launch |> using `Attach to Node`
-5. Have fun!
+```
+pnpm run build
+```
 
-Sourcemaps should be getting generated so you should see correct lines in the debugger.
+then copy everything in `dist/` over the extension folder:
+
+- Released Vortex: `%APPDATA%\Vortex\plugins\game-cyberpunk2077`
+- Vortex running from source: `%APPDATA%\@vortex\main\plugins\game-cyberpunk2077`
+
+Restart Vortex. The extension is reloaded on start, so there's no hot reload; every
+change needs a restart.
+
+To sanity check that the build actually loaded, look in Vortex's log
+(`%APPDATA%\Vortex\vortex.log`, or `%APPDATA%\@vortex\main\vortex.log` from source)
+for these, in order:
+
+```
+loaded extension {"name":"game-cyberpunk2077", ...
+init extension {"name":"game-cyberpunk2077", ...
+[cyberpunk2077] Registering game with Vortex
+once {"extension":"game-cyberpunk2077"}
+```
+
+`once` only appears once the extension's `main()` has returned, so if it's missing,
+initialisation threw. Vortex reports that as a `couldn't initialize extension`
+warning with a stack, rather than failing the load outright, and the game can still
+appear in the list while everything else the extension registers is silently absent.
+
+## Packaging
+
+The **Package** workflow builds the artifacts. Run it from the Actions tab, pick a
+branch, and tick "Also package a release artifact" if you want the release archive
+as well as the dev one.
+
+To make an archive locally instead, for handing to someone or for checking it
+installs the way a user's would:
+
+| Command | Result |
+| --- | --- |
+| `pnpm run pack-dev` | Builds, then archives `dist/` as `game-cyberpunk2077-dev-<version>+<commit>-<timestamp>.7z` |
+| `pnpm run pack` | Runs the tests, builds, then archives as `game-cyberpunk2077-<version>.7z` |
+
+Both run `script/package.mjs`, which needs **7z** on your PATH.
+
+Install the archive through Vortex > Extensions, dragging it into the drop area at
+the bottom, then restart.
+
+## Debugging
+
+Set `DEBUG` to send Vortex `log` calls to the console during a test run:
+
+- posix: `DEBUG=1 pnpm run test`
+- PowerShell: `$env:DEBUG=1; pnpm run test; Remove-Item Env:\DEBUG`
+
+For breakpoints, `pnpm run test-debug` starts jest and prints how to attach a
+chromium debugger. `pnpm run test-debug -- -t 'part of a test name'` narrows it to
+matching tests. There are launch configs in `.vscode/` too: "Debug Jest Tests" runs
+jest from VSCode, and `Attach to Node` attaches to anything started with the debug
+config. Sourcemaps are generated, so lines line up.
+
+## Live Testing
+
+The [Vortex Extension Test Suite](https://next.nexusmods.com/cyberpunk2077/collections/hl2bnl)
+collection on Nexus installs a set of real mods to exercise the installers against
+actual releases rather than fixtures.

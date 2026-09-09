@@ -4,6 +4,7 @@ import {
 import {
   VortexApi,
   VortexNotification,
+  VortexNotificationAction,
 } from "./vortex-wrapper";
 
 export type Notification = Required<Pick<VortexNotification, `id` | `type` | `title` | `message`>>;
@@ -22,8 +23,9 @@ export const enum InfoNotification {
   InstallerExtraFilesMoved = `V2077-notify-info-installer-extrafilesmoved`,
   CyberCatRestartRequired = `V2077-notify-info-restart-required`,
   LoadOrderWriteFailed = `V2077-notify-error-loadorder-write-failed`,
-  REDmodArchiveAutoconverted = `V2077-notify-success-redmod-archive-autoconverted`,
-  REDmodArchiveNOTautoconverted = `V2077-notify-info-redmod-archive-NOT-autoconverted`,
+  ArchiveConversionBusy = `V2077-notify-warn-archive-conversion-busy`,
+  ArchiveConversionDone = `V2077-notify-success-archive-conversion-done`,
+  REDmodDlcMissing = `V2077-notify-warn-redmod-dlc-missing`,
   REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
   REDmodDeploymentStarted = `V2077-notify-info-redmod-deployment-started`,
   REDmodDeploymentSucceeded = `V2077-notify-success-redmod-deployment-succeeded`,
@@ -64,21 +66,30 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     },
   ],
   [
-    InfoNotification.REDmodArchiveAutoconverted,
+    InfoNotification.ArchiveConversionBusy,
     {
-      id: InfoNotification.REDmodArchiveAutoconverted,
-      type: `success`,
-      title: `Mod Autoconverted to REDmod`,
-      message: `The mod was automatically converted and will be installed as a REDmod`,
+      id: InfoNotification.ArchiveConversionBusy,
+      type: `warning`,
+      title: `Conversion Already Running`,
+      message: `Wait for the conversion that's already running to finish`,
     },
   ],
   [
-    InfoNotification.REDmodArchiveNOTautoconverted,
+    InfoNotification.ArchiveConversionDone,
     {
-      id: InfoNotification.REDmodArchiveNOTautoconverted,
-      type: `info`,
-      title: `Mod NOT Autoconverted to REDmod`,
-      message: `The mod was NOT automatically converted and will be installed as a regular mod`,
+      id: InfoNotification.ArchiveConversionDone,
+      type: `success`,
+      title: `Conversion Complete`,
+      message: `Your mods were converted - check the load order!`,
+    },
+  ],
+  [
+    InfoNotification.REDmodDlcMissing,
+    {
+      id: InfoNotification.REDmodDlcMissing,
+      type: `warning`,
+      title: `REDmod is not installed`,
+      message: `You have REDmods installed, and they won't load without the free REDmod DLC. You can get it from wherever you bought the game.`,
     },
   ],
   [
@@ -158,8 +169,12 @@ export const showInfoNotification = async (
   api: VortexApi,
   id: InfoNotification,
   overrideMessage?: string,
+  actions?: VortexNotificationAction[],
 ): Promise<NotificationStatus> => {
-  api.sendNotification(getInfoNotificationOrThrow(api, id, overrideMessage));
+  api.sendNotification({
+    ...getInfoNotificationOrThrow(api, id, overrideMessage),
+    actions,
+  });
 
   return NotificationStatus.Complete;
 };

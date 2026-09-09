@@ -6,11 +6,8 @@ import {
 
 export type SettingAction = ComplexActionCreator1<boolean, boolean>;
 
-export const setREDmodAutoconvertArchivesAction: SettingAction =
-  createAction<boolean, boolean>(
-    `SET_REDMOD_AUTOCONVERT_ARCHIVES`,
-    (enabled: boolean): boolean => enabled,
-  );
+export const clearREDmodAutoconvertArchivesSettingAction =
+  createAction(`CLEAR_REDMOD_AUTOCONVERT_ARCHIVES_SETTING`);
 
 export const setREDmodFallbackInstallAnywaysAction: SettingAction =
   createAction<boolean, boolean>(

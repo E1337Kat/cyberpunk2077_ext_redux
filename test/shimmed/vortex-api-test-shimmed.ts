@@ -16,17 +16,30 @@ export const mockedActiveProfile: VortexProfile = {
 };
 
 export const fs = {
+  ensureDirAsync: jest.fn(),
   ensureDirWritableAsync: jest.fn(),
+  moveAsync: jest.fn(),
+  removeAsync: jest.fn(),
+  rmdirAsync: jest.fn(),
   statAsync: jest.fn(),
   writeFileAsync: jest.fn(),
   renameAsync: jest.fn(),
 };
 
 export const selectors = {
+  activeGameId: jest.fn(),
   activeProfile: (..._args): VortexProfile => mockedActiveProfile,
+  getMod: jest.fn(),
+  getModInstallPath: jest.fn(),
+  modsForGame: jest.fn(),
+};
+
+export const actions = {
+  setModAttribute: jest.fn(),
 };
 
 export const util = {
+  deleteOrNop: jest.fn(),
   GameStoreHelper: {
     findByAppId: jest.fn(),
   },
@@ -34,4 +47,6 @@ export const util = {
   NotFound: jest.fn(),
   opn: jest.fn(),
   renderModName: jest.fn(),
+  toPromise: jest.fn(),
+  walk: jest.fn(),
 };

@@ -1,9 +1,8 @@
 import path from "path";
 import {
   AMM_BASEDIR_PATH,
+  AMM_CORE_IDENTIFIER,
   AMM_CORE_PLACEHOLDER_FILENAME,
-  AMM_CORE_REQUIRED_ARCHIVE_PATHS,
-  AMM_CORE_REQUIRED_CET_PATHS,
   ARCHIVE_MOD_CANONICAL_PREFIX,
 } from "../../src/installers.layouts";
 import { InstallerType } from "../../src/installers.types";
@@ -14,6 +13,7 @@ import {
   ExamplePromptInstallableMod,
   pathHierarchyFor,
   copiedToSamePath,
+  mergeOrFailOnConflict,
 } from "./utils.helper";
 
 const AMM_BASE_PREFIXES = pathHierarchyFor(AMM_BASEDIR_PATH);
@@ -55,36 +55,30 @@ const AmmCoreInstallSucceeds = new Map<string, ExampleSucceedingMod>([
   ],
 ]);
 
-const AmmCoreFailsDirectly = new Map<string, ExampleFailingMod>([
+// AMM's init.lua is what identifies it, so a release carrying that and little
+// else still installs.
+const AmmCoreInstallsPartialReleases = new Map<string, ExampleSucceedingMod>([
   [
-    `Core AMM cancels installation without prompting when all required CET side paths are not present`,
+    `Core AMM installs a release that ships only some of its usual files`,
     {
       expectedInstallerType: InstallerType.CoreAmm,
       inFiles: [
         ...AMM_BASE_PREFIXES,
-        ...AMM_CORE_PATHS.filter((p) => p === AMM_CORE_REQUIRED_CET_PATHS[0]),
+        ...AMM_CORE_PATHS.filter((p) => p === AMM_CORE_IDENTIFIER),
       ],
-      failure: `Didn't Find Expected AMM Installation!`,
-      errorDialogTitle: `Didn't Find Expected AMM Installation!`,
-    },
-  ],
-  [
-    `Core AMM cancels installation without prompting when all required Archive side paths are not present`,
-    {
-      expectedInstallerType: InstallerType.CoreAmm,
-      inFiles: [
-        ...AMM_BASE_PREFIXES,
-        ...AMM_CORE_PATHS.filter((p) => p === AMM_CORE_REQUIRED_ARCHIVE_PATHS[0]),
-      ],
-      failure: `Didn't Find Expected AMM Installation!`,
-      errorDialogTitle: `Didn't Find Expected AMM Installation!`,
+      outInstructions: AMM_CORE_PATHS
+        .filter((p) => p === AMM_CORE_IDENTIFIER)
+        .map((p) => copiedToSamePath(p)),
     },
   ],
 ]);
 
 const examples: ExamplesForType = {
-  AllExpectedSuccesses: AmmCoreInstallSucceeds,
-  AllExpectedDirectFailures: AmmCoreFailsDirectly,
+  AllExpectedSuccesses: mergeOrFailOnConflict(
+    AmmCoreInstallSucceeds,
+    AmmCoreInstallsPartialReleases,
+  ),
+  AllExpectedDirectFailures: new Map<string, ExampleFailingMod>(),
   AllExpectedPromptInstalls: new Map<string, ExamplePromptInstallableMod>(),
 };
 
