@@ -26,6 +26,10 @@ import {
 
 export const LOAD_ORDER_TYPE_VERSION = `1.0.0`;
 
+// Ids for the game's load orders on a Vortex that keeps more than one per game.
+export const REDMOD_LOAD_ORDER_ID = `cyberpunk2077-redmod`;
+export const ARCHIVE_LOAD_ORDER_ID = `cyberpunk2077-archive`;
+
 export interface LoadOrderer {
   validate: VortexWrappedValidateFunc;
   deserializeLoadOrder: VortexWrappedDeserializeFunc;

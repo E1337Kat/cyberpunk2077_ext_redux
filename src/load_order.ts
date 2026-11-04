@@ -138,7 +138,7 @@ const path = win32;
 const me =
   `${EXTENSION_NAME_INTERNAL} Load Order`;
 
-const WINDOWS_LINE_ENDING = `\r\n`;
+export const WINDOWS_LINE_ENDING = `\r\n`;
 
 const loadOrderFilenameFor = (profile: VortexProfile): string =>
   `${EXTENSION_NAME_INTERNAL}-load-order-${profile.id}.json`;
@@ -168,7 +168,7 @@ const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
 // Helpers
 //
 
-const getDiscoveryPath = (
+export const getDiscoveryPath = (
   api: VortexApi,
 ): string => {
   //

@@ -3,16 +3,31 @@ import {
   isLeft,
 } from "fp-ts/lib/Either";
 import {
+  none,
+  some,
+} from "fp-ts/lib/Option";
+import {
+  mockedActiveProfile,
+} from "@vortex-api-test-shimmed";
+import {
+  ARCHIVE_LOAD_ORDER_ID,
   decodeLoadOrder,
   encodeLoadOrder,
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
   ModList,
+  REDMOD_LOAD_ORDER_ID,
 } from "../../src/load_order.types";
 import {
   loadOrderToREDdeployModList,
   makeV2077LoadOrderFrom,
 } from "../../src/load_order";
+import {
+  loadOrderFromVortexState,
+} from "../../src/load_order.functions";
+import {
+  VortexState,
+} from "../../src/vortex-wrapper";
 
 import * as loTestData from "./loadorder.example";
 
@@ -105,5 +120,44 @@ describe(`Load Order`, () => {
     });
 
   }); // Load Order
+
+
+  describe(`REDmod load order in Vortex state`, () => {
+
+    const legacyOrder = loTestData.vortexLoadOrder.slice(0, 1);
+    const namedOrder = loTestData.vortexLoadOrder.slice(1, 2);
+
+    const stateWith = (persistent: object): VortexState =>
+      ({ persistent } as unknown as VortexState);
+
+    test(`reads the named REDmod load order when Vortex keeps one`, () => {
+      const vortexState = stateWith({
+        loadOrder: { [mockedActiveProfile.id]: legacyOrder },
+        loadOrders: { [mockedActiveProfile.id]: { [REDMOD_LOAD_ORDER_ID]: namedOrder } },
+      });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(namedOrder));
+    });
+
+    test(`reads the profile's load order when Vortex keeps no named REDmod order`, () => {
+      const vortexState = stateWith({
+        loadOrder: { [mockedActiveProfile.id]: legacyOrder },
+        loadOrders: { [mockedActiveProfile.id]: { [ARCHIVE_LOAD_ORDER_ID]: namedOrder } },
+      });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(legacyOrder));
+    });
+
+    test(`reads the profile's load order on a Vortex without named load orders`, () => {
+      const vortexState = stateWith({ loadOrder: { [mockedActiveProfile.id]: legacyOrder } });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(legacyOrder));
+    });
+
+    test(`is empty when the profile has no load order`, () => {
+      expect(loadOrderFromVortexState(stateWith({}), mockedActiveProfile)).toEqual(none);
+    });
+
+  }); // REDmod load order in Vortex state
 
 }); // Load Order

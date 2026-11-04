@@ -36,6 +36,7 @@ export const selectors = {
 };
 
 export const actions = {
+  setFBLoadOrder: jest.fn(),
   setModAttribute: jest.fn(),
 };
 
@@ -69,6 +70,7 @@ export const util = {
   GameStoreHelper: {
     findByAppId: jest.fn(),
   },
+  getManifest: jest.fn(),
   getSafe: jest.fn(),
   NotFound: jest.fn(),
   opn: jest.fn(),

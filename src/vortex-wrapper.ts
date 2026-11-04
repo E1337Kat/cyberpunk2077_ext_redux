@@ -39,7 +39,14 @@ export type VortexDialogResult = Vortex.IDialogResult;
 
 export type VortexLoadOrder = Vortex.LoadOrder;
 export type VortexLoadOrderEntry = Vortex.ILoadOrderEntry;
-export type VortexLoadOrderGameInfo = Vortex.ILoadOrderGameInfo;
+// Registration fields from Vortex 2.10.0, missing from the published API types.
+export interface VortexLoadOrderGameInfo extends Vortex.ILoadOrderGameInfo {
+  loadOrderId?: string;
+  displayName?: string;
+  priority?: number;
+  adoptsLegacyOrder?: boolean;
+  conflictWinner?: `first` | `last`;
+}
 export type VortexValidationResult = Vortex.IValidationResult;
 
 export const vortexUtil = util;

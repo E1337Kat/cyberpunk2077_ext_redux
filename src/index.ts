@@ -54,6 +54,7 @@ import {
   VortexDiscoveryResult,
   VortexExtensionContext,
   VortexGameStoreEntry,
+  VortexLoadOrderGameInfo,
   VortexState,
 } from "./vortex-wrapper";
 import {
@@ -66,6 +67,14 @@ import {
   wrapSerialize,
   loadOrderUsageInstructionsForVortexGui,
 } from "./load_order";
+import {
+  makeArchiveLoadOrderRegistration,
+  registerSortArchivesAlphabetically,
+} from "./load_order.archive";
+import {
+  loadOrderRegistrations,
+  supportsNamedLoadOrders,
+} from "./load_order.registrations";
 import {
   constant,
   S,
@@ -272,9 +281,10 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
     }),
   );
 
-  if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
-    if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)) {
-      vortexExt.registerLoadOrder({
+  const redmodLoadOrderRegistration: VortexLoadOrderGameInfo | undefined =
+    IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
+      && IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)
+      ? {
         gameId: GAME_ID,
 
         // This needs to be actually implemented, it doesnt't do
@@ -286,10 +296,24 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
         deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
         serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),
-      });
+      }
+      : undefined;
 
-    } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
+  const vortexVersion = vortexApiLib.util.getApplication().version;
 
+  loadOrderRegistrations(
+    vortexVersion,
+    redmodLoadOrderRegistration,
+    makeArchiveLoadOrderRegistration(vortexExt, vortexApiLib),
+  ).forEach((registration) => {
+    vortexExt.registerLoadOrder(registration);
+  });
+
+  if (supportsNamedLoadOrders(vortexVersion)) {
+    registerSortArchivesAlphabetically(vortexExt, vortexApiLib);
+  }
+
+  if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
     vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForDynamicFeatures));
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () =>
