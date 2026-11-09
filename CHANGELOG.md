@@ -1,3 +1,16 @@
+# Cyberpunk 2077 Vortex Support v0.13.3
+
+Update directly in Vortex, or download from the [Nexus Mods page](https://www.nexusmods.com/site/mods/196?tab=files).
+
+## Fixed
+
+- A newly installed archive mod, or one you enable again, takes its alphabetical place in the archive load order. Once an archive had been moved, new archives were previously added at the end of the list and of `modlist.txt`, so they loaded after every other archive.
+
+## Links
+
+- [Nexus Mods page](https://www.nexusmods.com/site/mods/196)
+- [GitHub repository](https://github.com/Nexus-Mods/game-cyberpunk2077)
+
 # Cyberpunk 2077 Vortex Support v0.13.2
 
 Update directly in Vortex, or download from the [Nexus Mods page](https://www.nexusmods.com/site/mods/196?tab=files).
