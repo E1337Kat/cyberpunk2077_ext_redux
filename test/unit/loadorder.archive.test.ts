@@ -45,14 +45,46 @@ describe(`Archive load order`, () => {
       expect(idsOf(loadOrder)).toEqual([`A.archive`, `a.archive`, `b.archive`]);
     });
 
-    test(`puts the listed archives first in modlist order, then the rest ASCII-alphabetically`, () => {
+    test(`keeps the listed archives in modlist order`, () => {
       const loadOrder = archiveLoadOrderFrom(
-        [`a.archive`, `b.archive`, `c.archive`, `d.archive`],
-        [`c.archive`, `a.archive`],
+        [`a.archive`, `b.archive`, `c.archive`],
+        [`c.archive`, `a.archive`, `b.archive`],
         {},
       );
 
-      expect(idsOf(loadOrder)).toEqual([`c.archive`, `a.archive`, `b.archive`, `d.archive`]);
+      expect(idsOf(loadOrder)).toEqual([`c.archive`, `a.archive`, `b.archive`]);
+    });
+
+    test(`puts an archive the modlist doesn't name right after the one it follows alphabetically`, () => {
+      const loadOrder = archiveLoadOrderFrom(
+        [`a.archive`, `b.archive`, `c.archive`, `d.archive`, `z.archive`],
+        [`z.archive`, `a.archive`, `b.archive`, `d.archive`],
+        {},
+      );
+
+      expect(idsOf(loadOrder))
+        .toEqual([`z.archive`, `a.archive`, `b.archive`, `c.archive`, `d.archive`]);
+    });
+
+    test(`puts an archive that sorts before every listed one right before the one that sorts first`, () => {
+      const loadOrder = archiveLoadOrderFrom(
+        [`a.archive`, `b.archive`, `c.archive`],
+        [`c.archive`, `b.archive`],
+        {},
+      );
+
+      expect(idsOf(loadOrder)).toEqual([`c.archive`, `a.archive`, `b.archive`]);
+    });
+
+    test(`keeps several archives the modlist doesn't name in ASCII-alphabetical order`, () => {
+      const loadOrder = archiveLoadOrderFrom(
+        [`a.archive`, `b.archive`, `c.archive`, `d.archive`, `e.archive`],
+        [`e.archive`, `a.archive`, `d.archive`],
+        {},
+      );
+
+      expect(idsOf(loadOrder))
+        .toEqual([`e.archive`, `a.archive`, `b.archive`, `c.archive`, `d.archive`]);
     });
 
     test(`matches modlist names regardless of case and skips archives that are gone`, () => {
@@ -114,7 +146,7 @@ describe(`Archive load order`, () => {
 
     test(`reads the archives, leaving out other files, in the order of the modlist`, async () => {
       await placeFiles(`a.archive`, `b.archive`, `c.archive`, `a.archive.xl`);
-      await writeFile(modListPath(), `c.archive\r\nb.archive\r\n`);
+      await writeFile(modListPath(), `c.archive\r\nb.archive\r\na.archive\r\n`);
 
       expect(idsOf(await readArchiveLoadOrder(archiveModDir, {})))
         .toEqual([`c.archive`, `b.archive`, `a.archive`]);
