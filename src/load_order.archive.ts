@@ -68,7 +68,21 @@ const archiveEntryFor = (
   modId: vortexModIdByArchive[archiveFileName.toLowerCase()],
 });
 
-// The order the game loads the archives in.
+// Index just after the archive this one follows alphabetically, else just before the first it precedes.
+const slotFor = (inOrder: readonly string[], archiveFileName: string): number => {
+  const sortingBefore = inOrder.filter((name) => name < archiveFileName);
+  if (sortingBefore.length > 0) {
+    const predecessor = sortingBefore.reduce((latest, name) => (name > latest ? name : latest));
+    return inOrder.indexOf(predecessor) + 1;
+  }
+  if (inOrder.length === 0) {
+    return 0;
+  }
+  const successor = inOrder.reduce((earliest, name) => (name < earliest ? name : earliest));
+  return inOrder.indexOf(successor);
+};
+
+// The archives in modlist order, with each archive the modlist doesn't name in its alphabetical place.
 export const archiveLoadOrderFrom = (
   archiveFileNames: readonly string[],
   modList: readonly string[] | undefined,
@@ -83,7 +97,11 @@ export const archiveLoadOrderFrom = (
   const unlisted = archiveFileNames
     .filter((name) => !listed.has(name))
     .sort();
-  return [...listed, ...unlisted].map((name) => archiveEntryFor(name, vortexModIdByArchive));
+  const archiveFileNamesInOrder = unlisted.reduce((inOrder, name) => {
+    const slot = slotFor(inOrder, name);
+    return [...inOrder.slice(0, slot), name, ...inOrder.slice(slot)];
+  }, [...listed]);
+  return archiveFileNamesInOrder.map((name) => archiveEntryFor(name, vortexModIdByArchive));
 };
 
 // The modlist for a load order, or undefined when the default ASCII order needs none.
@@ -199,8 +217,9 @@ const archiveLoadOrderUsageInstructions =
     away from the default alphabetical order, and that file is removed again if
     you go back to it.
 
-    Only deployed archives are listed. A disabled mod's archives drop out of the
-    list and return after the ones you have ordered when you enable it again.
+    Only deployed archives are listed. A newly deployed archive, including one
+    from a mod you enable again, goes in at its alphabetical place, next to the
+    archive it sorts beside.
   `));
 
 const sortArchivesAlphabetically = async (vortexApi: VortexApi): Promise<void> => {
