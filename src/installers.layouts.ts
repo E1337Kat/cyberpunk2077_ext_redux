@@ -705,16 +705,21 @@ export const enum RedscriptLayout {
   Canon = `
           .\\r6\\scripts\\[modname]\\[*.reds, any files + subdirs]
           .\\r6\\config\\redsUserHints\\*.toml
+          .\\r6\\storages\\[any files + subdirs]
           `,
   Basedir = `
           .\\r6\\scripts\\*.reds + [any files + subdirs]
           .\\r6\\config\\redsUserHints\\*.toml
+          .\\r6\\storages\\[any files + subdirs]
           `,
   Toplevel = `
           .\\*.reds + [any files + subdirs]
+          .\\r6\\config\\redsUserHints\\*.toml
+          .\\r6\\storages\\[any files + subdirs]
           `,
   ConfigOnly = `
           .\\r6\\config\\redsUserHints\\*.toml
+          .\\r6\\storages\\[any files + subdirs]
           `,
 }
 
@@ -722,6 +727,7 @@ export const REDS_MOD_CANONICAL_EXTENSION = `.reds`;
 export const REDS_MOD_CONFIG_EXTENSIONS = [`.toml`];
 export const REDS_MOD_CANONICAL_PATH_PREFIX = path.normalize(`r6/scripts`);
 export const REDS_MOD_CANONICAL_HINTS_PATH_PREFIX = path.normalize(`r6/config/redsUserHints`);
+export const REDS_MOD_CANONICAL_STORAGES_PATH_PREFIX = path.normalize(`r6/storages`);
 
 //
 // Red4Ext

@@ -46,6 +46,8 @@ import {
 } from "./redmod.conversion";
 import {
   redmodToolingIsInstalled,
+} from "./redmod.deploy";
+import {
   warnREDmoddingDlcIsMissing,
 } from "./redmodding";
 import {
@@ -70,9 +72,7 @@ const me = `${EXTENSION_NAME_INTERNAL} Archive Conversion`;
 
 const DEFAULT_VERSION_FOR_UNVERSIONED_MODS = `0.0.1+V2077`;
 
-// Conversion rearranges the staging folder, so only one runs at a time. A
-// second request is turned away rather than queued, since it would have been
-// planned against a staging folder the first one is busy changing.
+// Conversion rearranges the staging folder, so only one runs at a time.
 let conversionInProgress = false;
 
 //
@@ -477,9 +477,6 @@ const forEveryModInSelection = (
 
   const mods = modsFromState(state, modIds);
 
-  // conversionInProgress is deliberately not reflected here: Redux can't see a
-  // plain variable change, so the menu would keep whatever it last rendered.
-  // Clicking while busy is turned away with a notification instead.
   return mods.length > 0 && pipe(mods, every(isEligible));
 };
 

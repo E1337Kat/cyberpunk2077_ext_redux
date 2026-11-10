@@ -1,34 +1,35 @@
-import path from "path";
 // import * as mockedVortexApi from "vortex-api";
 import {
   isLeft,
 } from "fp-ts/lib/Either";
 import {
+  none,
+  some,
+} from "fp-ts/lib/Option";
+import {
+  mockedActiveProfile,
+} from "@vortex-api-test-shimmed";
+import {
+  ARCHIVE_LOAD_ORDER_ID,
   decodeLoadOrder,
   encodeLoadOrder,
   LoadOrder,
   LOAD_ORDER_TYPE_VERSION,
   ModList,
+  REDMOD_LOAD_ORDER_ID,
 } from "../../src/load_order.types";
 import {
   loadOrderToREDdeployModList,
   makeV2077LoadOrderFrom,
-  redmodDeployRunParameters,
 } from "../../src/load_order";
 import {
-  REDdeployManual,
-} from "../../src/tools.redmodding";
+  loadOrderFromVortexState,
+} from "../../src/load_order.functions";
 import {
-  VortexRunParameters,
+  VortexState,
 } from "../../src/vortex-wrapper";
-import {
-  REDMODDING_RTTI_METADATA_FILE_PATH,
-  V2077_MODLIST_PATH,
-} from "../../src/redmodding.metadata";
 
 import * as loTestData from "./loadorder.example";
-
-const FAKE_GAMEDIR_PATH = `C:\\fake\\gamedir`;
 
 
 describe(`Load Order`, () => {
@@ -91,76 +92,26 @@ describe(`Load Order`, () => {
   });
 
 
-  describe(`REDdeploy parameter generation`, () => {
+  describe(`REDdeploy modlist generation`, () => {
 
-    test(`produces correctly formatted parameter list with all necessary parameters`, () => {
+    test(`lists the enabled mods in load order`, () => {
 
-      const v2077LoadOrderToDeploy = loTestData.v2077LoadOrder;
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-modlist=`,
-          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: true,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
       const expectedModList: ModList = loTestData.v2077ModList;
 
-      const redDeployParamsGenerated =
-        redmodDeployRunParameters(FAKE_GAMEDIR_PATH);
-
-      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
-
       const redDeployModListGenerated =
-        loadOrderToREDdeployModList(v2077LoadOrderToDeploy);
+        loadOrderToREDdeployModList(loTestData.v2077LoadOrder);
 
       expect(redDeployModListGenerated).toEqual(expectedModList);
     });
 
-    test(`produces correct parameters to run default REDdeploy if no mods in LO`, () => {
+    test(`is empty when the load order has no mods`, () => {
 
       const noModsInLoadOrder: LoadOrder = {
         ...loTestData.v2077LoadOrder,
         entriesInOrderWithEarlierWinning: [],
       };
 
-      const expectedRedDeployParameters: VortexRunParameters = {
-        executable: `${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`,
-        args: [
-          `deploy`,
-          `-force`,
-          `-root=`,
-          `"${FAKE_GAMEDIR_PATH}"`,
-          `-rttiSchemaFile=`,
-          `"${path.join(`${FAKE_GAMEDIR_PATH}\\${REDMODDING_RTTI_METADATA_FILE_PATH}`)}"`,
-          `-modlist=`,
-          `"${path.join(FAKE_GAMEDIR_PATH, V2077_MODLIST_PATH)}"`,
-        ],
-        options: {
-          cwd: path.dirname(`${FAKE_GAMEDIR_PATH}\\${REDdeployManual.executable()}`),
-          shell: true,
-          detach: true,
-          expectSuccess: true,
-        },
-      };
-
       const expectedModList: ModList = loTestData.emptyV2077ModList;
-
-      const redDeployParamsGenerated =
-        redmodDeployRunParameters(FAKE_GAMEDIR_PATH);
-
-      expect(redDeployParamsGenerated).toEqual(expectedRedDeployParameters);
 
       const redDeployModListGenerated =
         loadOrderToREDdeployModList(noModsInLoadOrder);
@@ -169,5 +120,44 @@ describe(`Load Order`, () => {
     });
 
   }); // Load Order
+
+
+  describe(`REDmod load order in Vortex state`, () => {
+
+    const legacyOrder = loTestData.vortexLoadOrder.slice(0, 1);
+    const namedOrder = loTestData.vortexLoadOrder.slice(1, 2);
+
+    const stateWith = (persistent: object): VortexState =>
+      ({ persistent } as unknown as VortexState);
+
+    test(`reads the named REDmod load order when Vortex keeps one`, () => {
+      const vortexState = stateWith({
+        loadOrder: { [mockedActiveProfile.id]: legacyOrder },
+        loadOrders: { [mockedActiveProfile.id]: { [REDMOD_LOAD_ORDER_ID]: namedOrder } },
+      });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(namedOrder));
+    });
+
+    test(`reads the profile's load order when Vortex keeps no named REDmod order`, () => {
+      const vortexState = stateWith({
+        loadOrder: { [mockedActiveProfile.id]: legacyOrder },
+        loadOrders: { [mockedActiveProfile.id]: { [ARCHIVE_LOAD_ORDER_ID]: namedOrder } },
+      });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(legacyOrder));
+    });
+
+    test(`reads the profile's load order on a Vortex without named load orders`, () => {
+      const vortexState = stateWith({ loadOrder: { [mockedActiveProfile.id]: legacyOrder } });
+
+      expect(loadOrderFromVortexState(vortexState, mockedActiveProfile)).toEqual(some(legacyOrder));
+    });
+
+    test(`is empty when the profile has no load order`, () => {
+      expect(loadOrderFromVortexState(stateWith({}), mockedActiveProfile)).toEqual(none);
+    });
+
+  }); // REDmod load order in Vortex state
 
 }); // Load Order

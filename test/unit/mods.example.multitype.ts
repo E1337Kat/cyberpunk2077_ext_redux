@@ -49,6 +49,8 @@ import {
   FAKE_MOD_INFO,
   addedREDmodInfoArrayAttribute,
   REDS_HINTS,
+  REDS_STORAGES,
+  REDS_STORAGES_PREFIXES,
 } from "./utils.helper";
 import {
   normalizeDir,
@@ -402,6 +404,41 @@ const ValidTypeCombinations = new Map<string, ExampleSucceedingMod>(
       outInstructions: [
         copiedToSamePath(`${RED4EXT_PREFIX}/r4xmod/script.dll`),
         copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.xl`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+    },
+    "MultiType: Reds Canonical + Storages + Archive Canonical [Example mod: DigitalVixen Core]": {
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...REDS_PREFIXES,
+        path.join(`${REDS_PREFIX}/rexmod/`),
+        path.join(`${REDS_PREFIX}/rexmod/script.reds`),
+        ...REDS_STORAGES_PREFIXES,
+        path.join(`${REDS_STORAGES}/rexmod/`),
+        path.join(`${REDS_STORAGES}/rexmod/data.json`),
+        path.join(`${REDS_STORAGES}/RedscriptConfigFramework/`),
+        path.join(`${REDS_STORAGES}/RedscriptConfigFramework/rexmod.card.json`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_PREFIX}/rexmod/script.reds`),
+        copiedToSamePath(`${REDS_STORAGES}/rexmod/data.json`),
+        copiedToSamePath(`${REDS_STORAGES}/RedscriptConfigFramework/rexmod.card.json`),
+        copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+    },
+    "MultiType: Storages only + Archive Canonical [Example mod: HUD Painter preset]": {
+      expectedInstallerType: InstallerType.MultiType,
+      inFiles: [
+        ...REDS_STORAGES_PREFIXES,
+        path.join(`${REDS_STORAGES}/HUDPainter/`),
+        path.join(`${REDS_STORAGES}/HUDPainter/PRESET.json`),
+        ...ARCHIVE_PREFIXES,
+        path.join(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
+      ],
+      outInstructions: [
+        copiedToSamePath(`${REDS_STORAGES}/HUDPainter/PRESET.json`),
         copiedToSamePath(`${ARCHIVE_PREFIX}/magicgoeshere.archive`),
       ],
     },

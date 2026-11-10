@@ -1,10 +1,10 @@
 {
     "name": "cyberpunk2077",
-    "version": "0.13.0",
+    "version": "0.13.3",
     "description": "Cyberpunk 2077 modding support for the Vortex mod manager, as user-friendly and helpful as possible.",
     "homepage": "https://www.nexusmods.com/site/mods/196",
-    "repository": "https://github.com/E1337Kat/cyberpunk2077_ext_redux",
-    "bugs": "https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues",
+    "repository": "https://github.com/Nexus-Mods/game-cyberpunk2077",
+    "bugs": "https://github.com/Nexus-Mods/game-cyberpunk2077/issues",
     "main": "./dist/index.js",
     "packageManager": "pnpm@11.10.0",
     "scripts": {

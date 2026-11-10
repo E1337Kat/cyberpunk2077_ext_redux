@@ -39,7 +39,7 @@ ${newContributors} - and thanks for all your help, ideas, and support!
 ## Holo at us
 
 Discord: https://discord.gg/7NUQJ2b4ZN (\#cyberpunk2077-vortex-support on the CP2077 Modding Community server)
-Github: https://github.com/E1337Kat/cyberpunk2077_ext_redux
+Github: https://github.com/Nexus-Mods/game-cyberpunk2077
 Nexus: https://www.nexusmods.com/site/mods/196
 
 End of transmission, subject: '${version} "${versionName}'

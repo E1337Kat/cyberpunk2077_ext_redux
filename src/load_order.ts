@@ -1,7 +1,6 @@
 import {
   win32,
 } from "path";
-import os from "os";
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {
   Promise,
@@ -11,6 +10,7 @@ import {
 } from "fp-ts/lib/function";
 import {
   Option,
+  getOrElse as getOrElseO,
   none,
   some,
   fromNullable,
@@ -78,8 +78,6 @@ import {
   VortexProfile,
   VortexProfileMod,
   VortexProfileModIndex,
-  VortexRunOptions,
-  VortexRunParameters,
   VortexSerializeFunc,
   VortexState,
   vortexUtil,
@@ -90,7 +88,13 @@ import {
   VortexWrappedValidateFunc,
 } from "./vortex-wrapper";
 import {
+  loadOrderFromVortexState,
+} from "./load_order.functions";
+import {
   bbcodeBasics,
+  constant,
+  getErrorCode,
+  getErrorMessageOrDefault,
   heredoc,
   jsonp,
   S,
@@ -105,14 +109,21 @@ import {
   REDmodInfoForVortex,
 } from "./installers.types";
 import {
-  REDdeployExeRelativePath,
-  REDMODDING_RTTI_METADATA_FILE_PATH,
   V2077_LOAD_ORDER_DIR,
   V2077_MODLIST_PATH,
 } from "./redmodding.metadata";
 import {
+  redmodDeployedFilesNeedRebuilding,
+  redmodFailureReason,
+  removeDeployedREDmodFiles,
+  runREDmodDeploy,
+} from "./redmod.deploy";
+import {
+  ActivityNotification,
   InfoNotification,
   showInfoNotification,
+  startActivityNotification,
+  stopActivityNotification,
 } from "./ui.notifications";
 import {
   showInvalidLoadOrderFileErrorDialog,
@@ -126,6 +137,8 @@ const path = win32;
 
 const me =
   `${EXTENSION_NAME_INTERNAL} Load Order`;
+
+export const WINDOWS_LINE_ENDING = `\r\n`;
 
 const loadOrderFilenameFor = (profile: VortexProfile): string =>
   `${EXTENSION_NAME_INTERNAL}-load-order-${profile.id}.json`;
@@ -155,7 +168,7 @@ const enabledMarker = (mod: VortexModWithEnabledStatus): string =>
 // Helpers
 //
 
-const getDiscoveryPath = (
+export const getDiscoveryPath = (
   api: VortexApi,
 ): string => {
   //
@@ -203,15 +216,14 @@ export const loadOrderUsageInstructionsForVortexGui =
 
     REDmods that you have installed outside Vortex are NOT supported right now.
 
-    The load order is saved automatically, and will be deployed whenever the next
-    Vortex deployment occurs - you can also manually click to deploy, if you like!
+    The load order is saved automatically, and deployed when you start the game
+    through Vortex. The game waits until the deployment is done.
 
-    REDmod deployment recompiles the game's scripts every time it runs, so it can
-    take a few minutes even for a small change - wait for the green success
-    notification before you start the game! :)
+    REDmod deployment recompiles the game's scripts every time it runs, so the
+    first launch after a change can take a few minutes. :)
 
-    You can also click the REDdeploy tool button to run a deployment on-demand. It'll
-    (re)deploy the most recently created load order.
+    You can also click the REDdeploy tool button to deploy the current load order
+    without starting the game.
 
     You can still use the command-line redMod.exe or WolvenKit to deploy or order
     REDmods, but any changes you make there will NOT be reflected in Vortex.
@@ -490,39 +502,6 @@ export const makeV2077LoadOrderFrom = (
 };
 
 
-export const redmodDeployRunParameters = (
-  gameDirPath: string,
-): VortexRunParameters => {
-
-  const redModDeployParametersToCreateNewManifest = [
-    `deploy`,
-    `-force`, // TODO: Required until https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/297
-    `-root=`,
-    `"${gameDirPath}"`,
-    `-rttiSchemaFile=`,
-    `"${path.join(gameDirPath, REDMODDING_RTTI_METADATA_FILE_PATH)}"`,
-    `-modlist=`,
-    `"${path.join(gameDirPath, V2077_MODLIST_PATH)}"`,
-  ];
-
-  const exePath =
-    path.join(gameDirPath, REDdeployExeRelativePath);
-
-  const runOptions: VortexRunOptions = {
-    cwd: path.dirname(exePath),
-    shell: true,
-    detach: true,
-    expectSuccess: true,
-  };
-
-  return {
-    executable: exePath,
-    args: redModDeployParametersToCreateNewManifest,
-    options: runOptions,
-  };
-};
-
-
 export const loadOrderToREDdeployModList = (
   v2077LoadOrderToDeploy: LoadOrder,
 ): ModList => pipe(
@@ -534,105 +513,115 @@ export const loadOrderToREDdeployModList = (
 );
 
 
-export const startREDmodDeployInTheBackgroundWithNotifications = (
-  vortexApi: VortexApi,
-  gameDirPath: string,
+const writeFileAtomically = (
   loID: number,
-  v2077LoadOrderToDeploy: LoadOrder,
-  vortexFormatLoadOrderForComparison: VortexLoadOrder,
-): Promise<void> => {
-  const tag = `${me}: REDmod Background Deploy`;
-
-  vortexApi.log(`info`, `${tag}: Starting background deploy for load order ${loID}`);
-
-  const vortexState: VortexState = vortexApi.store.getState();
-  const activeProfile = selectors.activeProfile(vortexState);
-
-  const ownerProfileId = v2077LoadOrderToDeploy.ownerVortexProfileId;
-
-  if (activeProfile.id !== ownerProfileId) {
-    vortexApi.log(`warn`, `${tag}: Profile is not the same that generated load order ${loID}, stopping!`, { activeProfile, ownerProfileId });
-    return Promise.resolve();
-  }
-
-  const newestGeneratedLoadOrder: readonly VortexLoadOrderEntry[] =
-    vortexUtil.getSafe(vortexState, [`persistent`, `loadOrder`, ownerProfileId], undefined);
-
-  if (!newestGeneratedLoadOrder) {
-    vortexApi.log(`error`, `${tag}: Unable to find the current load order, canceling! It should be *this* one (${loID}) if nothing else.`);
-    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-
-    return Promise.resolve();
-  }
-
-  // Are we still the current load order? Maybe not!
-  //
-  // Maybe there's a better way to do this check.. but this is what Vortex itself
-  // uses, so we can't give an actually unique ID to the vortex load order because
-  // then it won't match the previous run..
-  if (JSON.stringify(vortexFormatLoadOrderForComparison) !== JSON.stringify(newestGeneratedLoadOrder)) {
-    vortexApi.log(`info`, `${tag}: Load order ${loID} no longer most recent, this is ok, canceling!`);
-    // No need to notify, it's fine if this has been superceded
-    return Promise.resolve();
-  }
-
-  const redDeploy =
-    redmodDeployRunParameters(gameDirPath);
-
-
-  if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
-    vortexApi.log(`warn`, `${me}: No mods in load order, running default REDdeploy!`);
-    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentDefaulted);
-  } else {
-    vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
-    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentStarted);
-  }
-
-  vortexApi.log(`debug`, `${me}: Deployment arguments and command line: `, S(redDeploy));
-
-  // Should really figure out how to get the output from this.
-  // TODO: https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/321
-  const modListPath = path.join(gameDirPath, V2077_MODLIST_PATH);
-  const REDdeployment: Promise<void> =
-    pipe(
-      loadOrderToREDdeployModList(v2077LoadOrderToDeploy),
-      // The line joining MUST be \r\n so that it is Windows line endings. otherwise redmod fails
-      (generatedModList) => generatedModList.join(os.EOL),
-      (encodedLoadOrder) => tryCatchTE(
-        () =>
-          fs.statAsync(path.dirname(modListPath)).then(() =>
-            fs.writeFileAsync(`${modListPath}.${loID}.tmp`, encodedLoadOrder, { encoding: `utf8` })).then(() =>
-            fs.renameAsync(`${modListPath}.${loID}.tmp`, modListPath)).then(() => true),
-        (error) => new Error(`Unable to write load order to disk: ${S(error)}`),
-      ),
-    )().then(() =>
-      vortexApi.runExecutable(redDeploy.executable, redDeploy.args, redDeploy.options)
-        .then(() => {
-          vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
-        })
-        .catch((error) => {
-          vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed!`, S(error));
-          showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed);
-        }));
-
-  return REDdeployment;
-};
-
-const writeLoadOrderToDisk = (
-  loID: number,
-  loadOrderPath: string,
-  serializedLoadOrder: string,
+  filePath: string,
+  contents: string,
 ): TaskEither<Error, void> =>
   pipe(
     tryCatchTE(
       () =>
-        fs.statAsync(path.dirname(loadOrderPath)).then(() =>
-          fs.writeFileAsync(`${loadOrderPath}.${loID}.tmp`, serializedLoadOrder, { encoding: `utf8` })).then(() =>
-          fs.renameAsync(`${loadOrderPath}.${loID}.tmp`, loadOrderPath)),
-      (error) => new Error(`Unable to write load order to disk: ${S(error)}`),
+        fs.statAsync(path.dirname(filePath)).then(() =>
+          fs.writeFileAsync(`${filePath}.${loID}.tmp`, contents, { encoding: `utf8` })).then(() =>
+          fs.renameAsync(`${filePath}.${loID}.tmp`, filePath)),
+      (error) => {
+        const errorCode = getErrorCode(error);
+        return new Error(`Couldn't write ${path.basename(filePath)}${errorCode === null ? `` : ` (${errorCode})`}`);
+      },
     ),
   );
+
+// Undefined when the modlist is there but unreadable, so the deployed order is unknown.
+const modListOnDisk = async (modListPath: string): Promise<readonly string[] | undefined> => {
+  try {
+    const contents: string = await fs.readFileAsync(modListPath, { encoding: `utf8` });
+    return contents.split(/\r?\n/).filter((entry) => entry.length > 0);
+  } catch (error) {
+    return getErrorCode(error) === `ENOENT` ? [] : undefined;
+  }
+};
+
+const deployREDmodLoadOrder = async (
+  vortexApi: VortexApi,
+  gameDirPath: string,
+): Promise<void> => {
+  const vortexState: VortexState = vortexApi.store.getState();
+  const activeProfile = selectors.activeProfile(vortexState);
+
+  if (activeProfile?.gameId !== GAME_ID) {
+    vortexApi.log(`warn`, `${me}: ${GAME_ID} isn't the active game, not deploying`);
+    return;
+  }
+
+  const vortexLoadOrder: VortexLoadOrder = pipe(
+    loadOrderFromVortexState(vortexState, activeProfile),
+    getOrElseO(constant([] as VortexLoadOrder)),
+  );
+
+  const loID = Date.now();
+
+  const v2077LoadOrderToDeploy =
+    makeV2077LoadOrderFrom(vortexLoadOrder, activeProfile.id, loID);
+
+  if (isEmpty(v2077LoadOrderToDeploy.entriesInOrderWithEarlierWinning)) {
+    vortexApi.log(`warn`, `${me}: No mods in load order, running default REDdeploy!`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentDefaulted);
+  }
+
+  vortexApi.log(`info`, `${me}: Starting REDmod deployment ${loID}!`);
+  startActivityNotification(vortexApi, ActivityNotification.REDmodDeploying);
+
+  try {
+    const modListPath = path.join(gameDirPath, V2077_MODLIST_PATH);
+    const nextModList = loadOrderToREDdeployModList(v2077LoadOrderToDeploy);
+
+    const previousModList = await modListOnDisk(modListPath);
+
+    // redMod only reads the modlist with Windows line endings.
+    const wroteModList =
+      await writeFileAtomically(loID, modListPath, nextModList.join(WINDOWS_LINE_ENDING))();
+
+    if (isLeft(wroteModList)) {
+      throw wroteModList.left;
+    }
+
+    if (previousModList === undefined
+        || redmodDeployedFilesNeedRebuilding(previousModList, nextModList)) {
+      await removeDeployedREDmodFiles(vortexApi, gameDirPath);
+    }
+
+    const { exitCode, output } = await runREDmodDeploy(vortexApi, gameDirPath);
+
+    if (output.length > 0) {
+      vortexApi.log(exitCode === 0 ? `debug` : `warn`, `${me}: redMod said: ${output}`);
+    }
+
+    if (exitCode !== 0) {
+      throw new Error(redmodFailureReason({ exitCode, output }));
+    }
+
+    vortexApi.log(`info`, `${me}: REDmod deployment ${loID} complete!`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentSucceeded);
+  } catch (error) {
+    const reason = getErrorMessageOrDefault(error);
+
+    vortexApi.log(`error`, `${me}: REDmod deployment ${loID} failed: ${reason}`);
+    showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentFailed, reason);
+    throw error;
+  } finally {
+    stopActivityNotification(vortexApi, ActivityNotification.REDmodDeploying);
+  }
+};
+
+const deployQueue = vortexUtil.makeQueue<void>();
+
+// Deploys run one at a time, each against the load order current when it starts:
+// they share the modlist and the deployed files.
+export const deployREDmodForCurrentLoadOrder = (
+  vortexApi: VortexApi,
+  gameDirPath: string,
+): Promise<void> =>
+  deployQueue(() => deployREDmodLoadOrder(vortexApi, gameDirPath), false);
 
 
 //
@@ -657,7 +646,7 @@ const writeLoadOrderToDisk = (
 // the one we return from compile (above) by matching the content. That means
 // that we *shouldn't* get this function being invoked twice for 'the same' LO.
 //
-const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
+const serializeNewLoadOrder: VortexWrappedSerializeFunc = (
   vortexApi: VortexApi,
   vortexLoadOrder: VortexLoadOrder,
 ): Promise<void> => {
@@ -684,17 +673,8 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
 
   const v2077LoadOrder = makeV2077LoadOrderFrom(vortexLoadOrder, ownerVortexProfileId, loID);
 
-  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be deployed and serialized!`);
+  vortexApi.log(`info`, `${me}: New load order ${loID} ready to be serialized!`);
   vortexApi.log(`debug`, `${me}: Load order ${loID}:`, S(v2077LoadOrder));
-
-  // We want to wait until there's been a deployment - either the automatic one
-  // from an enable or something like that, or a manually triggered one.
-  vortexApi.events.once(`did-deploy`, () => {
-    startREDmodDeployInTheBackgroundWithNotifications(vortexApi, gameDirPath, loID, v2077LoadOrder, vortexLoadOrder);
-  });
-
-  vortexApi.log(`info`, `${me}: Queuing REDmod deployment for load order ${loID} to run after next Vortex deployment!`);
-  showInfoNotification(vortexApi, InfoNotification.REDmodDeploymentQueued);
 
   const serializedLoadOrder =
     encodeLoadOrder(v2077LoadOrder);
@@ -706,7 +686,7 @@ const deployAndSerializeNewLoadOrder: VortexWrappedSerializeFunc = (
 
   const maybeSuccessfullyWroteLoadOrderToDisk =
     pipe(
-      writeLoadOrderToDisk(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
+      writeFileAtomically(loID, loadOrderFilePathForThisProfile, serializedLoadOrder),
       mapLeftTE((error) => {
         vortexApi.log(`error`, `${me}: Unable to write load order to disk: ${error.message}`);
         showInfoNotification(vortexApi, InfoNotification.LoadOrderWriteFailed);
@@ -741,7 +721,7 @@ const validate: VortexWrappedValidateFunc = async (
 
 export const internalLoadOrderer: LoadOrderer = {
   validate,
-  serializeLoadOrder: deployAndSerializeNewLoadOrder,
+  serializeLoadOrder: serializeNewLoadOrder,
   deserializeLoadOrder: compileDetesToGenerateLoadOrderUi,
 };
 

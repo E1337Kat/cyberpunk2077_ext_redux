@@ -26,11 +26,17 @@ export const enum InfoNotification {
   ArchiveConversionBusy = `V2077-notify-warn-archive-conversion-busy`,
   ArchiveConversionDone = `V2077-notify-success-archive-conversion-done`,
   REDmodDlcMissing = `V2077-notify-warn-redmod-dlc-missing`,
-  REDmodDeploymentQueued = `V2077-notify-info-redmod-deployment-queued`,
-  REDmodDeploymentStarted = `V2077-notify-info-redmod-deployment-started`,
   REDmodDeploymentSucceeded = `V2077-notify-success-redmod-deployment-succeeded`,
   REDmodDeploymentFailed = `V2077-notify-error-redmod-deployment-failed`,
   REDmodDeploymentDefaulted = `V2077-notify-warn-redmod-deployment-default`,
+}
+
+//
+// Activity notifications stay up until the code that started them dismisses them.
+//
+
+export const enum ActivityNotification {
+  REDmodDeploying = `V2077-notify-activity-redmod-deploying`,
 }
 
 //
@@ -93,24 +99,6 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
     },
   ],
   [
-    InfoNotification.REDmodDeploymentQueued,
-    {
-      id: InfoNotification.REDmodDeploymentQueued,
-      type: `info`,
-      title: `REDmod Deployment Ready to Go!`,
-      message: `Next Vortex deploy will update load order and enabled state for REDmods too!`,
-    },
-  ],
-  [
-    InfoNotification.REDmodDeploymentStarted,
-    {
-      id: InfoNotification.REDmodDeploymentStarted,
-      type: `info`,
-      title: `Starting REDmod Deployment!`,
-      message: `Running REDmod Deployment to get your mods and load order ready to go!`,
-    },
-  ],
-  [
     InfoNotification.REDmodDeploymentSucceeded,
     {
       id: InfoNotification.REDmodDeploymentSucceeded,
@@ -139,12 +127,25 @@ const InfoNotificationsUnsafeMap = new Map<InfoNotification, Notification>([
   ],
 ]);
 
-const getInfoNotificationOrThrow = (
+const ActivityNotificationsUnsafeMap = new Map<ActivityNotification, Notification>([
+  [
+    ActivityNotification.REDmodDeploying,
+    {
+      id: ActivityNotification.REDmodDeploying,
+      type: `activity`,
+      title: `Deploying REDmods`,
+      message: `redMod.exe is compiling your mods and load order. This can take a few minutes.`,
+    },
+  ],
+]);
+
+const getNotificationOrThrow = <Id extends string>(
   api: VortexApi,
-  id: InfoNotification,
+  notifications: Map<Id, Notification>,
+  id: Id,
   overrideMessage?: string,
 ): Notification => {
-  const notification = InfoNotificationsUnsafeMap.get(id);
+  const notification = notifications.get(id);
 
   if (notification === undefined) {
     const errorCausingAnExitHopefullyInTestsAndNotInProd = `No notification definition found for ${id}`;
@@ -172,9 +173,17 @@ export const showInfoNotification = async (
   actions?: VortexNotificationAction[],
 ): Promise<NotificationStatus> => {
   api.sendNotification({
-    ...getInfoNotificationOrThrow(api, id, overrideMessage),
+    ...getNotificationOrThrow(api, InfoNotificationsUnsafeMap, id, overrideMessage),
     actions,
   });
 
   return NotificationStatus.Complete;
+};
+
+export const startActivityNotification = (api: VortexApi, id: ActivityNotification): void => {
+  api.sendNotification(getNotificationOrThrow(api, ActivityNotificationsUnsafeMap, id));
+};
+
+export const stopActivityNotification = (api: VortexApi, id: ActivityNotification): void => {
+  api.dismissNotification?.(id);
 };

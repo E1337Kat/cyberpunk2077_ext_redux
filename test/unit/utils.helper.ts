@@ -43,6 +43,7 @@ import {
   REDSCRIPT_CORE_FILES,
   DEPRECATED_REDSCRIPT_CORE_FILES,
   REDS_MOD_CANONICAL_HINTS_PATH_PREFIX,
+  REDS_MOD_CANONICAL_STORAGES_PATH_PREFIX,
   AUDIOWARE_MOD_CANONICAL_PATH_PREFIX,
 } from "../../src/installers.layouts";
 import {
@@ -173,6 +174,14 @@ export const FAKE_DISK_DIR = `this-simulates-different-ondisk-dir`;
 export const FAKE_DISK_PATH_FOR_STAGING_PATH = path.join(...FAKE_STAGING_DIRS, FAKE_DISK_DIR, path.sep);
 
 export const FAKE_MOD_NAME = `Fake Mod For Examples`;
+
+// Nexus's current download filename: name, mod id, version, upload stamp, token.
+export const FAKE_MOD_NAME_CURRENT_NEXUS = `DigitalVixenCore`;
+export const FAKE_STAGING_PATH_CURRENT_NEXUS = path.join(
+  ...FAKE_STAGING_DIR_PREFIXES,
+  `${FAKE_MOD_NAME_CURRENT_NEXUS} 28390 4.9.3 2026-09-28T20-02Z 9ka2kytex.installing`,
+  path.sep,
+);
 
 export const FAKE_MOD_INFO: ModInfo = {
   name: `Fake Mod For Examples`,
@@ -313,6 +322,8 @@ export const REDS_PREFIXES = [
   ...pathHierarchyFor(REDS_PREFIX),
   ...pathHierarchyFor(REDS_HINTS),
 ];
+export const REDS_STORAGES = REDS_MOD_CANONICAL_STORAGES_PATH_PREFIX;
+export const REDS_STORAGES_PREFIXES = pathHierarchyFor(REDS_STORAGES);
 
 export const RED4EXT_PREFIX = RED4EXT_MOD_CANONICAL_BASEDIR;
 export const RED4EXT_PREFIXES = pathHierarchyFor(RED4EXT_PREFIX);

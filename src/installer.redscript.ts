@@ -28,6 +28,7 @@ import {
   NoLayout,
   REDS_MOD_CONFIG_EXTENSIONS,
   REDS_MOD_CANONICAL_HINTS_PATH_PREFIX,
+  REDS_MOD_CANONICAL_STORAGES_PATH_PREFIX,
 } from "./installers.layouts";
 import {
   moveFromTo,
@@ -54,8 +55,14 @@ const matchRedscriptFile = (file: string): boolean =>
 const matchRedscriptConfigFile = (file: string): boolean =>
   pathIn(REDS_MOD_CONFIG_EXTENSIONS)(path.extname(file));
 
-const allRedscriptConfigFiles = (fileTree: FileTree): readonly string[] =>
-  filesIn(REDS_MOD_CANONICAL_HINTS_PATH_PREFIX, matchRedscriptConfigFile, fileTree);
+// User hints and the runtime data under r6\storages; copied as-is alongside every layout.
+const allRedscriptSideFiles = (fileTree: FileTree): readonly string[] => [
+  ...filesIn(REDS_MOD_CANONICAL_HINTS_PATH_PREFIX, matchRedscriptConfigFile, fileTree),
+  ...filesUnder(REDS_MOD_CANONICAL_STORAGES_PATH_PREFIX, Glob.Any, fileTree),
+];
+
+export const detectRedscriptConfigOnlyLayout = (fileTree: FileTree): boolean =>
+  allRedscriptSideFiles(fileTree).length > 0;
 
 const findCanonicalRedscriptDirs = (fileTree: FileTree): readonly string[] =>
   findTopmostSubdirsWithSome(REDS_MOD_CANONICAL_PATH_PREFIX, matchRedscriptFile, fileTree);
@@ -73,7 +80,7 @@ export const detectRedscriptToplevelLayout = (fileTree: FileTree): boolean =>
   && dirWithSomeIn(FILETREE_ROOT, matchRedscriptFile, fileTree);
 
 const detectRedscriptLayout = (fileTree: FileTree): boolean =>
-  (allRedscriptConfigFiles(fileTree).length > 0 || dirWithSomeUnder(FILETREE_ROOT, matchRedscriptFile, fileTree))
+  (detectRedscriptConfigOnlyLayout(fileTree) || dirWithSomeUnder(FILETREE_ROOT, matchRedscriptFile, fileTree))
   && !detectRed4ExtCanonOnlyLayout(fileTree); // since Red4Ext mods can have embedded reds, we don't want to mistake oe for the other
 
 
@@ -105,11 +112,9 @@ export const redscriptBasedirLayout = (
     moveFromTo(REDS_MOD_CANONICAL_PATH_PREFIX, modnamedDir),
   );
 
-  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
-
   const allBasedirInstructions = [
     ...instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
-    ...instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+    ...instructionsForSameSourceAndDestPaths(allRedscriptSideFiles(fileTree)),
   ];
 
   return {
@@ -126,23 +131,27 @@ export const redscriptToplevelLayout = (
   // .\*.reds
   const hasToplevelReds = detectRedscriptToplevelLayout(fileTree);
 
-  const toplevelReds = hasToplevelReds
-    ? filesUnder(FILETREE_ROOT, Glob.Any, fileTree)
-    : [];
-
   if (!hasToplevelReds) {
     return NoInstructions.NoMatch;
   }
 
+  const sideFiles = allRedscriptSideFiles(fileTree);
+
+  const toplevelFiles = filesUnder(FILETREE_ROOT, Glob.Any, fileTree)
+    .filter((file) => !sideFiles.includes(file));
+
   const modnamedDir = path.join(REDS_MOD_CANONICAL_PATH_PREFIX, modName);
 
-  const allToBasedirWithSubdirAsModname = toplevelReds.map(
+  const allToBasedirWithSubdirAsModname = toplevelFiles.map(
     moveFromTo(FILETREE_ROOT, modnamedDir),
   );
 
   return {
     kind: RedscriptLayout.Toplevel,
-    instructions: instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+    instructions: [
+      ...instructionsForSourceToDestPairs(allToBasedirWithSubdirAsModname),
+      ...instructionsForSameSourceAndDestPaths(sideFiles),
+    ],
   };
 };
 
@@ -159,11 +168,9 @@ export const redscriptCanonLayout = (
     return NoInstructions.NoMatch;
   }
 
-  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
-
   const allCanonicalInstructions = [
     ...instructionsForSameSourceAndDestPaths(allCanonRedscriptFiles),
-    ...instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+    ...instructionsForSameSourceAndDestPaths(allRedscriptSideFiles(fileTree)),
   ];
 
   return {
@@ -177,15 +184,13 @@ export const redscriptConfigOnlyLayout = (
   _modName: string,
   fileTree: FileTree,
 ): MaybeInstructions => {
-  const allConfigFilesInCanonicalDir = allRedscriptConfigFiles(fileTree);
-
-  if (allConfigFilesInCanonicalDir.length < 1) {
+  if (!detectRedscriptConfigOnlyLayout(fileTree)) {
     return NoInstructions.NoMatch;
   }
 
   return {
     kind: RedscriptLayout.ConfigOnly,
-    instructions: instructionsForSameSourceAndDestPaths(allConfigFilesInCanonicalDir),
+    instructions: instructionsForSameSourceAndDestPaths(allRedscriptSideFiles(fileTree)),
   };
 };
 
@@ -245,7 +250,9 @@ export const installRedscriptMod: V2077InstallFunc = async (
 //
 
 export const detectAllowedRedscriptLayouts = (fileTree: FileTree): boolean =>
-  detectRedscriptBasedirLayout(fileTree) || detectRedscriptCanonOnlyLayout(fileTree);
+  detectRedscriptBasedirLayout(fileTree)
+  || detectRedscriptCanonOnlyLayout(fileTree)
+  || detectRedscriptConfigOnlyLayout(fileTree);
 
 export const redscriptAllowedInMultiInstructions = (
   api: VortexApi,
@@ -257,7 +264,7 @@ export const redscriptAllowedInMultiInstructions = (
     modName,
     fileTree,
     // Order is significant here.
-    [redscriptBasedirLayout, redscriptCanonLayout],
+    [redscriptBasedirLayout, redscriptCanonLayout, redscriptConfigOnlyLayout],
   );
 
   if (

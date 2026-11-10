@@ -42,6 +42,18 @@ export const jsonpp = (thing: unknown): string => JSON.stringify(thing, null, 2)
 export const S = (thing: unknown): string =>
   jsonp(thing)?.replace(/(\t|\n|\r)+/gm, ` `).replace(/\\+"/gm, `"`) ?? `<failed to stringify ${thing}>`;
 
+// A caught value is unknown, can come from another realm, and only some carry a code.
+export const getErrorCode = (err: unknown): string | null =>
+  (typeof err === `object` && err !== null && `code` in err && typeof err.code === `string` ? err.code : null);
+
+export const getErrorMessageOrDefault = (err: unknown): string => {
+  if (err instanceof Error) {
+    return err.message;
+  }
+
+  return typeof err === `string` ? err : `unknown error`;
+};
+
 
 export const identity = <T>(t: T): T => t;
 export const trueish = <T>(t: T): boolean => !!t;

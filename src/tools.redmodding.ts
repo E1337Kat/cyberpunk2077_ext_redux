@@ -1,7 +1,4 @@
 import {
-  getOrElse as getOrElseO,
-} from "fp-ts/lib/Option";
-import {
   pipe,
 } from "fp-ts/lib/function";
 import path from "path/win32";
@@ -15,17 +12,19 @@ import {
 import {
   EXTENSION_NAME_INTERNAL,
   GAME_EXE_RELATIVE_PATH,
+  GAME_ID,
+  GOGAPP_ID,
 } from "./index.metadata";
 import {
-  makeV2077LoadOrderFrom,
-  startREDmodDeployInTheBackgroundWithNotifications,
+  deployREDmodForCurrentLoadOrder,
 } from "./load_order";
 import {
-  loadOrderFromVortexState,
-} from "./load_order.functions";
+  redmodToolingIsInstalled,
+} from "./redmod.deploy";
 import {
-  LoadOrder,
-} from "./load_order.types";
+  InfoNotification,
+  showInfoNotification,
+} from "./ui.notifications";
 import {
   REDlauncherExeRelativePath,
   REDdeployExeRelativePath,
@@ -37,13 +36,16 @@ import {
 } from "./tools.types";
 import {
   constant,
+  getErrorMessageOrDefault,
   S,
 } from "./util.functions";
 import {
   makeVortexApi,
   VortexExtensionContext,
-  VortexLoadOrder,
+  VortexLogFunc,
+  VortexProfile,
   VortexRunParameters,
+  VortexState,
   VortexToolShim,
 } from "./vortex-wrapper";
 import {
@@ -155,32 +157,14 @@ export const makeREDdeployManualHookToGetLoadOrder: MakeToolStartHookWithStateFu
           return Promise.reject(new vortexApiLib.util.ProcessCanceled(errorMessage));
         }
 
-        // TODO: Generate load order if none found?
-        //       https://github.com/E1337Kat/cyberpunk2077_ext_redux/issues/285
-        const latestLoadOrderInVortexFormat: VortexLoadOrder = pipe(
-          loadOrderFromVortexState(vortexApi.store.getState(), activeProfile),
-          getOrElseO(constant([])),
-        );
-
-        const timestampAsLoadOrderId = Date.now();
-
-        const latestLoadOrder: LoadOrder =
-          makeV2077LoadOrderFrom(latestLoadOrderInVortexFormat, activeProfile.id, timestampAsLoadOrderId);
-
         try {
-          await startREDmodDeployInTheBackgroundWithNotifications(
-            vortexApi,
-            gameDir,
-            timestampAsLoadOrderId,
-            latestLoadOrder,
-            latestLoadOrderInVortexFormat,
-          );
+          await deployREDmodForCurrentLoadOrder(vortexApi, gameDir);
 
           vortexApi.log(`info`, `${me}: REDdeploy through tool completed`);
           return DummyCmdExeCallForToolToCallAfterRealWorkDone;
 
         } catch (error) {
-          vortexApi.log(`error`, `${me}: REDmod deploy through tool failed: ${S(error)}`);
+          vortexApi.log(`error`, `${me}: REDmod deploy through tool failed: ${getErrorMessageOrDefault(error)}`);
           return DummyCmdExeCallForToolToCallAfterRealWorkDone;
         }
       },
@@ -194,8 +178,94 @@ export const REDmoddingTools = [
 ];
 
 
+// Every route that starts our game: the exe and the prelauncher are run from the
+// game dir, and the GOG client is run with our game id.
+const launchesTheGame = (
+  gameDir: string,
+  { executable, args }: VortexRunParameters,
+): boolean => {
+  const launched = path.relative(gameDir, executable).toLowerCase();
+
+  const startsAGameBinary = [GAME_EXE_RELATIVE_PATH, REDlauncherExeRelativePath]
+    .some((gameBinary) => path.normalize(gameBinary).toLowerCase() === launched);
+
+  return startsAGameBinary || args.includes(`/gameId=${GOGAPP_ID}`);
+};
+
+interface VortexApiLibForLaunchHook {
+  readonly log: VortexLogFunc;
+  readonly util: { UserCanceled: new (message: string) => Error };
+  readonly selectors: {
+    activeProfile: (state: VortexState) => VortexProfile | undefined;
+    discoveryByGame: (state: VortexState, gameId: string) => { path?: string } | undefined;
+  };
+}
+
+export const makeREDmodDeployOnLaunchHook: MakeToolStartHookWithStateFunc =
+  (
+    vortexExt: VortexExtensionContext,
+    vortexApiLib: VortexApiLibForLaunchHook,
+    _featureSet: FeatureSet,
+  ): ToolStartHook => ({
+
+    hookId:
+      `${EXTENSION_NAME_INTERNAL}-redmod-deploy-on-launch`,
+
+    doActualWorkInTheHookAndReturnDummyParams:
+      async (runParameters: VortexRunParameters): Promise<VortexRunParameters> => {
+        const me = `${EXTENSION_NAME_INTERNAL} REDmod launch hook`;
+
+        const vortexApi = makeVortexApi(vortexExt, vortexApiLib);
+
+        // Start hooks fire for every game, and deploying reads the active profile.
+        const activeProfile = vortexApiLib.selectors.activeProfile(vortexApi.store.getState());
+
+        if (activeProfile?.gameId !== GAME_ID) {
+          return runParameters;
+        }
+
+        const gameDir =
+          vortexApiLib.selectors.discoveryByGame(vortexApi.store.getState(), GAME_ID)?.path;
+
+        if (gameDir === undefined || !launchesTheGame(gameDir, runParameters)) {
+          return runParameters;
+        }
+
+        if (!await redmodToolingIsInstalled(gameDir)) {
+          vortexApi.log(`info`, `${me}: REDmod tooling isn't installed, launching without deploying`);
+          return runParameters;
+        }
+
+        vortexApi.log(`info`, `${me}: Deploying REDmods before launch`);
+
+        try {
+          await deployREDmodForCurrentLoadOrder(vortexApi, gameDir);
+        } catch (error) {
+          const reason = getErrorMessageOrDefault(error);
+
+          vortexApi.log(`error`, `${me}: REDmod deployment failed, canceling launch: ${reason}`);
+
+          // Vortex cancels silently, so this notification is the only thing
+          // telling the user why the game didn't start.
+          showInfoNotification(
+            vortexApi,
+            InfoNotification.REDmodDeploymentFailed,
+            `The game wasn't started: ${reason}`,
+          );
+
+          // UserCanceled, because a launcher route reports anything else as an
+          // error and then starts the game anyway.
+          throw new vortexApiLib.util.UserCanceled(`REDmod deployment failed, so the game wasn't started.`);
+        }
+
+        return runParameters;
+      },
+  });
+
+
 export const REDmoddingStartHooks = [
   makeREDdeployManualHookToGetLoadOrder,
+  makeREDmodDeployOnLaunchHook,
 ];
 
 

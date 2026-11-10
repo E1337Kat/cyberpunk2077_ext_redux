@@ -54,6 +54,7 @@ import {
   VortexDiscoveryResult,
   VortexExtensionContext,
   VortexGameStoreEntry,
+  VortexLoadOrderGameInfo,
   VortexState,
 } from "./vortex-wrapper";
 import {
@@ -66,6 +67,14 @@ import {
   wrapSerialize,
   loadOrderUsageInstructionsForVortexGui,
 } from "./load_order";
+import {
+  makeArchiveLoadOrderRegistration,
+  registerSortArchivesAlphabetically,
+} from "./load_order.archive";
+import {
+  loadOrderRegistrations,
+  supportsNamedLoadOrders,
+} from "./load_order.registrations";
 import {
   constant,
   S,
@@ -90,6 +99,9 @@ import {
 } from "./state.functions";
 import * as REDmoddingTools from "./tools.redmodding";
 import * as ExternalTools from "./tools.external";
+import {
+  asVortexStartHook,
+} from "./tools.hooks";
 import {
   ToolStartHook,
 } from "./tools.types";
@@ -122,10 +134,6 @@ export const findGame = (): string =>
   vortexApiLib.util.GameStoreHelper.findByAppId([STEAMAPP_ID, GOGAPP_ID, EPICAPP_ID]).then(
     (game: VortexGameStoreEntry) => game.gamePath,
   );
-
-const requiresGoGLauncher = (): Promise<{ launcher: string; addInfo?: string; }> =>
-  vortexApiLib.util.GameStoreHelper.isGameInstalled(GOGAPP_ID, `gog`).then((gog) =>
-    (gog ? { launcher: `gog`, addInfo: GOGAPP_ID } : undefined));
 
 
 //
@@ -233,7 +241,6 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
       symlinks: false,
     },
     getGameVersion,
-    requiresLauncher: requiresGoGLauncher,
     environment: {
       SteamAPPId: STEAMAPP_ID,
     },
@@ -265,16 +272,19 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
   pipe(
     availableStartHooks,
     mapWithIndex((i: number, { hookId, doActualWorkInTheHookAndReturnDummyParams }) =>
-      forEffect(() => { vortexExt.registerStartHook(40 + i, hookId, doActualWorkInTheHookAndReturnDummyParams); })),
+      forEffect(() => {
+        vortexExt.registerStartHook(40 + i, hookId, asVortexStartHook(doActualWorkInTheHookAndReturnDummyParams));
+      })),
     forEachEffect,
     mapLeft((err) => {
       vortexApiLib.log(`error`, `${EXTENSION_NAME_INTERNAL} init: Failed to register start hook`, err);
     }),
   );
 
-  if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
-    if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)) {
-      vortexExt.registerLoadOrder({
+  const redmodLoadOrderRegistration: VortexLoadOrderGameInfo | undefined =
+    IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)
+      && IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder)
+      ? {
         gameId: GAME_ID,
 
         // This needs to be actually implemented, it doesnt't do
@@ -286,10 +296,24 @@ const main = (vortexExt: VortexExtensionContext): boolean => {
         validate: wrapValidate(vortexExt, vortexApiLib, internalLoadOrderer),
         deserializeLoadOrder: wrapDeserialize(vortexExt, vortexApiLib, internalLoadOrderer),
         serializeLoadOrder: wrapSerialize(vortexExt, vortexApiLib, internalLoadOrderer),
-      });
+      }
+      : undefined;
 
-    } // if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodLoadOrder))
+  const vortexVersion = vortexApiLib.util.getApplication().version;
 
+  loadOrderRegistrations(
+    vortexVersion,
+    redmodLoadOrderRegistration,
+    makeArchiveLoadOrderRegistration(vortexExt, vortexApiLib),
+  ).forEach((registration) => {
+    vortexExt.registerLoadOrder(registration);
+  });
+
+  if (supportsNamedLoadOrders(vortexVersion)) {
+    registerSortArchivesAlphabetically(vortexExt, vortexApiLib);
+  }
+
+  if (IsFeatureEnabled(StaticFeaturesForStartup.REDmodding)) {
     vortexExt.registerReducer(VORTEX_STORE_PATHS.settings, makeSettingsReducer(DefaultEnabledStateForDynamicFeatures));
 
     vortexExt.registerSettings(`V2077 Settings`, settingsComponent, undefined, () =>

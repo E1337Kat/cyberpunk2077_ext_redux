@@ -5,9 +5,7 @@ import {
   util as VortexUtil,
 } from "@vortex-api-test-shimmed";
 import {
-  map,
   some as any,
-  toArray as toMutableArray,
 } from "fp-ts/lib/ReadonlyArray";
 import { pipe } from "fp-ts/lib/function";
 import {
@@ -38,9 +36,8 @@ import {
   VortexNotificationAction,
 } from "./vortex-wrapper";
 import {
-  REDdeployManual,
-  REDlauncher,
-} from "./tools.redmodding";
+  redmodToolingIsInstalled,
+} from "./redmod.deploy";
 
 // This function runs on starting up Vortex or switching to Cyberpunk as the active game.
 // This may need to be converted to a test, but the UI for tests is less flexible.
@@ -50,33 +47,6 @@ interface REDmoddingDlcDetails {
   name?: string;
   url: string;
 }
-
-
-// The one answer to 'can this install load REDmods', so that setup, the
-// conversion action and anything else agree on it.
-export const redmodToolingIsInstalled = async (gameDirPath: string): Promise<boolean> => {
-  const everyFileREDmoddingNeeds = [
-    ...REDlauncher.requiredFiles,
-    ...REDdeployManual.requiredFiles,
-  ];
-
-  // Each stat is caught on its own: a bare Promise.all over rejecting stats
-  // settles on the first and leaves the rest unhandled.
-  const eachFileIsThere = await Promise.all(pipe(
-    everyFileREDmoddingNeeds,
-    map(async (file) => {
-      try {
-        await fs.statAsync(path.join(gameDirPath, file));
-        return true;
-      } catch {
-        return false;
-      }
-    }),
-    toMutableArray,
-  ));
-
-  return eachFileIsThere.every((isThere) => isThere);
-};
 
 
 // Store pages rather than launcher deep links: the protocols open the client on

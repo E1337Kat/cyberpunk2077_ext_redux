@@ -150,9 +150,21 @@ export const makeSyntheticModInfo =
 // Parsing
 //
 
-const ModInfoFormatParser =
+// Nexus download filenames: `Name 28390 4.9.3 2026-09-28T20-02Z 9ka2kytex`, plus Vortex's
+// copy (`(2)`, `.1`) and `+variant` suffixes. Patch keeps any further version parts (`1.0.0.5`).
+const NexusFilenameParser =
   // eslint-disable-next-line max-len
-  /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>(\.\d+||\(\d+\)))?(?:\+(?<variant>.+))?$/;
+  /^(?<name>.+?) (?<id>\d+) (?<major>[^.\s]+)(?:\.(?<minor>[^.\s]+)(?:\.(?<patch>\S+))?)? (?<createTime>\d{4}-\d{2}-\d{2}T\d{2}-\d{2}Z) [A-Za-z0-9]+(?<copy>\.\d+|\(\d+\))?(?:\+(?<variant>.+))?$/;
+
+// Older downloads: `Name-28390-4-9-3-1664414660`, version parts and a unix timestamp.
+const LegacyNexusFilenameParser =
+  // eslint-disable-next-line max-len
+  /^(?<name>.+?)-(?<id>\d+)-(?<major>\w+)(?:-(?<minor>\w+)(?:-(?<patch>\w+))?)?-(?<createTime>\d+)(?<copy>\.\d+|\(\d+\))?(?:\+(?<variant>.+))?$/;
+
+const UploadStampTime = /T(\d{2})-(\d{2})Z$/;
+
+const uploadStampToSeconds = (stamp: string): string =>
+  dateToSeconds(new Date(stamp.replace(UploadStampTime, `T$1:$2:00Z`)));
 
 //
 export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, ModInfo> => {
@@ -162,15 +174,16 @@ export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, Mod
   const cleanedArchiveName =
     path.basename(installingDir.relativePath, `.installing`);
 
-  const infoSuccessfullyParsed = ModInfoFormatParser.exec(cleanedArchiveName);
+  const nexusParsed = NexusFilenameParser.exec(cleanedArchiveName);
+  const parsed = nexusParsed ?? LegacyNexusFilenameParser.exec(cleanedArchiveName);
 
-  if (!infoSuccessfullyParsed) {
+  if (!parsed) {
     return left(makeSyntheticModInfo(cleanedArchiveName, stagingDirPrefix, installingDir));
   }
 
   const {
     name, id, major, minor, patch, createTime, copy, variant,
-  } = infoSuccessfullyParsed.groups;
+  } = parsed.groups;
 
   const modInfo: ModInfo =
     makeModInfo({
@@ -181,7 +194,7 @@ export const modInfoFromArchivePath = (installingDir: Path): Either<ModInfo, Mod
         minor,
         patch,
       },
-      createTime,
+      createTime: nexusParsed ? uploadStampToSeconds(createTime) : createTime,
       stagingDirPrefix,
       installingDir,
       copy,

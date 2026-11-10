@@ -387,4 +387,103 @@ describe(`Parsing mod info from archive name`, () => {
       );
     });
   });
+
+  test(`produces the correctly parsed info for the current Nexus download filename format`, () => {
+    const uploadedAt = new Date(Date.UTC(2026, 8, 28, 20, 2));
+
+    const parsed = (
+      archiveName: string,
+      expected: Pick<ModInfo, `name` | `id` | `version` | `createTime`> & Partial<Pick<ModInfo, `copy` | `variant`>>,
+    ): [string, ModInfo] => {
+      const installingPath = path.join(INSTALLING_BASEDIR, archiveName + INSTALLING_SUFFIX);
+
+      return [
+        installingPath,
+        {
+          ...expected,
+          stagingDirPrefix: INSTALLING_BASEDIR,
+          installingDir: {
+            relativePath: installingPath,
+            pathOnDisk: path.join(DISKPREFIX, installingPath),
+          },
+        },
+      ];
+    };
+
+    const testCases: [string, ModInfo][] = [
+      parsed(`DigitalVixenCore 28390 4.9.3 2026-09-28T20-02Z 9ka2kytex`, {
+        name: `DigitalVixenCore`,
+        id: `28390`,
+        version: {
+          v: `4.9.3`, major: `4`, minor: `9`, patch: `3`,
+        },
+        createTime: uploadedAt,
+      }),
+      parsed(`Mod Settings Plus 30878 1.0.2 2026-09-28T20-02Z RXDpXNisz`, {
+        name: `Mod Settings Plus`,
+        id: `30878`,
+        version: {
+          v: `1.0.2`, major: `1`, minor: `0`, patch: `2`,
+        },
+        createTime: uploadedAt,
+      }),
+      parsed(`0-Engine Pure CET 27967 0.18.6 2026-09-28T20-02Z sHlUHDmw2`, {
+        name: `0-Engine Pure CET`,
+        id: `27967`,
+        version: {
+          v: `0.18.6`, major: `0`, minor: `18`, patch: `6`,
+        },
+        createTime: uploadedAt,
+      }),
+      parsed(`AdaptiveSliders 5075 20260912 2026-09-28T20-02Z q7jg7fjhh`, {
+        name: `AdaptiveSliders`,
+        id: `5075`,
+        version: {
+          v: `20260912`, major: `20260912`, minor: undefined, patch: undefined,
+        },
+        createTime: uploadedAt,
+      }),
+      parsed(`ResetAttributesAlwaysAvailable 9240 1.0.0.5 2026-09-28T20-02Z 2w0lw13tA`, {
+        name: `ResetAttributesAlwaysAvailable`,
+        id: `9240`,
+        version: {
+          v: `1.0.0.5`, major: `1`, minor: `0`, patch: `0.5`,
+        },
+        createTime: uploadedAt,
+      }),
+      parsed(`Anti-Theft Measures 27229 2.2.1 2026-09-28T20-02Z 5em9eomrW(2)`, {
+        name: `Anti-Theft Measures`,
+        id: `27229`,
+        version: {
+          v: `2.2.1`, major: `2`, minor: `2`, patch: `1`,
+        },
+        createTime: uploadedAt,
+        copy: `(2)`,
+        variant: undefined,
+      }),
+      parsed(`Anti-Theft Measures 27229 2.2.1 2026-09-28T20-02Z 5em9eomrW.1+darkpurple vanilla`, {
+        name: `Anti-Theft Measures`,
+        id: `27229`,
+        version: {
+          v: `2.2.1`, major: `2`, minor: `2`, patch: `1`,
+        },
+        createTime: uploadedAt,
+        copy: `.1`,
+        variant: `darkpurple vanilla`,
+      }),
+    ];
+
+    testCases.forEach(([archiveInstallingPath, expected]) => {
+      pipe(
+        modInfoFromArchivePath({
+          relativePath: archiveInstallingPath,
+          pathOnDisk: `${DISKPREFIX}\\${archiveInstallingPath}`,
+        }),
+        match(
+          (couldNotParse) => { expect(couldNotParse).toBeUndefined(); },
+          (parsedModInfo) => { expect(parsedModInfo).toEqual(expected); },
+        ),
+      );
+    });
+  });
 });

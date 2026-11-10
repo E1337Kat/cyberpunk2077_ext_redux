@@ -1,4 +1,4 @@
-import path from "path";
+import path from "path/win32";
 import {
   V2077_DIR,
 } from "./index.metadata";
